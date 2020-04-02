@@ -1,0 +1,295 @@
+package com.example.loterias
+
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.util.Log
+import io.flutter.plugin.common.EventChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import java.io.IOException
+import java.io.OutputStream
+import java.util.*
+
+
+class BluetoothManager : Activity {
+    private val context: Context;
+    private val activity: Activity;
+    private val sink: EventChannel.EventSink;
+    private val bluetoothAdapter: BluetoothAdapter?;
+    private val REQUEST_ENABLE_BT = 1
+    private val applicationUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+
+    constructor(context: Context, sink: EventChannel.EventSink) {
+        this.context = context
+        this.activity = context as Activity;
+        this.sink = sink;
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    }
+
+    fun startScan() {
+        Log.d("startCan", "startScan");
+        if (bluetoothAdapter == null) {
+            sink.error("UNAVAILABLE", "Device doesn't support bluetooth", null);
+        } else {
+            if (bluetoothAdapter?.isEnabled == false) {
+                turnOnBluetooth();
+            } else {
+                val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+                this.activity.registerReceiver(receiver, filter);
+                try {
+                    bluetoothAdapter.cancelDiscovery()
+                    returnBondedDevice()
+                    bluetoothAdapter.startDiscovery();
+//                    val timer = object: CountDownTimer(20000, 1000) {
+//                        override fun onTick(millisUntilFinished: Long) {...}
+//
+//                        override fun onFinish() {...}
+//                    }
+//                    timer.start()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.e("bluetoothManager", "Error: " + e.message);
+                }
+            }
+        }
+    }
+
+    private fun turnOnBluetooth() {
+        if (bluetoothAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            this.activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (resultCode == Activity.RESULT_OK) {
+                startScan()
+            } else {
+                sink.error("UNAVAILABLE", "Debe activar bluetooth para usar la impresora", null);
+            }
+        }
+    }
+
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action: String = intent.action
+            when (action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    returnDevice(device, true)// MAC address
+                }
+            }
+        }
+    }
+
+    private fun returnDevice(device: BluetoothDevice, escaneadoOemparejado: Boolean) {
+        val ret: MutableMap<String, Any> = HashMap()
+        ret["address"] = device.address
+        ret["name"] = device.name
+        ret["escaneado"] = escaneadoOemparejado
+//        ret["type"] = device.type
+
+        this.sink.success(ret);
+    }
+
+    private fun returnBondedDevice() {
+        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+        pairedDevices?.forEach { device ->
+            returnDevice(device, false)
+        }
+    }
+
+    fun stopScan() {
+        try {
+            this.activity.unregisterReceiver(receiver);
+        } catch (e: Exception) {
+        }
+    }
+
+    private lateinit var connectThread: ConnectThread
+    private lateinit var mBluetoothSocket: BluetoothSocket
+    fun connect(address: String?) {
+        if (address == null) {
+            sink.error("UNAVAILABLE", "Cannot connect cause device address is null", null);
+            return;
+        }
+        val device: BluetoothDevice = bluetoothAdapter!!.getRemoteDevice(address);
+        Utils.killAppServiceByPackageName(context, null)
+        connectThread = ConnectThread(device);
+        connectThread.start();
+    }
+
+    fun disconnect() {
+        connectThread.cancel();
+    }
+
+    private inner class ConnectThread(device: BluetoothDevice) : Thread() {
+        var fueCanceladoDesdeApp: Boolean = false;
+        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            device.createRfcommSocketToServiceRecord(applicationUUID)
+        }
+
+        public override fun run() {
+            // Cancel discovery because it otherwise slows down the connection.
+            bluetoothAdapter?.cancelDiscovery()
+
+            try {
+                var prueba = mmSocket?.let { socket ->
+                    // Connect to the remote device through the socket. This call blocks
+                    // until it succeeds or throws an exception.
+                    socket.connect()
+                    mBluetoothSocket = socket
+
+                    CoroutineScope(Main).launch {
+                        sink.success(true)
+                    }
+
+                    try {
+                        socket.inputStream.read()
+                    } catch (e: Exception) {
+                        if (!fueCanceladoDesdeApp) {
+                            CoroutineScope(Main).launch {
+                                sink.error("UNAVAILABLE", "Se perdio conexion con la impresora", null);
+                            }
+                        }
+                        Log.d("ErrorSocketLet", "Error: ${e.toString()}")
+                    }
+
+//                    CoroutineScope(Dispatchers.IO).launch{
+//                        var join = async {socket.inputStream.read() }.await()
+//                        Log.e("connectThread", "SOcket red: ${join}")
+//                    }
+
+                    // The connection attempt succeeded. Perform work associated with
+                    // the connection in a separate thread.
+                    //manageMyConnectedSocket(socket)
+
+                }
+
+
+            } catch (e: Exception) {
+                CoroutineScope(Main).launch {
+                    sink.error("UNAVAILABLE", "Cannot connect to device: ${e.toString()}", null);
+                }
+            }
+        }
+
+        // Closes the client socket and causes the thread to finish.
+        fun cancel() {
+            try {
+                fueCanceladoDesdeApp = true;
+                mmSocket?.close()
+            } catch (e: IOException) {
+                Log.e("BluetoothManager", "Could not close the client socket", e)
+            }
+        }
+    }
+
+
+    fun POS_S_TextOut(pszString: String, nOrgx: Int, nWidthTimes: Int, nHeightTimes: Int, nFontType: Int, nFontStyle: Int) : Boolean {
+        try {
+            if (nOrgx > 65535 || nOrgx < 0 || nWidthTimes > 7 || nWidthTimes < 0 || nHeightTimes > 7 || nHeightTimes < 0 || nFontType < 0 || nFontType > 4 || pszString.length == 0) {
+                throw java.lang.Exception("invalid args")
+            }
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+            val Cmd: ESCCMD = ESCCMD();
+            Cmd.ESC_dollors_nL_nH[2] = (nOrgx % 256).toByte()
+            Cmd.ESC_dollors_nL_nH[3] = (nOrgx / 256).toByte()
+            val intToWidth = byteArrayOf(0, 16, 32, 48, 64, 80, 96, 112)
+            val intToHeight = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7)
+            Cmd.GS_exclamationmark_n[2] = (intToWidth[nWidthTimes] + intToHeight[nHeightTimes]).toByte()
+            var tmp_ESC_M_n: ByteArray = Cmd.ESC_M_n
+            if (nFontType != 0 && nFontType != 1) {
+                tmp_ESC_M_n = ByteArray(0)
+            } else {
+                tmp_ESC_M_n[2] = nFontType.toByte()
+            }
+            Cmd.GS_E_n[2] = (nFontStyle shr 3 and 1).toByte()
+            Cmd.ESC_line_n[2] = (nFontStyle shr 7 and 3).toByte()
+            Cmd.FS_line_n[2] = (nFontStyle shr 7 and 3).toByte()
+            Cmd.ESC_lbracket_n[2] = (nFontStyle shr 9 and 1).toByte()
+            Cmd.GS_B_n[2] = (nFontStyle shr 10 and 1).toByte()
+            Cmd.ESC_V_n[2] = (nFontStyle shr 12 and 1).toByte()
+            Cmd.ESC_9_n[2] = 1
+            val pbString = pszString.toByteArray()
+            val data: ByteArray = byteArraysToBytes(arrayOf(Cmd.ESC_dollors_nL_nH, Cmd.GS_exclamationmark_n, tmp_ESC_M_n, Cmd.GS_E_n, Cmd.ESC_line_n, Cmd.FS_line_n, Cmd.ESC_lbracket_n, Cmd.GS_B_n, Cmd.ESC_V_n, Cmd.FS_AND, Cmd.ESC_9_n, pbString))!!
+            os.write(data, 0, data.size)
+            os.flush()
+
+            return true;
+
+//            InputStream largeDataInputStream = mBluetoothSocket.getInputStream();
+//            int length;
+//            while ((length = largeDataInputStream.read(data)) != -1) {
+//                Log.d("largeDataInputStream", "index:" + length);
+//            }
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun POS_S_Align(align: Int) {
+        try {
+            if (align < 0 || align > 2) {
+                throw java.lang.Exception("invalid args")
+            }
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            val Cmd: ESCCMD = ESCCMD();
+            val data: ByteArray = Cmd.ESC_a_n
+            data[2] = align.toByte()
+            os.write(data, 0, data.size)
+        } catch (var6: java.lang.Exception) {
+            Log.i("Pos", var6.toString())
+        }
+    }
+
+    fun POS_S_SetQRcode(strCodedata: String, nWidthX: Int, nVersion: Int, nErrorCorrectionLevel: Int) {
+        try {
+            if (nWidthX < 1 || nWidthX > 16 || nErrorCorrectionLevel < 1 || nErrorCorrectionLevel > 4 || nVersion < 0 || nVersion > 16) {
+                throw java.lang.Exception("invalid args")
+            }
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+            val bCodeData = strCodedata.toByteArray()
+            val Cmd : ESCCMD = ESCCMD();
+
+            Cmd.GS_w_n[2] = nWidthX.toByte()
+            Cmd.GS_k_m_v_r_nL_nH[3] = nVersion.toByte()
+            Cmd.GS_k_m_v_r_nL_nH[4] = nErrorCorrectionLevel.toByte()
+            Cmd.GS_k_m_v_r_nL_nH[5] = (bCodeData.size and 255).toByte()
+            Cmd.GS_k_m_v_r_nL_nH[6] = (bCodeData.size and '\uff00'.toInt() shr 8).toByte()
+            val data: ByteArray = byteArraysToBytes(arrayOf(Cmd.GS_w_n, Cmd.GS_k_m_v_r_nL_nH, bCodeData))!!
+            os.write(data, 0, data.size)
+        } catch (var10: java.lang.Exception) {
+            Log.i("Pos", var10.toString())
+        }
+    }
+
+    private fun byteArraysToBytes(data: Array<ByteArray>): ByteArray? {
+        var length = 0
+        for (i in data.indices) {
+            length += data[i].size
+        }
+        val send = ByteArray(length)
+        var k = 0
+        for (i in data.indices) {
+            for (j in 0 until data[i].size) {
+                send[k++] = data[i][j]
+            }
+        }
+        return send
+    }
+
+}
