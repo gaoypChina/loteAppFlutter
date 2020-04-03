@@ -13,10 +13,10 @@ class Router {
         return  MaterialPageRoute(
           builder: (_)=> SplashScreen()
         );
-        // case '/' :
-        // return MaterialPageRoute(
-        //   builder: (_)=> BluetoothScreen()
-        // ) ;
+        case '/bluetooth' :
+        return MaterialPageRoute(
+          builder: (_)=> BluetoothScreen()
+        ) ;
       // case '/' :
       //   return  MaterialPageRoute(
       //     builder: (_)=> SplashScreen()

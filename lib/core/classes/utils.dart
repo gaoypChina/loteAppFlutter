@@ -153,5 +153,13 @@ class  Utils {
         break;
     }
   }
+
+
+ static showSnackBar({String content, scaffoldKey}){
+    scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text(content),
+        action: SnackBarAction(label: 'CERRAR', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),),
+      ));
+  }
   
 }

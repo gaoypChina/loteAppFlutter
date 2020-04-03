@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
     var value = await c.getValue("recordarme");
     if(value != null){
       if(value == true){
-        var parsed = await LoginService.acceder(await c.getValue("usuario"), await c.getValue("password"));
+        var parsed = await LoginService.acceder(usuario: await c.getValue("usuario"), password: await c.getValue("password"));
         await LoginService.guardarDatos(parsed);
         return true;
       }else{

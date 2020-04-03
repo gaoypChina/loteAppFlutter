@@ -148,8 +148,8 @@ static var _store;
 
   getIdUsuario() async {
     try {
-      Usuario u = Usuario.fromMap(await _store.record("usuario").get(_db) as dynamic);
-      return u.id;
+      int id = await _store.record("idUsuario").get(_db) as dynamic;
+      return id;
     } catch (e) {
       return null;
     }

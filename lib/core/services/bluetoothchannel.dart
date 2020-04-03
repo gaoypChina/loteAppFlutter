@@ -14,7 +14,7 @@ class BluetoothChannel{
   static const String TYPE_CMD_ALIGN = "ALIGN";
   static const String TYPE_CMD_PRINT_TEXT = "PRINT";
   static const String TYPE_CMD_PRINT_QR = "QR";
-  static const _methodChannel = const MethodChannel('flutter.test');
+  static const _methodChannel = const MethodChannel('flutter.loterias');
   static const channel = const EventChannel('flutter.bluetooh.stream');
   static StreamSubscription _subscription;
   static bool _escaneando = false;
@@ -59,7 +59,7 @@ class BluetoothChannel{
     }
   }
 
-  static printText(Map<String, dynamic> map, String type) async {
+  static printTicket(Map<String, dynamic> map, String type) async {
     var c = await DB.create();
     var printer = await c.getValue("printer");
     if(_connectado){
@@ -71,7 +71,7 @@ class BluetoothChannel{
       (onData) async {
         print("Listen OnData: $onData");
         _connectado = true;
-        final bool result = await _methodChannel.invokeMethod("printText", {"data" : printTicket(map, type)});
+        final bool result = await _methodChannel.invokeMethod("printText", {"data" : generateMapTicket(map, type)});
         disconnect();
         print("Listen OnData print: $result");
       },
@@ -82,8 +82,34 @@ class BluetoothChannel{
     );
   }
 
-  static Map<int, dynamic> printTicket(Map<String, dynamic> mapVenta, String typeTicket){
+  static printText({String content, int nWidthTimes = 1}) async {
+    var c = await DB.create();
+    var printer = await c.getValue("printer");
+    if(_connectado){
+      return;
+    }
+
+    
+     _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+      (onData) async {
+        print("Listen OnData: $onData");
+        _connectado = true;
+        var map = Map<int, dynamic>();
+        map[map.length] = _getMap(content, nWidthTimes);
+        final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
+        disconnect();
+        print("Listen OnData print: $result");
+      },
+      onError: (error){
+        _connectado = false;
+        print("Listen Error: $error");
+      }
+    );
+  }
+
+  static Map<int, dynamic> generateMapTicket(Map<String, dynamic> mapVenta, String typeTicket){
     List listMapToPrint = List();
+    print("generateMapTicket: ${mapVenta.toString()}");
     Map<int, dynamic> map = Map<int, dynamic>();
     map[map.length] = _getMapAlign(TYPE_ALIGN_CENTER);
     map[map.length] = _getMap("${mapVenta["banca"]["descripcion"]}\n", 1);
@@ -108,7 +134,7 @@ class BluetoothChannel{
           if(loteria["id"] != jugada["idLoteria"])
             continue;
 
-        total += jugada["monto"];
+        total += Utils.toDouble(jugada["monto"]);
 
         map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
         if(primerCicloJugadas){

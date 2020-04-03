@@ -19,6 +19,7 @@ class Principal{
     map["errores"] = parsed['errores'];
     map["mensaje"] = parsed['mensaje'];
     map["venta"] = parsed['venta'];
+    map["img"] = parsed['img'];
     print(parsed['ventas']);
     // map["bancas"] = "jean";
     return map;

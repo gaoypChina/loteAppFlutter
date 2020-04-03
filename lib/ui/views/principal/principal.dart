@@ -6,6 +6,8 @@ import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/sharechannel.dart';
+import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 
 
@@ -72,7 +74,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   // var listaBanca = List<String>.generate(10, (i) => "Banca $i");
   List<Banca> listaBanca = List<Banca>.generate(1, (i) => Banca(descripcion: 'No hay bancas', id: 0));
   List<Loteria> listaLoteria = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay bancas', id: 0));
-  List<Venta> listaVenta = List<Venta>.generate(1, (i) => Venta(idTicket: 0, id: 0));
+  List<Venta> listaVenta = List<Venta>.generate(1, (i) => Venta(idTicket: BigInt.from(0), id: BigInt.from(0)));
   List<Jugada> listaJugadas = List<Jugada>();
 
 Future<String> _montoFuture;
@@ -88,7 +90,7 @@ String _montoPrueba = '0';
   bool _ckbWhatsapp = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
-  StreamController<List<Venta>> _streamControllerVenta;
+  StreamController<bool> _streamControllerVenta;
   StreamController<List<Jugada>> _streamControllerJugada;
   var _txtJugada = TextEditingController();
   var _txtMontoDisponible = TextEditingController();
@@ -97,7 +99,7 @@ String _montoPrueba = '0';
   List<Loteria> _selectedLoterias;
   Timer _timer;
 
-  static const platform = const MethodChannel('flutter.test');
+  static const platform = const MethodChannel('flutter.loterias');
 
 
   
@@ -164,10 +166,11 @@ print('futuro: ${resp.body}');
         map.then((m) => {
             _idVenta = m['idVenta'],
             listaBanca = m['bancas'],
+            listaVenta = m['ventas'],
           _streamControllerBanca.add(true),
+          _streamControllerVenta.add(true),
           listaLoteria = m['loterias'],
           _streamControllerLoteria.add(m['loterias']),
-          _streamControllerVenta.add(m['ventas']),
           _seleccionarPrimeraLoteria(),
           (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null,
           _cargando = false,
@@ -178,6 +181,10 @@ print('futuro: ${resp.body}');
   }
 
   guardar() async {
+    if(await Utils.exiseImpresora() == false){
+      _showSnackBar("Debe registrar una impresora");
+      return;
+    }
     _cargando = true;
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
@@ -206,13 +213,14 @@ print('futuro: ${resp.body}');
         listaBanca = m["bancas"],
          _streamControllerBanca.add(true),
          listaLoteria = m['loterias'],
+          listaVenta = m["ventas"],
+          _streamControllerVenta.add(true),
          _streamControllerLoteria.add(m['loterias']),
-         _streamControllerVenta.add(m['ventas']),
          listaJugadas.clear(),
          _selectedLoterias.clear(),
          _seleccionarPrimeraLoteria(),
          _cargando = false,
-         BluetoothChannel.printText(m['venta'], BluetoothChannel.TYPE_ORIGINAL)
+         (_ckbPrint) ? BluetoothChannel.printTicket(m['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: m["img"], codigoQr: m["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage)
       });
       
     });
@@ -348,6 +356,8 @@ print('futuro: ${resp.body}');
     focusNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _streamControllerBanca.close();
+    _streamControllerVenta.close();
+    _streamControllerLoteria.close();
     await manager.clearInstance(socket);
     
   }
@@ -444,6 +454,36 @@ print('futuro: ${resp.body}');
                   socket.connect();
   }
 
+  _ckbPrintChanged(newValue){
+    setState(() {
+      _ckbPrint = newValue; 
+      if(newValue){
+        _ckbMessage = false;
+        _ckbWhatsapp = false;
+      }
+    });
+  }
+
+  _ckbMessageChanged(newValue){
+    setState(() {
+      _ckbMessage = newValue; 
+      if(newValue){
+        _ckbPrint = false;
+        _ckbWhatsapp = false;
+      }
+    });
+  }
+
+  _ckbWhatsappChanged(newValue){
+    setState(() {
+      _ckbWhatsapp = newValue; 
+      if(newValue){
+        _ckbMessage = false;
+        _ckbPrint = false;
+      }
+    });
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -452,7 +492,7 @@ print('futuro: ${resp.body}');
     }
   }
 
- 
+  
 
 
   @override
@@ -559,44 +599,10 @@ print('futuro: ${resp.body}');
                   // String saludos = await _getSaludosDesdeAndroidStudio();
                   // _showSnackBar("Saludos desde android: $saludos");
 
-                  Future<String> _getSaludosDesdeAndroidStudio() async {
-                    String batteryLevel;
-                    try {
-                      String html = """<!DOCTYPE html>
-                                <html>
-                                <head>
-                                  <title>Inteligencia artificial</title>
-                                </head>
-                                <body>
-                                <h1>HOlaaa</h1>
-                                </body>
-                                </html>""";
-                      String codigoQr = "1092912121";
-                      final String result = await platform.invokeMethod('getTest', {"html":html, "codigoQr" : codigoQr, "sms_o_whatsapp" : false});
-                      batteryLevel = '$result';
-                    } on PlatformException catch (e) {
-                      batteryLevel = "Failed to get battery level: '${e.message}'.";
-                    }
-
-                    print('batterylevel channel: $batteryLevel');
-                    return batteryLevel;
-                  }
+                  
 
 
-                  // Future<String> _getSaludosDesdeAndroidStudio() async {
-                  //   String batteryLevel;
-                  //   try {
-                  //     final String result = await platformAsync.invokeAsynchronousMethod('getBatteryLevel');
-                  //     batteryLevel = '$result';
-                  //   } on PlatformException catch (e) {
-                  //     batteryLevel = "Failed to get saludos: '${e.message}'.";
-                  //   }
-
-                  //   print('batterylevel channel: $batteryLevel');
-                  //   return batteryLevel;
-                  // }
-
-                  String base64Image = await _getSaludosDesdeAndroidStudio();
+                  
                   // print('flutter invoke base64Image: $base64Image');
                   // FlutterShareMe()
                   //      .shareToWhatsApp4Biz(base64Image: base64Image, msg: "Hola");
@@ -737,8 +743,8 @@ print('futuro: ${resp.body}');
                           );
                           }else{
                             return Padding(
-                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                            child: DropdownButton(
+                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: DropdownButton(
                                   hint: Text('Seleccionar banca'),
                                   value:  'No hay datos',
                                   onChanged: (String banca){
@@ -753,8 +759,7 @@ print('futuro: ${resp.body}');
                                     )
                                   ]
                                 ),
-                          
-                          );
+                            );
                             
                           }
                             
@@ -960,14 +965,10 @@ print('futuro: ${resp.body}');
                           MyCheckbox(
                             useTapTarget: false,
                             value: _ckbPrint,
-                            onChanged: (newValue){
-                              setState(() {
-                              _ckbPrint = newValue; 
-                              });
-                            },
+                            onChanged: _ckbPrintChanged,
                           ),
                           SizedBox(width: 5,),
-                          GestureDetector(child: Icon(Icons.print,), onTap: (){setState(() => _ckbPrint = !_ckbPrint);},)
+                          GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
                         ],
                       ),
                       Row(
@@ -975,14 +976,10 @@ print('futuro: ${resp.body}');
                           MyCheckbox(
                             useTapTarget: false,
                             value: _ckbMessage,
-                            onChanged: (newValue){
-                              setState(() {
-                              _ckbMessage = newValue; 
-                              });
-                            },
+                            onChanged: _ckbMessageChanged,
                           ),
                           SizedBox(width: 5,),
-                          GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){setState(() => _ckbMessage = !_ckbMessage);},)
+                          GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
                         ],
                       ),
                       Row(
@@ -990,14 +987,10 @@ print('futuro: ${resp.body}');
                           MyCheckbox(
                             useTapTarget: false,
                             value: _ckbWhatsapp,
-                            onChanged: (newValue){
-                              setState(() {
-                              _ckbWhatsapp = newValue; 
-                              });
-                            },
+                            onChanged: _ckbWhatsappChanged,
                           ),
                           SizedBox(width: 5,),
-                          GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){setState(() => _ckbWhatsapp = !_ckbWhatsapp);},)
+                          GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
                         ],
                       ),
                      
@@ -1132,7 +1125,12 @@ print('futuro: ${resp.body}');
                               children: <Widget>[
                                 IconButton(
                                   icon: Icon(Icons.print, color: Colors.blue, size: 38),
-                                  onPressed: (){},
+                                  onPressed: () async {
+                                    if(listaVenta.isNotEmpty){
+                                      var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
+                                      BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA);
+                                    }
+                                  },
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete, color: Colors.red, size: 38,),
@@ -1145,7 +1143,6 @@ print('futuro: ${resp.body}');
                            stream: _streamControllerVenta.stream,
                            builder: (context, snapshot){
                              if(snapshot.hasData){
-                               listaVenta = snapshot.data;
                                if(listaVenta.length != 0){
                                  return DropdownButton(
                                   hint: Text('seleccionar ticket'),
@@ -1161,6 +1158,25 @@ print('futuro: ${resp.body}');
                                       child: Text(t.idTicket.toString()),
                                     );
                                   }).toList(),
+                                );
+                               }else{
+                                 return Padding(
+                                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                  child: DropdownButton(
+                                      hint: Text('Seleccionar ticket'),
+                                      value:  'No hay tickets',
+                                      onChanged: (String banca){
+                                        setState(() {
+                                        
+                                        });
+                                      },
+                                      items: [
+                                        DropdownMenuItem<String>(
+                                          value: "No hay tickets",
+                                          child: Text('No hay tickets',),
+                                        )
+                                      ]
+                                    ),
                                 );
                                }
 

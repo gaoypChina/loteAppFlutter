@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class LoginService{
-  static Future<Map<String, dynamic>> acceder(String usuario, String password) async {
+  static Future<Map<String, dynamic>> acceder({String usuario, String password, scaffoldkey}) async {
     var map = Map<String, dynamic>();
     var map2 = Map<String, dynamic>();
 
@@ -20,12 +20,14 @@ class LoginService{
     
     if(response.statusCode < 200 || response.statusCode > 400){
       print('parsed ${response.body}');
+      
        throw Exception('Failed to load album');
     }
    
       var parsed = Utils.parseDatos(response.body);
       if(parsed["errores"] == 1){
-        ShowSnackBarWidget(content: parsed["mensaje"],);
+        if(scaffoldkey != null)
+          Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
         throw Exception('Failed to load usuario datos incorrectos');
       }
       // print('parsed ${parsed['usuario']}');

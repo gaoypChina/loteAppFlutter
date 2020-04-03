@@ -112,7 +112,7 @@ class MainActivity: FlutterActivity() {
             val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
             //val base64 = bitmapToBase64(bitmap!!)
 
-            SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp"))
+            SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp") as Boolean)
             CoroutineScope(Dispatchers.Main).launch {
                 result.success("se hizo")
                 Log.e("Advertencia", "Despues de resultado")

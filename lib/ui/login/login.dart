@@ -194,25 +194,15 @@ _showSnackBar(String content){
                           color: _colorPrimary,
                           onPressed: () async {
                             if(_formKey.currentState.validate()){
-                              var parsed = await LoginService.acceder(_txtUsuarioController.text.toString(), _txtPasswordController.text.toString());
+                              var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
+                              print("Error desde login: $parsed");
                               var c = await DB.create();
                               await c.add("recordarme", _recordarme);
+                              await c.add("idUsuario", parsed["usuario"]["id"]);
                               await c.add("usuario", _txtUsuarioController.text.toString());
                               await c.add("password", _txtPasswordController.text.toString());
 
                               LoginService.guardarDatos(parsed);
-
-                              // Usuario u = Usuario.fromMap(parsed['usuario']);
-                              // Banca b = Banca.fromMap(parsed['bancaObject']);
-                              // List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();;
-
-                              // await Db.insert('Users', u.toJson());
-                              // await Db.insert('Branches', b.toJson());
-                              
-                              // for(Permiso p in permisos){
-                              //   await Db.insert('Permissions', p.toJson());
-                              // }
-
                               _navigateToHome();
                             }
                           },

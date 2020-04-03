@@ -120,10 +120,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   _connect() async {
-    var c = await DB.create();
-    var printer = await c.getValue("printer");
-    // BluetoothChannel.connect(printer["address"]);
-    BluetoothChannel.printText(printer["address"], "**PRUEBA EXISTOSA**\n\n\n");
+    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n");
   }
 
   @override
