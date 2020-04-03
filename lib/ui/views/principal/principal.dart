@@ -1134,7 +1134,16 @@ print('futuro: ${resp.body}');
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete, color: Colors.red, size: 38,),
-                                  onPressed: (){},
+                                  onPressed: () async {
+                                    if(listaVenta.isNotEmpty){
+                                      var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra);
+                                      listaVenta.removeAt(_indexVenta);
+                                      _indexVenta = 0;
+                                      _streamControllerVenta.add(true);
+                                      BluetoothChannel.printTicket(r["ticket"], BluetoothChannel.TYPE_CANCELADO);
+                                      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: r["mensaje"]);
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -1437,7 +1446,7 @@ void _getTime() {
     if(_txtMontoDisponible.text.isEmpty)
       return;
 
-    if(Utils.toDouble(_txtMontoDisponible.text) == 0 || Utils.toDouble(_txtMontoDisponible.text) < 0){
+    if((Utils.toDouble(_txtMontoDisponible.text) == 0 || Utils.toDouble(_txtMontoDisponible.text) < 0) || Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
       if(_txtMontoDisponible.text != 'X' && _selectedLoterias.length < 2){
         if(Utils.toDouble(_txtMonto.text) > Utils.toDouble(_txtMontoDisponible.text)){
           _showSnackBar('No hay monto suficiente');
@@ -1770,7 +1779,7 @@ _selectedBanca() async {
 
  Future<double> getMontoDisponible(String jugada, Loteria loteria, Banca banca) async {
     
-    var montoDisponible = 0;
+    var montoDisponible = null;
     
     
     int idDia = getIdDia();
@@ -1783,7 +1792,7 @@ _selectedBanca() async {
       montoDisponible = query.first['monto'];
       
     
-    if(montoDisponible != null && montoDisponible != 0){
+    if(montoDisponible != null){
       query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
       if(query.isEmpty != true){
         montoDisponible = query.first['monto'];
@@ -1801,7 +1810,7 @@ _selectedBanca() async {
 
 
     //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
-    if(montoDisponible == null || montoDisponible == 0){
+    if(montoDisponible == null){
         query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
       if(query.isEmpty != true){
         //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
@@ -1826,7 +1835,7 @@ _selectedBanca() async {
 
     
 
-    if(montoDisponible == null || montoDisponible == 0){
+    if(montoDisponible == null){
       query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
       if(query.isEmpty != true){
         var blocksplaysgenerals = query.first;
@@ -1837,7 +1846,7 @@ _selectedBanca() async {
         }
       }
 
-      if(montoDisponible == null || montoDisponible == 0){
+      if(montoDisponible == null){
         query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
         if(query.isEmpty != true){
           montoDisponible = query.first["monto"];
@@ -1847,14 +1856,14 @@ _selectedBanca() async {
             montoDisponible = query.first["monto"];
         }
 
-        if(montoDisponible == null || montoDisponible == 0){
+        if(montoDisponible == null){
           query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
           if(query.isEmpty != true){
              montoDisponible = query.first["monto"];
           }
         }
 
-        if(montoDisponible == null || montoDisponible == 0){
+        if(montoDisponible == null){
           query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
           if(query.isEmpty != true){
             montoDisponible = query.first["monto"];
@@ -1870,7 +1879,15 @@ _selectedBanca() async {
     // });
     // print('montoDisponiblePrueba idSorteo: $montoDisponible');
 
-    return Utils.toDouble(montoDisponible.toString());
+    int idx = listaJugadas.indexWhere((j) => j.idLoteria == _selectedLoterias[0].id && j.jugada == _txtJugada.text);
+    double montoDisponibleFinal = montoDisponible.toDouble();
+    if(idx != -1){
+      print("encontrado: ${listaJugadas[idx].monto}");
+      montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
+      print("encontrado y restado: ${montoDisponibleFinal}");
+    }
+
+    return montoDisponibleFinal;
    
  }
 

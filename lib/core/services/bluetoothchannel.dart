@@ -134,7 +134,7 @@ class BluetoothChannel{
           if(loteria["id"] != jugada["idLoteria"])
             continue;
 
-        total += Utils.toDouble(jugada["monto"]);
+        total += Utils.toDouble(jugada["monto"].toString());
 
         map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
         if(primerCicloJugadas){
