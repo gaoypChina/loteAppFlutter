@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/ventas.dart';
+import 'package:loterias/core/services/ticketservice.dart';
 
 class Principal{
   static Map<String, dynamic> parseDatos(String responseBody, ) {
@@ -59,4 +61,46 @@ class Principal{
     ).toList();
     return jsonList;
   }
+
+  static showDialogDuplicarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey}) async {
+    return await showDialog(
+      context: context,
+      builder: (context){
+        var _formDuplicarKey = GlobalKey<FormState>();
+        var _txtTicketDuplicar = TextEditingController();
+        return AlertDialog(
+          title: Text('Duplicar ticket'),
+          content: Form(
+            key: _formDuplicarKey,
+            child: TextFormField(
+              controller: _txtTicketDuplicar,
+              validator: (data){
+                if(data.isEmpty){
+                  return 'No debe estar vacio';
+                }
+                return null;
+              },
+            )
+          ),
+          actions: <Widget>[
+            FlatButton(child: Text("Cancelar"), onPressed: (){
+            Navigator.of(context).pop();
+            },),
+            FlatButton(child: Text("Agregar"), onPressed: () async {
+               if(_formDuplicarKey.currentState.validate()){
+                 Navigator.of(context).pop("El culo");
+                 var ticket = await TicketService.duplicar(codigoBarra: _txtTicketDuplicar.text,scaffoldKey: scaffoldKey);
+                 if(ticket != null){
+                   print("ticket: $ticket");
+                 }
+               }
+              // });
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
 }

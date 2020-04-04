@@ -90,6 +90,11 @@ class  Utils {
     // return true;
   }
 
+  static Map<String, dynamic> parseDatosDynamic(dynamic responseBodyDynamic) {
+    final parsed = responseBodyDynamic.cast<String, dynamic>();
+    return parsed;
+  }
+
   static Future<bool> exiseImpresora() async{
     var c = await DB.create();
     var impresora = await c.getValue('printer');
@@ -158,6 +163,7 @@ class  Utils {
  static showSnackBar({String content, scaffoldKey}){
     scaffoldKey.currentState.showSnackBar(SnackBar(
         content: Text(content),
+        elevation: 25,
         action: SnackBarAction(label: 'CERRAR', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),),
       ));
   }

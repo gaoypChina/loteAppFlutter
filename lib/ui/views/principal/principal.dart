@@ -88,6 +88,7 @@ String _montoPrueba = '0';
   bool _ckbPrint = true;
   bool _ckbMessage = false;
   bool _ckbWhatsapp = false;
+  bool _drawerIsOpen = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
   StreamController<bool> _streamControllerVenta;
@@ -426,7 +427,8 @@ print('futuro: ${resp.body}');
                   // });
 
                   socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
-                    var parsed = data.cast<String, dynamic>();
+                    // var parsed = data.cast<String, dynamic>();
+                    var parsed = await compute(Utils.parseDatosDynamic, data);
                     await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
                   });
                   socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
@@ -493,8 +495,6 @@ print('futuro: ${resp.body}');
   }
 
   
-
-
   @override
   build(BuildContext context) {
     return MaterialApp(
@@ -511,15 +511,48 @@ print('futuro: ${resp.body}');
             key: _scaffoldKey,
           drawer: SafeArea(
             child: Drawer(
-              child: ListView(
+              child: 
+              ListView(
                 children: <Widget>[
                   ListTile(
-                    title: Text('Principal'),
-                    leading: Icon(Icons.first_page),
+                    title: Text('Banca11', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                    leading: Container(
+                      width: 30,
+                      height: 30,
+                      child:  ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            widthFactor: 0.75,
+                            heightFactor: 0.75,
+                            child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    title: Text('Vender'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                  ),
+                  ListTile(
+                    title: Text('Duplicar'),
+                    leading: Icon(Icons.scatter_plot),
+                    dense: true,
+                    onTap: () async {
+                      // _scaffoldKey.currentState.openEndDrawer();
+                      // await Future.delayed(Duration(seconds: 2));
+                      var prueba = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
+                      _scaffoldKey.currentState.openEndDrawer();
+                      print("prueba alertdialog: $prueba");
+                    },
                   ),
                   ListTile(
                     title: Text('Cerrar sesion'),
-                    leading: Icon(Icons.first_page),
+                    dense: true,
+                    leading: Icon(Icons.clear),
                     onTap: () async {
                       var c = await DB.create();
                       await c.add("recordarme", false);
@@ -532,11 +565,15 @@ print('futuro: ${resp.body}');
                   )
                 ],
               ),
+
             ),
           ),
           appBar: AppBar(
             title: Text('Principal'),
+            // leading: SizedBox(),
+            // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: _manageDrawer),
             actions: <Widget>[
+              Container(),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -1325,9 +1362,11 @@ void _getTime() {
     );
 
     _selectedLoterias = List();
-    final selectedValuesMap = selectedValues.toList().asMap();
-    for(int c=0; c < selectedValuesMap.length; c++){
-      _selectedLoterias.add(listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c]));
+    if(selectedValues != null){
+      final selectedValuesMap = selectedValues.toList().asMap();
+      for(int c=0; c < selectedValuesMap.length; c++){
+        _selectedLoterias.add(listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c]));
+      }
     }
     print(_selectedLoterias.length);
   }
@@ -1364,7 +1403,7 @@ void _getTime() {
           _txtMontoPrimerCaracter = true;
           });
       }else{
-        addJugada();
+        addJugada(jugada: _txtJugada.text, montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
       }
       return;
     }
@@ -1439,7 +1478,124 @@ void _getTime() {
   }
 
 
-  addJugada(){
+  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias}){
+    if(jugada.length < 2)
+      return;
+
+    if(montoDisponible.isEmpty)
+      return;
+
+    if((Utils.toDouble(montoDisponible) == 0 || Utils.toDouble(montoDisponible) < 0) || Utils.toDouble(montoDisponible) < Utils.toDouble(monto)){
+      if(montoDisponible != 'X' && selectedLoterias.length < 2){
+        if(Utils.toDouble(monto) > Utils.toDouble(montoDisponible)){
+          _showSnackBar('No hay monto suficiente');
+            return;
+        }
+      }
+    }
+
+    if(Utils.toDouble(monto) == 0){
+      _showSnackBar('La cantidad a jugar debe ser mayor que cero');
+        return;
+    }
+    
+
+    if(selectedLoterias.length == 0){
+      _showSnackBar('Debe seleccionar una loteria');
+        return;
+    }
+
+    if(selectedLoterias.length == 1){
+      int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
+      if(idx != -1){
+        showDialog(
+          context: context,
+          builder: (context){
+            return AlertDialog(
+              title: Text('Jugada existe'),
+              content: Text('La jugada ${jugada} existe en la loteria ${selectedLoterias[0].descripcion} desea agregar?'),
+              actions: <Widget>[
+                FlatButton(child: Text("Cancelar"), onPressed: (){
+                Navigator.of(context).pop();
+                },),
+                FlatButton(child: Text("Agregar"), onPressed: (){
+                    Navigator.of(context).pop();
+                    listaJugadas[idx].monto += Utils.toDouble(monto);
+                    _streamControllerJugada.add(listaJugadas);
+                    _txtJugada.text = '';
+                    _txtMontoDisponible.text = '';
+                  // });
+                  },
+                )
+              ],
+            );
+          }
+        );
+      }else{
+        listaJugadas.add(Jugada(
+          jugada: jugada,
+          idLoteria: selectedLoterias[0].id,
+          monto: Utils.redondear(Utils.toDouble(monto), 2),
+          descripcion: selectedLoterias[0].descripcion,
+          idBanca: 0
+        ));
+        _streamControllerJugada.add(listaJugadas);
+
+        _txtJugada.text = '';
+        _txtMontoDisponible.text = '';
+      }
+
+      
+      // setState(() => _jugadaOmonto = true);
+    }
+    else{
+      selectedLoterias.forEach((l){
+        int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == l.id) : -1;
+        if(idx != -1){
+          showDialog(
+            context: context,
+            builder: (context){
+              return AlertDialog(
+                title: Text('Jugada existe'),
+                content: Text('La jugada ${jugada} existe en la loteria ${l.descripcion} desea agregar?'),
+                actions: <Widget>[
+                  FlatButton(child: Text("Cancelar"), onPressed: (){
+                  Navigator.of(context).pop();
+                  },),
+                  FlatButton(child: Text("Agregar"), onPressed: (){
+                      Navigator.of(context).pop();
+                      listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(monto), 2);
+                    // });
+                    },
+                  )
+                ],
+              );
+            }
+          );
+        }
+        else{
+          listaJugadas.add(Jugada(
+            jugada: jugada,
+            idLoteria: l.id,
+            monto: Utils.redondear(Utils.toDouble(monto), 2),
+            descripcion: l.descripcion,
+            idBanca: 0
+          ));
+        }
+        
+      });
+
+      _streamControllerJugada.add(listaJugadas);
+      _txtJugada.text = '';
+      _txtMontoDisponible.text = '';
+
+    }
+
+          
+    setState(() => _jugadaOmonto = !_jugadaOmonto);
+
+  }
+  addJugadaViejo(){
     if(_txtJugada.text.length < 2)
       return;
 
