@@ -107,6 +107,18 @@ class BluetoothChannel{
     );
   }
 
+  static Future<bool> turnOn() async {
+    bool result = false;
+    try{
+      bool r = await _methodChannel.invokeMethod("turnOnBluetooth");
+      result = r;
+    } on PlatformException catch(e){
+      print("Flutter error activando bluetooth: ${e.toString()}");
+    }
+
+    return result;
+  }
+
   static Map<int, dynamic> generateMapTicket(Map<String, dynamic> mapVenta, String typeTicket){
     List listMapToPrint = List();
     print("generateMapTicket: ${mapVenta.toString()}");

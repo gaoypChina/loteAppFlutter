@@ -93,12 +93,17 @@ class MainActivity: FlutterActivity() {
             "requestPermissions" -> requestPermission(result)
             "share" -> HmltToBitmapAndSendSMSWhatsapp(call, result)
             "printText" -> printText(call, result)
+            "turnOnBluetooth" -> turnOnBluetooth(result)
         }
     }
 
     fun requestPermission(result:MethodChannel.Result){
         Utils.comprobarPermisos(this)
         result.success(true)
+    }
+
+    fun turnOnBluetooth(result:MethodChannel.Result){
+        BluetoothManager.turnOnBluetoothFromFlutter(this@MainActivity, result)
     }
 
     fun HmltToBitmapAndSendSMSWhatsapp(call:MethodCall, result:MethodChannel.Result ){

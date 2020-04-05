@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
@@ -61,10 +62,26 @@ class BluetoothManager : Activity {
         }
     }
 
-    private fun turnOnBluetooth() {
+     private fun turnOnBluetooth() {
         if (bluetoothAdapter?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             this.activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        }
+    }
+
+    companion object{
+        fun turnOnBluetoothFromFlutter(context: Context, result: MethodChannel.Result) {
+
+            val activity = context as Activity;
+            val REQUEST_ENABLE_BT = 1
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            if (bluetoothAdapter?.isEnabled == false) {
+                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+                result.success(false)
+            }else{
+                result.success(true)
+            }
         }
     }
 

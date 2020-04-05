@@ -182,10 +182,17 @@ print('futuro: ${resp.body}');
   }
 
   guardar() async {
-    if(await Utils.exiseImpresora() == false){
-      _showSnackBar("Debe registrar una impresora");
-      return;
+    if(_ckbPrint){
+      if(await Utils.exiseImpresora() == false){
+        _showSnackBar("Debe registrar una impresora");
+        return;
+      }
+
+      if(!(await BluetoothChannel.turnOn())){
+        return;
+      }
     }
+    
     _cargando = true;
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
@@ -542,11 +549,34 @@ print('futuro: ${resp.body}');
                     leading: Icon(Icons.scatter_plot),
                     dense: true,
                     onTap: () async {
-                      // _scaffoldKey.currentState.openEndDrawer();
-                      // await Future.delayed(Duration(seconds: 2));
-                      var prueba = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
+                      Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
                       _scaffoldKey.currentState.openEndDrawer();
-                      print("prueba alertdialog: $prueba");
+                      if(datos.isNotEmpty){
+                        List loteriasAbiertas = listaLoteria.map((l) => l).toList();
+                        List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+                        loteriasAduplicar.forEach((l) async {
+                          for(Map<String, dynamic> jugada in datos["jugadas"]){
+                            if(l["id"] == jugada["idLoteria"]){
+                              if(l["duplicar"] == '- NO MOVER -')
+                                await addJugada(loteriaMap: l, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
+                              else if(l["duplicar"] != '- NO COPIAR -'){
+                                print('dentro no copiar');
+                                Map<String, dynamic> mapLoteria = Map<String, dynamic>();
+                                Loteria loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarId"]);
+                                if(loteria != null){
+                                  mapLoteria["id"] = loteria.id;
+                                  mapLoteria["descripcion"] = loteria.descripcion;
+                                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
+                                }
+
+                              }
+                            }
+                          }
+                        });
+
+                        print("Loterias a duplicar: ${loteriasAduplicar.toString()}");
+                      }
+                      // print("prueba alertdialog: $prueba");
                     },
                   ),
                   ListTile(
@@ -1478,7 +1508,7 @@ void _getTime() {
   }
 
 
-  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias}){
+  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap}){
     if(jugada.length < 2)
       return;
 
@@ -1500,12 +1530,55 @@ void _getTime() {
     }
     
 
-    if(selectedLoterias.length == 0){
-      _showSnackBar('Debe seleccionar una loteria');
-        return;
+    if(loteriaMap == null){
+      if(selectedLoterias.length == 0){
+        _showSnackBar('Debe seleccionar una loteria');
+          return;
+      }
     }
 
-    if(selectedLoterias.length == 1){
+    if(loteriaMap != null){
+      int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteriaMap["id"]) : -1;
+      if(idx != -1){
+        showDialog(
+          context: context,
+          builder: (context){
+            return AlertDialog(
+              title: Text('Jugada existe'),
+              content: Text('La jugada ${jugada} existe en la loteria ${loteriaMap["descripcion"]} desea agregar?'),
+              actions: <Widget>[
+                FlatButton(child: Text("Cancelar"), onPressed: (){
+                Navigator.of(context).pop();
+                },),
+                FlatButton(child: Text("Agregar"), onPressed: (){
+                    Navigator.of(context).pop();
+                    listaJugadas[idx].monto += Utils.toDouble(monto);
+                    _streamControllerJugada.add(listaJugadas);
+                    _txtJugada.text = '';
+                    _txtMontoDisponible.text = '';
+                  // });
+                  },
+                )
+              ],
+            );
+          }
+        );
+      }else{
+        listaJugadas.add(Jugada(
+          jugada: jugada,
+          idLoteria: loteriaMap["id"],
+          monto: Utils.redondear(Utils.toDouble(monto), 2),
+          descripcion: loteriaMap["descripcion"],
+          idBanca: 0
+        ));
+        _streamControllerJugada.add(listaJugadas);
+
+        _txtJugada.text = '';
+        _txtMontoDisponible.text = '';
+      }
+
+    }
+    else if(selectedLoterias.length == 1){
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
       if(idx != -1){
         showDialog(
