@@ -40,6 +40,9 @@ class  Utils {
 
   static MaterialColor colorMaterialCustom = MaterialColor(0xFF0990D0, Utils.color);
   static Color colorPrimary = fromHex("#38B6FF");
+  static Color colorInfo = fromHex("#00bcd4");
+  static Color colorRosa = fromHex("#ffcccc");
+  static Color colorGris = fromHex("#eae9e9");
 
   //Este color es el elegido por Mi fanola
   // static Color colorPrimary = fromHex("#68D5D8");
@@ -83,7 +86,7 @@ class  Utils {
 
   static Map<String, dynamic> parseDatos(String responseBody) {
     final parsed = json.decode(responseBody).cast<String, dynamic>();
-    print('utils.parseDatos: $responseBody');
+    // print('utils.parseDatos: $responseBody');
     return parsed;
     // parsed['bancas'].map<Banca>((json) => Banca.fromMap(json)).toList();
     // return parsed.map<Banca>((json) => Banca.fromMap(json)).toList();

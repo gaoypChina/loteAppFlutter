@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -161,5 +162,132 @@ class Principal{
       }
     );
   }
+
+
+  static showDialogPagarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey}) async {
+    return await showDialog(
+      context: context,
+      builder: (context){
+        var _formDuplicarKey = GlobalKey<FormState>();
+        var _txtTicketDuplicar = TextEditingController();
+        return AlertDialog(
+          title: Text('Duplicar ticket'),
+          content: Form(
+            key: _formDuplicarKey,
+            child: TextFormField(
+              controller: _txtTicketDuplicar,
+              decoration: InputDecoration(labelText: "Codigo"),
+              validator: (data){
+                if(data.isEmpty){
+                  return 'No debe estar vacio';
+                }
+                return null;
+              },
+            )
+          ),
+          actions: <Widget>[
+            FlatButton(child: Text("Cancelar"), onPressed: (){
+            Navigator.of(context).pop(Map<String, dynamic>());
+            },),
+            FlatButton(child: Text("Agregar"), onPressed: () async {
+               if(_formDuplicarKey.currentState.validate()){
+                 Map<String, dynamic> ticket = await TicketService.buscarTicketAPagar(codigoBarra: _txtTicketDuplicar.text,scaffoldKey: scaffoldKey);
+                  Navigator.of(context).pop(ticket);
+               }
+              // });
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
+
+  static showDialogPagar({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+    return await showDialog(
+      context: context,
+      builder: (context){
+        
+        return StatefulBuilder(
+          builder: (context, setState){
+            return AlertDialog(
+              contentPadding: EdgeInsets.all(0),
+              title: Text('Pagar ticket'),
+              content: Column(
+                children: <Widget>[
+                  Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[300])),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        decoration: BoxDecoration(
+                          color: Utils.colorInfo
+                        ),
+                        child: Center(child: Text('Ganador')),
+                      ),
+                      Container(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        decoration: BoxDecoration(
+                          color: Utils.colorRosa
+                        ),
+                        child: Center(child: Text('Perdedor')),
+                      ),
+                      Container(
+                        padding: EdgeInsets.only(left: 10, right: 10),
+                        decoration: BoxDecoration(
+                          color: Utils.colorGris
+                        ),
+                        child: Center(child: Text('Pendiente')),
+                      )
+                    ],
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                      children: [
+                        TextSpan(text: "Monto:"),
+                        TextSpan(text: '2.0', style: TextStyle(color: Utils.colorInfo))
+                      ]
+                    ),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                      children: [
+                        TextSpan(text: "Pendiente de pago:"),
+                        TextSpan(text: '56.0', style: TextStyle(color: Utils.colorRosa))
+                      ]
+                    ),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                      children: [
+                        TextSpan(text: "Premio total:"),
+                        TextSpan(text: '2.0', style: TextStyle(color: Utils.colorInfo))
+                      ]
+                    ),
+                  )
+                ],
+
+              ),
+              actions: <Widget>[
+                FlatButton(child: Text("Cancelar"), onPressed: (){
+                Navigator.of(context).pop(List());
+                },),
+                FlatButton(child: Text("Agregar"), onPressed: () async {
+                    
+                  },
+                )
+              ],
+            );
+          },
+        );
+      }
+    );
+  }
+ 
 
 }

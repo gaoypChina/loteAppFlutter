@@ -9,6 +9,8 @@ import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
+import 'package:barcode_scan/barcode_scan.dart';
+
 
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -493,6 +495,30 @@ print('futuro: ${resp.body}');
     });
   }
 
+  _duplicar(Map<String, dynamic> datos) async {
+    List loteriasAbiertas = listaLoteria.map((l) => l).toList();
+    List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    loteriasAduplicar.forEach((l) async {
+      for(Map<String, dynamic> jugada in datos["jugadas"]){
+        if(l["id"] == jugada["idLoteria"]){
+          if(l["duplicar"] == '- NO MOVER -')
+            await addJugada(loteriaMap: l, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
+          else if(l["duplicar"] != '- NO COPIAR -'){
+            print('dentro no copiar');
+            Map<String, dynamic> mapLoteria = Map<String, dynamic>();
+            Loteria loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarId"]);
+            if(loteria != null){
+              mapLoteria["id"] = loteria.id;
+              mapLoteria["descripcion"] = loteria.descripcion;
+              await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
+            }
+
+          }
+        }
+      }
+    });
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -552,31 +578,22 @@ print('futuro: ${resp.body}');
                       Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
                       _scaffoldKey.currentState.openEndDrawer();
                       if(datos.isNotEmpty){
-                        List loteriasAbiertas = listaLoteria.map((l) => l).toList();
-                        List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
-                        loteriasAduplicar.forEach((l) async {
-                          for(Map<String, dynamic> jugada in datos["jugadas"]){
-                            if(l["id"] == jugada["idLoteria"]){
-                              if(l["duplicar"] == '- NO MOVER -')
-                                await addJugada(loteriaMap: l, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
-                              else if(l["duplicar"] != '- NO COPIAR -'){
-                                print('dentro no copiar');
-                                Map<String, dynamic> mapLoteria = Map<String, dynamic>();
-                                Loteria loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarId"]);
-                                if(loteria != null){
-                                  mapLoteria["id"] = loteria.id;
-                                  mapLoteria["descripcion"] = loteria.descripcion;
-                                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
-                                }
-
-                              }
-                            }
-                          }
-                        });
-
-                        print("Loterias a duplicar: ${loteriasAduplicar.toString()}");
+                        await _duplicar(datos);
                       }
                       // print("prueba alertdialog: $prueba");
+                    },
+                  ),
+                  ListTile(
+                    title: Text("Pagar"),
+                    leading: Icon(Icons.payment),
+                    dense: true,
+                    onTap: () async {
+                      Map<String, dynamic> datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                      _scaffoldKey.currentState.openEndDrawer();
+                      if(datos.isNotEmpty){
+                        print("Drawer pagar: ${datos.toString()}");
+                        Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey);
+                      }
                     },
                   ),
                   ListTile(
@@ -621,68 +638,42 @@ print('futuro: ${resp.body}');
                 ],
               ),
 
-              IconButton(
-                icon: Icon(Icons.camera_alt, size: 30),
-                onPressed: () async {
-                  // _showMultiSelect(context);
-                  // var c = await DB.create();
-                  // List<Prueba> lista = await c.getListStock();
-                  // print('loading... ');
-                  // print('lista: ${lista[0].nombre}');
-
-                  var c = await DB.create();
-                  // var culo = await c.getValue("stocks");
-                  // List<dynamic> lista = await c.getList("stocks");
-                  // List<Stock> stocksGuardados = (lista.length == 0) ? null : lista;
-                  // print("culo: $stocksGuardados");
-
-
-                  // List<dynamic> lista = await c.getList("blocksplaysgenerals");
-                  // List<Blocksplaysgenerals> stocksGuardados = (lista.length == 0) ? null : lista;
-                  // stocksGuardados.forEach((s) {
-                  // print("culo: ${s.monto}");
-                  // });
-                  // print("culo: $stocksGuardados");
-                  // await Realtime.sincronizarTodos();
-
-                  // var culo = await c.getValue("maximoIdRealtime");
-                  // print("culo: $culo");
-                  // await Realtime.sincronizarDatosNuevos();
-
-                  // Future<String> _getSaludosDesdeAndroidStudio() async {
-                  //   String batteryLevel;
-                  //   try {
-                  //     final String result = await platform.invokeMethod('getBatteryLevel');
-                  //     batteryLevel = '$result';
-                  //   } on PlatformException catch (e) {
-                  //     batteryLevel = "Failed to get battery level: '${e.message}'.";
-                  //   }
-
-                  //   print('batterylevel channel: $batteryLevel');
-                  //   return batteryLevel;
-                  // }
-                  
-
-                  // String saludos = await _getSaludosDesdeAndroidStudio();
-                  // _showSnackBar("Saludos desde android: $saludos");
-
-                  
-
-
-                  
-                  // print('flutter invoke base64Image: $base64Image');
-                  // FlutterShareMe()
-                  //      .shareToWhatsApp4Biz(base64Image: base64Image, msg: "Hola");
-                  // print('Despues de lanzar whatsaap: $base64Image');
-
-  //                 AdvancedShare.whatsapp(msg: "It's okay :)", url: base64Image)
-	// .then((response) {
-  //     print("response: $response");
-  //   });
-
-                  // _disableTimer();
+              PopupMenuButton(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(Icons.camera_alt, size: 30),
+                ),
+                onSelected: (String value) async {
+                  if(value == "duplicar"){
+                    String codigoQr = await BarcodeScanner.scan();
+                    var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+                    if(datos.isNotEmpty){
+                      _duplicar(datos);
+                    }
+                  }
                 },
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem(
+                    value: "duplicar",
+                    child: Text("Duplicar"),
+                  ),
+                  const PopupMenuItem(
+                    value: "pagar",
+                    child: Text("Pagar")
+                  )
+                ],
               ),
+
+              // IconButton(
+              //   icon: Icon(Icons.camera_alt, size: 30),
+              //   onPressed: () async {
+              //     String codigoQr = await BarcodeScanner.scan();
+              //     var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+              //     if(datos.isNotEmpty){
+              //       _duplicar(datos);
+              //     }
+              //   },
+              // ),
               IconButton(
                 icon: Icon(Icons.bluetooth, size: 30,),
                 onPressed: () async{
