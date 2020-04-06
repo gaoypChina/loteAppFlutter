@@ -170,5 +170,34 @@ class  Utils {
         action: SnackBarAction(label: 'CERRAR', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),),
       ));
   }
+
+  static showAlertDialog({String content, String title, BuildContext context}){
+    showDialog(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("Ok"),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  static Color colorGanadorPerdedorPendiente(int status, double premio){
+    if(status == 1 && premio <= 0)
+      return Utils.colorRosa;
+    else if(status == 1 && premio > 0)
+      return Utils.colorInfo;
+    else
+      return Colors.grey;
+  }
   
 }

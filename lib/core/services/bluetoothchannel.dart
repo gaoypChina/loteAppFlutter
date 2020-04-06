@@ -135,13 +135,17 @@ class BluetoothChannel{
     for(Map<String, dynamic> loteria in mapVenta["loterias"]){
       bool primerCicloJugadas = true;
       int contadorCicleJugadas = 0;
-      map[map.length] = _getMap("---------------\n", 1);
-      map[map.length] = _getMap("${loteria["descripcion"]}\n");
-      map[map.length] = _getMap("---------------\n", 1);
+      
       double total = 0;
       
       List jugadas = _getJugadasPertenecienteALoteria(jugadas: mapVenta["jugadas"], idLoteria: loteria["id"], type: typeTicket);
-      print("pertenecientes: ${jugadas}");
+      if(jugadas.isEmpty)
+        continue;
+
+      map[map.length] = _getMap("---------------\n", 1);
+      map[map.length] = _getMap("${loteria["descripcion"]}\n");
+      map[map.length] = _getMap("---------------\n", 1);
+      
       for(Map<String, dynamic> jugada in jugadas){
           if(loteria["id"] != jugada["idLoteria"])
             continue;
@@ -247,7 +251,7 @@ class BluetoothChannel{
 
   static List _getJugadasPertenecienteALoteria({int idLoteria, List jugadas, String type = TYPE_ORIGINAL}){
     if(type == TYPE_PAGADO)
-      return jugadas.where((j) => j["idLoteria"] == idLoteria && j["pagado"] == false).toList();
+      return jugadas.where((j) => j["idLoteria"] == idLoteria && j["status"] == 0).toList();
     else
       return jugadas.where((j) => j["idLoteria"] == idLoteria).toList();
   }

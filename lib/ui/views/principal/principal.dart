@@ -220,6 +220,7 @@ print('futuro: ${resp.body}');
       var map = compute(Principal.parseDatos, resp.body);
 
       map.then((m) => {
+            _idVenta = m['idVenta'],
         listaBanca = m["bancas"],
          _streamControllerBanca.add(true),
          listaLoteria = m['loterias'],
@@ -588,11 +589,11 @@ print('futuro: ${resp.body}');
                     leading: Icon(Icons.payment),
                     dense: true,
                     onTap: () async {
-                      Map<String, dynamic> datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                      dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
                       _scaffoldKey.currentState.openEndDrawer();
                       if(datos.isNotEmpty){
-                        print("Drawer pagar: ${datos.toString()}");
-                        Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey);
+                        print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
+                        Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
                       }
                     },
                   ),
@@ -650,6 +651,8 @@ print('futuro: ${resp.body}');
                     if(datos.isNotEmpty){
                       _duplicar(datos);
                     }
+                  }else{
+                    Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey);
                   }
                 },
                 itemBuilder: (context) => <PopupMenuEntry<String>>[

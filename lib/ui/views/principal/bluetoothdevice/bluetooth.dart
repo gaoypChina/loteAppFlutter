@@ -96,9 +96,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     var c = await DB.create();
     await c.delete("printer");
     _getPrinter();
-    _scaffoldKey.currentState.showSnackBar(
-      SnackBar(content: Text('Se ha eliminado correctamente'))
-    );
+    Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha eliminado correctamente');
   }
 
   Future<Map<String, dynamic>> _getPrinter() async {
@@ -106,7 +104,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     var printer = await c.getValue("printer");
     if(printer != null){
       _streamControllerGuardado.add(Map<String, dynamic>.from(printer));
-    }
+    }else
+      _streamControllerGuardado.add(null);
   }
 
   deleteItemFromListaEscaneados(int index){
@@ -307,11 +306,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                               onPressed: () async {
                                 await savePrinter(_listaEscaneados[index]);
                                 Navigator.pop(context);
-                                _scaffoldKey.currentState.showSnackBar(
-                                  SnackBar(
-                                    content: Text('Se ha guardado correctamente'),
-                                  )
-                                );
+                                Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha guardado correctamente');
                                 // deleteItemFromListaEscaneados(index);
                               },
                             ),

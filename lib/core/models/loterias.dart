@@ -26,7 +26,10 @@ List sorteosToJson() {
   }
 
   static List<Draws> sorteosToMap(List<dynamic> sorteos){
-    return sorteos.map((data) => Draws.fromMap(data)).toList();
+    if(sorteos != null)
+      return sorteos.map((data) => Draws.fromMap(data)).toList();
+    else
+      return List<Draws>();
   }
 
   toJson() {
