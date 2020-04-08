@@ -5,13 +5,13 @@ class Db{
 
   static String _path;
   static Database database;
-  static create() async {
+  static Future create() async {
     var databasesPath = await getDatabasesPath();
     _path = join(databasesPath, 'demo.db');
     await deleteDatabase(_path);
   }
 
-  static open() async {
+  static Future open() async {
     
     // bool exists = await databaseFactory.databaseExists(_path);
     // if(exists){
@@ -110,4 +110,9 @@ class Db{
         return true;
       }
   }
+
+  static Future deleteDB() async {
+      await deleteDatabase(_path);
+  }
+
 }

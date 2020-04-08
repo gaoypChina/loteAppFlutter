@@ -20,14 +20,14 @@ class LoginService{
     
     if(response.statusCode < 200 || response.statusCode > 400){
       print('parsed ${response.body}');
-      
+      Utils.showSnackBar(scaffoldKey: scaffoldkey, content:"Verifique conexion");
        throw Exception('Failed to load album');
     }
    
       var parsed = Utils.parseDatos(response.body);
       if(parsed["errores"] == 1){
         if(scaffoldkey != null)
-          Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
+        Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
         throw Exception('Failed to load usuario datos incorrectos');
       }
       // print('parsed ${parsed['usuario']}');

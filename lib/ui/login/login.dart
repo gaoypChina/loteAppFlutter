@@ -42,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
   var _txtUsuarioController = TextEditingController();
   var _txtPasswordController = TextEditingController();
   var _recordarme = false;
+  bool _cargando = false;
   FocusNode _txtPasswordFocusNode;
 
 
@@ -190,20 +191,43 @@ _showSnackBar(String content){
                        Padding(
                          padding: const EdgeInsets.only(right: 20),
                          child: RaisedButton(
-                          child: Text('Acceder'),
+                          child: 
+                            (_cargando) 
+                            ? 
+                            SizedBox(
+                              width: 27,
+                              height: 27,
+                              child: Visibility(
+                                visible: _cargando,
+                                child: Theme(
+                                  data: Theme.of(context).copyWith(accentColor: Colors.white),
+                                  child: new CircularProgressIndicator(),
+                                ),
+                              ),
+                            ) 
+                            : 
+                            Text('Acceder'),
                           color: _colorPrimary,
                           onPressed: () async {
                             if(_formKey.currentState.validate()){
-                              var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
-                              print("Error desde login: $parsed");
-                              var c = await DB.create();
-                              await c.add("recordarme", _recordarme);
-                              await c.add("idUsuario", parsed["usuario"]["id"]);
-                              await c.add("usuario", _txtUsuarioController.text.toString());
-                              await c.add("password", _txtPasswordController.text.toString());
+                              try{
+                                setState(() => _cargando = true);
+                                var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
+                                print("Error desde login: $parsed");
+                                setState(() => _cargando = false);
+                                var c = await DB.create();
+                                await c.add("recordarme", _recordarme);
+                                await c.add("idUsuario", parsed["usuario"]["id"]);
+                                await c.add("usuario", _txtUsuarioController.text.toString());
+                                await c.add("password", _txtPasswordController.text.toString());
+                                await Db.create();
+                                await Db.open();
 
-                              LoginService.guardarDatos(parsed);
-                              _navigateToHome();
+                                LoginService.guardarDatos(parsed);
+                                _navigateToHome();
+                              }on Exception catch(e){
+                                setState(() => _cargando = false);
+                              }
                             }
                           },
                       ),

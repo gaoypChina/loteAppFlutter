@@ -183,7 +183,44 @@ print('futuro: ${resp.body}');
     
   }
 
-  guardar() async {
+  guardar() async{
+    if(_ckbPrint){
+      if(await Utils.exiseImpresora() == false){
+        _showSnackBar("Debe registrar una impresora");
+        return;
+      }
+
+      if(!(await BluetoothChannel.turnOn())){
+        return;
+      }
+    }
+
+    try{
+      setState(() => _cargando = true);
+      var datos = await TicketService.guardar(idVenta: _idVenta, compartido: _ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      
+      setState((){
+         
+        _idVenta = datos['idVenta'];
+        listaBanca = datos["bancas"];
+        _streamControllerBanca.add(true);
+        listaLoteria = datos['loterias'];
+        listaVenta = datos["ventas"];
+        _streamControllerVenta.add(true);
+        _streamControllerLoteria.add(datos['loterias']);
+        listaJugadas.clear();
+        _selectedLoterias.clear();
+        _seleccionarPrimeraLoteria();
+        _cargando = false;
+        (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
+      
+      });
+    } on Exception catch(e){
+      setState(() => _cargando = false);
+    }
+  }
+
+  guardarViejo() async {
     if(_ckbPrint){
       if(await Utils.exiseImpresora() == false){
         _showSnackBar("Debe registrar una impresora");
@@ -572,6 +609,14 @@ print('futuro: ${resp.body}');
                     dense: true,
                   ),
                   ListTile(
+                    title: Text('Monitoreo'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/monitoreo");
+                    },
+                  ),
+                  ListTile(
                     title: Text('Duplicar'),
                     leading: Icon(Icons.scatter_plot),
                     dense: true,
@@ -606,6 +651,7 @@ print('futuro: ${resp.body}');
                       await c.add("recordarme", false);
                       await c.delete("usuario");
                       await c.delete("banca");
+                      await Db.deleteDB();
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
                       );
@@ -646,13 +692,27 @@ print('futuro: ${resp.body}');
                 ),
                 onSelected: (String value) async {
                   if(value == "duplicar"){
-                    String codigoQr = await BarcodeScanner.scan();
-                    var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
-                    if(datos.isNotEmpty){
-                      _duplicar(datos);
+                    try{
+                      String codigoQr = await BarcodeScanner.scan();
+                      setState(() => _cargando = true);
+                      var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+                      setState(() => _cargando = false);
+                      if(datos.isNotEmpty){
+                        _duplicar(datos);
+                      }
+                    } on Exception catch(e){
+                      setState(() => _cargando = false);
                     }
                   }else{
-                    Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey);
+                    try{
+                      String codigoQr = await BarcodeScanner.scan();
+                      setState(() => _cargando = true);
+                      var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+                      setState(() => _cargando = false);
+                      Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+                    } on Exception catch(e){
+                      setState(() => _cargando = false);
+                    }
                   }
                 },
                 itemBuilder: (context) => <PopupMenuEntry<String>>[

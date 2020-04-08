@@ -108,9 +108,12 @@ class  Utils {
     return false;
   }
 
-  static String toSecuencia(String codigoBanca, BigInt idTicket){
+  static String toSecuencia(String codigoBanca, BigInt idTicket, [bool mostrarCodigoBanca = true]){
     String pad = "000000000";
-    return codigoBanca + "-" + pad.substring(0, pad.length - idTicket.toString().length) + idTicket.toString();
+    if(mostrarCodigoBanca)
+      return codigoBanca + "-" + pad.substring(0, pad.length - idTicket.toString().length) + idTicket.toString();
+    else
+      return pad.substring(0, pad.length - idTicket.toString().length) + idTicket.toString();
   }
 
   static Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {

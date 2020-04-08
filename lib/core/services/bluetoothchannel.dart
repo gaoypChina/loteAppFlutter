@@ -132,11 +132,12 @@ class BluetoothChannel{
     if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
       map[map.length] = _getMap("${mapVenta["codigoBarra"]}\n", 1);
     
+    double total = 0;
     for(Map<String, dynamic> loteria in mapVenta["loterias"]){
       bool primerCicloJugadas = true;
       int contadorCicleJugadas = 0;
+      double totalPorLoteria = 0;
       
-      double total = 0;
       
       List jugadas = _getJugadasPertenecienteALoteria(jugadas: mapVenta["jugadas"], idLoteria: loteria["id"], type: typeTicket);
       if(jugadas.isEmpty)
@@ -151,6 +152,7 @@ class BluetoothChannel{
             continue;
 
         total += Utils.toDouble(jugada["monto"].toString());
+        totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
 
         map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
         if(primerCicloJugadas){
@@ -169,20 +171,22 @@ class BluetoothChannel{
       }
 
       map[map.length] = _getMapAlign(1);
-      if(mapVenta["loterias"].length > 1)
-        map[map.length] = _getMap("\n total: $total \n\n\n");
+      int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+      if(loteriasLength > 1)
+        map[map.length] = _getMap("\n total: $totalPorLoteria \n\n\n");
       }
 
       if(mapVenta["hayDescuento"] == 1){
         map[map.length] = _getMap("subTotal: ${mapVenta["total"]}\n");
         map[map.length] = _getMap("descuento: ${mapVenta["descuentoMonto"]}\n");
+        total -= Utils.toDouble(mapVenta["descuentoMonto"].toString());
       }
 
       String saltoLineaTotal = "\n";
       if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || mapVenta["banca"]["imprimirCodigoQr"] == 0)
         saltoLineaTotal += "\n\n";
       
-      map[map.length] = _getMap("- TOTAL: ${mapVenta["total"]}$saltoLineaTotal");
+      map[map.length] = _getMap("- TOTAL: $total$saltoLineaTotal");
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMap("** CANCELADO **\n\n\n", 1);
