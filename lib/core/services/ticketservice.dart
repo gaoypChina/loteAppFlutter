@@ -12,34 +12,7 @@ import 'package:loterias/core/models/ventas.dart';
 
 
 class TicketService{
-  static Future<Map<String, dynamic>> ticket({BigInt idTicket, scaffoldKey}) async {
-    Map<String, dynamic> map = Map<String, dynamic>(); 
-    Map<String, dynamic> mapDatos = Map<String, dynamic>(); 
-    map["idUsuario"] = await Db.idUsuario();
-    map["idTicket"] = idTicket.toInt();
-    mapDatos["datos"] = map;
-
-    print("ticketservice ticket: ${mapDatos.toString()}");
-
-    var response = await http.post(Utils.URL + "/api/reportes/getTicketById", body: json.encode(mapDatos), headers: Utils.header);
-    int statusCode = response.statusCode;
-    if(statusCode < 200 || statusCode > 400){
-      print("ticketService error ticket: ${response.body}");
-      Utils.showSnackBar(content: "Error del servidor ticketServiceTicket");
-      throw Exception("Error response http TicketService ticket");
-    }
-
-    var parsed = await compute(Utils.parseDatos, response.body);
-    if(parsed["errores"] == 1){
-      print("ticketService error ticket: ${parsed["mensaje"]}");
-      Utils.showSnackBar(content: "Error ${parsed["mensaje"]}");
-      throw Exception("Error response http TicketService ticket");
-    }
-
-    print("ticketservice ticket: ${parsed.toString()}");
-
-    return parsed;
-  }
+  
 
   static Future<Map<String, dynamic>> cancelar({String codigoBarra, scaffoldKey}) async {
     var map = Map<String, dynamic>();
@@ -125,6 +98,39 @@ class TicketService{
       else
         Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error ticketService buscarTicketAPagar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> ticket({BigInt idTicket, BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idTicket"] = idTicket.toInt();
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = await Db.idBanca();
+    mapDatos["datos"] = map;
+
+    var response = await http.post(Utils.URL + "/api/reportes/getTicketById", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService ticketById: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService ticketById", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService ticketById", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService ticketById");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService ticketById: ${parsed["mensaje"]}");
     }
 
     return parsed;

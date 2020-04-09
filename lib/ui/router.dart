@@ -4,6 +4,7 @@ import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/principal/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/principal/monitoreo/monitoreo.dart';
+import 'package:loterias/ui/views/principal/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 
 
@@ -15,13 +16,17 @@ class Router {
           builder: (_)=> SplashScreen()
         );
         case '/bluetooth' :
-        return MaterialPageRoute(
-          builder: (_)=> BluetoothScreen()
-        ) ;
+          return MaterialPageRoute(
+            builder: (_)=> BluetoothScreen()
+          ) ;
         case '/monitoreo' :
-        return MaterialPageRoute(
-          builder: (_)=> MonitoreoScreen()
-        ) ;
+          return MaterialPageRoute(
+            builder: (_)=> MonitoreoScreen()
+          ) ;
+        case '/registrarPremios' :
+          return MaterialPageRoute(
+            builder: (_)=> RegistrarPremiosScreen()
+          ) ;
       // case '/' :
       //   return  MaterialPageRoute(
       //     builder: (_)=> SplashScreen()

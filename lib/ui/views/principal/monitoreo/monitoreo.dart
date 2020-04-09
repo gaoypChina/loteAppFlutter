@@ -26,17 +26,24 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   bool _cargando = false;
   int _indexBanca = 0;
   List<Venta> _listaVenta;
+  List<Venta> _tmpListaVenta;
+  Banca _banca;
   @override
   initState() {
     // TODO: implement initState
-    listaBancaFuture = _futureBanca();
+    _getBanca();
+    listaBancaFuture = _futureBancas();
   _confirmarTienePermiso();
   _getMonitoreo();
   _streamControllerMonitoreo = BehaviorSubject();
     super.initState();
   }
 
-  Future<bool> _futureBanca() async{
+  _getBanca() async {
+    _banca = Banca.fromMap(await Db.getBanca());
+  }
+
+  Future<bool> _futureBancas() async{
     _bancas = await BancaService.all(scaffoldKey: _scaffoldKey);
     _seleccionarBancaPertenecienteAUsuario();
     return true;
@@ -50,6 +57,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
    try{
      setState(() => _cargando = true);
       _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _fecha.toString(), idBanca: (_tienePermiso) ? _bancas[_indexBanca].id : await Db.idBanca());
+      _tmpListaVenta = _listaVenta.map((v) => v).toList();;
       _streamControllerMonitoreo.add(true);
       setState(() => _cargando = false);
       
@@ -63,7 +71,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
   if(banca != null && _bancas != null){
     int idx = _bancas.indexWhere((b) => b.id == banca.id);
-    print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${_bancas.length}');
+    // print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${_bancas.length}');
     setState(() => _indexBanca = (idx != -1) ? idx : 0);
   }else{
     setState(() =>_indexBanca = 0);
@@ -235,7 +243,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                       child: FutureBuilder<bool>(
                         future: listaBancaFuture,
                         builder: (context, snapshot){
-                          print("FutureBuilder: ${snapshot.connectionState}");
+                          // print("FutureBuilder: ${snapshot.connectionState}");
                           if(snapshot.hasData){
                             
                             // _bancas = snapshot.data;
@@ -245,7 +253,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                               onChanged: (Banca banca) async {
                                 int idx = _bancas.indexWhere((b) => b.id == banca.id);
                                 setState(() => _indexBanca = (idx != -1) ? idx : 0);
-                                print("banca: ${banca.descripcion}");
+                                // print("banca: ${banca.descripcion}");
                                 _getMonitoreo();
                               },
                               items: _bancas.map((b) => DropdownMenuItem<Banca>(
@@ -279,12 +287,27 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                   )
                 ],
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  decoration: InputDecoration(hintText: "Numero ticket"),
+                  onChanged: (String text){
+                    print("TextField chagned: $text");
+                    if(text.isEmpty)
+                      _listaVenta = _tmpListaVenta;
+                    else
+                      _listaVenta = _tmpListaVenta.where((v) => v.idTicket.toString().indexOf(text) != -1).toList();
+                    
+                    _streamControllerMonitoreo.add(true);  
+                  },
+                ),
+              ),
               StreamBuilder<bool>(
                 stream: _streamControllerMonitoreo.stream,
                 builder: (context, snapshot){
-                  print("${snapshot.hasData}");
+                  // print("${snapshot.hasData}");
                   if(snapshot.hasData){
-                    return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermiso) ? _bancas[_indexBanca] : Db.getBanca());
+                    return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermiso) ? _bancas[_indexBanca] : _banca);
                   }
                   return _buildTable(List<Venta>(), null);
                 },

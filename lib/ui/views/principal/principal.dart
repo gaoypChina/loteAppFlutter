@@ -103,6 +103,10 @@ String _montoPrueba = '0';
   Timer _timer;
 
   static const platform = const MethodChannel('flutter.loterias');
+  Usuario _usuario;
+  Banca _banca;
+  Future<Map<String, dynamic>> futureBanca;
+  Future<Map<String, dynamic>> futureUsuario;
 
 
   
@@ -360,16 +364,6 @@ print('futuro: ${resp.body}');
     }
     // return http.get('https://jsonplaceholder.typicode.com/posts/1');
   }
-
-  // Future<void> _saludos(MethodCall call) async {
-  //     // type inference will work here avoiding an explicit cast
-  //     final String utterance = call.arguments; 
-  //     switch(call.method) {
-  //       case "saludos":
-  //         print('urtterance: $utterance');
-  //     }
-  //   }
-
   
   Future<List<Banca>> _futureBanca;
 
@@ -393,8 +387,16 @@ print('futuro: ${resp.body}');
     indexPost(true);
     _montoFuture = fetchMonto();
     initSocket();
+    _getUsuarioYBanca();
+    futureBanca = Db.getBanca();
+    futureUsuario = Db.getUsuario();
   // platform.setMethodCallHandler(this._saludos);
 
+  }
+
+  _getUsuarioYBanca() async {
+    _usuario = Usuario.fromMap(await Db.getUsuario());
+    _banca = Banca.fromMap(await Db.getBanca());
   }
 
    @override
@@ -586,7 +588,16 @@ print('futuro: ${resp.body}');
               ListView(
                 children: <Widget>[
                   ListTile(
-                    title: Text('Banca11', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300)),
+                    title: FutureBuilder<Map<String, dynamic>>(
+                      future: futureBanca,
+                      builder: (context, snapshot){
+                        if(snapshot.hasData){
+                          return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                        }
+
+                        return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                      }
+                    ),
                     leading: Container(
                       width: 30,
                       height: 30,
@@ -614,6 +625,14 @@ print('futuro: ${resp.body}');
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/monitoreo");
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Registrar premios'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/registrarPremios");
                     },
                   ),
                   ListTile(

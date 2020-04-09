@@ -40,7 +40,11 @@ class LoginService{
   static guardarDatos(Map<String, dynamic> parsed) async {
     Usuario u = Usuario.fromMap(parsed['usuario']);
     Banca b = Banca.fromMap(parsed['bancaObject']);
-    List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();;
+    List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
+
+    await Db.deleteDB();
+    await Db.create();
+    await Db.open();
 
     await Db.insert('Users', u.toJson());
     await Db.insert('Branches', b.toJson());

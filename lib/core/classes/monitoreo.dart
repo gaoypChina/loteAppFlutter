@@ -4,6 +4,7 @@ import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 
 class Monitoreo{
@@ -36,8 +37,17 @@ class Monitoreo{
           actions: <Widget>[
             FlatButton(
                 child: Text("Compartir"),
-                onPressed: (){
-                  
+                onPressed: () async {
+                  try{
+                    setState(() => _cargando = true);
+                    var datos = await TicketService.ticket(context: context, idTicket: venta.idTicket);
+                    ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    setState(() => _cargando = false);
+                    Navigator.pop(context);
+                  } on Exception catch(e){
+                    setState(() => _cargando = false);
+                  }
+
                 },
               ),
                FlatButton(

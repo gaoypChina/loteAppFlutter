@@ -4,6 +4,11 @@ import 'package:loterias/core/models/draws.dart';
 class Loteria {
   int id;
   String descripcion;
+  String primera;
+  String segunda;
+  String tercera;
+  String pick3;
+  String pick4;
   int status;
   List<Draws> sorteos;
 

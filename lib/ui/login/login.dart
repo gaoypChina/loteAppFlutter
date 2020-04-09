@@ -220,10 +220,9 @@ _showSnackBar(String content){
                                 await c.add("idUsuario", parsed["usuario"]["id"]);
                                 await c.add("usuario", _txtUsuarioController.text.toString());
                                 await c.add("password", _txtPasswordController.text.toString());
-                                await Db.create();
-                                await Db.open();
+                                
 
-                                LoginService.guardarDatos(parsed);
+                                await LoginService.guardarDatos(parsed);
                                 _navigateToHome();
                               }on Exception catch(e){
                                 setState(() => _cargando = false);
