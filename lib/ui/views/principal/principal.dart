@@ -636,6 +636,14 @@ print('futuro: ${resp.body}');
                     },
                   ),
                   ListTile(
+                    title: Text('Historico ventas'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/historicoVentas");
+                    },
+                  ),
+                  ListTile(
                     title: Text('Duplicar'),
                     leading: Icon(Icons.scatter_plot),
                     dense: true,

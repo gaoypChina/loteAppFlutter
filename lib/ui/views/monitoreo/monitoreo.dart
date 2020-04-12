@@ -39,6 +39,11 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     super.initState();
   }
 
+  @override
+  dispose(){
+    super.dispose();
+  }
+
   _getBanca() async {
     _banca = Banca.fromMap(await Db.getBanca());
   }

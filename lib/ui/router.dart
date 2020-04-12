@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
-import 'package:loterias/ui/views/principal/bluetoothdevice/bluetooth.dart';
-import 'package:loterias/ui/views/principal/monitoreo/monitoreo.dart';
-import 'package:loterias/ui/views/principal/premios/registrarpremios.dart';
+import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
+import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
+import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
+import 'package:loterias/ui/views/reportes/historicoventas.dart';
 
 
 class Router {
@@ -26,6 +27,10 @@ class Router {
         case '/registrarPremios' :
           return MaterialPageRoute(
             builder: (_)=> RegistrarPremiosScreen()
+          ) ;
+        case '/historicoVentas' :
+          return MaterialPageRoute(
+            builder: (_)=> HistoricoVentasScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(
