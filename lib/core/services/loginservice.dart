@@ -42,6 +42,7 @@ class LoginService{
     Banca b = Banca.fromMap(parsed['bancaObject']);
     List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
 
+    
     await Db.deleteDB();
     await Db.create();
     await Db.open();

@@ -651,16 +651,6 @@ print('futuro: ${resp.body}');
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/historicoVentas");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
-                  ),
-                  ListTile(
-                    title: Text('Ventas'),
-                    leading: Icon(Icons.attach_money),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/ventas");
-                      _scaffoldKey.currentState.openEndDrawer();
                     },
                   ),
                   ListTile(
@@ -877,493 +867,358 @@ print('futuro: ${resp.body}');
           ),
           body: TabBarView(
             children: <Widget>[
-              LayoutBuilder(
-                builder:(context, BoxConstraints boxConstraints){ 
-                  return ListView(
-                    children: <Widget>[
-                      Container(
-                        constraints: BoxConstraints(maxHeight: (boxConstraints.maxHeight > 300) ? boxConstraints.maxHeight : 500),
-                        child: AbsorbPointer(
-                          absorbing: _cargando,
-                          child: Column(
-                            children: <Widget>[
-                              
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  
-                                  StreamBuilder(
-                                    stream: _streamControllerBanca.stream,
-                                    builder: (context, snapshot){
-                                      
-                                      if(snapshot.hasData){
-                                        return Padding(
-                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                        child: DropdownButton(
-                                              hint: Text('seleccionar banca'),
-                                              value:  listaBanca[_indexBanca],
-                                              onChanged: (Banca banca){
-                                                setState(() {
-                                                _indexBanca = listaBanca.indexOf(banca); 
-                                                indexPost(false);
-                                                });
-                                              },
-                                              items: listaBanca.map((b){
-                                                return DropdownMenuItem<Banca>(
-                                                  value: b,
-                                                  child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                );
-                                              }).toList(),
-                                            ),
-                                      
-                                      );
-                                      }else{
-                                        return Padding(
-                                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                          child: DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
-                                                )
-                                              ]
-                                            ),
-                                        );
-                                        
-                                      }
-                                        
-                                      return Padding(
-                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                        child: DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  listaBanca[_indexBanca],
-                                              onChanged: (Banca banca){
-                                                setState(() {
-                                                _indexBanca = listaBanca.indexOf(banca); 
-                                                });
-                                              },
-                                              items: listaBanca.map((b){
-                                                return DropdownMenuItem<Banca>(
-                                                  value: b,
-                                                  child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                );
-                                              }).toList(),
-                                            ),
-                                      
-                                      );
+              ListView(
+                
+                children: <Widget>[
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                         
+                        StreamBuilder(
+                          stream: _streamControllerBanca.stream,
+                          builder: (context, snapshot){
+                            
+                            if(snapshot.hasData){
+                              return Padding(
+                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: DropdownButton(
+                                    hint: Text('seleccionar banca'),
+                                    value:  listaBanca[_indexBanca],
+                                    onChanged: (Banca banca){
+                                      setState(() {
+                                      _indexBanca = listaBanca.indexOf(banca); 
+                                      indexPost(false);
+                                      });
                                     },
+                                    items: listaBanca.map((b){
+                                      return DropdownMenuItem<Banca>(
+                                        value: b,
+                                        child: Text(b.descripcion, textAlign: TextAlign.center,),
+                                      );
+                                    }).toList(),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                    child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
-                                  ),
-                                ],
-                              ),
-                              Padding(
+                            
+                            );
+                            }else{
+                              return Padding(
                                 padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                child: GestureDetector(
-                                  onTap: (){
-                                    _showMultiSelect(context);
-                                  },
-                                    child: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    padding: EdgeInsets.only(top: 13, bottom: 13),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                    ),
-                                    child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 10,),
-                              Row(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                      setState(() => _jugadaOmonto = true);
+                                child: DropdownButton(
+                                    hint: Text('Seleccionar banca'),
+                                    value:  'No hay datos',
+                                    onChanged: (String banca){
+                                      setState(() {
+                                       
+                                      });
                                     },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: Container(
-                                          // duration: Duration(milliseconds: 50),
-                                            width: MediaQuery.of(context).size.width / 3,
-                                            // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
-                                            ),
-                                            child: Center(
-                                              child: TextField(
-                                                controller: _txtJugada,
-                                                enabled: false,
-                                                style: TextStyle(fontSize: 20),
-                                                decoration: InputDecoration(
-                                                  border: InputBorder.none,
-                                                  hintText: 'Jugada',
-                                                  fillColor: Colors.transparent,
-                                                  filled: true,
-                                                  hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                        ),
-                                      ),
+                                    items: [
+                                      DropdownMenuItem<String>(
+                                        value: "No hay datos",
+                                        child: Text('No hay datos',),
+                                      )
+                                    ]
                                   ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                    },
-                                    child: Container(
-                                      width: (MediaQuery.of(context).size.width / 3) - 16,
-                                      // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                      ),
-                                      child: Center(
-                                        child: 
-                                        TextField(
-                                          controller: _txtMontoDisponible,
-                                          enabled: false,
-                                          style: TextStyle(fontSize: 20),
-                                          decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                            hintText: '0',
-                                            fillColor: Colors.transparent,
-                                            filled: true,
-                                            hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
-                                        // FutureBuilder<String>(
-                                        // future: _montoFuture,
-                                        //   builder: (context, snapshot){
-                                        //     if (snapshot.hasData) {
-                                        //         // setState(() {
-                                        //         //  _cargando = false; 
-                                        //         // });
-                                        //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
-                                        //       } else if (snapshot.hasError) {
-                                        //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
-                                        //       }
-
-                                        //       return Text('', style: TextStyle(fontSize: 25));
-                                        //   },
-                                        // )
-                                        // TextField(
-                                        //   controller: _txtMontoDisponible,
-                                        //   enabled: false,
-                                        //   style: TextStyle(fontSize: 20),
-                                        //   decoration: InputDecoration(
-                                        //     border: InputBorder.none,
-                                        //     hintText: '0',
-                                        //     fillColor: Colors.transparent,
-                                        //     filled: true,
-                                        //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                        //   ),
-                                        //   textAlign: TextAlign.center,
-                                        // ),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                      setState(() => _jugadaOmonto = false);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Container(
-                                          width: MediaQuery.of(context).size.width / 3,
-                                          // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
-                                          ),
-                                          child: Center(
-                                            child: TextField(
-                                              controller: _txtMonto,
-                                              enabled: false,
-                                              style: TextStyle(fontSize: 20),
-                                              decoration: InputDecoration(
-                                                border: InputBorder.none,
-                                                hintText: 'Monto',
-                                                fillColor: Colors.transparent,
-                                                filled: true,
-                                                hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 10,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12))),
-                                  FutureBuilder(
-                                    future: _calcularDescuento(),
-                                    builder: (context, snapshot){
-                                      if(snapshot.hasData){
-                                        return Flexible(child: Text('Des: ${snapshot.data}\$', style: TextStyle(fontSize: 12),));
-                                      }
-                                      return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
-                                    }
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbDescuento,
-                                        onChanged: (newValue){
-                                          setState(() {
-                                          _ckbDescuento = newValue; 
-                                          });
-                                        },
-                                      ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbPrint,
-                                        onChanged: _ckbPrintChanged,
-                                      ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbMessage,
-                                        onChanged: _ckbMessageChanged,
-                                      ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbWhatsapp,
-                                        onChanged: _ckbWhatsappChanged,
-                                      ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
-                                    ],
-                                  ),
-                                
-                                        
-                                      
-                                ],
-                              ),
+                              );
                               
-                              SizedBox(height: 10,),
-                              Expanded(
-                                flex: 3,
-                                child: Container(
-                                  // color: Colors.red,
-                                  child: LayoutBuilder(
-                                  builder: (BuildContext context, BoxConstraints constraints) {
-                                    return Column(
-                                      children: <Widget>[
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Icon(Icons.backspace, size: 55, color: _colorPrimary,), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            // SizedBox(
-                                            //   width: MediaQuery.of(context).size.width / 4,
-                                            //   height: constraints.maxHeight / 5,
-                                            //   child: RaisedButton(
-                                            //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
-                                            //     elevation: 0,
-                                            //     color: HexColor.fromHex("#FFEDEBEB"),
-                                            //     onPressed: (){},
-                                            //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
-                                            //   ),
-                                            // )
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 2, 5),
-                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 2, 5),
-                                          ],
-                                        )
-                                      ],
-                                    );
-                                  }
-                                ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: Row(
-                                    
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: <Widget>[
-                                      Container(
-                                        child: Row(
-                                          children: <Widget>[
-                                            IconButton(
-                                              icon: Icon(Icons.print, color: Colors.blue, size: 38),
-                                              onPressed: () async {
-                                                if(listaVenta.isNotEmpty){
-                                                  var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
-                                                  BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA);
-                                                }
-                                              },
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.delete, color: Colors.red, size: 38,),
-                                              onPressed: () async {
-                                                if(listaVenta.isNotEmpty){
-                                                  var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra);
-                                                  listaVenta.removeAt(_indexVenta);
-                                                  _indexVenta = 0;
-                                                  _streamControllerVenta.add(true);
-                                                  BluetoothChannel.printTicket(r["ticket"], BluetoothChannel.TYPE_CANCELADO);
-                                                  Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: r["mensaje"]);
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    StreamBuilder(
-                                      stream: _streamControllerVenta.stream,
-                                      builder: (context, snapshot){
-                                        if(snapshot.hasData){
-                                          if(listaVenta.length != 0){
-                                            return DropdownButton(
-                                              hint: Text('seleccionar ticket'),
-                                              value: listaVenta[_indexVenta],
-                                              onChanged: (Venta ticket){
-                                                setState(() {
-                                                _indexVenta = listaVenta.indexOf(ticket); 
-                                                });
-                                              },
-                                              items: listaVenta.map((t){
-                                                return DropdownMenuItem(
-                                                  value: t,
-                                                  child: Text(t.idTicket.toString()),
-                                                );
-                                              }).toList(),
-                                            );
-                                          }else{
-                                            return Padding(
-                                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                              child: DropdownButton(
-                                                  hint: Text('Seleccionar ticket'),
-                                                  value:  'No hay tickets',
-                                                  onChanged: (String banca){
-                                                    setState(() {
-                                                    
-                                                    });
-                                                  },
-                                                  items: [
-                                                    DropdownMenuItem<String>(
-                                                      value: "No hay tickets",
-                                                      child: Text('No hay tickets',),
-                                                    )
-                                                  ]
-                                                ),
-                                            );
-                                          }
-
-                                          return DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
-                                                )
-                                              ]
-                                            );
-                                            
-                                        }
-                                        else{
-                                          return DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
-                                                )
-                                              ]
-                                            );
-                                        }
-                                      },
-                                    )
-                                    ],
+                            }
+                              
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                              child: DropdownButton(
+                                    hint: Text('Seleccionar banca'),
+                                    value:  listaBanca[_indexBanca],
+                                    onChanged: (Banca banca){
+                                      setState(() {
+                                      _indexBanca = listaBanca.indexOf(banca); 
+                                      });
+                                    },
+                                    items: listaBanca.map((b){
+                                      return DropdownMenuItem<Banca>(
+                                        value: b,
+                                        child: Text(b.descripcion, textAlign: TextAlign.center,),
+                                      );
+                                    }).toList(),
                                   ),
-                                )
-                              )
-                            ],
+                            
+                            );
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                          child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                      child: GestureDetector(
+                        onTap: (){
+                          _showMultiSelect(context);
+                        },
+                          child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          padding: EdgeInsets.only(top: 13, bottom: 13),
+                          decoration: BoxDecoration(
+                            border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
                           ),
+                          child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
                         ),
                       ),
-                    ],
-                  );
-                }
+                    ),
+                    SizedBox(height: 10,),
+                    Row(
+                      children: <Widget>[
+                        GestureDetector(
+                          onTap: (){
+                            // _showMultiSelect(context);
+                            setState(() => _jugadaOmonto = true);
+                          },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Container(
+                                // duration: Duration(milliseconds: 50),
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  // padding: EdgeInsets.only(top: 13, bottom: 13),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
+                                  ),
+                                  child: Center(
+                                    child: TextField(
+                                      controller: _txtJugada,
+                                      enabled: false,
+                                      style: TextStyle(fontSize: 20),
+                                      decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        hintText: 'Jugada',
+                                        fillColor: Colors.transparent,
+                                        filled: true,
+                                        hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                              ),
+                            ),
+                        ),
+                        GestureDetector(
+                          onTap: (){
+                            // _showMultiSelect(context);
+                          },
+                          child: Container(
+                            width: (MediaQuery.of(context).size.width / 3) - 16,
+                            // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
+                            decoration: BoxDecoration(
+                              border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+                            ),
+                            child: Center(
+                              child: 
+                               TextField(
+                                controller: _txtMontoDisponible,
+                                enabled: false,
+                                style: TextStyle(fontSize: 20),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: '0',
+                                  fillColor: Colors.transparent,
+                                  filled: true,
+                                  hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
+                              // FutureBuilder<String>(
+                              // future: _montoFuture,
+                              //   builder: (context, snapshot){
+                              //     if (snapshot.hasData) {
+                              //         // setState(() {
+                              //         //  _cargando = false; 
+                              //         // });
+                              //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
+                              //       } else if (snapshot.hasError) {
+                              //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
+                              //       }
+
+                              //       return Text('', style: TextStyle(fontSize: 25));
+                              //   },
+                              // )
+                              // TextField(
+                              //   controller: _txtMontoDisponible,
+                              //   enabled: false,
+                              //   style: TextStyle(fontSize: 20),
+                              //   decoration: InputDecoration(
+                              //     border: InputBorder.none,
+                              //     hintText: '0',
+                              //     fillColor: Colors.transparent,
+                              //     filled: true,
+                              //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                              //   ),
+                              //   textAlign: TextAlign.center,
+                              // ),
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: (){
+                            // _showMultiSelect(context);
+                            setState(() => _jugadaOmonto = false);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Container(
+                                width: MediaQuery.of(context).size.width / 3,
+                                // padding: EdgeInsets.only(top: 13, bottom: 13),
+                                decoration: BoxDecoration(
+                                  border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
+                                ),
+                                child: Center(
+                                  child: TextField(
+                                    controller: _txtMonto,
+                                    enabled: false,
+                                    style: TextStyle(fontSize: 20),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: 'Monto',
+                                      fillColor: Colors.transparent,
+                                      filled: true,
+                                      hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12))),
+                        FutureBuilder(
+                          future: _calcularDescuento(),
+                          builder: (context, snapshot){
+                            if(snapshot.hasData){
+                              return Flexible(child: Text('Des: ${snapshot.data}\$', style: TextStyle(fontSize: 12),));
+                            }
+                            return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
+                          }
+                        ),
+                        Row(
+                          children: <Widget>[
+                            MyCheckbox(
+                              useTapTarget: false,
+                              value: _ckbDescuento,
+                              onChanged: (newValue){
+                                setState(() {
+                                _ckbDescuento = newValue; 
+                                });
+                              },
+                            ),
+                            SizedBox(width: 5,),
+                            GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
+                          ],
+                        ),
+                         Row(
+                          children: <Widget>[
+                            MyCheckbox(
+                              useTapTarget: false,
+                              value: _ckbPrint,
+                              onChanged: _ckbPrintChanged,
+                            ),
+                            SizedBox(width: 5,),
+                            GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            MyCheckbox(
+                              useTapTarget: false,
+                              value: _ckbMessage,
+                              onChanged: _ckbMessageChanged,
+                            ),
+                            SizedBox(width: 5,),
+                            GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
+                          ],
+                        ),
+                        Row(
+                          children: <Widget>[
+                            MyCheckbox(
+                              useTapTarget: false,
+                              value: _ckbWhatsapp,
+                              onChanged: _ckbWhatsappChanged,
+                            ),
+                            SizedBox(width: 5,),
+                            GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
+                          ],
+                        ),
+                       
+                              
+                             
+                      ],
+                    ),
+                    SizedBox(height: 10,),
+                    ConstrainedBox(
+                      // color: Colors.red,
+                      constraints: BoxConstraints(maxHeight: 200),
+                      child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        return Column(
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Icon(Icons.backspace, size: 55, color: _colorPrimary,), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                // SizedBox(
+                                //   width: MediaQuery.of(context).size.width / 4,
+                                //   height: constraints.maxHeight / 5,
+                                //   child: RaisedButton(
+                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+                                //     elevation: 0,
+                                //     color: HexColor.fromHex("#FFEDEBEB"),
+                                //     onPressed: (){},
+                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
+                                //   ),
+                                // )
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 2, 5),
+                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 2, 5),
+                              ],
+                            )
+                          ],
+                        );
+                      }
+                    ),
+                    ),
+                ],
               ),
               Column(
                 children: <Widget>[

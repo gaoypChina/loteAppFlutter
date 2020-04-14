@@ -1,4 +1,6 @@
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Banca {
   int id;
   String descripcion;
@@ -18,8 +20,8 @@ class Banca {
         status = snapshot['status'] ?? 1,
         idMoneda = snapshot['idMoneda'] ?? 1,
         moneda = snapshot['moneda'] ?? '',
-        descontar = double.parse(snapshot['descontar'].toString()) ?? 0,
-        deCada = double.parse(snapshot['deCada'].toString()) ?? 0
+        descontar = Utils.toDouble(snapshot['descontar'].toString()) ?? 0.0,
+        deCada = Utils.toDouble(snapshot['deCada'].toString()) ?? 0.0
         ;
 
   toJson() {

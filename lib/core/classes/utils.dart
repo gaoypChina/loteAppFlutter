@@ -41,6 +41,7 @@ class  Utils {
   static MaterialColor colorMaterialCustom = MaterialColor(0xFF0990D0, Utils.color);
   static Color colorPrimary = fromHex("#38B6FF");
   static Color colorInfo = fromHex("#00bcd4");
+  static Color colorInfoClaro = fromHex("4D00BCD4");
   static Color colorRosa = fromHex("#ffcccc");
   static Color colorGris = fromHex("#eae9e9");
 
@@ -62,7 +63,7 @@ class  Utils {
     try {
        return double.parse(caracter);
     } catch (e) {
-      return 0;
+      return 0.0;
     }
   }
 
@@ -201,6 +202,13 @@ class  Utils {
       return Utils.colorInfo;
     else
       return Colors.grey;
+  }
+
+  static Color colorGreyFromPairIndex({int idx}){
+    if(idx % 2 != 0)
+      return colorGris;
+    else
+      return Colors.transparent;
   }
   
 }

@@ -7,6 +7,7 @@ import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
+import 'package:loterias/ui/views/reportes/ventas.dart';
 
 
 class Router {
@@ -31,6 +32,10 @@ class Router {
         case '/historicoVentas' :
           return MaterialPageRoute(
             builder: (_)=> HistoricoVentasScreen()
+          ) ;
+        case '/ventas' :
+          return MaterialPageRoute(
+            builder: (_)=> VentasScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

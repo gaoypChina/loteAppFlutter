@@ -213,7 +213,6 @@ _showSnackBar(String content){
                               try{
                                 setState(() => _cargando = true);
                                 var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
-                                print("Error desde login: $parsed");
                                 setState(() => _cargando = false);
                                 var c = await DB.create();
                                 await c.add("recordarme", _recordarme);
@@ -225,6 +224,8 @@ _showSnackBar(String content){
                                 await LoginService.guardarDatos(parsed);
                                 _navigateToHome();
                               }on Exception catch(e){
+                                print("Error desde login: ${e.toString()}");
+
                                 setState(() => _cargando = false);
                               }
                             }
