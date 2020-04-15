@@ -696,6 +696,7 @@ print('futuro: ${resp.body}');
                     onTap: () async {
                       var c = await DB.create();
                       await c.add("recordarme", false);
+                      await c.delete("administrador");
                       await c.delete("usuario");
                       await c.delete("banca");
                       await Db.deleteDB();

@@ -81,6 +81,28 @@ class BluetoothChannel{
       }
     );
   }
+  static printCuadre(Map<String, dynamic> map) async {
+    var c = await DB.create();
+    var printer = await c.getValue("printer");
+    if(_connectado){
+      return;
+    }
+
+    
+     _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+      (onData) async {
+        print("Listen OnData: $onData");
+        _connectado = true;
+        final bool result = await _methodChannel.invokeMethod("printText", {"data" : generateCuadre(map)});
+        disconnect();
+        print("Listen OnData print: $result");
+      },
+      onError: (error){
+        _connectado = false;
+        print("Listen Error: $error");
+      }
+    );
+  }
 
   static printText({String content, int nWidthTimes = 1}) async {
     var c = await DB.create();
@@ -117,6 +139,27 @@ class BluetoothChannel{
     }
 
     return result;
+  }
+
+  static Map<int, dynamic> generateCuadre(Map<String, dynamic> mapCuadre){
+    Map<int, dynamic> map = Map<int, dynamic>();
+    map[map.length] = _getMapAlign(TYPE_ALIGN_CENTER);
+    map[map.length] = _getMap("Cuadre\n", 1);
+    map[map.length] = _getMap("${mapCuadre["banca"]["descripcion"]}\n", 1);
+    map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
+    map[map.length] = _getMap("Balance hasta la fecha: ${mapCuadre["balanceHastaLaFecha"]}\n");
+    map[map.length] = _getMap("Tickets pendientes: ${mapCuadre["pendientes"]}\n");
+    map[map.length] = _getMap("Tickets perdedores: ${mapCuadre["perdedores"]}\n");
+    map[map.length] = _getMap("Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
+    map[map.length] = _getMap("Total:              ${mapCuadre["total"]}\n");
+    map[map.length] = _getMap("Ventas:             ${mapCuadre["ventas"]}\n");
+    map[map.length] = _getMap("Comisiones:         ${mapCuadre["comisiones"]}\n");
+    map[map.length] = _getMap("descuentos:         ${mapCuadre["descuentos"]}\n");
+    map[map.length] = _getMap("premios:            ${mapCuadre["premios"]}\n");
+    map[map.length] = _getMap("neto:               ${mapCuadre["neto"]}\n");
+    map[map.length] = _getMap("Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n\n\n\n");
+    print("bluetooth channel cuadure: ${map.toString()}");
+    return map;
   }
 
   static Map<int, dynamic> generateMapTicket(Map<String, dynamic> mapVenta, String typeTicket){

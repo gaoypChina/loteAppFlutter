@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -22,10 +23,13 @@ class _VentasScreenState extends State<VentasScreen> {
   DateTime _fechaDesde = DateTime.now();
   bool _cargando = false;
   bool _primeraCarga = true;
+  bool _tienePermiso = false;
+  Map<String, dynamic> datos;
 
   @override
   void initState() {
     // TODO: implement initState
+    _confirmarTienePermiso();
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTablas = BehaviorSubject();
     _ventas();
@@ -53,10 +57,11 @@ class _VentasScreenState extends State<VentasScreen> {
   _ventas() async {
     try{
       setState(() => _cargando = true);
-      var datos = await ReporteService.ventas(fecha: _fechaDesde, idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      datos = await ReporteService.ventas(fecha: _fechaDesde, idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
       if(_primeraCarga){
         listaBanca = datos["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
         _streamControllerBancas.add(listaBanca);
+        _seleccionarBancaPertenecienteAUsuario();
         _primeraCarga = false;
       }
       _streamControllerTablas.add(datos);
@@ -67,11 +72,371 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   getIdBanca() async {
-    if(await Db.existePermiso("Jugar como cualquier banca") && listaBanca.length > 0)
+    if(_tienePermiso && listaBanca.length > 0)
       return listaBanca[_indexBanca].id;
     else
       return await Db.idBanca();
   }
+
+  _confirmarTienePermiso() async {
+   _tienePermiso = await Db.existePermiso("Jugar como cualquier banca");
+  }
+
+  _seleccionarBancaPertenecienteAUsuario() async {
+  var bancaMap = await Db.getBanca();
+  Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
+  if(banca != null && listaBanca != null){
+    int idx = listaBanca.indexWhere((b) => b.id == banca.id);
+    setState(() => _indexBanca = (idx != -1) ? idx : 0);
+  }else{
+    setState(() =>_indexBanca = 0);
+  }
+
+  // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
+}
+
+  Widget _buildTableTotalesPorLoteria(List map){
+   var tam = (map != null) ? map.length : 0;
+   List<TableRow> rows;
+   if(tam == 0){
+     rows = <TableRow>[];
+   }else{
+     rows = map.asMap().map((idx, b)
+          => MapEntry(
+            idx,
+            TableRow(
+              
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx),
+                  child: Center(
+                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["ventas"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["comisiones"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["premios"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["neto"]}", style: TextStyle(fontSize: 16)))
+                ),
+              ],
+            )
+          )
+        
+        ).values.toList();
+        
+    rows.insert(0, 
+              TableRow(
+                decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Loteria', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Venta total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Comisiones', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Premios', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Neto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  // ),
+                ]
+              )
+              );
+        
+   }
+
+   return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        );
+
+  return Flexible(
+      child: ListView(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        ),
+      ],
+    ),
+  );
+  
+ }
+
+Widget _buildTableNumerosGanadores(List map){
+   var tam = (map != null) ? map.length : 0;
+   List<TableRow> rows;
+   if(tam == 0){
+     rows = <TableRow>[];
+   }else{
+     rows = map.asMap().map((idx, b)
+          => MapEntry(
+            idx,
+            TableRow(
+              
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx),
+                  child: Center(
+                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["primera"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["segunda"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["tercera"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["pick3"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["pick4"]}", style: TextStyle(fontSize: 16)))
+                ),
+              ],
+            )
+          )
+        
+        ).values.toList();
+        
+    rows.insert(0, 
+              TableRow(
+                decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Loteria', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Primera', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Segunda', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Tercera', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Pick3', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Pick4', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  // ),
+                ]
+              )
+              );
+        
+   }
+
+   return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        );
+
+  return Flexible(
+      child: ListView(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        ),
+      ],
+    ),
+  );
+  
+ }
+Widget _buildTableTicketsGanadores(List map){
+   var tam = (map != null) ? map.length : 0;
+   List<TableRow> rows;
+   if(tam == 0){
+     rows = <TableRow>[];
+     rows.insert(0, 
+              TableRow(
+                decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Numero de ticket', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('A pagar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  // ),
+                ]
+              )
+              );
+   }else{
+     rows = map.asMap().map((idx, b)
+          => MapEntry(
+            idx,
+            TableRow(
+              
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx),
+                  child: Center(
+                    child: InkWell(onTap: (){}, child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["montoAPagar"]}", style: TextStyle(fontSize: 16)))
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: Utils.colorGreyFromPairIndex(idx: idx), 
+                  child: Center(child: Text("${b["fecha"]}", style: TextStyle(fontSize: 16)))
+                ),
+              ],
+            )
+          )
+        
+        ).values.toList();
+        
+    rows.insert(0, 
+              TableRow(
+                decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Numero de ticket', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('A pagar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  // ),
+                ]
+              )
+              );
+        
+   }
+
+   return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        );
+
+  return Flexible(
+      child: ListView(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              children: rows,
+             ),
+        ),
+      ],
+    ),
+  );
+  
+ }
+
 
   Table _tablaPrincipal(Map<String, dynamic> map){
     return Table(
@@ -173,7 +538,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ]
         ),
         TableRow(
-          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 8)),
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 9)),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -185,7 +550,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ]
         ),
         TableRow(
-          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 9)),
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 10)),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -197,7 +562,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ]
         ),
         TableRow(
-          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 10)),
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 11)),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -209,7 +574,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ]
         ),
         TableRow(
-          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 11)),
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 12)),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -221,7 +586,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ]
         ),
         TableRow(
-          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 12)),
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 13)),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -290,36 +655,43 @@ class _VentasScreenState extends State<VentasScreen> {
                     setState(() => _fechaDesde = (fecha != null) ? fecha : _fechaDesde);
                   },
                 ),
-                StreamBuilder<List<Banca>>(
-                  stream: _streamControllerBancas.stream,
-                  builder: (context, snapshot){
-                    if(snapshot.hasData){
-                      return DropdownButton<Banca>(
-                        value: listaBanca[_indexBanca],
-                        items: listaBanca.map((b) => DropdownMenuItem(
-                          value: b,
-                          child: Text("${listaBanca[_indexBanca].descripcion}"),
-                        )).toList(),
-                        onChanged: (Banca banca){
+                Visibility(
+                  visible: _tienePermiso,
+                  child: StreamBuilder<List<Banca>>(
+                    stream: _streamControllerBancas.stream,
+                    builder: (context, snapshot){
+                      if(snapshot.hasData){
+                        return DropdownButton<Banca>(
+                          value: listaBanca[_indexBanca],
+                          items: listaBanca.map((b) => DropdownMenuItem(
+                            value: b,
+                            child: Text("${listaBanca[_indexBanca].descripcion}"),
+                          )).toList(),
+                          onChanged: (Banca banca){
 
-                        },
-                      );
-                    }
+                          },
+                        );
+                      }
 
-                    return DropdownButton(value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
-                  },
+                      return DropdownButton(value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
+                    },
+                  ),
                 ),
                 RaisedButton(
                   elevation: 0,
                   color: Utils.fromHex("#e4e6e8"),
                   child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
-                  onPressed: (){},
+                  onPressed: (){
+                    _ventas();
+                  },
                 ),
                 RaisedButton(
                   elevation: 0,
                   color: Utils.colorInfo,
                   child: Text("Imprimir",),
-                  onPressed: (){},
+                  onPressed: (){
+                    BluetoothChannel.printCuadre(datos);
+                  },
                 ),
               ],
             ),
@@ -335,7 +707,23 @@ class _VentasScreenState extends State<VentasScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 20),),),
                         ),
-                        _tablaPrincipal(snapshot.data)
+                        _tablaPrincipal(snapshot.data),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableTotalesPorLoteria((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Numeros ganadores", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableNumerosGanadores((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Tickets ganadores", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableTicketsGanadores((snapshot.data["ticketsGanadores"] != null) ? List.from(snapshot.data["ticketsGanadores"]) : List()),
+                        
                       ],
                     ),
                   );
