@@ -22,7 +22,7 @@ class _VentasScreenState extends State<VentasScreen> {
   int _indexBanca = 0;
   DateTime _fechaDesde = DateTime.now();
   bool _cargando = false;
-  bool _primeraCarga = true;
+  bool _onCreate = true;
   bool _tienePermiso = false;
   Map<String, dynamic> datos;
 
@@ -58,11 +58,11 @@ class _VentasScreenState extends State<VentasScreen> {
     try{
       setState(() => _cargando = true);
       datos = await ReporteService.ventas(fecha: _fechaDesde, idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
-      if(_primeraCarga){
+      if(_onCreate){
         listaBanca = datos["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
         _streamControllerBancas.add(listaBanca);
         _seleccionarBancaPertenecienteAUsuario();
-        _primeraCarga = false;
+        _onCreate = false;
       }
       _streamControllerTablas.add(datos);
       setState(() => _cargando = false);
@@ -226,27 +226,27 @@ Widget _buildTableNumerosGanadores(List map){
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["primera"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["primera"] != null) ? b["primera"] : ''}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["segunda"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["segunda"] != null) ? b["segunda"] : ''}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["tercera"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["tercera"] != null) ? b["tercera"] : ''}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["pick3"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["pick3"] != null) ? b["pick3"] : ''}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["pick4"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["pick4"] != null) ? b["pick4"] : ''}", style: TextStyle(fontSize: 16)))
                 ),
               ],
             )
@@ -335,15 +335,15 @@ Widget _buildTableTicketsGanadores(List map){
                   // buildContainer(Colors.blue, 50.0),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('Fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
                     child: Center(child: Text('Numero de ticket', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
                     child: Center(child: Text('A pagar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
                   ),
                   // Padding(
                   //   padding: const EdgeInsets.all(8.0),
@@ -363,7 +363,7 @@ Widget _buildTableTicketsGanadores(List map){
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                    child: InkWell(onTap: (){}, child: Text("${Utils.toSecuencia(b["codigo"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
                   ),
                 ),
                 Container(
@@ -391,15 +391,15 @@ Widget _buildTableTicketsGanadores(List map){
                   // buildContainer(Colors.blue, 50.0),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('Fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
                     child: Center(child: Text('Numero de ticket', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
                     child: Center(child: Text('A pagar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Fecha', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
                   ),
                   // Padding(
                   //   padding: const EdgeInsets.all(8.0),
@@ -665,7 +665,7 @@ Widget _buildTableTicketsGanadores(List map){
                           value: listaBanca[_indexBanca],
                           items: listaBanca.map((b) => DropdownMenuItem(
                             value: b,
-                            child: Text("${listaBanca[_indexBanca].descripcion}"),
+                            child: Text("${b.descripcion}"),
                           )).toList(),
                           onChanged: (Banca banca){
 

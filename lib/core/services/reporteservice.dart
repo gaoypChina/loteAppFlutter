@@ -46,6 +46,7 @@ class ReporteService{
 
     return List.from(parsed["bancas"]);
   }
+
   static Future<Map<String, dynamic>> ventas({BuildContext context, scaffoldKey, DateTime fecha, int idBanca}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
@@ -78,6 +79,39 @@ class ReporteService{
       else
         Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error ReporteService ventas: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["fecha"] = fechaString;
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = idBanca;
+    mapDatos["datos"] = map;
+
+    var response = await http.post(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService ticketsPendientesPago: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ReporteService ticketsPendientesPago", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ReporteService ticketsPendientesPago", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ReporteService ticketsPendientesPago");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ReporteService ticketsPendientesPago: ${parsed["mensaje"]}");
     }
 
     return parsed;

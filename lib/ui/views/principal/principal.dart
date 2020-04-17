@@ -664,6 +664,24 @@ print('futuro: ${resp.body}');
                     },
                   ),
                   ListTile(
+                    title: Text('Balance bancas'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/balanceBancas");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Pendientes de pago'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/pendientesPago");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                  ListTile(
                     title: Text('Duplicar'),
                     leading: Icon(Icons.scatter_plot),
                     dense: true,

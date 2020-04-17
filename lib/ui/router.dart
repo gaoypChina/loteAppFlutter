@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
+import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
+import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
 
 
@@ -36,6 +38,14 @@ class Router {
         case '/ventas' :
           return MaterialPageRoute(
             builder: (_)=> VentasScreen()
+          ) ;
+        case '/balanceBancas' :
+          return MaterialPageRoute(
+            builder: (_)=> BalanceBancaScreen()
+          ) ;
+        case '/pendientesPago' :
+          return MaterialPageRoute(
+            builder: (_)=> TicketsPendientesPagoScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(
