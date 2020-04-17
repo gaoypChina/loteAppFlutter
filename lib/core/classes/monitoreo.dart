@@ -111,41 +111,42 @@ class Monitoreo{
                   ),
                 ],
               ),
-              content: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),
-                child: Column(
+              content: Container(
+                height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height : (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100,
+                width: MediaQuery.of(context).size.width,
+                child: ListView(
                   children: <Widget>[
-                    Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500])),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          padding: EdgeInsets.only(left: 10, right: 10),
-                          decoration: BoxDecoration(
-                            color: Utils.colorInfo
-                          ),
-                          child: Center(child: Text('Ganador')),
-                        ),
-                        Container(
-                          padding: EdgeInsets.only(left: 10, right: 10),
-                          decoration: BoxDecoration(
-                            color: Utils.colorRosa
-                          ),
-                          child: Center(child: Text('Perdedor')),
-                        ),
-                        Container(
-                          padding: EdgeInsets.only(left: 10, right: 10),
-                          decoration: BoxDecoration(
-                            color: Utils.colorGris
-                          ),
-                          child: Center(child: Text('Pendiente')),
-                        )
-                      ],
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ListView(
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),
+                      child: Column(
                         children: <Widget>[
+                          Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500])),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                padding: EdgeInsets.only(left: 10, right: 10),
+                                decoration: BoxDecoration(
+                                  color: Utils.colorInfo
+                                ),
+                                child: Center(child: Text('Ganador')),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 10, right: 10),
+                                decoration: BoxDecoration(
+                                  color: Utils.colorRosa
+                                ),
+                                child: Center(child: Text('Perdedor')),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 10, right: 10),
+                                decoration: BoxDecoration(
+                                  color: Utils.colorGris
+                                ),
+                                child: Center(child: Text('Pendiente')),
+                              )
+                            ],
+                          ),
                           Center(
                             child: Padding(
                               padding: const EdgeInsets.all(2),
@@ -201,13 +202,12 @@ class Monitoreo{
                               ],
                             )).toList(),
                           )
-                          // _buildTable(_jugadas)
+                          
                         ],
-                      ),
-                    )
-                    
-                  ],
 
+                      ),
+                    ),
+                  ],
                 ),
               ),
               actions: <Widget>[

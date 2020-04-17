@@ -136,16 +136,23 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
                   child: Center(
                     child: InkWell(
                       onTap: (){
-                        // _showTicket(b["codigoBarra"], context);
-                        showDialog(
-                          context: context,
-                          builder: (context){
-                            return AlertDialog(
-                              title: Text("Hola"),
-                              content: Text("Hey klk"),
-                            );
-                          }
-                        );
+                        _showTicket(b["codigoBarra"], context);
+                        // showDialog(
+                        //   context: context,
+                        //   builder: (context){
+                        //     return AlertDialog(
+
+                        //       title: Text("Hola"),
+                        //       content: Container(
+                        //         height: MediaQuery.of(context).size.height,
+                        //         width: MediaQuery.of(context).size.width,
+                        //         child: ListView(children: <Widget>[
+                        //           Text("Hola mi hermano")
+                        //         ],),
+                        //       ),
+                        //     );
+                        //   }
+                        // );
                       }, 
                       child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
                   ),
