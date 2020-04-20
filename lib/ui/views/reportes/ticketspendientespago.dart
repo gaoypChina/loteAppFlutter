@@ -130,45 +130,29 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
             TableRow(
               
               children: [
-                Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
-                  color: Utils.colorGreyFromPairIndex(idx: idx),
-                  child: Center(
-                    child: InkWell(
-                      onTap: (){
-                        _showTicket(b["codigoBarra"], context);
-                        // showDialog(
-                        //   context: context,
-                        //   builder: (context){
-                        //     return AlertDialog(
-
-                        //       title: Text("Hola"),
-                        //       content: Container(
-                        //         height: MediaQuery.of(context).size.height,
-                        //         width: MediaQuery.of(context).size.width,
-                        //         child: ListView(children: <Widget>[
-                        //           Text("Hola mi hermano")
-                        //         ],),
-                        //       ),
-                        //     );
-                        //   }
-                        // );
-                      }, 
-                      child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                InkWell(
+                  onTap: (){
+                    _showTicket(b["codigoBarra"], context);
+                  }, 
+                  child: Container(
+                    padding: EdgeInsets.only(top: 10, bottom: 10),
+                    color: Utils.colorGreyFromPairIndex(idx: idx),
+                    child: Center(
+                      child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)))
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
                   child: Center(child: Text("${b["banca"]["descripcion"]}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
                   child: Center(child: Text("${b["montoAPagar"]}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
                   child: Center(child: Text("${b["fecha"]}", style: TextStyle(fontSize: 16)))
                 ),

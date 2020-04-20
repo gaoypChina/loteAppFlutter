@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/monitoreo.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/reporteservice.dart';
+import 'package:loterias/core/services/ticketservice.dart';
 import 'package:rxdart/rxdart.dart';
 
 class VentasScreen extends StatefulWidget {
@@ -95,6 +97,17 @@ class _VentasScreenState extends State<VentasScreen> {
   // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
 }
 
+_showTicket(String codigoBarra, BuildContext context) async {
+    try{
+      setState(()=> _cargando = true);
+      var datos = await TicketService.buscarTicketAPagar(context: context, codigoBarra: codigoBarra);
+      setState(()=> _cargando = false);
+      Monitoreo.showDialogVerTicket(context: context, mapVenta: datos["venta"]);
+    }on Exception catch(e){
+      setState(()=> _cargando = false);
+    }
+  }
+
   Widget _buildTableTotalesPorLoteria(List map){
    var tam = (map != null) ? map.length : 0;
    List<TableRow> rows;
@@ -111,7 +124,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16)))
                   ),
                 ),
                 Container(
@@ -220,7 +233,7 @@ Widget _buildTableNumerosGanadores(List map){
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16,)))
                   ),
                 ),
                 Container(
@@ -359,20 +372,24 @@ Widget _buildTableTicketsGanadores(List map){
             TableRow(
               
               children: [
-                Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
-                  color: Utils.colorGreyFromPairIndex(idx: idx),
-                  child: Center(
-                    child: InkWell(onTap: (){}, child: Text("${Utils.toSecuencia(b["codigo"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                InkWell(
+                  onTap: (){
+                    _showTicket(b["codigoBarra"], context);
+                  }, 
+                  child: Container(
+                    padding: EdgeInsets.only(top: 10, bottom: 10),
+                    color: Utils.colorGreyFromPairIndex(idx: idx),
+                    child: Center(
+                      child: Text("${Utils.toSecuencia(b["primera"], BigInt.from(b["idTicket"]), false)}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)))
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
                   child: Center(child: Text("${b["montoAPagar"]}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
                   child: Center(child: Text("${b["fecha"]}", style: TextStyle(fontSize: 16)))
                 ),
@@ -447,8 +464,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Balance", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["balanceHastaLaFecha"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Balance", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["balanceHastaLaFecha"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -459,8 +476,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Banca", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["banca"]["descripcion"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Banca", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["banca"]["descripcion"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -471,8 +488,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Codigo", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["banca"]["codigo"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Codigo", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["banca"]["codigo"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -483,8 +500,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Pendientes", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["pendientes"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Pendientes", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["pendientes"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -495,8 +512,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Perdedores", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["perdedores"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Perdedores", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["perdedores"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -507,8 +524,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Ganadores", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["ganadores"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Ganadores", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["ganadores"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -519,8 +536,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Total", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["total"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Total", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["total"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -531,8 +548,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Ventas", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["ventas"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Ventas", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["ventas"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -543,8 +560,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Comisiones", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["comisiones"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Comisiones", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["comisiones"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -555,8 +572,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Descuentos", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["descuentos"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Descuentos", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["descuentos"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -567,8 +584,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Premios", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["premios"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Premios", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["premios"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -579,8 +596,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Neto", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["neto"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Neto", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["neto"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -591,8 +608,8 @@ Widget _buildTableTicketsGanadores(List map){
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(child: Center(child: Text("Balance mas ventas", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["balanceActual"]}", style: TextStyle(fontSize: 22)),),),
+                Expanded(child: Center(child: Text("Balance mas ventas", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${map["balanceActual"]}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
