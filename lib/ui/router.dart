@@ -4,6 +4,7 @@ import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
+import 'package:loterias/ui/views/dashboard/dashboard.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
@@ -46,6 +47,10 @@ class Router {
         case '/pendientesPago' :
           return MaterialPageRoute(
             builder: (_)=> TicketsPendientesPagoScreen()
+          ) ;
+        case '/dashboard' :
+          return MaterialPageRoute(
+            builder: (_)=> DashboardScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

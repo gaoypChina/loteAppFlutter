@@ -149,6 +149,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
                       child: RaisedButton(
+                        elevation: 0,
                         color: Utils.fromHex("#e4e6e8"),
                         child: Text('Probar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                         onPressed: (){
@@ -167,6 +168,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
                       child: RaisedButton(
+                        elevation: 0,
                         color: Utils.fromHex("#e4e6e8"),
                         child: Text('Eliminar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                         onPressed: () async {
@@ -234,6 +236,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
                           child: RaisedButton(
+                            elevation: 0,
                             color: Utils.fromHex("#e4e6e8"),
                             child: Text('Agregar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                             onPressed: (){
@@ -369,11 +372,11 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           ),
           actions: <Widget>[
             FlatButton(
-              onPressed: null, 
+              onPressed: () => Navigator.pop(context), 
               child: Text('Cancel')
             ),
             FlatButton(
-              onPressed: null, 
+              onPressed: () => Navigator.pop(context), 
               child: Text('Ok')
             )
           ],

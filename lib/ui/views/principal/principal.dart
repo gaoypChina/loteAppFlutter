@@ -625,6 +625,15 @@ print('futuro: ${resp.body}');
                     ),
                   ),
                   ListTile(
+                    title: Text('Dashboard'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/dashboard");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                  ListTile(
                     title: Text('Vender'),
                     leading: Icon(Icons.attach_money),
                     dense: true,
