@@ -448,71 +448,88 @@ print('futuro: ${resp.body}');
 
 
   initSocket() async {
-    manager = SocketIOManager();
-                  socket = await manager.createInstance(SocketOptions(
-                                  //Socket IO server URI
-                                    'http://192.168.43.63:3000',
-                                    nameSpace: "/",
-                                    //Query params - can be used for authentication
-                                    // query: {
-                                    //   "query": 'auth_token='+stringToken
-                                    // },
-                                    //Enable or disable platform channel logging
-                                    enableLogging: true,
-                                    // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
-                      ));       //TODO change the port  accordingly
-                  socket.onConnect((data) async {
-                    print("connected...");
-                    print(data);
-                    socket.emit("message", ["Hello world!"]);
-                    await Realtime.sincronizarTodos();
-                  });
-                  //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
-                  //   // var parsed = Utils.parseDatos(data);
-                  //   var parsed = data.cast<String, dynamic>();
-                  //   // print('type List<stocks>: ${parsed['stocks'].runtimeType.toString() ==  'List<dynamic>'}');
-                  //   // print('type stock: ${parsed['stocks']}');
-                  //   //await Realtime.addStocksDatosNuevos(parsed['stocks']);
-                  //   // print('event parsed: ${parsed}');
-                  //   // print("realtime-stock1");
-                  //   // print(data);
-                  //   print("realtime-stock antes");
-                  //   if(parsed['stocks'].runtimeType.toString() !=  'List<dynamic>'){
-                  //     await Realtime.addStock(parsed['stocks']);
-                  //     // print("realtime-stock despues");
-                  //   }else{
-                  //     await Realtime.addStocks(parsed['stocks']);
-                  //   }
-                  // });
+    var builder = new JWTBuilder();
+    var token = builder
+      // ..issuer = 'https://api.foobar.com'
+      ..expiresAt = new DateTime.now().add(new Duration(minutes: 3))
+      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+      ..getToken(); // returns token without signature
 
-                  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
-                    // var parsed = data.cast<String, dynamic>();
-                    var parsed = await compute(Utils.parseDatosDynamic, data);
-                    await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
-                  });
-                  socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
-                    var parsed = data.cast<String, dynamic>();
-                    await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
-                  });
-                  socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
-                    var parsed = data.cast<String, dynamic>();
-                    await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
-                  });
-                  socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
-                    var parsed = data.cast<String, dynamic>();
-                    await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
-                  });
-                  socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
-                    var parsed = data.cast<String, dynamic>();
-                    await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
-                  });
-                  socket.on("error", (data){   //sample event
-                    print("error");
-                    print(data);
-                  });
-                  socket.onConnectError((er) => print(er));
-                  socket.onError((e) => print(e));
-                  socket.connect();
+    var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    var signedToken = builder.getSignedToken(signer);
+    print(signedToken); // prints encoded JWT
+    var stringToken = signedToken.toString();
+
+
+    manager = SocketIOManager();
+    socket = await manager.createInstance(SocketOptions(
+                    //Socket IO server URI
+                      'http://192.168.43.63:3000',
+                      nameSpace: "/",
+                      //Query params - can be used for authentication
+                      // query: {
+                      //   "query": 'auth_token=${signedToken}'
+                      // },
+                      query: {
+                        "auth_token": '${signedToken.toString()}'
+                      },
+
+                      //Enable or disable platform channel logging
+                      enableLogging: true,
+                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+        ));       //TODO change the port  accordingly
+    socket.onConnect((data) async {
+      print("connected...");
+      print(data);
+      socket.emit("message", ["Hello world!"]);
+      await Realtime.sincronizarTodos();
+    });
+    //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
+    //   // var parsed = Utils.parseDatos(data);
+    //   var parsed = data.cast<String, dynamic>();
+    //   // print('type List<stocks>: ${parsed['stocks'].runtimeType.toString() ==  'List<dynamic>'}');
+    //   // print('type stock: ${parsed['stocks']}');
+    //   //await Realtime.addStocksDatosNuevos(parsed['stocks']);
+    //   // print('event parsed: ${parsed}');
+    //   // print("realtime-stock1");
+    //   // print(data);
+    //   print("realtime-stock antes");
+    //   if(parsed['stocks'].runtimeType.toString() !=  'List<dynamic>'){
+    //     await Realtime.addStock(parsed['stocks']);
+    //     // print("realtime-stock despues");
+    //   }else{
+    //     await Realtime.addStocks(parsed['stocks']);
+    //   }
+    // });
+
+    socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
+      // var parsed = data.cast<String, dynamic>();
+      var parsed = await compute(Utils.parseDatosDynamic, data);
+      await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("error", (data){   //sample event
+      print("error");
+      print(data);
+    });
+    socket.onConnectError((er) => print(er));
+    socket.onError((e) => print(e));
+    socket.connect();
   }
 
   _ckbPrintChanged(newValue){
