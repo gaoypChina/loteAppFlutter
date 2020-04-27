@@ -427,26 +427,6 @@ print('futuro: ${resp.body}');
 
   StreamSubscription _timerSubscription = null;
 
-
-  void _updateTimer(timer) {
-  print("Timer $timer");
-  
-}
-
-  void _enableTimer() {
-    if (_timerSubscription == null) {
-      _timerSubscription = stream.receiveBroadcastStream("hola").listen(_updateTimer);
-    }
-  }
-
-  void _disableTimer() {
-    if (_timerSubscription != null) {
-      _timerSubscription.cancel();
-      _timerSubscription = null;
-    }
-  }
-
-
   initSocket() async {
     var builder = new JWTBuilder();
     var token = builder
@@ -464,14 +444,16 @@ print('futuro: ${resp.body}');
     manager = SocketIOManager();
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
-                      'http://192.168.43.63:3000',
+                      // 'http://192.168.43.63:3000',
+                      '10.0.0.9:3000',
                       nameSpace: "/",
                       //Query params - can be used for authentication
                       // query: {
                       //   "query": 'auth_token=${signedToken}'
                       // },
                       query: {
-                        "auth_token": '${signedToken.toString()}'
+                        "auth_token": '${signedToken.toString()}',
+                        "room" : "valentin"
                       },
 
                       //Enable or disable platform channel logging
@@ -522,6 +504,10 @@ print('futuro: ${resp.body}');
     socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
     socket.on("error", (data){   //sample event
       print("error");
@@ -832,79 +818,7 @@ print('futuro: ${resp.body}');
               IconButton(
                 icon: Icon(Icons.bluetooth, size: 30,),
                 onPressed: () async{
-                  // List<Prueba> lista = List();
-                  // Prueba p1 = Prueba("jean", 21);
-                  // Prueba p2 = Prueba("Miguel", 46);
-
-                  // lista.add(p1);
-                  // lista.add(p2);
-
-                  // List pruebaToJson() {
-
-                  //     List jsonList = List();
-                  //     lista.map((u)=>
-                  //       jsonList.add(u.toJson())
-                  //     ).toList();
-                  //     return jsonList;
-                  //   }
-
-                  // var c = await DB.create();
-                  // // var l = List<dynamic>.from(lista);
-                  // // print('lista: ${l}');
-                  // c.addListStock(pruebaToJson());
-
-                  var c = await DB.create();
-                  // await c.add("culo", DateTime.now().toString());
-                  // await c.delete("stocks");
-                  // await c.delete("blockslotteries");
-                  // await c.delete("blocksgenerals");
-                  // await c.delete("blocksplays");
-                  // await c.delete("blocksplaysgenerals");
-                  // await c.delete("draws");
-                  // await c.delete("fecha");
-                  // await c.delete("maximoIdRealtime");
-                  // var fecha = DateTime.now();
-                  // await c.add("fecha", fecha.add(Duration(days: -1)).toString());
-                  // var response = await AdvancedShare.whatsapp(msg: "It's okay :)", url: 'https://internetpasoapaso.com/wp-content/uploads/que-es-url.jpg');
-                  //     .then((response) {
-                  //   handleResponse(response, appName: "Whatsapp");
-                  // });
-
-                  // print('response: $response');
-
-                  //  FlutterShareMe()
-                  //      .shareToWhatsApp4Biz(base64Image: base64Image, msg: msg);
-
-                  var builder = new JWTBuilder();
-                  var token = builder
-                    ..issuer = 'https://api.foobar.com'
-                    ..expiresAt = new DateTime.now().add(new Duration(minutes: 3))
-                    ..setClaim('data', {'userId': 836})
-                    ..getToken(); // returns token without signature
-
-                  var signer = new JWTHmacSha256Signer('quierocomerpopola');
-                  var signedToken = builder.getSignedToken(signer);
-                  print(signedToken); // prints encoded JWT
-                  var stringToken = signedToken.toString();
-
-                  
-                  // var channel = IOWebSocketChannel.connect("ws://pruebass.ml:3000", headers: {"query": "auth_token=" + stringToken});
-
-                  // channel.stream.listen((message) {
-                  //   channel.sink.add("received!");
-                  //   channel.sink.close(status.goingAway);
-                  // });
-
-                  
-                  
-                  // List<Map<String, dynamic>> records = await Db.database.query('Stocks', orderBy: '"id" desc');
-                  // print('records: ${records.first['id']}');
-
-                  
-
                   Navigator.of(context).pushNamed('/bluetooth');
-                    
-
                 },
               )
             ],

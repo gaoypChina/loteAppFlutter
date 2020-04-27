@@ -9,6 +9,7 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
 class Principal{
@@ -483,5 +484,13 @@ class Principal{
    );
  }
  
+
+ static version({Map<String, dynamic> version, BuildContext context}) async {
+   PackageInfo packageInfo = await PackageInfo.fromPlatform();
+   print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
+  if(packageInfo.buildNumber != version["version"]){
+    // Navigator.pushReplacementNamed(context, routeName)
+  }
+ }
 
 }
