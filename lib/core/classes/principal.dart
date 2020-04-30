@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/jugadas.dart';
@@ -9,6 +11,8 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/login/login.dart';
+import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -73,33 +77,55 @@ class Principal{
       builder: (context){
         var _formDuplicarKey = GlobalKey<FormState>();
         var _txtTicketDuplicar = TextEditingController();
-        return AlertDialog(
-          title: Text('Duplicar ticket'),
-          content: Form(
-            key: _formDuplicarKey,
-            child: TextFormField(
-              controller: _txtTicketDuplicar,
-              validator: (data){
-                if(data.isEmpty){
-                  return 'No debe estar vacio';
-                }
-                return null;
-              },
-            )
-          ),
-          actions: <Widget>[
-            FlatButton(child: Text("Cancelar"), onPressed: (){
-            Navigator.of(context).pop(Map<String, dynamic>());
-            },),
-            FlatButton(child: Text("Agregar"), onPressed: () async {
-               if(_formDuplicarKey.currentState.validate()){
-                 Map<String, dynamic> ticket = await TicketService.duplicar(codigoBarra: _txtTicketDuplicar.text,scaffoldKey: scaffoldKey);
-                  Navigator.of(context).pop(ticket);
-               }
-              // });
-              },
-            )
-          ],
+        bool _cargando =false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Duplicar ticket'),
+                     Visibility(
+                      visible: _cargando,
+                      child: CircularProgressIndicator()
+                    ),
+                  ],
+                ),
+              content: Form(
+                key: _formDuplicarKey,
+                child: TextFormField(
+                  controller: _txtTicketDuplicar,
+                  validator: (data){
+                    if(data.isEmpty){
+                      return 'No debe estar vacio';
+                    }
+                    return null;
+                  },
+                )
+              ),
+              actions: <Widget>[
+                FlatButton(child: Text("Cancelar"), onPressed: (){
+                Navigator.of(context).pop(Map<String, dynamic>());
+                },),
+                FlatButton(child: Text("Ok"), onPressed: () async {
+                   if(_formDuplicarKey.currentState.validate()){
+                     try{
+                       setState(() => _cargando = true);
+                      Map<String, dynamic> ticket = await TicketService.duplicar(codigoBarra: _txtTicketDuplicar.text, context: context);
+                       setState(() => _cargando = false);
+                      Navigator.of(context).pop(ticket);
+                     }on Exception catch(e){
+                       setState(() => _cargando = false);
+                      //  Navigator.of(context).pop(Map<String, dynamic>());
+                     }
+                     
+                   }
+                  // });
+                  },
+                )
+              ],
+            );
+          }
         );
       }
     );
@@ -121,7 +147,7 @@ class Principal{
             return AlertDialog(
               contentPadding: EdgeInsets.all(0),
               title: Text('Duplicar ticket'),
-              content: Column(
+              content: ListView(
                 children: 
                   _loteriasAduplicar.map((l) => Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -483,14 +509,28 @@ class Principal{
   // ),
    );
  }
- 
 
  static version({Map<String, dynamic> version, BuildContext context}) async {
    PackageInfo packageInfo = await PackageInfo.fromPlatform();
    print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
   if(packageInfo.buildNumber != version["version"]){
-    // Navigator.pushReplacementNamed(context, routeName)
+     Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
+    );
+    // Navigator.pushReplacementNamed(context, "actualizar", arguments: version["enlace"]);
   }
+ }
+
+ static cerrarSesion(BuildContext context) async {
+   var c = await DB.create();
+    await c.add("recordarme", false);
+    await c.delete("administrador");
+    await c.delete("usuario");
+    await c.delete("banca");
+    await Db.deleteDB();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+    );
  }
 
 }

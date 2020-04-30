@@ -366,7 +366,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
                   elevation: 0,
                   color: Utils.fromHex("#e4e6e8"),
                   child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
-                  onPressed: (){},
+                  onPressed: (){_historicoVentas();},
                 ),
                 
               ],

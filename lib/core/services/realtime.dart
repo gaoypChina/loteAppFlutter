@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
@@ -11,7 +14,9 @@ import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/stocks.dart';
+import 'package:loterias/core/models/usuario.dart';
 
 class Realtime{
 
@@ -187,7 +192,7 @@ class Realtime{
 
    
 
-   static sincronizarTodos() async{
+   static sincronizarTodos(GlobalKey<ScaffoldState> _scaffoldKey) async{
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
 
@@ -213,6 +218,14 @@ class Realtime{
         // await c.add("maximoIdRealtime", parsed['maximoIdRealtime']);
 
         print('fuera stocks: ${parsed['stocks']}');
+      
+      if(parsed["version"] != null){
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      }
+      if(parsed["usuario"] != null){
+        await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
+      }
+
        if(parsed['stocks'] != null){
         print('dentro stocks: ${parsed['stocks']}');
 
@@ -271,6 +284,33 @@ class Realtime{
     }
   }
 
+  static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
+    int idUsuario = await Db.idUsuario();
+    if(idUsuario != usuario["id"])
+      return;
+    else if(usuario["status"] != 1)
+      await Principal.cerrarSesion(context);
+    else{
+      await Db.database.delete("Permissions");
+      await Db.database.delete("Users");
+
+      List<Permiso> permisos = usuario['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
+      Usuario u = Usuario.fromMap(usuario);
+
+
+      // var datos = await Db.query("Permissions");
+      // print("Realtime:Usuario permisosExistentes: ${datos.toString()}");
+      
+      await Db.insert('Users', u.toJson());
+      for(Permiso p in permisos){
+        print("Permiso: ${p.toJson()}");
+        await Db.insert('Permissions', p.toJson());
+      }
+
+      print("Realtime:Usuario existePermiso: ${await Db.existePermiso("Jugar como cualquier banca")}");
+    }
+  }
+  
   static hello(){
     print('hola');
   }

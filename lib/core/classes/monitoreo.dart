@@ -116,11 +116,7 @@ class Monitoreo{
                 width: MediaQuery.of(context).size.width,
                 child: ListView(
                   children: <Widget>[
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),
-                      child: Column(
-                        children: <Widget>[
-                          Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500])),
+                          Center(child: Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500]))),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
@@ -202,11 +198,98 @@ class Monitoreo{
                               ],
                             )).toList(),
                           )
+                    // ConstrainedBox(
+                    //   constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),
+                    //   child: 
+                    //   Column(
+                    //     children: <Widget>[
+                    //       Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500])),
+                    //       Row(
+                    //         mainAxisAlignment: MainAxisAlignment.center,
+                    //         children: <Widget>[
+                    //           Container(
+                    //             padding: EdgeInsets.only(left: 10, right: 10),
+                    //             decoration: BoxDecoration(
+                    //               color: Utils.colorInfo
+                    //             ),
+                    //             child: Center(child: Text('Ganador')),
+                    //           ),
+                    //           Container(
+                    //             padding: EdgeInsets.only(left: 10, right: 10),
+                    //             decoration: BoxDecoration(
+                    //               color: Utils.colorRosa
+                    //             ),
+                    //             child: Center(child: Text('Perdedor')),
+                    //           ),
+                    //           Container(
+                    //             padding: EdgeInsets.only(left: 10, right: 10),
+                    //             decoration: BoxDecoration(
+                    //               color: Utils.colorGris
+                    //             ),
+                    //             child: Center(child: Text('Pendiente')),
+                    //           )
+                    //         ],
+                    //       ),
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Monto:"),
+                    //                 TextSpan(text: ' ${mapVenta["total"]}', style: TextStyle(color: Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Pendiente de pago:"),
+                    //                 TextSpan(text: ' ${mapVenta["montoAPagar"]}', style: TextStyle(color: (Utils.toDouble(mapVenta["montoAPagar"].toString()) > 0) ? Colors.pink : Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Premio total:"),
+                    //                 TextSpan(text: ' ${mapVenta["premio"]}', style: TextStyle(color: Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10,),
+                    //       Column(
+                    //         children: _loterias.map<Widget>((l) => Column(
+                    //           mainAxisAlignment: MainAxisAlignment.center,
+                    //           children: <Widget>[
+                    //             Padding(
+                    //               padding: const EdgeInsets.all(8.0),
+                    //               child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    //             ),
+                    //             _buildTable(_jugadas.where((j) => j.idLoteria == l.id).toList())
+                    //           ],
+                    //         )).toList(),
+                    //       )
                           
-                        ],
+                    //     ],
 
-                      ),
-                    ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

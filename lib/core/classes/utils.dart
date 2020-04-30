@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'package:loterias/core/classes/singleton.dart';
 
 class  Utils {
-  // static final String URL = 'https://pruebass.ml';
-  static final String URL = 'http://127.0.0.1:8000';
+  static final String URL = 'https://pruebass.ml';
+  // static final String URL = 'http://127.0.0.1:8000';
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
     HttpHeaders.contentTypeHeader: 'application/json',

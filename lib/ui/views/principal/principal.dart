@@ -91,6 +91,7 @@ String _montoPrueba = '0';
   bool _ckbMessage = false;
   bool _ckbWhatsapp = false;
   bool _drawerIsOpen = false;
+  bool _tienePermisoJugarComoCualquierBanca = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
   StreamController<bool> _streamControllerVenta;
@@ -373,13 +374,16 @@ print('futuro: ${resp.body}');
         DeviceOrientation.portraitDown,
         DeviceOrientation.portraitUp,
     ]);
+    _requestPermisionChannel();
+    _getPermisos();
+    _getUsuarioYBanca();
     _timeString = Utils.formatDateTime(DateTime.now());
     _streamControllerBanca = BehaviorSubject();
     _streamControllerLoteria = BehaviorSubject();
     _streamControllerVenta = BehaviorSubject();
     _streamControllerJugada = BehaviorSubject();
     _streamControllerJugada.add(listaJugadas);
-    _requestPermisionChannel();
+    
     
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
@@ -391,7 +395,7 @@ print('futuro: ${resp.body}');
     indexPost(true);
     _montoFuture = fetchMonto();
     initSocket();
-    _getUsuarioYBanca();
+    
     futureBanca = Db.getBanca();
     futureUsuario = Db.getUsuario();
   // platform.setMethodCallHandler(this._saludos);
@@ -427,11 +431,16 @@ print('futuro: ${resp.body}');
 
   StreamSubscription _timerSubscription = null;
 
+  _getPermisos() async {
+    bool permiso = await Db.existePermiso("Jugar como cualquier banca");
+    setState(() => _tienePermisoJugarComoCualquierBanca = permiso);
+  }
+
   initSocket() async {
     var builder = new JWTBuilder();
     var token = builder
       // ..issuer = 'https://api.foobar.com'
-      ..expiresAt = new DateTime.now().add(new Duration(minutes: 3))
+      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
       ..setClaim('data', {'id': 836, 'username' : "john.doe"})
       ..getToken(); // returns token without signature
 
@@ -444,8 +453,9 @@ print('futuro: ${resp.body}');
     manager = SocketIOManager();
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
+                      'http://pruebass.ml:3000',
                       // 'http://192.168.43.63:3000',
-                      '10.0.0.9:3000',
+                      // '10.0.0.9:3000',
                       nameSpace: "/",
                       //Query params - can be used for authentication
                       // query: {
@@ -464,7 +474,8 @@ print('futuro: ${resp.body}');
       print("connected...");
       print(data);
       socket.emit("message", ["Hello world!"]);
-      await Realtime.sincronizarTodos();
+      await Realtime.sincronizarTodos(_scaffoldKey);
+      await _getPermisos();
     });
     //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
     //   // var parsed = Utils.parseDatos(data);
@@ -508,6 +519,12 @@ print('futuro: ${resp.body}');
     socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+    });
+    socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
+      // var parsed = data.cast<String, dynamic>();
+      var parsed = await compute(Utils.parseDatosDynamic, data);
+      await Realtime.usuario(context: _scaffoldKey.currentContext, usuario: parsed["user"]);
+      await _getPermisos();
     });
     socket.on("error", (data){   //sample event
       print("error");
@@ -629,7 +646,7 @@ print('futuro: ${resp.body}');
                   ),
                   ListTile(
                     title: Text('Dashboard'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.dashboard),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/dashboard");
@@ -637,13 +654,8 @@ print('futuro: ${resp.body}');
                     },
                   ),
                   ListTile(
-                    title: Text('Vender'),
-                    leading: Icon(Icons.attach_money),
-                    dense: true,
-                  ),
-                  ListTile(
                     title: Text('Monitoreo'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.donut_large),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/monitoreo");
@@ -651,7 +663,7 @@ print('futuro: ${resp.body}');
                   ),
                   ListTile(
                     title: Text('Registrar premios'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.format_list_numbered),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/registrarPremios");
@@ -659,7 +671,7 @@ print('futuro: ${resp.body}');
                   ),
                   ListTile(
                     title: Text('Historico ventas'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.timeline),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/historicoVentas");
@@ -668,7 +680,7 @@ print('futuro: ${resp.body}');
                   ),
                   ListTile(
                     title: Text('Ventas'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.insert_chart),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/ventas");
@@ -677,7 +689,7 @@ print('futuro: ${resp.body}');
                   ),
                   ListTile(
                     title: Text('Balance bancas'),
-                    leading: Icon(Icons.attach_money),
+                    leading: Icon(Icons.account_balance),
                     dense: true,
                     onTap: (){
                       Navigator.of(context).pushNamed("/balanceBancas");
@@ -724,15 +736,7 @@ print('futuro: ${resp.body}');
                     dense: true,
                     leading: Icon(Icons.clear),
                     onTap: () async {
-                      var c = await DB.create();
-                      await c.add("recordarme", false);
-                      await c.delete("administrador");
-                      await c.delete("usuario");
-                      await c.delete("banca");
-                      await Db.deleteDB();
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-                      );
+                      Principal.cerrarSesion(context);
                     },
                   )
                 ],
@@ -850,7 +854,13 @@ print('futuro: ${resp.body}');
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: <Widget>[
-                                  
+                                  !_tienePermisoJugarComoCualquierBanca
+                                  ?
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text("${_banca != null ? _banca.descripcion : 'Banca'}"),
+                                  )
+                                  :
                                   StreamBuilder(
                                     stream: _streamControllerBanca.stream,
                                     builder: (context, snapshot){

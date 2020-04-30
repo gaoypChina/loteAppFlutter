@@ -685,7 +685,9 @@ Widget _buildTableTicketsGanadores(List map){
                             child: Text("${b.descripcion}"),
                           )).toList(),
                           onChanged: (Banca banca){
-
+                            int idx = listaBanca.indexWhere((b) => b.descripcion == banca.descripcion);
+                            if(idx != -1)
+                              setState(() => _indexBanca = idx);
                           },
                         );
                       }
@@ -722,7 +724,7 @@ Widget _buildTableTicketsGanadores(List map){
                       children: <Widget>[
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 20),),),
+                          child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 25),),),
                         ),
                         _tablaPrincipal(snapshot.data),
                         Padding(

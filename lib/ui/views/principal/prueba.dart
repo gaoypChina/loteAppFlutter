@@ -465,7 +465,7 @@ print('futuro: ${resp.body}');
                     print("connected...");
                     print(data);
                     socket.emit("message", ["Hello world!"]);
-                    await Realtime.sincronizarTodos();
+                    await Realtime.sincronizarTodos(_scaffoldKey);
                   });
                   //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
                   //   // var parsed = Utils.parseDatos(data);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
+import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
@@ -51,6 +52,10 @@ class Router {
         case '/dashboard' :
           return MaterialPageRoute(
             builder: (_)=> DashboardScreen()
+          ) ;
+        case '/actualizar' :
+          return MaterialPageRoute(
+            builder: (_)=> ActualizarScreen(settings.arguments)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

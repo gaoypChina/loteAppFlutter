@@ -41,7 +41,7 @@ class TicketService{
     return parsed;
   }
 
-  static Future<Map<String, dynamic>> duplicar({String codigoBarra = "", String codigoQr = "", scaffoldKey}) async {
+  static Future<Map<String, dynamic>> duplicar({String codigoBarra = "", String codigoQr = "", scaffoldKey, BuildContext context}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
@@ -56,13 +56,19 @@ class TicketService{
 
     if(statusCode < 200 || statusCode > 400){
       print("ticketService duplicar: ${response.body}");
-      Utils.showSnackBar(content: "Error del servidor ticketService duplicar", scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService duplicar", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService duplicar", scaffoldKey: scaffoldKey);
       throw Exception("Error del servidor ticketService duplicar");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
     if(parsed["errores"] == 1){
-      Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error ticketService duplicar: ${parsed["mensaje"]}");
     }
 
@@ -248,6 +254,43 @@ class TicketService{
     map["subTotal"] = 0;
     map["loterias"] = loterias;
     map["jugadas"] = jugadas;
+    map["idUsuario"] = idUsuario;
+    map["idBanca"] = idBanca;
+    map2["datos"] =map;
+
+    var response = await http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header);
+    int statusCode = response.statusCode;
+    if(statusCode < 200 || statusCode > 400){
+      print("Error servidor ticketService guardar: ${response.body}");
+      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: "Error servidor ticketservice guardar");
+      throw Exception("Error servidor ticketService guardar");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+
+     if(parsed["errores"] == 1){
+      print("Principal parsedDatos: ${parsed["mensaje"]}");
+      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: parsed["mensaje"]);
+      throw Exception("Error Principal parsedDatos: ${parsed["mensaje"]}");
+    }
+
+    var mapDatos = Map<String, dynamic>();
+    mapDatos["bancas"] = parsed['bancas'].map<Banca>((json) => Banca.fromMap(json)).toList();
+    mapDatos["loterias"] = parsed['loterias'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+    mapDatos["ventas"] = parsed['ventas'].map<Venta>((json) => Venta.fromMap(json)).toList();
+    mapDatos["idVenta"] = parsed['idVenta'];
+    mapDatos["errores"] = parsed['errores'];
+    mapDatos["mensaje"] = parsed['mensaje'];
+    mapDatos["venta"] = parsed['venta'];
+    mapDatos["img"] = parsed['img'];
+    print(parsed['ventas']);
+    // map["bancas"] = "jean";
+    return mapDatos;
+  }
+  static Future<Map<String, dynamic>> indexPost({int idUsuario, int idBanca, GlobalKey<ScaffoldState> scaffoldKey}) async {
+    var map = new Map<String, dynamic>();
+    var map2 = new Map<String, dynamic>();
+   
     map["idUsuario"] = idUsuario;
     map["idBanca"] = idBanca;
     map2["datos"] =map;
