@@ -295,12 +295,18 @@ class TicketService{
     map["idBanca"] = idBanca;
     map2["datos"] =map;
 
-    var response = await http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header);
+    var response = await http.post(Utils.URL +"/api/principal/indexPost", body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){
-      print("Error servidor ticketService guardar: ${response.body}");
-      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: "Error servidor ticketservice guardar");
-      throw Exception("Error servidor ticketService guardar");
+      print("Error servidor ticketService indexPost: ${response.body}");
+      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: "Error servidor ticketservice indexPost");
+      // scaffoldKey.currentState.showSnackBar(
+      // SnackBar(
+      //   content: Text("Vuelva a cargar"),
+      //   elevation: 25,
+      //   action: SnackBarAction(label: 'CERRAR', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),),
+      // ));
+      throw Exception("Error servidor ticketService indexPost");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);

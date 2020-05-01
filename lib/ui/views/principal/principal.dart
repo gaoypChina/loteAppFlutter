@@ -92,6 +92,12 @@ String _montoPrueba = '0';
   bool _ckbWhatsapp = false;
   bool _drawerIsOpen = false;
   bool _tienePermisoJugarComoCualquierBanca = false;
+  bool _tienePermisoManejarResultados = false;
+  bool _tienePermisoMarcarTicketComoPagado = false;
+  bool _tienePermisoMonitorearTicket = false;
+  bool _tienePermisoVerVentas = false;
+  bool _tienePermisoVerListaDeBalancesDeBancass = false;
+  bool _tienePermisoAdministrador = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
   StreamController<bool> _streamControllerVenta;
@@ -151,6 +157,30 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   indexPost(bool seleccionarBancaPertenecienteAUsuario) async {
+    
+    
+    try{
+      setState(() => _cargando = true);
+      var datos = await TicketService.indexPost(idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      
+      setState((){
+        _cargando = false;
+        _idVenta = datos['idVenta'];
+        listaBanca = datos["bancas"];
+        listaVenta = datos["ventas"];
+        _streamControllerBanca.add(true);
+        _streamControllerVenta.add(true);
+        listaLoteria = datos['loterias'];
+        _streamControllerLoteria.add(datos['loterias']);
+        _seleccionarPrimeraLoteria();
+        (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null;
+      });
+    } on Exception catch(e){
+      setState(() => _cargando = false);
+    }
+  }
+
+  indexPostViejo(bool seleccionarBancaPertenecienteAUsuario) async {
     _cargando = true;
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
@@ -433,7 +463,26 @@ print('futuro: ${resp.body}');
 
   _getPermisos() async {
     bool permiso = await Db.existePermiso("Jugar como cualquier banca");
-    setState(() => _tienePermisoJugarComoCualquierBanca = permiso);
+    bool permisoManejarResultados = await Db.existePermiso("Manejar resultados");
+    bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
+    bool permisoMonitorearTicket = await Db.existePermiso("Monitorear ticket");
+    bool permisoVerVentas = await Db.existePermiso("Ver ventas");
+    bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
+    bool permisoVerListaDeBalancesDeBancas = await Db.existePermiso("Ver lista de balances de bancas");
+    bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
+
+    if(permisoAccesoAlSistema == false)
+      Principal.cerrarSesion(context);
+
+    setState((){
+      _tienePermisoJugarComoCualquierBanca = permiso;
+      _tienePermisoAdministrador = permisoAdministrador;
+      _tienePermisoManejarResultados = permisoManejarResultados;
+      _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
+      _tienePermisoMonitorearTicket = permisoMonitorearTicket;
+      _tienePermisoVerVentas = permisoVerVentas;
+      _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
+    });
   }
 
   initSocket() async {
@@ -644,57 +693,75 @@ print('futuro: ${resp.body}');
                       ),
                     ),
                   ),
-                  ListTile(
-                    title: Text('Dashboard'),
-                    leading: Icon(Icons.dashboard),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/dashboard");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
+                  Visibility(
+                    visible: _tienePermisoAdministrador,
+                    child: ListTile(
+                      title: Text('Dashboard'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/dashboard");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: Text('Monitoreo'),
-                    leading: Icon(Icons.donut_large),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/monitoreo");
-                    },
+                  Visibility(
+                    visible: _tienePermisoMonitorearTicket,
+                    child: ListTile(
+                      title: Text('Monitoreo'),
+                      leading: Icon(Icons.donut_large),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/monitoreo");
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: Text('Registrar premios'),
-                    leading: Icon(Icons.format_list_numbered),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/registrarPremios");
-                    },
+                  Visibility(
+                    visible: _tienePermisoManejarResultados,
+                    child: ListTile(
+                      title: Text('Registrar premios'),
+                      leading: Icon(Icons.format_list_numbered),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/registrarPremios");
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: Text('Historico ventas'),
-                    leading: Icon(Icons.timeline),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/historicoVentas");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
+                  Visibility(
+                    visible: _tienePermisoVerVentas,
+                    child: ListTile(
+                      title: Text('Historico ventas'),
+                      leading: Icon(Icons.timeline),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/historicoVentas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: Text('Ventas'),
-                    leading: Icon(Icons.insert_chart),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/ventas");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
+                  Visibility(
+                    visible: _tienePermisoVerVentas,
+                    child: ListTile(
+                      title: Text('Ventas'),
+                      leading: Icon(Icons.insert_chart),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/ventas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                   ),
-                  ListTile(
-                    title: Text('Balance bancas'),
-                    leading: Icon(Icons.account_balance),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/balanceBancas");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
+                  Visibility(
+                    visible: _tienePermisoVerListaDeBalancesDeBancass,
+                    child: ListTile(
+                      title: Text('Balance bancas'),
+                      leading: Icon(Icons.account_balance),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/balanceBancas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                   ),
                   ListTile(
                     title: Text('Pendientes de pago'),
@@ -718,18 +785,21 @@ print('futuro: ${resp.body}');
                       // print("prueba alertdialog: $prueba");
                     },
                   ),
-                  ListTile(
-                    title: Text("Pagar"),
-                    leading: Icon(Icons.payment),
-                    dense: true,
-                    onTap: () async {
-                      dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
-                      _scaffoldKey.currentState.openEndDrawer();
-                      if(datos.isNotEmpty){
-                        print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
-                        Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
-                      }
-                    },
+                  Visibility(
+                    visible: _tienePermisoMarcarTicketComoPagado,
+                    child: ListTile(
+                      title: Text("Pagar"),
+                      leading: Icon(Icons.payment),
+                      dense: true,
+                      onTap: () async {
+                        dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                        _scaffoldKey.currentState.openEndDrawer();
+                        if(datos.isNotEmpty){
+                          print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
+                          Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+                        }
+                      },
+                    ),
                   ),
                   ListTile(
                     title: Text('Cerrar sesion'),
@@ -785,7 +855,7 @@ print('futuro: ${resp.body}');
                     } on Exception catch(e){
                       setState(() => _cargando = false);
                     }
-                  }else{
+                  }else if(value == "pagar"){
                     try{
                       String codigoQr = await BarcodeScanner.scan();
                       setState(() => _cargando = true);
@@ -802,6 +872,7 @@ print('futuro: ${resp.body}');
                     value: "duplicar",
                     child: Text("Duplicar"),
                   ),
+                  if(_tienePermisoMarcarTicketComoPagado)
                   const PopupMenuItem(
                     value: "pagar",
                     child: Text("Pagar")
