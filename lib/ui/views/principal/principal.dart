@@ -705,18 +705,18 @@ print('futuro: ${resp.body}');
                       },
                     ),
                   ),
-                  Visibility(
-                    visible: _tienePermisoAdministrador,
-                    child: ListTile(
-                      title: Text('Transacciones'),
-                      leading: Icon(Icons.dashboard),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/transacciones");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
+                  // Visibility(
+                  //   visible: _tienePermisoAdministrador,
+                  //   child: ListTile(
+                  //     title: Text('Transacciones'),
+                  //     leading: Icon(Icons.dashboard),
+                  //     dense: true,
+                  //     onTap: (){
+                  //       Navigator.of(context).pushNamed("/transacciones");
+                  //       _scaffoldKey.currentState.openEndDrawer();
+                  //     },
+                  //   ),
+                  // ),
                   Visibility(
                     visible: _tienePermisoMonitorearTicket,
                     child: ListTile(

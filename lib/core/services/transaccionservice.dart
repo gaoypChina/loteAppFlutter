@@ -66,4 +66,36 @@ class TransaccionService{
 
     return parsed;
   }
+
+  static Future<Map<String, dynamic>> guardar({BuildContext context, scaffoldKey, int idUsuario, List transacciones}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["idUsuario"] = idUsuario;
+    map["addTransaccion"] = transacciones;
+    mapDatos["datos"] = map;
+
+    var response = await http.post(Utils.URL + "/api/transacciones/guardar", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("transaccionservice guardar: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor transaccionservice guardar", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor transaccionservice guardar", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor transaccionservice guardar");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error transaccionservice guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
 }

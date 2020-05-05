@@ -109,8 +109,16 @@ class BluetoothManager : Activity {
 
     private fun returnDevice(device: BluetoothDevice, escaneadoOemparejado: Boolean) {
         val ret: MutableMap<String, Any> = HashMap()
-        ret["address"] = device.address
-        ret["name"] = device.name
+
+        if(device.address != null)
+            ret["address"] = device.address
+        else
+            ret["address"] = "no"
+
+        if(device.name != null)
+            ret["name"] = device.name
+        else
+            ret["name"] = "no"
         ret["escaneado"] = escaneadoOemparejado
 //        ret["type"] = device.type
 

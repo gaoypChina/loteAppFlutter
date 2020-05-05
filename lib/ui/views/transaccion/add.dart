@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/entidades.dart';
@@ -364,6 +365,18 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
     );
   }
 
+  _guardar() async {
+    try{
+      setState(() => _cargando = true);
+      var datos = await TransaccionService.guardar(scaffoldKey: _scaffoldKey, idUsuario: await Db.idUsuario(), transacciones: listaTransaccion);
+      listaTransaccion.clear();
+      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
+      setState(() => _cargando = false);
+    }on Exception catch(e){
+      setState(() => _cargando = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -411,6 +424,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                     ),
                   ],
                 ),
+                IconButton(
+                  icon: Icon(Icons.save), 
+                  onPressed: _guardar
+                )
             ],
             bottom: TabBar(
               tabs: <Widget>[
