@@ -66,11 +66,10 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   _getMonitoreo() async {
    try{
      setState(() => _cargando = true);
-      _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _fecha.toString(), idBanca: (_tienePermisoJugarComoCualquierBanca) ? _bancas[_indexBanca].id : await Db.idBanca());
-      _tmpListaVenta = _listaVenta.map((v) => v).toList();;
-      _streamControllerMonitoreo.add(true);
-      setState(() => _cargando = false);
-      
+    _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _fecha.toString(), idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    _tmpListaVenta = _listaVenta.map((v) => v).toList();;
+    _streamControllerMonitoreo.add(true);
+    setState(() => _cargando = false);
    } on Exception catch(e){
       setState(() => _cargando = false);
    }

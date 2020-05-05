@@ -12,6 +12,8 @@ import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
+import 'package:loterias/ui/views/transaccion/add.dart';
+import 'package:loterias/ui/views/transaccion/transacciones.dart';
 
 
 class Router {
@@ -56,6 +58,14 @@ class Router {
         case '/actualizar' :
           return MaterialPageRoute(
             builder: (_)=> ActualizarScreen(settings.arguments)
+          ) ;
+        case '/transacciones' :
+          return MaterialPageRoute(
+            builder: (_)=> TransaccionesScreen()
+          ) ;
+        case '/addTransacciones' :
+          return MaterialPageRoute(
+            builder: (_)=> AddTransaccionesScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

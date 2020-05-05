@@ -32,7 +32,7 @@ class Db{
       await db.execute('CREATE TABLE Draws (id INTEGER PRIMARY KEY, descripcion TEXT, bolos INTEGER, cantidadNumeros INTEGER, status INTEGER, created_at TEXT)');
       await db.execute('CREATE TABLE Permissions (id INTEGER PRIMARY KEY, descripcion TEXT, status INTEGER, created_at TEXT)');
       await db.execute('CREATE TABLE Users (id INTEGER PRIMARY KEY, nombres TEXT, email TEXT, usuario TEXT, status INTEGER, created_at TEXT)');
-      await db.execute('CREATE TABLE Branches (id INTEGER PRIMARY KEY, codigo TEXT, descripcion TEXT, dueno TEXT, idUsuario INTEGER, limiteVenta NUMERIC, descontar NUMERIC, deCada NUMERIC, minutosCancelarTicket NUMERIC, piepagina1 TEXT, piepagina2 TEXT, piepagina3 TEXT, piepagina4 TEXT, idMoneda INTEGER, moneda TEXT, status INTEGER, created_at TEXT)');
+      await db.execute('CREATE TABLE Branches (id INTEGER PRIMARY KEY, codigo TEXT, descripcion TEXT, dueno TEXT, idUsuario INTEGER, limiteVenta NUMERIC, descontar NUMERIC, deCada NUMERIC, minutosCancelarTicket NUMERIC, piepagina1 TEXT, piepagina2 TEXT, piepagina3 TEXT, piepagina4 TEXT, idMoneda INTEGER, moneda TEXT, monedaAbreviatura TEXT, monedaColor TEXT, status INTEGER, created_at TEXT)');
 
     });
   }
