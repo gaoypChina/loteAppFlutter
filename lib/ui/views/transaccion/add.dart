@@ -218,7 +218,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                 Container(
                   // padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){},))
+                  child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){
+                    listaTransaccion.remove(b);
+                    _streamControllerTransacciones.add(listaTransaccion);
+                  },))
                 ),
               ],
             )
@@ -284,6 +287,15 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
     ),
   );
   
+ }
+
+ _empty(){
+   _txtBalanceEntidad1.text = "";
+   _txtBalanceEntidad2.text = "";
+   _txtDebito.text = "";
+   _txtCredito.text = "";
+   _txtBalanceFinalEntidad1.text = "";
+   _txtBalanceFinalEntidad2.text = "";
  }
 
   @override
@@ -533,6 +545,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     controller: _txtDebito,
                                     enabled: _txtDebitoEnabled,
                                     decoration: InputDecoration(labelText: "Debito"),
+                                    onChanged: (texto){
+                                      _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                                      _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                                    },
                                     validator: (data){
                                       if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
                                         return "Vacio";
@@ -552,6 +568,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     controller: _txtCredito,
                                     enabled: _txtCreditoEnabled,
                                     decoration: InputDecoration(labelText: "Credito"),
+                                    onChanged: (texto){
+                                      _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                                      _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                                    },
                                     validator: (data){
                                       if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
                                         return "Vacio";
@@ -600,7 +620,18 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
             SafeArea(
               child: ListView(
                 children: <Widget>[
-
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    elevation: 0,
+                    color: Utils.fromHex("#e4e6e8"),
+                    child: Text("Eliminar todas", style: TextStyle(color: Utils.colorPrimary),),
+                    onPressed: (){
+                      listaTransaccion.clear();
+                      _streamControllerTransacciones.add(listaTransaccion);
+                    },
+                  ),
+                ),
                   StreamBuilder<List>(
                     stream: _streamControllerTransacciones.stream,
                     builder: (context, snapshot){
