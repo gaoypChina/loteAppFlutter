@@ -369,7 +369,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                 builder: (context, snapshot){
                   // print("${snapshot.hasData}");
                   if(snapshot.hasData){
-                    return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermisoMonitoreo) ? _bancas[_indexBanca] : _banca);
+                    return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermisoMonitoreo && _bancas != null) ? _bancas[_indexBanca] : _banca);
                   }
                   return _buildTable(List<Venta>(), null);
                 },

@@ -289,6 +289,40 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
   
  }
 
+ _addTransaccion() async {
+    int idx = listaTransaccion.indexWhere((t) => t["entidad1"]["descripcion"] == listaBanca[_indexBanca].descripcion && t["tipo"]["descripcion"] == listaTipo[_indexTipo].descripcion);
+    if(idx == -1)
+    {
+      Map<String, dynamic> map = {
+      "tipo" : listaTipo[_indexTipo].toJson(),
+      "entidad1" : listaBanca[_indexBanca].toJson(),
+      "entidad2" : listaEntidad[_indexEntidad].toJson(),
+      "entidad1_saldo_inicial" : _txtBalanceEntidad1.text,
+      "entidad2_saldo_inicial" : _txtBalanceEntidad2.text,
+      "debito" : Utils.toDouble(_txtDebito.text),
+      "credito" : Utils.toDouble(_txtCredito.text),
+      "entidad1_saldo_final" : _saldoFinalEntidad1(),
+      "entidad2_saldo_final" : _saldoFinalEntidad2(),
+      "nota" : "",
+      "nota_grupo" : "",
+      "tipoTransaccion" : listaTipoTransaccion[_indexTipoTransaccion]["descripcion"],
+      "fecha" : _fecha.toString()
+    };
+    listaTransaccion.add(map);
+    _streamControllerTransacciones.add(listaTransaccion);
+    _empty();
+    }else{
+      if(await _preguntarDeseaActualizarTransaccionExistente()){
+        listaTransaccion[idx]["debito"] = Utils.toDouble(_txtDebito.text);
+        listaTransaccion[idx]["credito"] = Utils.toDouble(_txtCredito.text);
+        listaTransaccion[idx]["entidad1_saldo_final"] = _saldoFinalEntidad1();
+        listaTransaccion[idx]["entidad2_saldo_final"] = _saldoFinalEntidad2();
+      _streamControllerTransacciones.add(listaTransaccion);
+      _empty();
+      }
+    }
+ }
+
  _empty(){
    _txtBalanceEntidad1.text = "";
    _txtBalanceEntidad2.text = "";
@@ -297,6 +331,38 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
    _txtBalanceFinalEntidad1.text = "";
    _txtBalanceFinalEntidad2.text = "";
  }
+
+  Future<bool> _preguntarDeseaActualizarTransaccionExistente() async {
+   return await showDialog(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: Text("Transaccion existe"),
+          content: RichText(
+            text: TextSpan(
+              style: TextStyle(color: Colors.black),
+              children: [
+                TextSpan(text: "La transaccion de tipo "),
+                TextSpan(text: listaTipo[_indexTipo].descripcion, style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(text: " para la banca "),
+                TextSpan(text: listaBanca[_indexBanca].descripcion, style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(text: " ya existe, desea actualizar?"),
+              ]
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(child: Text("No"), onPressed: (){Navigator.pop(context, false);},),
+            FlatButton(
+              child: Text("Si"),
+              onPressed: (){
+                Navigator.pop(context, true);
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -309,23 +375,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
           child: Icon(Icons.add), 
           onPressed: (){
             if(_formKey.currentState.validate()){
-              Map<String, dynamic> map = {
-                "tipo" : listaTipo[_indexTipo].toJson(),
-                "entidad1" : listaBanca[_indexBanca].toJson(),
-                "entidad2" : listaEntidad[_indexEntidad].toJson(),
-                "entidad1_saldo_inicial" : _txtBalanceEntidad1.text,
-                "entidad2_saldo_inicial" : _txtBalanceEntidad2.text,
-                "debito" : Utils.toDouble(_txtDebito.text),
-                "credito" : Utils.toDouble(_txtCredito.text),
-                "entidad1_saldo_final" : _saldoFinalEntidad1(),
-                "entidad2_saldo_final" : _saldoFinalEntidad2(),
-                "nota" : "",
-                "nota_grupo" : "",
-                "tipoTransaccion" : listaTipoTransaccion[_indexTipoTransaccion]["descripcion"],
-                "fecha" : _fecha.toString()
-              };
-              listaTransaccion.add(map);
-              _streamControllerTransacciones.add(listaTransaccion);
+             _addTransaccion();
               // print("save: ${map.toString()}");
             }
           },),
