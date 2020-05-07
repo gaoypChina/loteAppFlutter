@@ -236,14 +236,17 @@ class BluetoothChannel{
       
       if(typeTicket == TYPE_ORIGINAL){
         Map<String, dynamic> banca = mapVenta["banca"];
-        if(banca["piepagina1"] != null)
-          map[map.length] = _getMap("${banca["piepagina1"]}");
+        print("bluetoothchannel generateticket banca: ${banca.toString()}");
+        if(banca["piepagina1"] != null){
+          print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca["piepagina1"]}");
+          map[map.length] = _getMap("${banca["piepagina1"]}\n");
+        }
         if(banca["piepagina2"] != null)
-          map[map.length] = _getMap("${banca["piepagina2"]}");
+          map[map.length] = _getMap("${banca["piepagina2"]}\n");
         if(banca["piepagina3"] != null)
-          map[map.length] = _getMap("${banca["piepagina3"]}");
+          map[map.length] = _getMap("${banca["piepagina3"]}\n");
         if(banca["piepagina4"] != null)
-          map[map.length] = _getMap("${banca["piepagina4"]}");
+          map[map.length] = _getMap("${banca["piepagina4"]}\n");
         if(banca["imprimirCodigoQr"] == 1)
           map[map.length] = _getMapQR(mapVenta["codigoQr"]);
         

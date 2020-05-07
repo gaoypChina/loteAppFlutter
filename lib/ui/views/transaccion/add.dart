@@ -133,6 +133,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
 
   _bancaChange() async {
     try{
+      _txtDebito.text = "";
+      _txtCredito.text = "";
+      _txtBalanceFinalEntidad1.text = "";
+      _txtBalanceFinalEntidad2.text = "";
       setState(() => _cargando = true);
       var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: listaBanca[_indexBanca].id);
       _txtBalanceEntidad1.text = datos["saldo_inicial"].toString();
@@ -145,8 +149,12 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
 
   _entidadChange() async {
     try{
+      _txtDebito.text = "";
+      _txtCredito.text = "";
+      _txtBalanceFinalEntidad1.text = "";
+      _txtBalanceFinalEntidad2.text = "";
       setState(() => _cargando = true);
-      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: listaBanca[_indexBanca].id, esBanca: false);
+      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: listaEntidad[_indexEntidad].id, esBanca: false);
       _txtBalanceEntidad2.text = datos["saldo_inicial"].toString();
       print("datos _entidadChange: ${datos["saldo_inicial"]}");
       setState(() => _cargando = false);
@@ -291,6 +299,16 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
  }
 
  _addTransaccion() async {
+   if(listaBanca[_indexBanca].id == 0){
+     Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Debe seleccionar una banca");
+     return;
+   }
+
+   if(listaEntidad[_indexEntidad].id == 0){
+     Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Debe seleccionar un banco");
+     return;
+   }
+
     int idx = listaTransaccion.indexWhere((t) => t["entidad1"]["descripcion"] == listaBanca[_indexBanca].descripcion && t["tipo"]["descripcion"] == listaTipo[_indexTipo].descripcion);
     if(idx == -1)
     {
@@ -366,6 +384,11 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
   }
 
   _guardar() async {
+    if(listaTransaccion.length <= 0){
+      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Error: Debe registrar transacciones");
+      return;
+    }
+
     try{
       setState(() => _cargando = true);
       var datos = await TransaccionService.guardar(scaffoldKey: _scaffoldKey, idUsuario: await Db.idUsuario(), transacciones: listaTransaccion);
@@ -425,7 +448,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                   ],
                 ),
                 IconButton(
-                  icon: Icon(Icons.save), 
+                  icon: Icon(Icons.save, color: Colors.blue,), 
                   onPressed: _guardar
                 )
             ],
