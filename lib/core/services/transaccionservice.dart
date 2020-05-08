@@ -7,6 +7,33 @@ import 'package:loterias/core/models/bancas.dart';
 import 'dart:convert';
 
 class TransaccionService{
+  static Future<Map<String, dynamic>> transacciones({BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    var response = await http.get(Utils.URL + "/api/transacciones", headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("transaccionservice transacciones: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor transaccionservice transacciones", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor transaccionservice transacciones", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor transaccionservice transacciones");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error transaccionservice transacciones: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
   static Future<Map<String, dynamic>> grupo({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
