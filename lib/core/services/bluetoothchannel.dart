@@ -81,6 +81,16 @@ class BluetoothChannel{
       }
     );
   }
+
+  static quickPrint() async {
+    try{
+      final bool result = await _methodChannel.invokeMethod("quickPrinter");
+      print("quickPrint flutter: $result");
+    }on PlatformException catch(e){
+      print("quickPrint platformexception: ${e.toString()}");
+    }
+  }
+
   static printCuadre(Map<String, dynamic> map) async {
     var c = await DB.create();
     var printer = await c.getValue("printer");
@@ -104,7 +114,7 @@ class BluetoothChannel{
     );
   }
 
-  static printText({String content, int nWidthTimes = 1}) async {
+  static printText({String content, int nWidthTimes = 1, normalOPrueba = true}) async {
     var c = await DB.create();
     var printer = await c.getValue("printer");
     if(_connectado){
@@ -117,8 +127,15 @@ class BluetoothChannel{
         print("Listen OnData: $onData");
         _connectado = true;
         var map = Map<int, dynamic>();
-        map[map.length] = _getMap(content, nWidthTimes);
+        map[map.length] = (normalOPrueba) ? _getMap(content, nWidthTimes) : _getMapPrueba(content, nWidthTimes);
         final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
+        // if(normalOPrueba){
+        //   map[map.length] = _getMap(content, nWidthTimes);
+        //   final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
+        // }else{
+        //   map[map.length] = _getMapPrueba(content, nWidthTimes);
+        //   final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
+        // }
         disconnect();
         print("Listen OnData print: $result");
       },
@@ -264,6 +281,10 @@ class BluetoothChannel{
 
   static Map<String, dynamic> _getMap(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT]){
     return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : type};
+  }
+
+  static Map<String, dynamic> _getMapPrueba(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT]){
+    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : "prueba"};
   }
 
   static Map<String, dynamic> _getMapAlign(int align){

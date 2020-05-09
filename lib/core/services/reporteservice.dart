@@ -73,6 +73,7 @@ class ReporteService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("reporteservice ventas datos: ${parsed.toString()}");
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");

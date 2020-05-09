@@ -119,7 +119,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   _connect() async {
-    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n");
+    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n", normalOPrueba: false);
   }
 
   @override
@@ -225,7 +225,12 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                     );
                   },
                 ),
-                  
+                // RaisedButton(
+                //   child: Text("Quickprint"),
+                //   onPressed: (){
+                //     BluetoothChannel.quickPrint();
+                //   },
+                // ),
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomCenter,

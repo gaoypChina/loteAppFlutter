@@ -263,6 +263,127 @@ class BluetoothManager : Activity {
         }
     }
 
+    fun prueba(pszString: String) : Boolean {
+        try {
+//            if (nOrgx > 65535 || nOrgx < 0 || nWidthTimes > 7 || nWidthTimes < 0 || nHeightTimes > 7 || nHeightTimes < 0 || nFontType < 0 || nFontType > 4 || pszString.length == 0) {
+//                throw java.lang.Exception("invalid args")
+//            }
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+            val textSizeNormal = byteArrayOf(0x1b, 0x21, 0x00)
+            val textSizeLarge = byteArrayOf(0x1b, 0x21, 0x30)
+            val textSizeDoubleHeight = byteArrayOf(0x1b, 0x21, 0x10)
+            val qr = byteArrayOf(0x1c, 0x7d, 0x25)
+
+            os.write(textSizeLarge)
+            val data = pszString.toByteArray()
+            os.write(data, 0, data.size)
+
+            os.write(textSizeNormal)
+            os.write(data, 0, data.size)
+
+            os.write(textSizeDoubleHeight)
+            os.write(data, 0, data.size)
+
+//            os.write(qr)
+            os.write(qrCode("Culo"))
+//            os.write("hola".toByteArray(), 0, "hola".toByteArray().size)
+            os.flush()
+
+            return true;
+
+//            InputStream largeDataInputStream = mBluetoothSocket.getInputStream();
+//            int length;
+//            while ((length = largeDataInputStream.read(data)) != -1) {
+//                Log.d("largeDataInputStream", "index:" + length);
+//            }
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    /**
+     * Encode and print QR code
+     *
+     * @param str
+     *          String to be encoded in QR.
+     * @param errCorrection
+     *          The degree of error correction. (48 <= n <= 51)
+     *          48 = level L / 7% recovery capacity.
+     *          49 = level M / 15% recovery capacity.
+     *          50 = level Q / 25% recovery capacity.
+     *          51 = level H / 30% recovery capacity.
+     *
+     *  @param moduleSize
+     *  		The size of the QR module (pixel) in dots.
+     *  		The QR code will not print if it is too big.
+     *  		Try setting this low and experiment in making it larger.
+     */
+    open fun qrCode(content: String): ByteArray? {
+        val commands = HashMap<Any, Any>()
+        val commandSequence = arrayOf("model", "size", "error", "store", "content", "print")
+        val contentLen = content.length
+        var resultLen = 0
+        var command: ByteArray
+
+        // QR Code: Select the model
+        //              Hex     1D      28      6B      04      00      31      41      n1(x32)     n2(x00) - size of model
+        // set n1 [49 x31, model 1] [50 x32, model 2] [51 x33, micro qr code]
+        // https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=140
+        command = byteArrayOf(0x1d.toByte(), 0x28.toByte(), 0x6b.toByte(), 0x04.toByte(), 0x00.toByte(), 0x31.toByte(), 0x41.toByte(), 0x32.toByte(), 0x00.toByte())
+        commands["model"] = command
+        resultLen += command.size
+
+        // QR Code: Set the size of module
+        // Hex      1D      28      6B      03      00      31      43      n
+        // n depends on the printer
+        // https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=141
+        command = byteArrayOf(0x1d.toByte(), 0x28.toByte(), 0x6b.toByte(), 0x03.toByte(), 0x00.toByte(), 0x31.toByte(), 0x43.toByte(), 0x06.toByte())
+        commands["size"] = command
+        resultLen += command.size
+
+        //          Hex     1D      28      6B      03      00      31      45      n
+        // Set n for error correction [48 x30 -> 7%] [49 x31-> 15%] [50 x32 -> 25%] [51 x33 -> 30%]
+        // https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=142
+        command = byteArrayOf(0x1d.toByte(), 0x28.toByte(), 0x6b.toByte(), 0x03.toByte(), 0x00.toByte(), 0x31.toByte(), 0x45.toByte(), 0x33.toByte())
+        commands["error"] = command
+        resultLen += command.size
+
+        // QR Code: Store the data in the symbol storage area
+        // Hex      1D      28      6B      pL      pH      31      50      30      d1...dk
+        // https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=143
+        //                        1D          28          6B         pL          pH  cn(49->x31) fn(80->x50) m(48->x30) d1…dk
+        val storeLen = contentLen + 3
+        val store_pL = (storeLen % 256).toByte()
+        val store_pH = (storeLen / 256).toByte()
+        command = byteArrayOf(0x1d.toByte(), 0x28.toByte(), 0x6b.toByte(), store_pL, store_pH, 0x31.toByte(), 0x50.toByte(), 0x30.toByte())
+        commands["store"] = command
+        resultLen += command.size
+
+        // QR Code content
+        command = content.toByteArray()
+        commands["content"] = command
+        resultLen += command.size
+
+        // QR Code: Print the symbol data in the symbol storage area
+        // Hex      1D      28      6B      03      00      31      51      m
+        // https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=144
+        command = byteArrayOf(0x1d.toByte(), 0x28.toByte(), 0x6b.toByte(), 0x03.toByte(), 0x00.toByte(), 0x31.toByte(), 0x51.toByte(), 0x30.toByte())
+        commands["print"] = command
+        resultLen += command.size
+        var cnt = 0
+        var commandLen = 0
+        val result = ByteArray(resultLen)
+        for (currCommand in commandSequence) {
+            command = commands[currCommand] as ByteArray
+            commandLen = command.size
+            System.arraycopy(command, 0, result, cnt, commandLen)
+            cnt += commandLen
+        }
+        return result
+    }
+
     fun POS_S_Align(align: Int) {
         try {
             if (align < 0 || align > 2) {

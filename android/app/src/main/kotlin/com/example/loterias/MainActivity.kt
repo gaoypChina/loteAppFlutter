@@ -1,5 +1,6 @@
 package com.example.loterias
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.util.Base64
@@ -94,11 +95,21 @@ class MainActivity: FlutterActivity() {
             "share" -> HmltToBitmapAndSendSMSWhatsapp(call, result)
             "printText" -> printText(call, result)
             "turnOnBluetooth" -> turnOnBluetooth(result)
+            "quickPrinter" -> quickPrinter(result)
         }
     }
 
     fun requestPermission(result:MethodChannel.Result){
         Utils.comprobarPermisos(this)
+        result.success(true)
+    }
+
+    fun quickPrinter(result:MethodChannel.Result){
+        val textToPrint:String = "<BIG>Text title<BR>testing <BIG> BIG<BR><BR><QR>12345678<BR><BR>"
+        val intent: Intent = Intent("pe.diegoveloper.printing")
+        intent.setType("text/plain")
+        intent.putExtra(android.content.Intent.EXTRA_TEXT, textToPrint)
+        startActivity(intent)
         result.success(true)
     }
 
@@ -135,6 +146,7 @@ class MainActivity: FlutterActivity() {
                 "PRINT" -> bluetoothManagerConnection.POS_S_TextOut(m["text"] as String, 0, m["nWidthTimes"] as Int, 1, 0, 0x00)
                 "ALIGN" -> bluetoothManagerConnection.POS_S_Align(m["text"] as Int)
                 "QR" -> bluetoothManagerConnection.POS_S_SetQRcode(m["text"] as String, 8, 0, 3)
+                "prueba" -> bluetoothManagerConnection.prueba(m["text"] as String)
             }
         }
         CoroutineScope(Dispatchers.Main).launch {
