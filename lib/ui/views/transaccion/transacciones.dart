@@ -53,6 +53,14 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 InkWell(
                   onTap: (){
                     // _showTicket(b["codigoBarra"], context);
+                    showBottomSheet(
+                      context: context, 
+                      builder: (context){
+                        return Container(
+                          height: MediaQuery.of(context).size,
+                        );
+                      }
+                    );
                   }, 
                   child: Container(
                     padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -207,6 +215,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                   return _buildTableTransaccion(List());
                 },
               ),
+              
               
             ],
           ),

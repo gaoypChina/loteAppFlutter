@@ -712,7 +712,7 @@ print('futuro: ${resp.body}');
                     visible: _tienePermisoAdministrador,
                     child: ListTile(
                       title: Text('Transacciones'),
-                      leading: Icon(Icons.dashboard),
+                      leading: Icon(Icons.transfer_within_a_station),
                       dense: true,
                       onTap: (){
                         Navigator.of(context).pushNamed("/transacciones");
