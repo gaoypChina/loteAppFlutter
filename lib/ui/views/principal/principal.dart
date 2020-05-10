@@ -620,8 +620,10 @@ print('futuro: ${resp.body}');
     loteriasAduplicar.forEach((l) async {
       for(Map<String, dynamic> jugada in datos["jugadas"]){
         if(l["id"] == jugada["idLoteria"]){
-          if(l["duplicar"] == '- NO MOVER -')
+          if(l["duplicar"] == '- NO MOVER -'){
+            jugada["jugada"] = await Utils.esSorteoPickAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
             await addJugada(loteriaMap: l, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
+          }
           else if(l["duplicar"] != '- NO COPIAR -'){
             print('dentro no copiar');
             Map<String, dynamic> mapLoteria = Map<String, dynamic>();
@@ -629,6 +631,7 @@ print('futuro: ${resp.body}');
             if(loteria != null){
               mapLoteria["id"] = loteria.id;
               mapLoteria["descripcion"] = loteria.descripcion;
+              jugada["jugada"] = await Utils.esSorteoPickAgregarUltimoCaracter(jugada["jugada"], jugada["sorteo"]);
               await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], montoDisponible: 'X', monto: jugada["monto"]);
             }
 
@@ -705,18 +708,18 @@ print('futuro: ${resp.body}');
                       },
                     ),
                   ),
-                  Visibility(
-                    visible: _tienePermisoAdministrador,
-                    child: ListTile(
-                      title: Text('Transacciones'),
-                      leading: Icon(Icons.dashboard),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/transacciones");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
+                  // Visibility(
+                  //   visible: _tienePermisoAdministrador,
+                  //   child: ListTile(
+                  //     title: Text('Transacciones'),
+                  //     leading: Icon(Icons.dashboard),
+                  //     dense: true,
+                  //     onTap: (){
+                  //       Navigator.of(context).pushNamed("/transacciones");
+                  //       _scaffoldKey.currentState.openEndDrawer();
+                  //     },
+                  //   ),
+                  // ),
                   Visibility(
                     visible: _tienePermisoMonitorearTicket,
                     child: ListTile(
@@ -1627,7 +1630,7 @@ void _getTime() {
   }
 
 
-  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap}){
+  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap}) async {
     if(jugada.length < 2)
       return;
 

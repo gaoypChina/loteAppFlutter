@@ -27,6 +27,7 @@ class BluetoothManager : Activity {
     private val REQUEST_ENABLE_BT = 1
     private val applicationUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
+
     constructor(context: Context, sink: EventChannel.EventSink) {
         this.context = context
         this.activity = context as Activity;
@@ -274,19 +275,24 @@ class BluetoothManager : Activity {
             val textSizeLarge = byteArrayOf(0x1b, 0x21, 0x30)
             val textSizeDoubleHeight = byteArrayOf(0x1b, 0x21, 0x10)
             val qr = byteArrayOf(0x1c, 0x7d, 0x25)
-
-            os.write(textSizeLarge)
+            val textAlignCenter = byteArrayOf(0x1b, 0x61, 0x01)
             val data = pszString.toByteArray()
-            os.write(data, 0, data.size)
+
+            os.write(textAlignCenter)
 
             os.write(textSizeNormal)
+            os.write(data, 0, data.size)
+
+            os.write(textSizeLarge)
             os.write(data, 0, data.size)
 
             os.write(textSizeDoubleHeight)
             os.write(data, 0, data.size)
 
 //            os.write(qr)
-            os.write(qrCode("Culo"))
+            os.write(qrCode(pszString))
+            os.write("\n\n\n".toByteArray())
+
 //            os.write("hola".toByteArray(), 0, "hola".toByteArray().size)
             os.flush()
 
@@ -297,6 +303,113 @@ class BluetoothManager : Activity {
 //            while ((length = largeDataInputStream.read(data)) != -1) {
 //                Log.d("largeDataInputStream", "index:" + length);
 //            }
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun h1(text: String) : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textSizeLarge)
+            os.write(text.toByteArray(), 0, text.toByteArray().size)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun h2(text: String) : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textSizeDoubleHeight)
+            os.write(text.toByteArray(), 0, text.toByteArray().size)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+    fun p(text: String) : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textSizeNormal)
+            os.write(text.toByteArray(), 0, text.toByteArray().size)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun left() : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textAlignLeft)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun center() : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textAlignCenter)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun right() : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textAlignRight)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun qr(text: String) : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.qr(text))
+            os.flush()
+
+            return true;
         } catch (var15: java.lang.Exception) {
             Log.i("Pos", var15.toString())
             return false;

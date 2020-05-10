@@ -142,11 +142,18 @@ class MainActivity: FlutterActivity() {
         for (i in 0 until map.size){
 
             val m : Map<String, Any> = map[i] as Map<String, Any>
-            when(m["type"]){
+            when(m["cmd"]){
                 "PRINT" -> bluetoothManagerConnection.POS_S_TextOut(m["text"] as String, 0, m["nWidthTimes"] as Int, 1, 0, 0x00)
                 "ALIGN" -> bluetoothManagerConnection.POS_S_Align(m["text"] as Int)
                 "QR" -> bluetoothManagerConnection.POS_S_SetQRcode(m["text"] as String, 8, 0, 3)
                 "prueba" -> bluetoothManagerConnection.prueba(m["text"] as String)
+                "h1" -> bluetoothManagerConnection.h1(m["text"] as String)
+                "h2" -> bluetoothManagerConnection.h2(m["text"] as String)
+                "p" -> bluetoothManagerConnection.p(m["text"] as String)
+                "left" -> bluetoothManagerConnection.left()
+                "right" -> bluetoothManagerConnection.right()
+                "center" -> bluetoothManagerConnection.center()
+                "qr" -> bluetoothManagerConnection.qr(m["text"] as String)
             }
         }
         CoroutineScope(Dispatchers.Main).launch {

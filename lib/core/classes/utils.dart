@@ -140,6 +140,20 @@ class  Utils {
     return jugada;
   }
 
+  static Future<String> esSorteoPickAgregarUltimoSigno(String jugada, String sorteo, [int idSorteo]) async {
+    if(idSorteo != null){
+      var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+      sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
+    }
+    
+    if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Box')
+      jugada = jugada + "+";
+    else if(sorteo == 'Pick 4 Straight')
+      jugada = jugada + "-";
+    
+    return jugada;
+  }
+
   static String agregarSignoYletrasParaImprimir(String jugada, String sorteo){
     switch(sorteo){
       case "Pale":

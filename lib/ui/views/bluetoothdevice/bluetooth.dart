@@ -118,8 +118,9 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     setState(() => _existeImpresora = existe);
   }
 
-  _connect() async {
-    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n", normalOPrueba: false);
+  _connect(normalOPrueba) async {
+    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n", normalOPrueba: normalOPrueba);
+    // BluetoothChannel.printText(content: "TE AMOOOO\n**MI REINA**\n\n\n", normalOPrueba: normalOPrueba);
   }
 
   @override
@@ -153,7 +154,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                         color: Utils.fromHex("#e4e6e8"),
                         child: Text('Probar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                         onPressed: (){
-                          _connect();
+                          _connect(true);
                         },
                     ),
                   ),
@@ -180,6 +181,23 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
               )
             )
           ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: RaisedButton(
+                  elevation: 0,
+                  color: Utils.fromHex("#e4e6e8"),
+                  child: Text('Probar quick print', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
+                  onPressed: () async {
+                    await _connect(false);
+                  },
+              ),
+            ),
+          ),
         ),
       ],
     );

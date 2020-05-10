@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 
@@ -181,6 +182,127 @@ class BluetoothChannel{
 
   static Map<int, dynamic> generateMapTicket(Map<String, dynamic> mapVenta, String typeTicket){
     List listMapToPrint = List();
+    
+    
+
+    print("generateMapTicket: ${mapVenta.toString()}");
+    Map<int, dynamic> map = Map<int, dynamic>();
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text:"${mapVenta["banca"]["descripcion"]}\n", cmd: CMD.h1);
+    map[map.length] = _printTicketHeader(typeTicket);
+    map[map.length] = _getMapNuevo(text:"${mapVenta["fecha"]}\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"Ticket:" + Utils.toSecuencia(mapVenta["banca"]["codigo"], BigInt.from(mapVenta["idTicket"])) + "\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"Fecha: ${mapVenta["fecha"]}\n", cmd: CMD.p);
+    if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
+      map[map.length] = _getMapNuevo(text:"${mapVenta["codigoBarra"]}\n", cmd: CMD.h1);
+    
+    double total = 0;
+    for(Map<String, dynamic> loteria in mapVenta["loterias"]){
+      bool primerCicloJugadas = true;
+      int contadorCicleJugadas = 0;
+      double totalPorLoteria = 0;
+      
+      
+      List jugadas = _getJugadasPertenecienteALoteria(jugadas: mapVenta["jugadas"], idLoteria: loteria["id"], type: typeTicket);
+      if(jugadas.isEmpty)
+        continue;
+
+      map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+      map[map.length] = _getMapNuevo(text:"${loteria["descripcion"]}\n");
+      map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+      
+      for(int contador=0; contador < jugadas.length; contador++){
+        Map<String, dynamic> jugada = jugadas[contador];
+        String espaciosPrimerMonto = "         ";
+        String espaciosSegundaJugada = "       ";
+        String espaciosSegundoMonto = "         ";
+          if(loteria["id"] != jugada["idLoteria"])
+            continue;
+
+        total += Utils.toDouble(jugada["monto"].toString());
+        totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
+
+        map[map.length] = _getMapNuevo(cmd: CMD.left);
+        if(primerCicloJugadas){
+          map[map.length] = _getMapNuevo(text:"JUGADA   MONTO  JUGADA   MONTO\n");
+          primerCicloJugadas = false;
+        }
+        if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
+          String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1]["jugada"].toString(), jugadas[contador - 1]["sorteo"]);
+          String montoAnterior = jugadas[contador - 1]["monto"].toString();
+          espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
+          
+          espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
+          espaciosSegundoMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundoMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+          // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+          // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
+          map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+          map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${jugada["monto"]}\n");
+        }else{
+          espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+          map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"]));
+          map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${jugada["monto"]}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+        }
+
+        contadorCicleJugadas++;
+      }
+
+      map[map.length] = _getMapNuevo(cmd: CMD.center);
+      int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+      if(loteriasLength > 1)
+        map[map.length] = _getMapNuevo(text:"\n total: $totalPorLoteria \n\n\n");
+      }
+
+      if(mapVenta["hayDescuento"] == 1){
+        map[map.length] = _getMapNuevo(text:"subTotal: ${mapVenta["total"]}\n");
+        map[map.length] = _getMapNuevo(text:"descuento: ${mapVenta["descuentoMonto"]}\n");
+        total -= Utils.toDouble(mapVenta["descuentoMonto"].toString());
+      }
+
+      String saltoLineaTotal = "\n";
+      if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || mapVenta["banca"]["imprimirCodigoQr"] == 0)
+        saltoLineaTotal += "\n\n";
+      
+      map[map.length] = _getMapNuevo(text:"- TOTAL: $total$saltoLineaTotal");
+    
+      if(typeTicket == TYPE_CANCELADO)
+        map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+      
+      if(typeTicket == TYPE_ORIGINAL){
+        Map<String, dynamic> banca = mapVenta["banca"];
+        print("bluetoothchannel generateticket banca: ${banca.toString()}");
+        if(banca["piepagina1"] != null){
+          print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca["piepagina1"]}");
+          map[map.length] = _getMapNuevo(text:"${banca["piepagina1"]}\n", cmd: CMD.p);
+        }
+        if(banca["piepagina2"] != null)
+          map[map.length] = _getMapNuevo(text:"${banca["piepagina2"]}\n", cmd: CMD.p);
+        if(banca["piepagina3"] != null)
+          map[map.length] = _getMapNuevo(text:"${banca["piepagina3"]}\n", cmd: CMD.p);
+        if(banca["piepagina4"] != null)
+          map[map.length] = _getMapNuevo(text:"${banca["piepagina4"]}\n", cmd: CMD.p);
+        if(banca["imprimirCodigoQr"] == 1)
+          map[map.length] = _getMapNuevo(text:mapVenta["codigoQr"], cmd: CMD.qr);
+        
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
+      }else{
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
+      }
+
+    return map;
+    // print("printicket: ${map.length}");
+    // for(Map<String, dynamic> map in mapVenta["jugadas"]){
+    //   print("Jugada: ${map["jugada"]}");
+    // }
+  }
+
+  static _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(String tamano, String jugadaOMonto){
+    // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
+    // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
+    return tamano.substring(0, tamano.length - jugadaOMonto.length);
+  }
+  static Map<int, dynamic> generateMapTicketViejo(Map<String, dynamic> mapVenta, String typeTicket){
+    List listMapToPrint = List();
     print("generateMapTicket: ${mapVenta.toString()}");
     Map<int, dynamic> map = Map<int, dynamic>();
     map[map.length] = _getMapAlign(TYPE_ALIGN_CENTER);
@@ -259,7 +381,7 @@ class BluetoothChannel{
           map[map.length] = _getMap("${banca["piepagina1"]}\n");
         }
         if(banca["piepagina2"] != null)
-          map[map.length] = _getMap("${banca["piepagina2"]}\n");
+          map[map.length] = _getMap("${banca["piepagina2"]}\n",);
         if(banca["piepagina3"] != null)
           map[map.length] = _getMap("${banca["piepagina3"]}\n");
         if(banca["piepagina4"] != null)
@@ -279,12 +401,16 @@ class BluetoothChannel{
     // }
   }
 
-  static Map<String, dynamic> _getMap(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT]){
-    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : type};
+  static Map<String, dynamic> _getMapNuevo({String text = '', cmd = CMD.h2}){
+    return {"text" : text, "cmd" : cmd};
   }
 
-  static Map<String, dynamic> _getMapPrueba(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT]){
-    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : "prueba"};
+  static Map<String, dynamic> _getMap(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT, String cmd = CMD.h2]){
+    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : type, "cmd" : cmd};
+  }
+
+  static Map<String, dynamic> _getMapPrueba(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT, String cmd = CMD.h2]){
+    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : "prueba", "cmd" : cmd};
   }
 
   static Map<String, dynamic> _getMapAlign(int align){
@@ -298,16 +424,16 @@ class BluetoothChannel{
   static Map<String, dynamic> _printTicketHeader(String type) {
     switch(type){
         case TYPE_ORIGINAL:
-          return  _getMap("** $TYPE_ORIGINAL **\n", 1);
+          return  _getMapNuevo(text: "** $TYPE_ORIGINAL **\n", cmd: CMD.h1);
           break;
         case TYPE_PAGADO:
-          return  _getMap("** $TYPE_ORIGINAL **\n", 1);
+          return  _getMapNuevo(text: "** $TYPE_ORIGINAL **\n", cmd: CMD.h1);
           break;
         case TYPE_COPIA:
-          return _getMap("** $TYPE_COPIA **\n", 1);
+          return _getMapNuevo(text: "** $TYPE_COPIA **\n", cmd: CMD.h1);
           break;
         default:
-          return _getMap("** $TYPE_CANCELADO **\n", 1);
+          return _getMapNuevo(text: "** $TYPE_CANCELADO **\n", cmd: CMD.h1);
     }
   }
 
