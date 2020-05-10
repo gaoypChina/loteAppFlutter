@@ -268,7 +268,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                               
                               // _bancas = snapshot.data;
                               return DropdownButton(
-                                hint: Text("Seleccionar banca"),
+                                hint: Text("Sel. banca"),
+                                // isExpanded: true,
                                 value: _bancas[_indexBanca],
                                 onChanged: (Banca banca) async {
                                   int idx = _bancas.indexWhere((b) => b.id == banca.id);

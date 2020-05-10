@@ -161,21 +161,21 @@ class BluetoothChannel{
 
   static Map<int, dynamic> generateCuadre(Map<String, dynamic> mapCuadre){
     Map<int, dynamic> map = Map<int, dynamic>();
-    map[map.length] = _getMapAlign(TYPE_ALIGN_CENTER);
-    map[map.length] = _getMap("Cuadre\n", 1);
-    map[map.length] = _getMap("${mapCuadre["banca"]["descripcion"]}\n", 1);
-    map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
-    map[map.length] = _getMap("Balance hasta la fecha: ${mapCuadre["balanceHastaLaFecha"]}\n");
-    map[map.length] = _getMap("Tickets pendientes: ${mapCuadre["pendientes"]}\n");
-    map[map.length] = _getMap("Tickets perdedores: ${mapCuadre["perdedores"]}\n");
-    map[map.length] = _getMap("Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
-    map[map.length] = _getMap("Total:              ${mapCuadre["total"]}\n");
-    map[map.length] = _getMap("Ventas:             ${mapCuadre["ventas"]}\n");
-    map[map.length] = _getMap("Comisiones:         ${mapCuadre["comisiones"]}\n");
-    map[map.length] = _getMap("descuentos:         ${mapCuadre["descuentos"]}\n");
-    map[map.length] = _getMap("premios:            ${mapCuadre["premios"]}\n");
-    map[map.length] = _getMap("neto:               ${mapCuadre["neto"]}\n");
-    map[map.length] = _getMap("Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n\n\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text:"Cuadre\n", cmd: CMD.h1);
+    map[map.length] = _getMapNuevo(text:"${mapCuadre["banca"]["descripcion"]}\n", cmd: CMD.h1);
+    map[map.length] = _getMapNuevo(cmd: CMD.left);
+    map[map.length] = _getMapNuevo(text:"Balance hasta la fecha: ${mapCuadre["balanceHastaLaFecha"]}\n");
+    map[map.length] = _getMapNuevo(text:"Tickets pendientes: ${mapCuadre["pendientes"]}\n");
+    map[map.length] = _getMapNuevo(text:"Tickets perdedores: ${mapCuadre["perdedores"]}\n");
+    map[map.length] = _getMapNuevo(text:"Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
+    map[map.length] = _getMapNuevo(text:"Total:              ${mapCuadre["total"]}\n");
+    map[map.length] = _getMapNuevo(text:"Ventas:             ${mapCuadre["ventas"]}\n");
+    map[map.length] = _getMapNuevo(text:"Comisiones:         ${mapCuadre["comisiones"]}\n");
+    map[map.length] = _getMapNuevo(text:"descuentos:         ${mapCuadre["descuentos"]}\n");
+    map[map.length] = _getMapNuevo(text:"premios:            ${mapCuadre["premios"]}\n");
+    map[map.length] = _getMapNuevo(text:"neto:               ${mapCuadre["neto"]}\n");
+    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n\n\n\n");
     print("bluetooth channel cuadure: ${map.toString()}");
     return map;
   }

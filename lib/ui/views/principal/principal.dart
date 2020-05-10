@@ -728,7 +728,7 @@ print('futuro: ${resp.body}');
                       dense: true,
                       onTap: (){
                         Navigator.of(context).pushNamed("/monitoreo");
-                      },
+                      _scaffoldKey.currentState.openEndDrawer();},
                     ),
                   ),
                   Visibility(
@@ -739,7 +739,7 @@ print('futuro: ${resp.body}');
                       dense: true,
                       onTap: (){
                         Navigator.of(context).pushNamed("/registrarPremios");
-                      },
+                      _scaffoldKey.currentState.openEndDrawer();},
                     ),
                   ),
                   Visibility(
@@ -955,7 +955,8 @@ print('futuro: ${resp.body}');
                                         return Padding(
                                         padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                         child: DropdownButton(
-                                              hint: Text('seleccionar banca'),
+                                              hint: Text('sel. banca'),
+                                              // isExpanded: true,
                                               value:  listaBanca[_indexBanca],
                                               onChanged: (Banca banca){
                                                 setState(() {
@@ -1244,7 +1245,7 @@ print('futuro: ${resp.body}');
                                             _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                             _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                             _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Icon(Icons.backspace, size: 55, color: _colorPrimary,), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                             // SizedBox(
                                             //   width: MediaQuery.of(context).size.width / 4,
                                             //   height: constraints.maxHeight / 5,
