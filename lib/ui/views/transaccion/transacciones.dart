@@ -57,7 +57,8 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                       context: context, 
                       builder: (context){
                         return Container(
-                          height: MediaQuery.of(context).size,
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          width: MediaQuery.of(context).size.width,
                         );
                       }
                     );

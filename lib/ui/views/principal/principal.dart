@@ -40,22 +40,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 
-extension HexColor on Color {
-  /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
-  static Color fromHex(String hexString) {
-    final buffer = StringBuffer();
-    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-    buffer.write(hexString.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
-  }
-
-  /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
-  String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
-      '${alpha.toRadixString(16).padLeft(2, '0')}'
-      '${red.toRadixString(16).padLeft(2, '0')}'
-      '${green.toRadixString(16).padLeft(2, '0')}'
-      '${blue.toRadixString(16).padLeft(2, '0')}';
-}
 
 
 
@@ -121,9 +105,11 @@ String _montoPrueba = '0';
 // 0xFF42A5F5
 // MaterialColor colorCustom = MaterialColor(0xFF039BE5, color);
 MaterialColor colorCustom = MaterialColor(0xFF0990D0, Utils.color);
-// Color _colorPrimary = HexColor.fromHex("#1db7bd");
-Color _colorPrimary = HexColor.fromHex("#1db7bd");
-Color _colorSegundary = Color(0xFF0990D0);
+// Color _colorPrimary = Utils.fromHex("#1db7bd");
+// Color _colorPrimary = Utils.fromHex("#1db7bd");
+// Color _colorSegundary = Color(0xFF0990D0);
+var _colorPrimary = Utils.fromHex("#1db7bd");
+var _colorSegundary = Utils.colorInfo;
 FocusNode focusNode;
 SocketIOManager manager;
 SocketIO socket;
@@ -887,11 +873,13 @@ print('futuro: ${resp.body}');
                     value: "duplicar",
                     child: Text("Duplicar"),
                   ),
-                  if(_tienePermisoMarcarTicketComoPagado)
+                  (_tienePermisoMarcarTicketComoPagado) ?
                   const PopupMenuItem(
                     value: "pagar",
                     child: Text("Pagar")
                   )
+                  :
+                  SizedBox()
                 ],
               ),
 
@@ -1242,17 +1230,17 @@ print('futuro: ${resp.body}');
                                       children: <Widget>[
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                             // SizedBox(
                                             //   width: MediaQuery.of(context).size.width / 4,
                                             //   height: constraints.maxHeight / 5,
                                             //   child: RaisedButton(
                                             //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
                                             //     elevation: 0,
-                                            //     color: HexColor.fromHex("#FFEDEBEB"),
+                                            //     color: Utils.fromHex("#FFEDEBEB"),
                                             //     onPressed: (){},
                                             //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
                                             //   ),
@@ -1261,32 +1249,32 @@ print('futuro: ${resp.body}');
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), HexColor.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 2, 5),
-                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), HexColor.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 2, 5),
+                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 2, 5),
+                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 2, 5),
                                           ],
                                         )
                                       ],
@@ -1524,7 +1512,7 @@ void _getTime() {
     print(_selectedLoterias.length);
   }
 
-  SizedBox _buildButton(Widget text_or_icon, Color color, double height, int countWidth, int countHeight){
+  SizedBox _buildButton(Widget text_or_icon, var color, double height, int countWidth, int countHeight){
     return SizedBox(
         width: MediaQuery.of(context).size.width / countWidth,
         height: height / countHeight,
