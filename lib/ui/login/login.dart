@@ -162,12 +162,19 @@ _showSnackBar(String content){
                           children: <Widget>[
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
-                              child: MyCheckbox(
+                              child: 
+                              MyCheckbox(
                                 value: _recordarme, 
                                 onChanged: (value){
                                   setState(() => _recordarme = value);
                                 }
                               ),
+                              // Checkbox(
+                              //   value: _recordarme, 
+                              //   onChanged: (value){
+                              //     setState(() => _recordarme = value);
+                              //   }
+                              // ),
                             ),
                             Text('Recordarme'),
                           ],

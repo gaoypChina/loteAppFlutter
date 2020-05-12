@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
 import 'package:rxdart/rxdart.dart';
@@ -15,6 +17,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   bool _cargando = false;
   StreamController<List> _streamControllerTransacciones;
   List listaTransaccion = List();
+  DateTime _fecha = DateTime.now();
 
   @override
   void initState() {
@@ -28,6 +31,20 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     try{
       setState(() => _cargando = true);
       var datos = await TransaccionService.transacciones(scaffoldKey: _scaffoldkey);
+      listaTransaccion = List.from(datos["transacciones"]);
+      _streamControllerTransacciones.add(listaTransaccion);
+      listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
+      print("transaccionesscreen transacciones: ${datos['transacciones']}");
+      setState(() => _cargando = false);
+    }on Exception catch(e){
+      setState(() => _cargando = false);
+    }
+  }
+
+  _buscarTransacciones() async {
+    try{
+      setState(() => _cargando = true);
+      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, idUsuario: await Db.idUsuario(), fechaDesde: _fecha, fechaHasta: _fecha);
       listaTransaccion = List.from(datos["transacciones"]);
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
@@ -53,12 +70,147 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 InkWell(
                   onTap: (){
                     // _showTicket(b["codigoBarra"], context);
-                    showBottomSheet(
+                    
+                    showModalBottomSheet(
                       context: context, 
                       builder: (context){
-                        return Container(
-                          height: MediaQuery.of(context).size.height * 0.8,
-                          width: MediaQuery.of(context).size.width,
+                        return 
+                        Container(
+                          height: MediaQuery.of(context).size.height / 2,
+                          child: ListView(
+                            children: <Widget>[
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: FlatButton(onPressed: (){Navigator.pop(context);}, child: Text("Listo", style: TextStyle(color: Utils.colorPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
+                              ),
+                              Center(child: Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: Text("${b["entidad1"]["descripcion"]}", style: TextStyle(fontSize: 24),),
+                              )),
+                              Table(
+                                children: [
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 1)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Fecha", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${DateFormat.yMd().add_jm().format(DateTime.parse(b["created_at"]["date"]))}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 2)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Tipo", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["tipo"]["descripcion"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 3)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Entidad2", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${(b["tipoEntidad2"] == "Banco") ? b["entidad2"]["nombre"] : b["entidad2"]["descripcion"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 4)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Sald. ini. entidad1", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["entidad1_saldo_inicial"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 5)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Sald. ini. entidad2", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["entidad2_saldo_inicial"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 6)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Debito", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["debito"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 7)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Credito", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["credito"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 8)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Sald. fin. entidad1", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["entidad1_saldo_final"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  TableRow(
+                                    decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 9)),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("Sald. fin. entidad2", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Center(child: Text("${b["entidad2_saldo_final"]}", style: TextStyle(fontSize: 16))),
+                                      ),
+                                    ]
+                                  ),
+                                  
+                                ],
+                              )
+                            ],
+                          )
                         );
                       }
                     );
@@ -80,7 +232,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${(b["tipo"]["descripcion"] != 'Ajuste') ? b["tipo"]["descripcion"] : b["debito"] != 0 ? b["tipo"]["descripcion"] + '(Debito)' : b["tipo"]["descripcion"] + '(Credito)'}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["tipo"]["descripcion"] != 'Ajuste') ? b["tipo"]["descripcion"].toString().substring(0, b["tipo"]["descripcion"].toString().length > 10 ? 10 : b["tipo"]["descripcion"].toString().length) : b["debito"] != 0 ? b["tipo"]["descripcion"] + '(Debito)' : b["tipo"]["descripcion"] + '(Credito)'}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -169,6 +321,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldkey,
       appBar: AppBar(
           leading: BackButton(
             color: Utils.colorPrimary,
@@ -207,11 +360,23 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
         body: SafeArea(
           child: ListView(
             children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: RaisedButton(
+                  child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+                  color: Colors.transparent, 
+                  onPressed: () async {
+                    var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
+                    setState(() => _fecha = (fecha != null) ? fecha : _fecha);
+                    await _buscarTransacciones();
+                  }, 
+                  elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
+              ),
               StreamBuilder<List>(
                 stream: _streamControllerTransacciones.stream,
                 builder: (context, snapshot){
                   if(snapshot.hasData){
-                    return _buildTableTransaccion(snapshot.data);
+                    return  _buildTableTransaccion(snapshot.data);
                   }
                   return _buildTableTransaccion(List());
                 },

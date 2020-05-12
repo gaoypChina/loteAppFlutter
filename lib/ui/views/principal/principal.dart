@@ -1167,6 +1167,7 @@ print('futuro: ${resp.body}');
                                   ),
                                   Row(
                                     children: <Widget>[
+                                      //MyCheckbox
                                       MyCheckbox(
                                         useTapTarget: false,
                                         value: _ckbDescuento,

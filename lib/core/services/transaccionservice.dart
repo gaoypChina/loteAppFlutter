@@ -34,6 +34,41 @@ class TransaccionService{
 
     return parsed;
   }
+  static Future<Map<String, dynamic>> buscarTransacciones({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, int idUsuario}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["fechaDesde"] = fechaDesde.toString();
+    map["fechaHasta"] = fechaHasta.toString();
+    map["idTipoEntidad"] = 0;
+    map["idEntidad"] = 0;
+    map["idTipo"] = 0;
+    map["idUsuario"] = idUsuario;
+    mapDatos["datos"] = map;
+
+    var response = await http.post(Utils.URL + "/api/transacciones/buscarTransaccion", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("transaccionservice buscarTransacciones: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor transaccionservice buscarTransacciones", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor transaccionservice buscarTransacciones", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor transaccionservice buscarTransacciones");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error transaccionservice buscarTransacciones: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
   static Future<Map<String, dynamic>> grupo({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
