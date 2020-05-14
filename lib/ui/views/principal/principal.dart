@@ -81,6 +81,7 @@ String _montoPrueba = '0';
   bool _tienePermisoMonitorearTicket = false;
   bool _tienePermisoVerVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
+  bool _tienePermisoTransacciones = false;
   bool _tienePermisoAdministrador = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
@@ -455,6 +456,7 @@ print('futuro: ${resp.body}');
     bool permisoVerVentas = await Db.existePermiso("Ver ventas");
     bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
     bool permisoVerListaDeBalancesDeBancas = await Db.existePermiso("Ver lista de balances de bancas");
+    bool permisoTransacciones = await Db.existePermiso("Manejar transacciones");
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
 
     if(permisoAccesoAlSistema == false)
@@ -467,6 +469,7 @@ print('futuro: ${resp.body}');
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
       _tienePermisoMonitorearTicket = permisoMonitorearTicket;
       _tienePermisoVerVentas = permisoVerVentas;
+      _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
     });
   }
@@ -695,7 +698,7 @@ print('futuro: ${resp.body}');
                     ),
                   ),
                   Visibility(
-                    visible: _tienePermisoAdministrador,
+                    visible: _tienePermisoTransacciones,
                     child: ListTile(
                       title: Text('Transacciones'),
                       leading: Icon(Icons.transfer_within_a_station),
@@ -801,6 +804,14 @@ print('futuro: ${resp.body}');
                         }
                       },
                     ),
+                  ),
+                  ListTile(
+                    title: Text('Version'),
+                    dense: true,
+                    leading: Icon(Icons.clear),
+                    onTap: () async {
+                    Principal.showVersion(context: context);
+                    },
                   ),
                   ListTile(
                     title: Text('Cerrar sesion'),

@@ -217,7 +217,7 @@ class Realtime{
         
         // await c.add("maximoIdRealtime", parsed['maximoIdRealtime']);
 
-        print('fuera stocks: ${parsed['stocks']}');
+        print('fuera stocks version: ${parsed['version']}');
       
       if(parsed["version"] != null){
         await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -143,7 +144,11 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       print("datos _bancaChange: ${datos["saldo_inicial"]}");
       setState(() => _cargando = false);
     }catch(e){
-      setState(() => _cargando = false);
+      setState((){
+        _indexBanca = 0;
+        _txtBalanceEntidad1.text = '';
+        _cargando = false;
+      });
     }
   }
 
@@ -159,7 +164,12 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       print("datos _entidadChange: ${datos["saldo_inicial"]}");
       setState(() => _cargando = false);
     }catch(e){
-      setState(() => _cargando = false);
+
+      setState((){
+        _indexEntidad = 0;
+      _txtBalanceEntidad2.text = '';
+        _cargando = false;
+      });
     }
   }
 
@@ -316,8 +326,8 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       "tipo" : listaTipo[_indexTipo].toJson(),
       "entidad1" : listaBanca[_indexBanca].toJson(),
       "entidad2" : listaEntidad[_indexEntidad].toJson(),
-      "entidad1_saldo_inicial" : _txtBalanceEntidad1.text,
-      "entidad2_saldo_inicial" : _txtBalanceEntidad2.text,
+      "entidad1_saldo_inicial" : Utils.toDouble(_txtBalanceEntidad1.text),
+      "entidad2_saldo_inicial" : Utils.toDouble(_txtBalanceEntidad2.text),
       "debito" : Utils.toDouble(_txtDebito.text),
       "credito" : Utils.toDouble(_txtCredito.text),
       "entidad1_saldo_final" : _saldoFinalEntidad1(),
@@ -349,6 +359,10 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
    _txtCredito.text = "";
    _txtBalanceFinalEntidad1.text = "";
    _txtBalanceFinalEntidad2.text = "";
+   setState((){
+     _indexEntidad = 0;
+     _indexBanca = 0;
+   });
  }
 
   Future<bool> _preguntarDeseaActualizarTransaccionExistente() async {
@@ -635,6 +649,11 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     controller: _txtDebito,
                                     enabled: _txtDebitoEnabled,
                                     decoration: InputDecoration(labelText: "Debito"),
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      LengthLimitingTextInputFormatter(2),
+                                      WhitelistingTextInputFormatter.digitsOnly
+                                    ],
                                     onChanged: (texto){
                                       _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
                                       _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
@@ -658,6 +677,11 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     controller: _txtCredito,
                                     enabled: _txtCreditoEnabled,
                                     decoration: InputDecoration(labelText: "Credito"),
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      LengthLimitingTextInputFormatter(2),
+                                      WhitelistingTextInputFormatter.digitsOnly
+                                    ],
                                     onChanged: (texto){
                                       _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
                                       _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();

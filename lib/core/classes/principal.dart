@@ -521,6 +521,20 @@ class Principal{
   }
  }
 
+ static showVersion({Map<String, dynamic> version, BuildContext context}) async {
+   PackageInfo packageInfo = await PackageInfo.fromPlatform();
+   print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
+  Utils.showAlertDialog(context: context, title: "Version", content: "Version ${packageInfo.version}+${packageInfo.buildNumber}");
+  // if(packageInfo.buildNumber != version["version"]){
+  //    Navigator.of(context).pushReplacement(
+  //     MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
+  //   );
+  //   // Navigator.pushReplacementNamed(context, "actualizar", arguments: version["enlace"]);
+  // }
+ }
+
+ 
+
  static cerrarSesion(BuildContext context) async {
    var c = await DB.create();
     await c.add("recordarme", false);
