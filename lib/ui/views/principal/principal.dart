@@ -808,7 +808,7 @@ print('futuro: ${resp.body}');
                   ListTile(
                     title: Text('Version'),
                     dense: true,
-                    leading: Icon(Icons.clear),
+                    leading: Icon(Icons.assignment),
                     onTap: () async {
                     Principal.showVersion(context: context);
                     },
