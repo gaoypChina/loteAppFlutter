@@ -1021,6 +1021,23 @@ print('futuro: ${resp.body}');
                                   ),
                                 ],
                               ),
+                              // Padding(
+                              //   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                              //   child: GestureDetector(
+                              //     onTap: (){
+                              //       _showMultiSelect(context);
+                              //     },
+                              //       child: Container(
+                              //       width: MediaQuery.of(context).size.width,
+                              //       padding: EdgeInsets.only(top: 13, bottom: 13),
+                              //       decoration: BoxDecoration(
+                              //         border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+                              //       ),
+                              //       child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+                              //     ),
+                              //   ),
+                              // ),
+
                               Padding(
                                 padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                 child: GestureDetector(
@@ -1029,7 +1046,8 @@ print('futuro: ${resp.body}');
                                   },
                                     child: Container(
                                     width: MediaQuery.of(context).size.width,
-                                    padding: EdgeInsets.only(top: 13, bottom: 13),
+                                    height: MediaQuery.of(context).size.height * 0.058,
+                                    // padding: EdgeInsets.only(top: 13, bottom: 13),
                                     decoration: BoxDecoration(
                                       border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
                                     ),
@@ -1037,6 +1055,7 @@ print('futuro: ${resp.body}');
                                   ),
                                 ),
                               ),
+                              
                               SizedBox(height: 10,),
                               Row(
                                 children: <Widget>[
@@ -1050,6 +1069,7 @@ print('futuro: ${resp.body}');
                                         child: Container(
                                           // duration: Duration(milliseconds: 50),
                                             width: MediaQuery.of(context).size.width / 3,
+                                            height: (MediaQuery.of(context).size.height * 0.0688),
                                             // padding: EdgeInsets.only(top: 13, bottom: 13),
                                             decoration: BoxDecoration(
                                               border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
@@ -1058,15 +1078,19 @@ print('futuro: ${resp.body}');
                                               child: TextField(
                                                 controller: _txtJugada,
                                                 enabled: false,
-                                                style: TextStyle(fontSize: 20),
+                                                style: TextStyle(fontSize: 20, color: Colors.black),
                                                 decoration: InputDecoration(
+                                                  contentPadding: EdgeInsets.all(0),
+                                                  isDense: true,
+                                                  alignLabelWithHint: true,
                                                   border: InputBorder.none,
                                                   hintText: 'Jugada',
                                                   fillColor: Colors.transparent,
-                                                  filled: true,
+                                                  // filled: true,
                                                   hintStyle: TextStyle(fontWeight: FontWeight.bold)
                                                 ),
                                                 textAlign: TextAlign.center,
+                                                // expands: false,
                                               ),
                                             ),
                                         ),
@@ -1078,6 +1102,7 @@ print('futuro: ${resp.body}');
                                     },
                                     child: Container(
                                       width: (MediaQuery.of(context).size.width / 3) - 16,
+                                      height: (MediaQuery.of(context).size.height * 0.0688),
                                       // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
                                       decoration: BoxDecoration(
                                         border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
@@ -1089,6 +1114,8 @@ print('futuro: ${resp.body}');
                                           enabled: false,
                                           style: TextStyle(fontSize: 20),
                                           decoration: InputDecoration(
+                                            contentPadding: EdgeInsets.all(0),
+                                            isDense: true,
                                             border: InputBorder.none,
                                             hintText: '0',
                                             fillColor: Colors.transparent,
@@ -1138,6 +1165,7 @@ print('futuro: ${resp.body}');
                                       padding: const EdgeInsets.only(right: 8),
                                       child: Container(
                                           width: MediaQuery.of(context).size.width / 3,
+                                          height: (MediaQuery.of(context).size.height * 0.0688),
                                           // padding: EdgeInsets.only(top: 13, bottom: 13),
                                           decoration: BoxDecoration(
                                             border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
@@ -1148,6 +1176,8 @@ print('futuro: ${resp.body}');
                                               enabled: false,
                                               style: TextStyle(fontSize: 20),
                                               decoration: InputDecoration(
+                                                contentPadding: EdgeInsets.all(0),
+                                                isDense: true,
                                                 border: InputBorder.none,
                                                 hintText: 'Monto',
                                                 fillColor: Colors.transparent,

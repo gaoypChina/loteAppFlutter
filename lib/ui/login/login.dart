@@ -119,7 +119,7 @@ _showSnackBar(String content){
                 ),
               ),
             ),
-            Center(child: Text('Acceder', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),)),
+            Center(child: Text('Acceder', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
             Form(
               key: _formKey,
               child: Column(
