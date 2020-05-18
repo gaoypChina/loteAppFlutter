@@ -2262,7 +2262,8 @@ _selectedBanca() async {
     // print('montoDisponiblePrueba idSorteo: $montoDisponible');
 
     int idx = listaJugadas.indexWhere((j) => j.idLoteria == _selectedLoterias[0].id && j.jugada == _txtJugada.text);
-    double montoDisponibleFinal = montoDisponible.toDouble();
+    // double montoDisponibleFinal = montoDisponible.toDouble();
+    double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
     if(idx != -1){
       print("encontrado: ${listaJugadas[idx].monto}");
       montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
