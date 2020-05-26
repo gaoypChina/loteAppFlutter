@@ -15,18 +15,20 @@ class LoginService{
 
     map["usuario"] = usuario;
     map["password"] = password;
+    map["token"] = Utils.createJwt(map);
     map2["datos"] = map;
     final response = await http.post(Utils.URL + '/api/acceder', body: json.encode(map2), headers: Utils.header);
     
     if(response.statusCode < 200 || response.statusCode > 400){
       print('parsed ${response.body}');
       Utils.showSnackBar(scaffoldKey: scaffoldkey, content:"Verifique conexion");
-       throw Exception('Failed to load album');
+      throw Exception('Failed to load album');
     }
    
       var parsed = Utils.parseDatos(response.body);
       if(parsed["errores"] == 1){
         if(scaffoldkey != null)
+        print("loginservice acceder: $parsed");
         Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
         throw Exception('Failed to load usuario datos incorrectos');
       }

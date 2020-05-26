@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/database.dart';
@@ -9,8 +10,9 @@ import 'dart:convert';
 import 'package:loterias/core/classes/singleton.dart';
 
 class  Utils {
-  static final String URL = 'https://pruebass.ml';
-  // static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL = 'https://pruebass.ml';
+  static final String URL = 'http://127.0.0.1:8000';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http");
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
     HttpHeaders.contentTypeHeader: 'application/json',
@@ -223,6 +225,25 @@ class  Utils {
       return colorGris;
     else
       return Colors.transparent;
+  }
+
+  static String createJwt(Map<String, dynamic> data){
+    var builder = new JWTBuilder();
+    var token = builder
+      // ..issuer = 'https://api.foobar.com'
+      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+      ..setClaim('data', 
+      // {'id': 836, 'username' : "john.doe"}
+      data
+      )
+      ..getToken(); // returns token without signature
+
+    var signer = new JWTHmacSha256Signer('culo');
+    var signedToken = builder.getSignedToken(signer);
+    print(signedToken); // prints encoded JWT
+    var stringToken = signedToken.toString();
+
+    return stringToken;
   }
   
 }
