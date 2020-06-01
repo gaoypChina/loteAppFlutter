@@ -651,7 +651,6 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     decoration: InputDecoration(labelText: "Debito"),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      LengthLimitingTextInputFormatter(2),
                                       WhitelistingTextInputFormatter.digitsOnly
                                     ],
                                     onChanged: (texto){
@@ -679,7 +678,6 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     decoration: InputDecoration(labelText: "Credito"),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      LengthLimitingTextInputFormatter(2),
                                       WhitelistingTextInputFormatter.digitsOnly
                                     ],
                                     onChanged: (texto){
