@@ -251,6 +251,7 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
                         child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
                         onPressed: (){
                           // _ventas();
+                          _bancas();
                         },
                       ),
                     ],

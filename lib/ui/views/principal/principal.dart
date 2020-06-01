@@ -492,9 +492,9 @@ print('futuro: ${resp.body}');
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
+                      'http://192.168.43.63:3000',
                       // '10.0.0.9:3000',
-                      Utils.URL_SOCKET,
+                      // Utils.URL_SOCKET,
                       nameSpace: "/",
                       //Query params - can be used for authentication
                       // query: {

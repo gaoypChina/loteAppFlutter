@@ -11,6 +11,10 @@ class DashboardService{
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
+    map["fecha"] = fecha.toString();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+
     var response = await http.get(Utils.URL + "/api/dashboard?fecha=" + fecha.toString() + "&idUsuario=" + (await Db.idUsuario()).toString() + "&idMoneda=" + idMoneda.toString(), headers: Utils.header);
     int statusCode = response.statusCode;
 

@@ -541,6 +541,7 @@ class Principal{
     await c.delete("administrador");
     await c.delete("usuario");
     await c.delete("banca");
+    await c.delete("apiKey");
     await Db.deleteDB();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (BuildContext context) => LoginScreen())

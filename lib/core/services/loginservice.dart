@@ -15,7 +15,6 @@ class LoginService{
 
     map["usuario"] = usuario;
     map["password"] = password;
-    map["token"] = Utils.createJwt(map);
     map2["datos"] = map;
     final response = await http.post(Utils.URL + '/api/acceder', body: json.encode(map2), headers: Utils.header);
     

@@ -21,7 +21,9 @@ class TicketService{
     map["idBanca"] = await Db.idBanca();
     map["razon"] = "Cancelado desde movil";
     map["codigoBarra"] = codigoBarra;
-    mapDatos["datos"] = map;
+   map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/principal/cancelarMovil", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -33,6 +35,7 @@ class TicketService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("ticketservice duplicar: $parsed");
     if(parsed["errores"] == 1){
       Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error ticketService cancelar: ${parsed["mensaje"]}");
@@ -41,7 +44,7 @@ class TicketService{
     return parsed;
   }
 
-  static Future<Map<String, dynamic>> duplicar({String codigoBarra = "", String codigoQr = "", scaffoldKey, BuildContext context}) async {
+  static Future<Map<String, dynamic>> duplicar({String codigoBarra, String codigoQr, scaffoldKey, BuildContext context}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
@@ -49,7 +52,9 @@ class TicketService{
     map["codigoQr"] = codigoQr;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/principal/duplicar", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -64,6 +69,7 @@ class TicketService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("ticketservice duplicar: $parsed");
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
@@ -75,7 +81,7 @@ class TicketService{
     return parsed;
   }
 
-  static Future<Map<String, dynamic>> buscarTicketAPagar({String codigoBarra = "", String codigoQr = "", BuildContext context, scaffoldKey}) async {
+  static Future<Map<String, dynamic>> buscarTicketAPagar({String codigoBarra, String codigoQr, BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
@@ -83,7 +89,9 @@ class TicketService{
     map["codigoQr"] = codigoQr;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/principal/buscarTicketAPagar", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -116,7 +124,9 @@ class TicketService{
     map["idTicket"] = idTicket.toInt();
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/reportes/getTicketById", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -131,6 +141,7 @@ class TicketService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("ticketservice getTicketById: $parsed");
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
@@ -150,7 +161,9 @@ class TicketService{
     map["codigoQr"] = codigoQr;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/principal/pagar", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -183,7 +196,9 @@ class TicketService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
     map["fecha"] = fecha;
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/reportes/monitoreoMovil", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -256,7 +271,9 @@ class TicketService{
     map["jugadas"] = jugadas;
     map["idUsuario"] = idUsuario;
     map["idBanca"] = idBanca;
-    map2["datos"] =map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    map2["datos"] =jwt;
 
     var response = await http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -293,8 +310,9 @@ class TicketService{
    
     map["idUsuario"] = idUsuario;
     map["idBanca"] = idBanca;
-    map2["datos"] =map;
-
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    map2["datos"] =jwt;
     var response = await http.post(Utils.URL +"/api/principal/indexPost", body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){

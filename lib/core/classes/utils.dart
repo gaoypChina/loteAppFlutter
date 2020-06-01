@@ -227,18 +227,20 @@ class  Utils {
       return Colors.transparent;
   }
 
-  static String createJwt(Map<String, dynamic> data){
+  static Future<String> createJwt(Map<String, dynamic> data) async {
     var builder = new JWTBuilder();
     var token = builder
       // ..issuer = 'https://api.foobar.com'
       // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', 
+      ..setClaim('datosMovil', 
       // {'id': 836, 'username' : "john.doe"}
       data
       )
       ..getToken(); // returns token without signature
 
-    var signer = new JWTHmacSha256Signer('culo');
+    // var signer = new JWTHmacSha256Signer('culo');
+    var c = await DB.create();
+    var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
     var signedToken = builder.getSignedToken(signer);
     print(signedToken); // prints encoded JWT
     var stringToken = signedToken.toString();
