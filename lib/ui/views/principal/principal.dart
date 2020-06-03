@@ -80,6 +80,7 @@ String _montoPrueba = '0';
   bool _tienePermisoMarcarTicketComoPagado = false;
   bool _tienePermisoMonitorearTicket = false;
   bool _tienePermisoVerVentas = false;
+  bool _tienePermisoVerHistoricoVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
   bool _tienePermisoTransacciones = false;
   bool _tienePermisoAdministrador = false;
@@ -454,6 +455,7 @@ print('futuro: ${resp.body}');
     bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
     bool permisoMonitorearTicket = await Db.existePermiso("Monitorear ticket");
     bool permisoVerVentas = await Db.existePermiso("Ver ventas");
+    bool permisoVerHistoricoVentas = await Db.existePermiso("Ver historico ventas");
     bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
     bool permisoVerListaDeBalancesDeBancas = await Db.existePermiso("Ver lista de balances de bancas");
     bool permisoTransacciones = await Db.existePermiso("Manejar transacciones");
@@ -469,6 +471,7 @@ print('futuro: ${resp.body}');
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
       _tienePermisoMonitorearTicket = permisoMonitorearTicket;
       _tienePermisoVerVentas = permisoVerVentas;
+      _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
     });
@@ -502,7 +505,7 @@ print('futuro: ${resp.body}');
                       // },
                       query: {
                         "auth_token": '${signedToken.toString()}',
-                        "room" : "valentin"
+                        "room" : Utils.SOCKET_ROOM
                       },
 
                       //Enable or disable platform channel logging
@@ -733,7 +736,7 @@ print('futuro: ${resp.body}');
                     ),
                   ),
                   Visibility(
-                    visible: _tienePermisoVerVentas,
+                    visible: _tienePermisoVerHistoricoVentas,
                     child: ListTile(
                       title: Text('Historico ventas'),
                       leading: Icon(Icons.timeline),
