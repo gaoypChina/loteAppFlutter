@@ -55,7 +55,7 @@ class Monitoreo{
                 onPressed: () async {
                   try{
                     setState(() => _cargando = true);
-                    var datos = await TicketService.buscarTicketAPagar(context: context, codigoBarra: venta.codigoBarra);
+                    var datos = await TicketService.buscarTicket(context: context, codigoBarra: venta.codigoBarra);
                     setState(() => _cargando = false);
                     Navigator.pop(context);
                     showDialogVerTicket(context: context, mapVenta: datos["venta"]);

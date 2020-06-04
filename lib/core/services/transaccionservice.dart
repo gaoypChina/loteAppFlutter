@@ -37,13 +37,14 @@ class TransaccionService{
   static Future<Map<String, dynamic>> buscarTransacciones({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, int idUsuario}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-
+    // var fechaDesdeString = fechaDesde.year.toString() + "-" + Utils.toDosDigitos(fechaDesde.month.toString()) + "-" + Utils.toDosDigitos(fechaDesde.day.toString());
+    // var fechaHastaString = fechaHasta.year.toString() + "-" + Utils.toDosDigitos(fechaHasta.month.toString()) + "-" + Utils.toDosDigitos(fechaHasta.day.toString());
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
     map["idTipoEntidad"] = 0;
     map["idEntidad"] = 0;
     map["idTipo"] = 0;
-    map["idUsuario"] = idUsuario;
+    map["idUsuario"] = 0;
     mapDatos["datos"] = map;
 
     var response = await http.post(Utils.URL + "/api/transacciones/buscarTransaccion", body: json.encode(mapDatos), headers: Utils.header);
@@ -59,6 +60,7 @@ class TransaccionService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("transaccioneservice buscarTransacciones parsed: $parsed");
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");

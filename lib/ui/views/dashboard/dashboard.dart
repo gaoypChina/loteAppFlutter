@@ -20,6 +20,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Moneda> listaMoneda = List();
   List listaVentasGrafica = List();
   List listaVentasPorLoteria = List();
+  double _totalVentasLoterias = 0;
+  double _totalPremiosLoterias = 0;
   List listaLoteriasJugadasDashboard = List();
   List listaJugada = List();
   List listaSorteo = List();
@@ -51,6 +53,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       listaVentasGrafica = List.from(datos["ventasGrafica"]);
       listaVentasPorLoteria = List.from(datos["loterias"]);
+      _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
+      _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
       listaLoteriasJugadasDashboard = List.from(datos["loteriasJugadasDashboard"]);
       listaSorteo = List.from(datos["sorteos"]);
       if(listaSorteo != null)
@@ -75,6 +79,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       listaVentasGrafica = List.from(datos["ventasGrafica"]);
       listaVentasPorLoteria = List.from(datos["loterias"]);
+      _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
+      _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
       listaLoteriasJugadasDashboard = List.from(datos["loteriasJugadasDashboard"]);
       listaSorteo = List.from(datos["sorteos"]);
       if(listaSorteo != null)
@@ -360,6 +366,29 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List listaVentasGr
                   //   padding: const EdgeInsets.all(8.0),
                   //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
                   // ),
+                ]
+              )
+              );
+
+              rows.add( 
+              TableRow(
+                // decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Totales', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('$_totalVentasLoterias', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('$_totalPremiosLoterias', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
                 ]
               )
               );

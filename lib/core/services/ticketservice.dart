@@ -109,6 +109,40 @@ class TicketService{
     return parsed;
   }
 
+  static Future<Map<String, dynamic>> buscarTicket({String codigoBarra = "", String codigoQr = "", BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["codigoBarra"] = codigoBarra;
+    map["codigoQr"] = codigoQr;
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = await Db.idBanca();
+    mapDatos["datos"] = map;
+
+    var response = await http.post(Utils.URL + "/api/principal/buscarTicket", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService buscarTicket: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService buscarTicket", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService buscarTicket", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService buscarTicket");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService buscarTicket: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
   static Future<Map<String, dynamic>> ticket({BigInt idTicket, BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();

@@ -44,7 +44,8 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   _buscarTransacciones() async {
     try{
       setState(() => _cargando = true);
-      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, idUsuario: await Db.idUsuario(), fechaDesde: _fecha, fechaHasta: _fecha);
+      var fechaHasta = new DateTime(_fecha.year, _fecha.month, _fecha.day, 23, 55);
+      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, idUsuario: await Db.idUsuario(), fechaDesde: _fecha, fechaHasta: fechaHasta);
       listaTransaccion = List.from(datos["transacciones"]);
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
