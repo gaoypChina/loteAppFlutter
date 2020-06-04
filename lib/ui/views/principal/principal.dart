@@ -439,6 +439,7 @@ print('futuro: ${resp.body}');
     _streamControllerBanca.close();
     _streamControllerVenta.close();
     _streamControllerLoteria.close();
+    print("Desconectando socket desde dispose de la ventana principal");
     await manager.clearInstance(socket);
     
   }
@@ -502,7 +503,7 @@ print('futuro: ${resp.body}');
                       // },
                       query: {
                         "auth_token": '${signedToken.toString()}',
-                        "room" : "valentin"
+                        "room" : await Db.servidor()
                       },
 
                       //Enable or disable platform channel logging
@@ -819,6 +820,7 @@ print('futuro: ${resp.body}');
                     dense: true,
                     leading: Icon(Icons.clear),
                     onTap: () async {
+                      
                       Principal.cerrarSesion(context);
                     },
                   )
