@@ -198,7 +198,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
                       Row(
                         children: <Widget>[
                           Visibility(
-                            visible: (_existeSorteo("Directo") || _existeSorteo("Pale") || _existeSorteo("Tripleta")),
+                            visible: (_existeSorteo("Directo") || _existeSorteo("Pale") || _existeSorteo("Tripleta") || _existeSorteo("Super")),
                             child: Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -235,7 +235,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
                             ),
                           ),
                           Visibility(
-                            visible: (_existeSorteo("Directo") || _existeSorteo("Pale") || _existeSorteo("Tripleta")),
+                            visible: (_existeSorteo("Directo") || _existeSorteo("Pale") || _existeSorteo("Tripleta") || _existeSorteo("Super")),
                             child: Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),

@@ -55,6 +55,8 @@ class PrincipalApp extends StatefulWidget {
 
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  List<String> _listaMensajes = List();
+  static int _socketContadorErrores = 0;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _jugadaOmonto = true;
   // var listaBanca = List<String>.generate(10, (i) => "Banca $i");
@@ -411,7 +413,7 @@ print('futuro: ${resp.body}');
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     indexPost(true);
-    _montoFuture = fetchMonto();
+    //_montoFuture = fetchMonto();
     initSocket();
     
     futureBanca = Db.getBanca();
@@ -440,6 +442,7 @@ print('futuro: ${resp.body}');
     _streamControllerBanca.close();
     _streamControllerVenta.close();
     _streamControllerLoteria.close();
+    print("dispose desconectar socket");
     await manager.clearInstance(socket);
     
   }
@@ -477,6 +480,13 @@ print('futuro: ${resp.body}');
     });
   }
 
+  Future _desconectarYConectarNuevamente() async {
+    print("_desconectarYConectarNuevamente desconectar socket y conectar");
+    await manager.clearInstance(socket);
+    _socketContadorErrores = 0;
+    initSocket();
+  }
+
   initSocket() async {
     var builder = new JWTBuilder();
     var token = builder
@@ -490,7 +500,9 @@ print('futuro: ${resp.body}');
     print(signedToken); // prints encoded JWT
     var stringToken = signedToken.toString();
 
-
+  // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
+    
+    // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     manager = SocketIOManager();
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
@@ -518,6 +530,9 @@ print('futuro: ${resp.body}');
       socket.emit("message", ["Hello world!"]);
       await Realtime.sincronizarTodos(_scaffoldKey);
       await _getPermisos();
+      _socketContadorErrores = 0;
+    // _listaMensajes.add("initSocket onConnect ${DateTime.now().hour}:${DateTime.now().minute}");
+
     });
     //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
     //   // var parsed = Utils.parseDatos(data);
@@ -569,10 +584,23 @@ print('futuro: ${resp.body}');
       await _getPermisos();
     });
     socket.on("error", (data){   //sample event
-      print("error");
-      print(data);
+      print("onError: $data");
+    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
+
+  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
+
+      // print(data);
     });
-    socket.onConnectError((er) => print(er));
+    socket.onConnectError((er) async {
+      _socketContadorErrores++;
+      if(_socketContadorErrores == 4)
+        await _desconectarYConectarNuevamente();
+      print("onConnectError: $er");
+    _listaMensajes.add("initSocket onConnectError ${DateTime.now().hour}:${DateTime.now().minute}");
+
+  // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "onConnectError start socket");
+
+    });
     socket.onError((e) => print(e));
     socket.connect();
   }
@@ -913,7 +941,28 @@ print('futuro: ${resp.body}');
                 onPressed: () async{
                   Navigator.of(context).pushNamed('/bluetooth');
                 },
-              )
+              ),
+              // IconButton(
+              //   icon: Icon(Icons.message, size: 30,),
+              //   onPressed: () async{
+              //     showDialog(
+              //       context: context,
+              //       builder: (context){
+              //         return AlertDialog(
+              //           title: Text("Errores socket"),
+              //           content: ListView.builder(
+              //             itemCount: _listaMensajes.length,
+              //             itemBuilder: (context, idx){
+              //               return ListTile(
+              //                 title: Text(_listaMensajes[idx]),
+              //               );
+              //             },
+              //           ),
+              //         );
+              //       }
+              //     );
+              //   },
+              // )
             ],
             bottom: TabBar(
               indicatorColor: Colors.white,
