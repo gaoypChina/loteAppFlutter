@@ -55,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       listaVentasPorLoteria = List.from(datos["loterias"]);
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
-      listaLoteriasJugadasDashboard = List.from(datos["loteriasJugadasDashboard"]);
+      listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
       listaSorteo = List.from(datos["sorteos"]);
       if(listaSorteo != null)
         _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
@@ -81,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       listaVentasPorLoteria = List.from(datos["loterias"]);
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
-      listaLoteriasJugadasDashboard = List.from(datos["loteriasJugadasDashboard"]);
+      listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
       listaSorteo = List.from(datos["sorteos"]);
       if(listaSorteo != null)
         _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
@@ -94,6 +94,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   _cambiarValorListaJugada(String sorteo){
+    if(listaLoteriasJugadasDashboard.length == 0)
+      return;
     List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
     if(sorteosLoteriasJugadas != null){
       Map<String, dynamic> sort = sorteosLoteriasJugadas.firstWhere((s) => s["descripcion"] == sorteo);
@@ -216,38 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
                         ),
                       _buildTableVentasPorLoteria(listaVentasPorLoteria),
-                       Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Jugadas realizadas", style: TextStyle(fontSize: 25),),),
-                        ),
-                        DropdownButton<String>(
-                          value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"],
-                          items: listaLoteriasJugadasDashboard.map((l) => DropdownMenuItem<String>(
-                            value: l["descripcion"],
-                            child: Text(l["descripcion"])
-                          )).toList(), 
-                          onChanged: (String loteria){
-                            int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
-                            setState(() => _indexLoteriaJugadas = idx);
-                            _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
-                          }
-                        ),
-                        DropdownButton<String>(
-                          value: listaSorteo[_indexSorteo]["descripcion"],
-                          items: listaSorteo.map((s) => DropdownMenuItem<String>(
-                            value: s["descripcion"],
-                            child: Text(s["descripcion"])
-                          )).toList(), 
-                          onChanged: (String sorteo){
-                            int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
-                            if(idx != -1){
-                              setState(() => _indexSorteo = idx);
-                              print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
-                              _cambiarValorListaJugada(sorteo);
-                            }
-                          }
-                        ),
-                        _buildTableLoteriasJugadasDashboard()
+                       _buildJugadasRealizadas()
                     ],
                   );
                 }
@@ -259,6 +230,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildJugadasRealizadas()
+  {
+    if(listaLoteriasJugadasDashboard == null)
+      return SizedBox();
+    if(listaLoteriasJugadasDashboard.length == 0)
+      return SizedBox();
+
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(top: 20, bottom: 15),
+          child: Center(child: Text("Jugadas realizadas", style: TextStyle(fontSize: 25),),),
+        ),
+        DropdownButton<String>(
+          value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"],
+          items: listaLoteriasJugadasDashboard.map((l) => DropdownMenuItem<String>(
+            value: l["descripcion"],
+            child: Text(l["descripcion"])
+          )).toList(), 
+          onChanged: (String loteria){
+            int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
+            setState(() => _indexLoteriaJugadas = idx);
+            _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+          }
+        ),
+        DropdownButton<String>(
+          value: listaSorteo[_indexSorteo]["descripcion"],
+          items: listaSorteo.map((s) => DropdownMenuItem<String>(
+            value: s["descripcion"],
+            child: Text(s["descripcion"])
+          )).toList(), 
+          onChanged: (String sorteo){
+            int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
+            if(idx != -1){
+              setState(() => _indexSorteo = idx);
+              print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
+              _cambiarValorListaJugada(sorteo);
+            }
+          }
+        ),
+        _buildTableLoteriasJugadasDashboard()
+      ],
     );
   }
 
