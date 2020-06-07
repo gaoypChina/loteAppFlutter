@@ -82,6 +82,15 @@ class  Utils {
     }
   }
 
+  static isNumber(String caracter){
+    try {
+      double.parse(caracter);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static double redondear(numero, decimales){
     return double.parse((numero).toStringAsFixed(decimales));
   }
@@ -263,6 +272,24 @@ class  Utils {
     var stringToken = signedToken.toString();
 
     return stringToken;
+  }
+
+  static String ordenarMenorAMayor(String jugada){
+    if(jugada.length != 4)
+      return jugada;
+
+    if(!Utils.isNumber(jugada))
+      return jugada;
+
+    String primerParNumeros = jugada.substring(0, 2);
+    String segundoParNumeros = jugada.substring(2, 4);
+
+    if(Utils.toDouble(primerParNumeros) < Utils.toDouble(segundoParNumeros))
+      return jugada;
+    else{
+      jugada = segundoParNumeros + primerParNumeros;
+      return jugada;
+    }
   }
   
 }

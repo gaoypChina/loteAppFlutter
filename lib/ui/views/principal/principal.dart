@@ -1639,7 +1639,7 @@ void _getTime() {
           _txtMontoPrimerCaracter = true;
           });
       }else{
-        addJugada(jugada: _txtJugada.text, montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+        addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
       }
       return;
     }
@@ -2199,7 +2199,7 @@ _selectedBanca() async {
  montoDisponible() async {
    double montoDisponible = 0;
    if(_selectedLoterias.length == 1){
-     montoDisponible = await getMontoDisponible(_txtJugada.text, _selectedLoterias[0], await _selectedBanca());
+     montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca());
      setState(() {
       _txtMontoDisponible.text =  montoDisponible.toString();
      });
