@@ -16,13 +16,13 @@ class  Utils {
   // static final String SOCKET_ROOM = "pruebass";
 
 
-  static final String URL = 'https://loteriasdo.tk/';
-  static final String SOCKET_ROOM = "valentin";
-  static final String URL_SOCKET = "http://pruebass.ml:3000";
-
-  // static final String URL = 'https://loteriasdo.ga';
-  // static final String SOCKET_ROOM = "emilio";
+  // static final String URL = 'https://loteriasdo.tk/';
+  // static final String SOCKET_ROOM = "valentin";
   // static final String URL_SOCKET = "http://pruebass.ml:3000";
+
+  static final String URL = 'https://loteriasdo.ga';
+  static final String SOCKET_ROOM = "emilio";
+  static final String URL_SOCKET = "http://pruebass.ml:3000";
 
   // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   // static final String URL_SOCKET = "http://pruebass.ml:3000";
