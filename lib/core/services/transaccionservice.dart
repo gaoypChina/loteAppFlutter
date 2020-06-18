@@ -46,7 +46,7 @@ class TransaccionService{
     map["idTipoEntidad"] = 0;
     map["idEntidad"] = 0;
     map["idTipo"] = 0;
-    map["idUsuario"] = idUsuario;
+    map["idUsuario"] = 0;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;

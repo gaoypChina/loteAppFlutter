@@ -493,9 +493,9 @@ print('futuro: ${resp.body}');
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
-                      'http://192.168.43.63:3000',
+                      // 'http://192.168.43.63:3000',
                       // '10.0.0.9:3000',
-                      // Utils.URL_SOCKET,
+                      Utils.URL_SOCKET,
                       nameSpace: "/",
                       //Query params - can be used for authentication
                       // query: {
@@ -669,6 +669,16 @@ print('futuro: ${resp.body}');
                         }
 
                         return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                      }
+                    ),
+                    subtitle: FutureBuilder<Map<String, dynamic>>(
+                      future: futureUsuario,
+                      builder: (context, snapshot){
+                        if(snapshot.hasData){
+                          return Text('${snapshot.data["servidor"]}');
+                        }
+
+                        return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
                       }
                     ),
                     leading: Container(
