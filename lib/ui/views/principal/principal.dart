@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
@@ -493,9 +495,9 @@ print('futuro: ${resp.body}');
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
-                      // '10.0.0.9:3000',
-                      Utils.URL_SOCKET,
+                      'http://192.168.43.63:3000',
+                      // '10.0.0.11:3000',
+                      // Utils.URL_SOCKET,
                       nameSpace: "/",
                       //Query params - can be used for authentication
                       // query: {
@@ -632,6 +634,29 @@ print('futuro: ${resp.body}');
     });
   }
 
+  _cambiarServidor() async {
+    print("Holaaaaaaaaaaaaaaaaa");
+    var c = await DB.create();
+    var tipoUsuario = await c.getValue("tipoUsuario");
+    if(tipoUsuario == "Programador"){
+      var datosServidor = await Db.query("Servers");
+      if(datosServidor == null)
+        return;
+
+      List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
+      String servidorActual = await Db.servidor();
+      var servidor = await Principal.seleccionarServidor(context, listaServidor, servidorActual);
+      if(servidor != null && servidor != servidorActual){
+        // LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor, scaffoldkey: _scaffoldKey);
+        // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
+        // usuario.servidor = servidor;
+        // await Db.update("Users", usuario.toJson(), usuario.id);
+        futureUsuario = Db.getUsuario();
+        indexPost(true);
+      }
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -696,6 +721,11 @@ print('futuro: ${resp.body}');
                         ),
                       ),
                     ),
+                    onTap: () async {
+                      _cambiarServidor();
+                      _scaffoldKey.currentState.openEndDrawer();
+
+                    },
                   ),
                   Visibility(
                     visible: _tienePermisoAdministrador,

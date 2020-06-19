@@ -211,6 +211,7 @@ _showSnackBar(String content){
                                 await c.add("apiKey", parsed["apiKey"]);
                                 await c.add("idUsuario", parsed["usuario"]["id"]);
                                 await c.add("administrador", parsed["administrador"]);
+                                await c.add("tipoUsuario", parsed["tipoUsuario"]);
                                 await c.add("usuario", _txtUsuarioController.text.toString());
                                 await c.add("password", _txtPasswordController.text.toString());
                                 
