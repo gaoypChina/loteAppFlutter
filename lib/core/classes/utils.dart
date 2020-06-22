@@ -11,10 +11,10 @@ import 'package:loterias/core/classes/singleton.dart';
 
 class  Utils {
   // static final String URL = 'https://pruebass.ml';
-  static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL = 'http://127.0.0.1:8000';
 
-  // static final String URL = 'https://loteriasdo.gq';
-  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  static final String URL = 'https://loteriasdo.gq';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -243,6 +243,8 @@ class  Utils {
 
     // var signer = new JWTHmacSha256Signer('culo');
     var c = await DB.create();
+    var apiKey = await c.getValue("apiKey");
+    print("Before error: $apiKey");
     var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
     var signedToken = builder.getSignedToken(signer);
     print(signedToken); // prints encoded JWT

@@ -596,14 +596,16 @@ class Principal{
                      setState(() => _cargando = true);
                     Usuario usuario = Usuario.fromMap(await Db.getUsuario());
                     var parsed = await LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidorActual, context: context);
-                    Principal.cerrarSesion(context, false);
-                    Db.deleteDB();
+                    print("Principal.dar drawer cambiar: ${parsed["apiKey"]}");
+                    await Principal.cerrarSesion(context, false);
+                    await Db.deleteDB();
                     var c = await DB.create();
                     await c.add("apiKey", parsed["apiKey"]);
                     await c.add("idUsuario", parsed["usuario"]["id"]);
                     await c.add("administrador", parsed["administrador"]);
                     await c.add("tipoUsuario", parsed["tipoUsuario"]);
                     await LoginService.guardarDatos(parsed);
+                    print("Principal.dar drawer cambiar: ${await c.getValue("apiKey")}");
                     setState(() => _cargando = false);
                     Navigator.pop(context, servidorActual);
                    } catch (e) {
