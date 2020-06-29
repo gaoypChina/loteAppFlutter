@@ -18,7 +18,9 @@ class ReporteService{
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
     map["idUsuario"] = await Db.idUsuario();
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     print("ReporteService historico: ${mapDatos.toString()}");
     // return listaBanca;
@@ -55,7 +57,9 @@ class ReporteService{
     map["fecha"] = fecha.toString();
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     print("ReporteService ventas: ${mapDatos.toString()}");
     // return listaBanca;
@@ -92,7 +96,9 @@ class ReporteService{
     map["fecha"] = fechaString;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;

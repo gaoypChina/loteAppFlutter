@@ -8,8 +8,11 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
@@ -535,16 +538,87 @@ class Principal{
 
  
 
- static cerrarSesion(BuildContext context) async {
+ static cerrarSesion(BuildContext context, [bool salir = true]) async {
    var c = await DB.create();
-    await c.add("recordarme", false);
     await c.delete("administrador");
-    await c.delete("usuario");
-    await c.delete("banca");
+    await c.delete("apiKey");
+    await c.delete("tipoUsuario");
     await Db.deleteDB();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-    );
+    if(salir){
+      await c.delete("banca");
+      await c.add("recordarme", false);
+      await c.delete("usuario");
+      await c.delete("password");
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+      );
+    }
+ }
+
+ static seleccionarServidor(BuildContext context, List<Servidor> listaServidor, String servidorActual){
+    bool _cargando = false;
+   return showDialog(
+     context: context,
+     builder: (context){
+       return StatefulBuilder(
+            builder: (context, setState){
+               return AlertDialog(
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Cambiar servidor'),
+                     Visibility(
+                      visible: _cargando,
+                      child: CircularProgressIndicator()
+                    ),
+                  ],
+                ),
+                content: Container(
+                  height: MediaQuery.of(context).size.height / 4,
+                  child: ListView.builder(
+                    itemCount: listaServidor.length,
+                    itemBuilder: (context, index){
+                      return CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(listaServidor[index].descripcion),
+                        onChanged: (bool value){
+                          setState(() => servidorActual = listaServidor[index].descripcion);
+                        },
+                        value: servidorActual == listaServidor[index].descripcion,
+                      );
+                    },
+                  ),
+                ),
+                actions: <Widget>[
+                  FlatButton(onPressed: (){Navigator.pop(context, null);}, child: Text("Cancelar")),
+                  FlatButton(onPressed: () async {
+                   try {
+                     setState(() => _cargando = true);
+                    Usuario usuario = Usuario.fromMap(await Db.getUsuario());
+                    var parsed = await LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidorActual, context: context);
+                    print("Principal.dar drawer cambiar: ${parsed["apiKey"]}");
+                    await Principal.cerrarSesion(context, false);
+                    await Db.deleteDB();
+                    var c = await DB.create();
+                    await c.add("apiKey", parsed["apiKey"]);
+                    await c.add("idUsuario", parsed["usuario"]["id"]);
+                    await c.add("administrador", parsed["administrador"]);
+                    await c.add("tipoUsuario", parsed["tipoUsuario"]);
+                    await LoginService.guardarDatos(parsed);
+                    print("Principal.dar drawer cambiar: ${await c.getValue("apiKey")}");
+                    setState(() => _cargando = false);
+                    Navigator.pop(context, servidorActual);
+                   } catch (e) {
+                     setState(() => _cargando = false);
+                     print("Error: ${e.toString()}");
+                   }
+                  }, child: Text("Cambiar")),
+                ],
+              );
+            },
+       );
+     }
+   );
  }
 
 }

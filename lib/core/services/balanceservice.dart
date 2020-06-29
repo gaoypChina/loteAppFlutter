@@ -15,7 +15,9 @@ class BalanceService{
     map["fechaHasta"] = fechaHasta.toString();
     map["idUsuario"] = await Db.idUsuario();
     map["layout"] = "Principal";
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/balance/bancas", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;

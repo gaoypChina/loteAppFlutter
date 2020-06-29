@@ -209,7 +209,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               stream: _streamControllerGrafica.stream,
               builder: (context, snapshot){
                 if(snapshot.hasData){
-
+                  if(snapshot.data.isEmpty)
+                    return Center(child: Text("No hay datos"));
                   return Column(
                     children: <Widget>[
                       Container( height: 200, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),),
@@ -436,6 +437,52 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List listaVentasGr
   );
   
  }
+
+  // Widget _buildJugadasRealizadas()
+  // {
+  //   if(listaLoteriasJugadasDashboard == null)
+  //     return SizedBox();
+  //   if(listaLoteriasJugadasDashboard.length == 0)
+  //     return SizedBox();
+
+  //   return Column(
+  //     children: <Widget>[
+  //       Padding(
+  //         padding: const EdgeInsets.only(top: 20, bottom: 15),
+  //         child: Center(child: Text("Jugadas realizadas", style: TextStyle(fontSize: 25),),),
+  //       ),
+  //       DropdownButton<String>(
+  //         value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"],
+  //         items: listaLoteriasJugadasDashboard.map((l) => DropdownMenuItem<String>(
+  //           value: l["descripcion"],
+  //           child: Text(l["descripcion"])
+  //         )).toList(), 
+  //         onChanged: (String loteria){
+  //           int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
+  //           setState(() => _indexLoteriaJugadas = idx);
+  //           _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+  //         }
+  //       ),
+  //       DropdownButton<String>(
+  //         value: listaSorteo[_indexSorteo]["descripcion"],
+  //         items: listaSorteo.map((s) => DropdownMenuItem<String>(
+  //           value: s["descripcion"],
+  //           child: Text(s["descripcion"])
+  //         )).toList(), 
+  //         onChanged: (String sorteo){
+  //           int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
+  //           if(idx != -1){
+  //             setState(() => _indexSorteo = idx);
+  //             print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
+  //             _cambiarValorListaJugada(sorteo);
+  //           }
+  //         }
+  //       ),
+  //       _buildTableLoteriasJugadasDashboard()
+  //     ],
+  //   );
+  // }
+
   Widget _buildTableLoteriasJugadasDashboard(){
    var tam = (listaJugada != null) ? listaJugada.length : 0;
    List<TableRow> rows;

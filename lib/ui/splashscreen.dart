@@ -36,6 +36,8 @@ class _SplashScreenState extends State<SplashScreen> {
       if(value == true){
        try{
           var parsed = await LoginService.acceder(usuario: await c.getValue("usuario"), password: await c.getValue("password"));
+          await c.add("apiKey", parsed["apiKey"]);
+          await c.add("tipoUsuario", parsed["tipoUsuario"]);
           await LoginService.guardarDatos(parsed);
           return true;
        } on Exception catch(e){

@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
@@ -170,43 +172,7 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
-  indexPostViejo(bool seleccionarBancaPertenecienteAUsuario) async {
-    _cargando = true;
-    var map = new Map<String, dynamic>();
-    var map2 = new Map<String, dynamic>();
-    
-    map["idUsuario"] = await Db.idUsuario();
-    map["fecha"] = "2020-02-21";
-    map["idBanca"] = await getIdBanca();
-    map2["datos"] =map;
-
-    // print('idUsuario: ${map['idUsuario']}');
-    // return;
-    http.post(Utils.URL + "/api/principal/indexPost", body: json.encode(map2), headers: Utils.header ).then((http.Response resp){
-        final int statusCode = resp.statusCode;
-print('futuro: ${resp.body}');
-        if (statusCode < 200 || statusCode > 400 || json == null) {
-          print('futuro: ${resp.body}');
-          throw new Exception("Error while fetching data");
-        }
-
-        var map = compute(Principal.parseDatos, resp.body);
-        map.then((m) => {
-            _idVenta = m['idVenta'],
-            listaBanca = m['bancas'],
-            listaVenta = m['ventas'],
-          _streamControllerBanca.add(true),
-          _streamControllerVenta.add(true),
-          listaLoteria = m['loterias'],
-          _streamControllerLoteria.add(m['loterias']),
-          _seleccionarPrimeraLoteria(),
-          (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null,
-          _cargando = false,
-          print('aaaa')
-        });
-    });
-    
-  }
+  
 
   guardar() async{
     if(_ckbPrint){
@@ -245,60 +211,7 @@ print('futuro: ${resp.body}');
     }
   }
 
-  guardarViejo() async {
-    if(_ckbPrint){
-      if(await Utils.exiseImpresora() == false){
-        _showSnackBar("Debe registrar una impresora");
-        return;
-      }
-
-      if(!(await BluetoothChannel.turnOn())){
-        return;
-      }
-    }
-    
-    _cargando = true;
-    var map = new Map<String, dynamic>();
-    var map2 = new Map<String, dynamic>();
-
-    map["idVenta"] = _idVenta;
-    map["compartido"] = 0;
-    map["descuentoMonto"] = 0;
-    map["hayDescuento"] = 0;
-    map["total"] = _calcularTotal();
-    map["subTotal"] = 0;
-    map["loterias"] = Principal.loteriaToJson(_selectedLoterias);
-    map["jugadas"] = Principal.jugadaToJson(listaJugadas);
-    map["idUsuario"] = await Db.idUsuario();
-    map["idBanca"] = await getIdBanca();
-    map2["datos"] =map;
-    
-    http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header ).then((http.Response resp){
-      final int statusCode = resp.statusCode;
-      if (statusCode < 200 || statusCode > 400 || json == null) {
-        print('futuro: ${resp.body}');
-        throw new Exception("Error while fetching data");
-      }
-      var map = compute(Principal.parseDatos, resp.body);
-
-      map.then((m) => {
-            _idVenta = m['idVenta'],
-        listaBanca = m["bancas"],
-         _streamControllerBanca.add(true),
-         listaLoteria = m['loterias'],
-          listaVenta = m["ventas"],
-          _streamControllerVenta.add(true),
-         _streamControllerLoteria.add(m['loterias']),
-         listaJugadas.clear(),
-         _selectedLoterias.clear(),
-         _seleccionarPrimeraLoteria(),
-         _cargando = false,
-         (_ckbPrint) ? BluetoothChannel.printTicket(m['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: m["img"], codigoQr: m["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage)
-      });
-      
-    });
-    
-  }
+  
 
   montoDisponibleHttp() async {
     
@@ -353,38 +266,7 @@ print('futuro: ${resp.body}');
     
   }
 
-  Future<String> fetchMonto() async{
-    var map = new Map<String, dynamic>();
-    var map2 = new Map<String, dynamic>();
-
-    if(_selectedLoterias == null){
-      return '';
-    }
-    
-    map["idUsuario"] = "1";
-    map["jugada"] = _txtJugada.text;
-    map["idBanca"] = "11";
-    map["idLoteria"] = _selectedLoterias.asMap()[0].id;
-    map2["datos"] =map;
-
-    setState(() {
-     _cargando = true; 
-    });
-
-    final response = await http.post(Utils.URL +"/api/principal/montodisponible", body: json.encode(map2), headers: Utils.header );
-    int statusCode = response.statusCode;
-
-    if (statusCode < 200 || statusCode > 400 || json == null) {
-      // Si el servidor devuelve una repuesta OK, parseamos el JSON
-      print('futuro: ${response.body}');
-      throw Exception('Failed to load post');
-    } else {
-      // Si esta respuesta no fue OK, lanza un error.
-      
-      return json.decode(response.body).cast<String, dynamic>()["monto"];
-    }
-    // return http.get('https://jsonplaceholder.typicode.com/posts/1');
-  }
+  
   
   Future<List<Banca>> _futureBanca;
 
@@ -443,6 +325,7 @@ print('futuro: ${resp.body}');
     _streamControllerVenta.close();
     _streamControllerLoteria.close();
     print("dispose desconectar socket");
+    print("Desconectando socket desde dispose de la ventana principal");
     await manager.clearInstance(socket);
     
   }
@@ -508,7 +391,7 @@ print('futuro: ${resp.body}');
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
                       // 'http://192.168.43.63:3000',
-                      // '10.0.0.9:3000',
+                      // '10.0.0.11:3000',
                       Utils.URL_SOCKET,
                       nameSpace: "/",
                       //Query params - can be used for authentication
@@ -517,7 +400,7 @@ print('futuro: ${resp.body}');
                       // },
                       query: {
                         "auth_token": '${signedToken.toString()}',
-                        "room" : Utils.SOCKET_ROOM
+                        "room" : await Db.servidor()
                       },
 
                       //Enable or disable platform channel logging
@@ -662,6 +545,31 @@ print('futuro: ${resp.body}');
     });
   }
 
+  _cambiarServidor() async {
+    print("Holaaaaaaaaaaaaaaaaa");
+    var c = await DB.create();
+    var tipoUsuario = await c.getValue("tipoUsuario");
+    if(tipoUsuario == "Programador"){
+      var datosServidor = await Db.query("Servers");
+      if(datosServidor == null)
+        return;
+
+      List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
+      String servidorActual = await Db.servidor();
+      var servidor = await Principal.seleccionarServidor(context, listaServidor, servidorActual);
+      if(servidor != null && servidor != servidorActual){
+        // LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor, scaffoldkey: _scaffoldKey);
+        // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
+        // usuario.servidor = servidor;
+        // await Db.update("Users", usuario.toJson(), usuario.id);
+        await manager.clearInstance(socket);
+        futureUsuario = Db.getUsuario();
+        await indexPost(true);
+        await initSocket();
+      }
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -701,6 +609,16 @@ print('futuro: ${resp.body}');
                         return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
                       }
                     ),
+                    subtitle: FutureBuilder<Map<String, dynamic>>(
+                      future: futureUsuario,
+                      builder: (context, snapshot){
+                        if(snapshot.hasData){
+                          return Text('${snapshot.data["servidor"]}');
+                        }
+
+                        return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                      }
+                    ),
                     leading: Container(
                       width: 30,
                       height: 30,
@@ -716,6 +634,11 @@ print('futuro: ${resp.body}');
                         ),
                       ),
                     ),
+                    onTap: () async {
+                      _cambiarServidor();
+                      _scaffoldKey.currentState.openEndDrawer();
+
+                    },
                   ),
                   Visibility(
                     visible: _tienePermisoAdministrador,
@@ -850,6 +773,7 @@ print('futuro: ${resp.body}');
                     dense: true,
                     leading: Icon(Icons.clear),
                     onTap: () async {
+                      
                       Principal.cerrarSesion(context);
                     },
                   )

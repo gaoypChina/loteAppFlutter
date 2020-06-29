@@ -13,19 +13,11 @@ class  Utils {
   // static final String URL = 'http://127.0.0.1:8000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL = 'https://pruebass.ml';
-  // static final String SOCKET_ROOM = "pruebass";
+  // static final String URL = 'http://127.0.0.1:8000';
 
-
-  // static final String URL = 'https://loteriasdo.tk/';
-  // static final String SOCKET_ROOM = "valentin";
-  // static final String URL_SOCKET = "http://pruebass.ml:3000";
-
-  static final String URL = 'https://loteriasdo.ga';
-  static final String SOCKET_ROOM = "emilio";
-  static final String URL_SOCKET = "http://pruebass.ml:3000";
-
-  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
-  // static final String URL_SOCKET = "http://pruebass.ml:3000";
+  static final String URL = 'https://loteriasdo.gq';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
     HttpHeaders.contentTypeHeader: 'application/json',
@@ -255,18 +247,22 @@ class  Utils {
       return Colors.transparent;
   }
 
-  static String createJwt(Map<String, dynamic> data){
+  static Future<String> createJwt(Map<String, dynamic> data) async {
     var builder = new JWTBuilder();
     var token = builder
       // ..issuer = 'https://api.foobar.com'
       // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', 
+      ..setClaim('datosMovil', 
       // {'id': 836, 'username' : "john.doe"}
       data
       )
       ..getToken(); // returns token without signature
 
-    var signer = new JWTHmacSha256Signer('culo');
+    // var signer = new JWTHmacSha256Signer('culo');
+    var c = await DB.create();
+    var apiKey = await c.getValue("apiKey");
+    print("Before error: $apiKey");
+    var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
     var signedToken = builder.getSignedToken(signer);
     print(signedToken); // prints encoded JWT
     var stringToken = signedToken.toString();

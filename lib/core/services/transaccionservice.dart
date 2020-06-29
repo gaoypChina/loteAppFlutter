@@ -10,8 +10,9 @@ class TransaccionService{
   static Future<Map<String, dynamic>> transacciones({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-
-    var response = await http.get(Utils.URL + "/api/transacciones", headers: Utils.header);
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    var response = await http.get(Utils.URL + "/api/transacciones?token=$jwt", headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -24,6 +25,8 @@ class TransaccionService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+      print("transaccionservice transacciones parsed: ${parsed}");
+
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
@@ -45,7 +48,10 @@ class TransaccionService{
     map["idEntidad"] = 0;
     map["idTipo"] = 0;
     map["idUsuario"] = 0;
-    mapDatos["datos"] = map;
+    // mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/transacciones/buscarTransaccion", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -74,8 +80,9 @@ class TransaccionService{
   static Future<Map<String, dynamic>> grupo({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-
-    var response = await http.get(Utils.URL + "/api/transacciones/grupo", headers: Utils.header);
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    var response = await http.get(Utils.URL + "/api/transacciones/grupo?token=$jwt", headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -105,7 +112,9 @@ class TransaccionService{
 
     map["id"] = id;
     map["es_banca"] = esBanca;
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/transacciones/saldo", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -137,7 +146,9 @@ class TransaccionService{
 
     map["idUsuario"] = idUsuario;
     map["addTransaccion"] = transacciones;
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     var response = await http.post(Utils.URL + "/api/transacciones/guardar", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;

@@ -198,7 +198,9 @@ class Realtime{
 
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    map2["datos"] =map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    map2["datos"] =jwt;
     
     final response = await http.post(Utils.URL +"/api/realtime/todos", body: json.encode(map2), headers: header );
     int statusCode = response.statusCode;

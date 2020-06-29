@@ -13,9 +13,10 @@ import 'package:loterias/core/models/loterias.dart';
 class PremiosService{
   static Future<List<Loteria>> getLoterias({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
-    var mapDatos = Map<String, dynamic>();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
 
-    var response = await http.get(Utils.URL + "/api/premios", headers: Utils.header);
+    var response = await http.get(Utils.URL + "/api/premios?token=$jwt", headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -49,7 +50,9 @@ class PremiosService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
     map["layout"] = "";
-    mapDatos["datos"] = map;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     print("premiosservice guardar: ${mapDatos.toString()}");
     // return listaLoteria;
@@ -88,8 +91,10 @@ class PremiosService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
     map["layout"] = "";
-    map["fecha"] = "";
-    mapDatos["datos"] = map;
+    map["fecha"] = null;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
 
     print("premiosservice borrar: ${mapDatos.toString()}");
     // return listaLoteria;
@@ -107,6 +112,8 @@ class PremiosService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
+    print("premiosservice borrar parsed: ${parsed}");
+
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
