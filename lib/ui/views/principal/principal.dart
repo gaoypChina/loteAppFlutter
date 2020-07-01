@@ -83,6 +83,7 @@ String _montoPrueba = '0';
   bool _tienePermisoManejarResultados = false;
   bool _tienePermisoMarcarTicketComoPagado = false;
   bool _tienePermisoMonitorearTicket = false;
+  bool _tienePermisoVerDashboard = false;
   bool _tienePermisoVerVentas = false;
   bool _tienePermisoVerHistoricoVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
@@ -340,6 +341,7 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoManejarResultados = await Db.existePermiso("Manejar resultados");
     bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
     bool permisoMonitorearTicket = await Db.existePermiso("Monitorear ticket");
+    bool permisoVerDashboard = await Db.existePermiso("Ver Dashboard");
     bool permisoVerVentas = await Db.existePermiso("Ver ventas");
     bool permisoVerHistoricoVentas = await Db.existePermiso("Ver historico ventas");
     bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
@@ -356,6 +358,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoManejarResultados = permisoManejarResultados;
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
       _tienePermisoMonitorearTicket = permisoMonitorearTicket;
+      _tienePermisoVerDashboard = permisoVerDashboard;
       _tienePermisoVerVentas = permisoVerVentas;
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
@@ -641,7 +644,7 @@ Future<bool> _requestPermisionChannel() async {
                     },
                   ),
                   Visibility(
-                    visible: _tienePermisoAdministrador,
+                    visible: _tienePermisoVerDashboard,
                     child: ListTile(
                       title: Text('Dashboard'),
                       leading: Icon(Icons.dashboard),
