@@ -41,6 +41,7 @@ import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 
 
@@ -468,6 +469,12 @@ Future<bool> _requestPermisionChannel() async {
       var parsed = await compute(Utils.parseDatosDynamic, data);
       await Realtime.usuario(context: _scaffoldKey.currentContext, usuario: parsed["user"]);
       await _getPermisos();
+    });
+    socket.on("lotteries:App\\Events\\LotteriesEvent", (data) async {   //sample event
+      // var parsed = data.cast<String, dynamic>();
+      var parsed = await compute(Utils.parseDatosDynamic, data);
+      quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed);
+      // print("lotteriesevent: $parsed");
     });
     socket.on("error", (data){   //sample event
       print("onError: $data");
@@ -1473,6 +1480,7 @@ void _getTime() {
     setState(() {
       _timeString = formattedDateTime;
     });
+    quitarLoteriasCerradas();
   }
 
   
@@ -2441,38 +2449,87 @@ Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
   return jugada;
 }
 
- getWeekDay(){
-   DateTime fecha = DateTime.now();
-   //si el wday es igual a 7 entonces lo hacemos igual a cero ya que el wday en php solo llega hasta el 6
-   return (fecha.weekday == 7) ? 0 : fecha.weekday;
- }
+ 
+Future quitarLoteriasCerradas()
+{
+  try {
+      listaLoteria.forEach((l) async {
+      // print("quitarloteriasCerradas: ${l.descripcion}");
+      var santoDomingo = tz.getLocation('America/Santo_Domingo');
+      var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+      var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
+      var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+      if(fechaFinalRd.isAfter(fechaLoteria)){
+        if(!await Db.existePermiso("Jugar fuera de horario")){
+          if(await Db.existePermiso("Jugar minutos extras")){
+            var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
+            if(fechaFinalRd.isAfter(fechaLoteriaMinutosExtras)){
+              setState(() {
+                listaLoteria.remove(l);
+              _seleccionarPrimeraLoteria();
+              });
 
+            }
+          }
+          else{
+            setState(() {
+                listaLoteria.remove(l);
+              _seleccionarPrimeraLoteria();
+              });
 
+          }
+        }
+      }
+      // print("Detroit: ${now.toString()}");
+    });
+  } catch (e) {
+  }
+  
+}
 
-
-
- montoDisponiblePruebaViejo() async {
-   var c = await DB.create();
-    List<dynamic> lista = await c.getList("stocks");
-    List<Stock> stocksGuardados = (lista.length == 0) ? null : lista;
-
-    if(stocksGuardados.length == 0){
-      setState(() => _montoPrueba = '0');
-    }else{
-      if(_selectedLoterias.length > 1){
-        setState(() => _montoPrueba = 'X');
-      }else{
-        int idx = stocksGuardados.indexWhere((s) => s.jugada == _txtJugada.text && s.idLoteria == _selectedLoterias[0].id);
-      print('dentro: ${stocksGuardados[idx].jugada} - ${stocksGuardados[idx].monto}');
-        
-        if(idx != -1){
-          setState(() => _montoPrueba = stocksGuardados[idx].monto.toString());
-        }else{
-          setState(() => _montoPrueba = '0');
+quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
+  List<Loteria> listaLoteriaEvent = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+  List<int> listaIdloteriasAEliminar = List();
+  listaLoteriaEvent.forEach((l) async {
+    print("dentro foreach loterias socket");
+    var santoDomingo = tz.getLocation('America/Santo_Domingo');
+    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
+    var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+    if(fechaFinalRd.isAfter(fechaLoteria)){
+      if(!await Db.existePermiso("Jugar fuera de horario")){
+        if(await Db.existePermiso("Jugar minutos extras")){
+          var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
+          if(fechaFinalRd.isAfter(fechaLoteriaMinutosExtras)){
+            // listaLoteriaEvent.remove(l);
+            listaIdloteriasAEliminar.add(l.id);
+          }
+        }
+        else{
+          // listaLoteriaEvent.remove(l);
+          listaIdloteriasAEliminar.add(l.id);
         }
       }
     }
- }
+  });
+
+  listaIdloteriasAEliminar.forEach((l){
+    var _index = listaLoteriaEvent.indexWhere((lo) => lo.id == l);
+    if(_index != -1){
+      setState(() => listaLoteriaEvent.removeAt(_index));
+      print("listaIdloteriasAEliminar: ${listaLoteriaEvent[_index]}");
+    }
+  });
+  
+  setState((){
+    listaLoteria = listaLoteriaEvent;
+    _streamControllerLoteria.add(listaLoteriaEvent);
+    _seleccionarPrimeraLoteria();
+  });
+}
+
+
+ 
 
 }
 

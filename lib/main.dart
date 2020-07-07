@@ -10,6 +10,7 @@ import 'package:loterias/ui/router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 
 
@@ -19,6 +20,7 @@ import 'locator.dart';
 
 Future<void> main() async {
   // var path = Directory.current.path;
+  tz.initializeTimeZones();
   setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
 final appDocumentDirectory = await  getApplicationDocumentsDirectory();

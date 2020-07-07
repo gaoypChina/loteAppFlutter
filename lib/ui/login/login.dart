@@ -145,6 +145,7 @@ _showSnackBar(String content){
                     padding: const EdgeInsets.only(left: 20, right: 20),
                     child: TextFormField(
                       controller: _txtPasswordController,
+                      obscureText: true,
                       focusNode: _txtPasswordFocusNode,
                       decoration: InputDecoration(labelText: 'Password'),
                       validator: (value){
