@@ -80,6 +80,8 @@ String _montoPrueba = '0';
   bool _ckbMessage = false;
   bool _ckbWhatsapp = false;
   bool _drawerIsOpen = false;
+  bool _tienePermisoJugarFueraDeHorario = false;
+  bool _tienePermisoJugarMinutosExtras = false;
   bool _tienePermisoJugarComoCualquierBanca = false;
   bool _tienePermisoManejarResultados = false;
   bool _tienePermisoMarcarTicketComoPagado = false;
@@ -339,6 +341,8 @@ Future<bool> _requestPermisionChannel() async {
 
   _getPermisos() async {
     bool permiso = await Db.existePermiso("Jugar como cualquier banca");
+    bool permisoJugarFueraDeHorario = await Db.existePermiso("Jugar fuera de horario");
+    bool permisoJugarMinutosExtras = await Db.existePermiso("Jugar minutos extras");
     bool permisoManejarResultados = await Db.existePermiso("Manejar resultados");
     bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
     bool permisoMonitorearTicket = await Db.existePermiso("Monitorear ticket");
@@ -355,6 +359,8 @@ Future<bool> _requestPermisionChannel() async {
 
     setState((){
       _tienePermisoJugarComoCualquierBanca = permiso;
+      _tienePermisoJugarFueraDeHorario = permisoJugarFueraDeHorario;
+      _tienePermisoJugarMinutosExtras = permisoJugarMinutosExtras;
       _tienePermisoAdministrador = permisoAdministrador;
       _tienePermisoManejarResultados = permisoManejarResultados;
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
@@ -2453,15 +2459,15 @@ Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
 Future quitarLoteriasCerradas()
 {
   try {
-      listaLoteria.forEach((l) async {
+      listaLoteria.forEach((l) {
       // print("quitarloteriasCerradas: ${l.descripcion}");
       var santoDomingo = tz.getLocation('America/Santo_Domingo');
       var fechaActualRd = tz.TZDateTime.now(santoDomingo);
       var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
       var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
       if(fechaFinalRd.isAfter(fechaLoteria)){
-        if(!await Db.existePermiso("Jugar fuera de horario")){
-          if(await Db.existePermiso("Jugar minutos extras")){
+        if(!_tienePermisoJugarFueraDeHorario){
+          if(_tienePermisoJugarMinutosExtras){
             var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
             if(fechaFinalRd.isAfter(fechaLoteriaMinutosExtras)){
               setState(() {
@@ -2490,15 +2496,16 @@ Future quitarLoteriasCerradas()
 quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
   List<Loteria> listaLoteriaEvent = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
   List<int> listaIdloteriasAEliminar = List();
-  listaLoteriaEvent.forEach((l) async {
-    print("dentro foreach loterias socket");
+   listaLoteriaEvent.forEach((l) async {
+    print("dentro foreach loterias: ${l.descripcion}");
     var santoDomingo = tz.getLocation('America/Santo_Domingo');
     var fechaActualRd = tz.TZDateTime.now(santoDomingo);
     var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
     var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
     if(fechaFinalRd.isAfter(fechaLoteria)){
-      if(!await Db.existePermiso("Jugar fuera de horario")){
-        if(await Db.existePermiso("Jugar minutos extras")){
+      if(!_tienePermisoJugarFueraDeHorario){
+      print("dentro foreach loterias eliminar: ${l.descripcion}");
+        if(_tienePermisoJugarMinutosExtras){
           var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
           if(fechaFinalRd.isAfter(fechaLoteriaMinutosExtras)){
             // listaLoteriaEvent.remove(l);
@@ -2519,7 +2526,11 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
       setState(() => listaLoteriaEvent.removeAt(_index));
       print("listaIdloteriasAEliminar: ${listaLoteriaEvent[_index]}");
     }
+
   });
+
+  print("listaIdloteriasAEliminar: ${listaIdloteriasAEliminar}");
+
   
   setState((){
     listaLoteria = listaLoteriaEvent;
