@@ -179,6 +179,11 @@ Future<bool> _requestPermisionChannel() async {
   
 
   guardar() async{
+    if(listaJugadas.length <= 0){
+      _showSnackBar("No hay jugadas realizadas");
+      return;
+    }
+
     if(_ckbPrint){
       if(await Utils.exiseImpresora() == false){
         _showSnackBar("Debe registrar una impresora");
@@ -879,7 +884,12 @@ Future<bool> _requestPermisionChannel() async {
               IconButton(
                 icon: Icon(Icons.bluetooth, size: 30,),
                 onPressed: () async{
-                  Navigator.of(context).pushNamed('/bluetooth');
+                  print("Height: ${MediaQuery.of(context).size.height}");
+                  // Navigator.of(context).pushNamed('/bluetooth');
+
+                  /* 
+                      huawei y9 780.0
+                  */
                 },
               ),
               // IconButton(
@@ -1256,6 +1266,7 @@ Future<bool> _requestPermisionChannel() async {
                               
                               SizedBox(height: 10,),
                               Expanded(
+                                // flex: 3,
                                 flex: 3,
                                 child: Container(
                                   // color: Colors.red,

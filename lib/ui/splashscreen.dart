@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/services/loginservice.dart';
@@ -40,7 +41,8 @@ class _SplashScreenState extends State<SplashScreen> {
           await c.add("tipoUsuario", parsed["tipoUsuario"]);
           await LoginService.guardarDatos(parsed);
           return true;
-       } on Exception catch(e){
+       } catch(e){
+         Principal.cerrarSesion(context);
          return false;
        }
       }else{
