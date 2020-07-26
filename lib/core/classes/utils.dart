@@ -287,5 +287,53 @@ class  Utils {
       return jugada;
     }
   }
+
+  static List<String> generarCombinaciones(String jugada){
+    List<String> listaJugada = List();
+    
+    //anadimos la primera jugada
+    listaJugada.add(jugada);
+
+    //generamos las combinaciones
+    // print("utils generamos las combinaciones: ${jugada.length} - ${invertirJugada(jugada)}");
+    switch (jugada.length) {
+      case 2:
+        listaJugada.add(invertirJugada(jugada));
+    // print("utils generamos las combinaciones: ${jugada.length} - ${invertirJugada(jugada)}");
+
+        break;
+      case 4:
+        //invertimos la primera jugada
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + jugada.substring(2, 4));
+        //invertimos la segunda jugada
+        listaJugada.add(jugada.substring(0, 2) + invertirJugada(jugada.substring(2, 4)));
+        //invertimos las dos jugadas
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + invertirJugada(jugada.substring(2, 4)));
+        break;
+      case 6:
+        //invertimos la primera jugada
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + jugada.substring(2, 4) + jugada.substring(4, 6));
+        //invertimos la segunda jugada
+        listaJugada.add(jugada.substring(0, 2) + invertirJugada(jugada.substring(2, 4)) + jugada.substring(4, 6));
+        //invertimos la tercer jugada
+        listaJugada.add(jugada.substring(0, 2) + jugada.substring(2, 4) + invertirJugada(jugada.substring(4, 6)));
+        //invertimos todas las jugadas jugada
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + invertirJugada(jugada.substring(2, 4)) + invertirJugada(jugada.substring(4, 6)));
+        //invertimos la primera y segunda jugada
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + invertirJugada(jugada.substring(2, 4)) + jugada.substring(4, 6));
+        //invertimos la primera y tercer jugada
+        listaJugada.add(invertirJugada(jugada.substring(0, 2)) + jugada.substring(2, 4) + invertirJugada(jugada.substring(4, 6)));
+        //invertimos la segunda y tercer jugada
+        listaJugada.add(jugada.substring(0, 2) + invertirJugada(jugada.substring(2, 4)) + invertirJugada(jugada.substring(4, 6)));
+        break;
+      default:
+    }
+
+    return listaJugada;
+  }
+
+  static String invertirJugada(String parDeNumeros){
+    return parDeNumeros[1] + parDeNumeros[0];
+  }
   
 }

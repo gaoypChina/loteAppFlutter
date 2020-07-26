@@ -98,7 +98,8 @@ String _montoPrueba = '0';
   StreamController<List<Jugada>> _streamControllerJugada;
   var _txtJugada = TextEditingController();
   var _txtMontoDisponible = TextEditingController();
-  var _txtMonto = TextEditingController();
+  var _txtMonto = TextEditingController(); 
+  var _txtMontoLigar = TextEditingController(); 
   bool _txtMontoPrimerCaracter = true;
   List<Loteria> _selectedLoterias;
   Timer _timer;
@@ -599,6 +600,131 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
+AppBar _appBar(bool screenHeightIsSmall){
+    return AppBar(
+              
+      title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 18))) : Text('Principal'),
+      // leading: SizedBox(),
+      // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: _manageDrawer),
+      actions: <Widget>[
+        Container(),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: screenHeightIsSmall ? 25 : 30,
+              height: screenHeightIsSmall ? 25 : 30,
+              child: Visibility(
+                visible: _cargando,
+                child: Theme(
+                  data: Theme.of(context).copyWith(accentColor: Colors.white),
+                  child: new CircularProgressIndicator(),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        PopupMenuButton(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(Icons.camera_alt, size: screenHeightIsSmall ? 25 :  30),
+          ),
+          onSelected: (String value) async {
+            if(value == "duplicar"){
+              try{
+                String codigoQr = await BarcodeScanner.scan();
+                setState(() => _cargando = true);
+                var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+                setState(() => _cargando = false);
+                if(datos.isNotEmpty){
+                  _duplicar(datos);
+                }
+              } on Exception catch(e){
+                setState(() => _cargando = false);
+              }
+            }else if(value == "pagar"){
+              try{
+                String codigoQr = await BarcodeScanner.scan();
+                setState(() => _cargando = true);
+                var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+                setState(() => _cargando = false);
+                Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+              } on Exception catch(e){
+                setState(() => _cargando = false);
+              }
+            }
+          },
+          itemBuilder: (context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem(
+              value: "duplicar",
+              child: Text("Duplicar"),
+            ),
+            (_tienePermisoMarcarTicketComoPagado) ?
+            const PopupMenuItem(
+              value: "pagar",
+              child: Text("Pagar")
+            )
+            :
+            SizedBox()
+          ],
+        ),
+
+        // IconButton(
+        //   icon: Icon(Icons.camera_alt, size: 30),
+        //   onPressed: () async {
+        //     String codigoQr = await BarcodeScanner.scan();
+        //     var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+        //     if(datos.isNotEmpty){
+        //       _duplicar(datos);
+        //     }
+        //   },
+        // ),
+        IconButton(
+          icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 : 30,),
+          onPressed: () async{
+            print("Screensize: ${MediaQuery.of(context).size.height}");
+            // Navigator.of(context).pushNamed('/bluetooth');
+          },
+        ),
+        // IconButton(
+        //   icon: Icon(Icons.message, size: 30,),
+        //   onPressed: () async{
+        //     showDialog(
+        //       context: context,
+        //       builder: (context){
+        //         return AlertDialog(
+        //           title: Text("Errores socket"),
+        //           content: ListView.builder(
+        //             itemCount: _listaMensajes.length,
+        //             itemBuilder: (context, idx){
+        //               return ListTile(
+        //                 title: Text(_listaMensajes[idx]),
+        //               );
+        //             },
+        //           ),
+        //         );
+        //       }
+        //     );
+        //   },
+        // )
+      ],
+      bottom: TabBar(
+        // labelPadding: EdgeInsets.all(-20),
+        // isScrollable: true,
+        // indicatorWeight: 100,
+        indicatorColor: Colors.white,
+        tabs: <Widget>[
+          Tab(
+            child: Text('Jugar'),
+          ),
+          Tab(
+            child: Text('Jugadas'),
+          )
+        ],
+      ),
+    );
+  }
   
   @override
   build(BuildContext context) {
@@ -803,128 +929,17 @@ Future<bool> _requestPermisionChannel() async {
 
             ),
           ),
-          appBar: AppBar(
-            title: Text('Principal'),
-            // leading: SizedBox(),
-            // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: _manageDrawer),
-            actions: <Widget>[
-              Container(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: Visibility(
-                      visible: _cargando,
-                      child: Theme(
-                        data: Theme.of(context).copyWith(accentColor: Colors.white),
-                        child: new CircularProgressIndicator(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              PopupMenuButton(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(Icons.camera_alt, size: 30),
-                ),
-                onSelected: (String value) async {
-                  if(value == "duplicar"){
-                    try{
-                      String codigoQr = await BarcodeScanner.scan();
-                      setState(() => _cargando = true);
-                      var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
-                      setState(() => _cargando = false);
-                      if(datos.isNotEmpty){
-                        _duplicar(datos);
-                      }
-                    } on Exception catch(e){
-                      setState(() => _cargando = false);
-                    }
-                  }else if(value == "pagar"){
-                    try{
-                      String codigoQr = await BarcodeScanner.scan();
-                      setState(() => _cargando = true);
-                      var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
-                      setState(() => _cargando = false);
-                      Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
-                    } on Exception catch(e){
-                      setState(() => _cargando = false);
-                    }
-                  }
-                },
-                itemBuilder: (context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem(
-                    value: "duplicar",
-                    child: Text("Duplicar"),
-                  ),
-                  (_tienePermisoMarcarTicketComoPagado) ?
-                  const PopupMenuItem(
-                    value: "pagar",
-                    child: Text("Pagar")
-                  )
-                  :
-                  SizedBox()
-                ],
-              ),
-
-              // IconButton(
-              //   icon: Icon(Icons.camera_alt, size: 30),
-              //   onPressed: () async {
-              //     String codigoQr = await BarcodeScanner.scan();
-              //     var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
-              //     if(datos.isNotEmpty){
-              //       _duplicar(datos);
-              //     }
-              //   },
-              // ),
-              IconButton(
-                icon: Icon(Icons.bluetooth, size: 30,),
-                onPressed: () async{
-                  print("Height: ${MediaQuery.of(context).size.height}");
-                  // Navigator.of(context).pushNamed('/bluetooth');
-
-                  /* 
-                      huawei y9 780.0
-                  */
-                },
-              ),
-              // IconButton(
-              //   icon: Icon(Icons.message, size: 30,),
-              //   onPressed: () async{
-              //     showDialog(
-              //       context: context,
-              //       builder: (context){
-              //         return AlertDialog(
-              //           title: Text("Errores socket"),
-              //           content: ListView.builder(
-              //             itemCount: _listaMensajes.length,
-              //             itemBuilder: (context, idx){
-              //               return ListTile(
-              //                 title: Text(_listaMensajes[idx]),
-              //               );
-              //             },
-              //           ),
-              //         );
-              //       }
-              //     );
-              //   },
-              // )
-            ],
-            bottom: TabBar(
-              indicatorColor: Colors.white,
-              tabs: <Widget>[
-                Tab(
-                  child: Text('Jugar'),
-                ),
-                Tab(
-                  child: Text('Jugadas'),
-                )
-              ],
-            ),
+          appBar: MediaQuery.of(context).size.height > 630
+          ?
+          // _appBar(false)
+          PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+            child: _appBar(false),
+          )
+          :
+          PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+            child: _appBar(true),
           ),
           body: TabBarView(
             children: <Widget>[
@@ -979,8 +994,8 @@ Future<bool> _requestPermisionChannel() async {
                                         return Padding(
                                           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                           child: DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
+                                              hint: Text('Selec. banca'),
+                                              value:  'Sin datos',
                                               onChanged: (String banca){
                                                 setState(() {
                                                 
@@ -988,8 +1003,8 @@ Future<bool> _requestPermisionChannel() async {
                                               },
                                               items: [
                                                 DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
+                                                  value: "Sin datos",
+                                                  child: Text('Sin datos',),
                                                 )
                                               ]
                                             ),
@@ -1276,10 +1291,10 @@ Future<bool> _requestPermisionChannel() async {
                                       children: <Widget>[
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('Q', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
                                             // SizedBox(
                                             //   width: MediaQuery.of(context).size.width / 4,
                                             //   height: constraints.maxHeight / 5,
@@ -1295,32 +1310,32 @@ Future<bool> _requestPermisionChannel() async {
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 4, 5),
-                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 4, 5),
+                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight - 22, 2, 5),
-                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight - 22, 2, 5),
+                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
+                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
                                           ],
                                         )
                                       ],
@@ -1333,7 +1348,7 @@ Future<bool> _requestPermisionChannel() async {
                                 flex: 1,
                                 
                                 child: Align(
-                                  alignment: Alignment.topCenter,
+                                  alignment: Alignment.center,
                                   child: Row(
                                     
                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1581,17 +1596,26 @@ void _getTime() {
       );
   }
 
-  void _escribir(String caracter){
+  Future<void> _escribir(String caracter) async {
+    if(caracter == 'Q'){
+      if(_txtJugada.text.isEmpty)
+        _showLigarDialog();
+    }
     if(caracter == 'ENTER'){
       if(_jugadaOmonto){
         setState((){
-            // _montoFuture = fetchMonto();
-            montoDisponible();
+          montoDisponible();
           _jugadaOmonto = !_jugadaOmonto;
           _txtMontoPrimerCaracter = true;
-          });
+        });
       }else{
-        addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+        if(_txtJugada.text.indexOf(".") != -1){
+          _combinarJugadas();
+          setState(() => _jugadaOmonto = !_jugadaOmonto);
+        }
+        else{
+          addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+        }
       }
       return;
     }
@@ -1605,12 +1629,17 @@ void _getTime() {
       if(caracter == 'backspace'){
         setState(() => _txtJugada.text = (_txtJugada.text.length > 0) ? _txtJugada.text.substring(0, (_txtJugada.text).length - 1) : _txtJugada.text);
         return;
-      }else if(_txtJugada.text.length < 6){
+      }
+      else if(_txtJugada.text.length < 6 || (_txtJugada.text.length == 6 && caracter == ".")){
         if(esCaracterEspecial(caracter) == false)
           _txtJugada.text = _txtJugada.text + caracter;
         else{
           if(caracter == '+'){
             ponerSignoMas();
+          }
+          if(caracter == '.'){
+            if(esCaracterEspecial(_txtJugada.text) == false)
+              ponerPunto();
           }
         }
       }
@@ -1646,6 +1675,88 @@ void _getTime() {
     }
   }
 
+  _combinarJugadas(){
+    List<String> combinacionesJugadas = Utils.generarCombinaciones(_txtJugada.text.substring(0, _txtJugada.text.length - 1));
+    // print("Combinaciones retornadas: ${combinacionesJugadas.length}");
+    double montoJugada = Utils.toDouble(_txtMonto.text);
+    for(int i=0; i < combinacionesJugadas.length; i++){
+      // print("Combinaciones retornadas for antes: ${combinacionesJugadas[i]}");
+      // for(int il=0; il < _selectedLoterias.length; il++){
+      //   double montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(combinacionesJugadas[i]), _selectedLoterias[il], await _selectedBanca());
+      //   if(montoDisponible < montoJugada){
+      //     Utils.showAlertDialog(context: context,title: "No hay disponibilidad",content: "No hay monto disponible para la jugada ${combinacionesJugadas[i]} en la loteria ${_selectedLoterias[il].descripcion}");
+      //     return;
+      //   }
+      // }
+
+      addJugada(jugada: Utils.ordenarMenorAMayor((combinacionesJugadas[i])), montoDisponible: montoJugada.toString(), monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+      // print("Combinaciones retornadas for despues: ${combinacionesJugadas[i]}");
+    
+    }
+  }
+
+  _showLigarDialog(){
+    showDialog(
+      context: context,
+      builder: (context){
+        String _paleOTripleta = "pale";
+        return AlertDialog(
+          title: Text("Ligar pale y tripleta"),
+          content: Container(
+            height: MediaQuery.of(context).size.height / 4,
+            child: Column(children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: "Monto"),
+                controller: _txtMontoLigar,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  WhitelistingTextInputFormatter.digitsOnly
+                ]
+              ),
+              PreferredSize(preferredSize: Size.fromWidth(5),child: Container(color: Colors.red, child: RadioListTile(title: Text("Pale"), value: "pale", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value)))),
+              RadioListTile(title: Text("Tripleta"), value: "tripleta", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value)),
+              // Row(children: <Widget>[
+              //   Flexible( child: RadioListTile(dense: true, title: Text("Pale", softWrap: true, overflow: TextOverflow.ellipsis,), value: "pale", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value))),
+              //   Flexible( child: RadioListTile(dense: true, title: Text("Tripleta", softWrap: true, overflow: TextOverflow.ellipsis), value: "tripleta", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value))),
+              // ],)
+            ],),
+          ),
+        );
+      }
+    );
+  }
+
+  _ligarDirectosEnPale(){
+    var listaJugadasLigadas = List<String>();
+    int idLoteria;
+    //Buscamos los directos de las jugadas realizadas 
+    var listaJugadaDirectos = listaJugadas.where((e) => e.jugada.length == 2).toList();
+    
+    //Ordenamos los directos de menor a mayor
+    listaJugadaDirectos.sort((a, b) => a.jugada.compareTo(b.jugada));
+    
+    //Validamos de que no existan directos para mas loterias
+    if(listaJugadaDirectos.indexWhere((e) => e.idLoteria != listaJugadaDirectos[0].idLoteria) != -1)
+      return;
+
+    //Vamos a recorrer dos ciclos
+    //En el primer ciclo recorremos todos los numeros
+    //En el segundo recorremos todos los numeros que sean mayores que el numero del primer ciclo
+    for(int i=0; i < listaJugadaDirectos.length; i++){
+      if(i==0)
+        idLoteria = listaJugadaDirectos[i].idLoteria;
+      //Este segundo for empezara siempre con un directo mayor que el directo del primer ciclo por eso i2 = i + 1
+      for(int i2 = i + 1; i2 < listaJugadaDirectos.length; i2++){
+        listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada);
+      }
+    }
+
+    for(int i=0; i < listaJugadasLigadas.length; i++){
+      print("ligada: ${listaJugadasLigadas[i]}");
+    }
+
+  }
+
    ponerPuntoEnMonto(){
     if(_txtMonto.text.indexOf('.') == -1){
       _txtMonto.text = _txtMonto.text + '.';
@@ -1665,6 +1776,18 @@ void _getTime() {
     
   }
 
+  ponerPunto() async {
+    if(_txtJugada.text.indexOf('.') != -1)
+      return;
+
+    if(_txtJugada.text.length != 2 && _txtJugada.text.length != 4 && _txtJugada.text.length != 6)
+      return;
+    
+    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    await montoDisponible();
+    _txtJugada.text = _txtJugada.text + '.';
+  }
+
 
   addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap}) async {
     if(jugada.length < 2)
@@ -1681,12 +1804,15 @@ void _getTime() {
         }
       }
     }
+    
 
     if(Utils.toDouble(monto) == 0){
       _showSnackBar('La cantidad a jugar debe ser mayor que cero');
         return;
     }
     
+      
+
 
     if(loteriaMap == null){
       if(selectedLoterias.length == 0){
