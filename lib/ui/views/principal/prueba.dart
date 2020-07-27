@@ -1090,48 +1090,48 @@ print('futuro: ${resp.body}');
                         ),
                         Row(
                           children: <Widget>[
-                            MyCheckbox(
-                              useTapTarget: false,
-                              value: _ckbDescuento,
-                              onChanged: (newValue){
-                                setState(() {
-                                _ckbDescuento = newValue; 
-                                });
-                              },
-                            ),
+                            // MyCheckbox(
+                            //   useTapTarget: false,
+                            //   value: _ckbDescuento,
+                            //   onChanged: (newValue){
+                            //     setState(() {
+                            //     _ckbDescuento = newValue; 
+                            //     });
+                            //   },
+                            // ),
                             SizedBox(width: 5,),
                             GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
                           ],
                         ),
                          Row(
                           children: <Widget>[
-                            MyCheckbox(
-                              useTapTarget: false,
-                              value: _ckbPrint,
-                              onChanged: _ckbPrintChanged,
-                            ),
+                            // MyCheckbox(
+                            //   useTapTarget: false,
+                            //   value: _ckbPrint,
+                            //   onChanged: _ckbPrintChanged,
+                            // ),
                             SizedBox(width: 5,),
                             GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
                           ],
                         ),
                         Row(
                           children: <Widget>[
-                            MyCheckbox(
-                              useTapTarget: false,
-                              value: _ckbMessage,
-                              onChanged: _ckbMessageChanged,
-                            ),
+                            // MyCheckbox(
+                            //   useTapTarget: false,
+                            //   value: _ckbMessage,
+                            //   onChanged: _ckbMessageChanged,
+                            // ),
                             SizedBox(width: 5,),
                             GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
                           ],
                         ),
                         Row(
                           children: <Widget>[
-                            MyCheckbox(
-                              useTapTarget: false,
-                              value: _ckbWhatsapp,
-                              onChanged: _ckbWhatsappChanged,
-                            ),
+                            // MyCheckbox(
+                            //   useTapTarget: false,
+                            //   value: _ckbWhatsapp,
+                            //   onChanged: _ckbWhatsappChanged,
+                            // ),
                             SizedBox(width: 5,),
                             GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
                           ],

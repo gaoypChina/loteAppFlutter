@@ -164,18 +164,18 @@ _showSnackBar(String content){
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
                               child: 
-                              MyCheckbox(
-                                value: _recordarme, 
-                                onChanged: (value){
-                                  setState(() => _recordarme = value);
-                                }
-                              ),
-                              // Checkbox(
+                              // MyCheckbox(
                               //   value: _recordarme, 
                               //   onChanged: (value){
                               //     setState(() => _recordarme = value);
                               //   }
                               // ),
+                              Checkbox(
+                                value: _recordarme, 
+                                onChanged: (value){
+                                  setState(() => _recordarme = value);
+                                }
+                              ),
                             ),
                             Text('Recordarme'),
                           ],

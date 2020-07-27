@@ -8,6 +8,7 @@ import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/router.dart';
 import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -23,8 +24,9 @@ Future<void> main() async {
   tz.initializeTimeZones();
   setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
-final appDocumentDirectory = await  getApplicationDocumentsDirectory();
+// final appDocumentDirectory = await getApplicationDocumentsDirectory();
 
+// await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
   await Db.create();
   await Db.open();

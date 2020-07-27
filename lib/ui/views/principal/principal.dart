@@ -61,6 +61,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
+  var _formLigarKey = GlobalKey<FormState>();
   bool _jugadaOmonto = true;
   // var listaBanca = List<String>.generate(10, (i) => "Banca $i");
   List<Banca> listaBanca = List<Banca>.generate(1, (i) => Banca(descripcion: 'No hay bancas', id: 0));
@@ -79,6 +80,8 @@ String _montoPrueba = '0';
   bool _ckbPrint = true;
   bool _ckbMessage = false;
   bool _ckbWhatsapp = false;
+  bool _ckbLigarPale = true;
+  bool _ckbLigarTripleta = false;
   bool _drawerIsOpen = false;
   bool _tienePermisoJugarFueraDeHorario = false;
   bool _tienePermisoJugarMinutosExtras = false;
@@ -1236,6 +1239,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                                           });
                                         },
                                       ),
+                                      // Checkbox(
+                                      //   // useTapTarget: false,
+                                      //   value: _ckbDescuento,
+                                      //   onChanged: (newValue){
+                                      //     setState(() {
+                                      //     _ckbDescuento = newValue; 
+                                      //     });
+                                      //   },
+                                      // ),
                                       SizedBox(width: 5,),
                                       GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
                                     ],
@@ -1247,6 +1259,11 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         value: _ckbPrint,
                                         onChanged: _ckbPrintChanged,
                                       ),
+                                      // Checkbox(
+                                      //   // useTapTarget: false,
+                                      //   value: _ckbPrint,
+                                      //   onChanged: _ckbPrintChanged,
+                                      // ),
                                       SizedBox(width: 5,),
                                       GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
                                     ],
@@ -1258,6 +1275,11 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         value: _ckbMessage,
                                         onChanged: _ckbMessageChanged,
                                       ),
+                                      // Checkbox(
+                                      //   // useTapTarget: false,
+                                      //   value: _ckbMessage,
+                                      //   onChanged: _ckbMessageChanged,
+                                      // ),
                                       SizedBox(width: 5,),
                                       GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
                                     ],
@@ -1269,6 +1291,16 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         value: _ckbWhatsapp,
                                         onChanged: _ckbWhatsappChanged,
                                       ),
+                                      // PreferredSize(
+                                      //   preferredSize: Size.fromWidth(5),
+                                      //   child: Checkbox(
+                                      //     // useTapTarget: false,
+                                      //     materialTapTargetSize: MaterialTapTargetSize.padded,
+                                      //     value: _ckbWhatsapp,
+                                      //     onChanged: _ckbWhatsappChanged,
+                                      //     visualDensity: VisualDensity.lerp(VisualDensity.compact, VisualDensity.compact, VisualDensity.minimumDensity),
+                                      //   ),
+                                      // ),
                                       SizedBox(width: 5,),
                                       GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
                                     ],
@@ -1597,9 +1629,14 @@ void _getTime() {
   }
 
   Future<void> _escribir(String caracter) async {
-    if(caracter == 'Q'){
-      if(_txtJugada.text.isEmpty)
+    if(caracter == '.'){
+      if(_txtJugada.text.isEmpty && listaJugadas.length >= 2)
         _showLigarDialog();
+      return;
+    }
+    if(caracter == '/'){
+        _seleccionarSiguienteLoteria();
+        return;
     }
     if(caracter == 'ENTER'){
       if(_jugadaOmonto){
@@ -1695,38 +1732,123 @@ void _getTime() {
     }
   }
 
-  _showLigarDialog(){
-    showDialog(
+  _showLigarDialog() async {
+    setState((){
+      _ckbLigarPale = true;
+      _ckbLigarTripleta = false;
+    });
+
+    return await showDialog(
       context: context,
       builder: (context){
         String _paleOTripleta = "pale";
-        return AlertDialog(
-          title: Text("Ligar pale y tripleta"),
-          content: Container(
-            height: MediaQuery.of(context).size.height / 4,
-            child: Column(children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(labelText: "Monto"),
-                controller: _txtMontoLigar,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  WhitelistingTextInputFormatter.digitsOnly
-                ]
+        return StatefulBuilder(
+          builder: (context, setState) {
+            
+
+            return AlertDialog(
+              title: Text("Ligar pale y tripleta"),
+              content: Container(
+                height: 120,
+                child: Form(
+                  key: _formLigarKey,
+                  child: Column(children: <Widget>[
+                    TextFormField(
+                      decoration: InputDecoration(labelText: "Monto"),
+                      controller: _txtMontoLigar,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        WhitelistingTextInputFormatter.digitsOnly
+                      ],
+                      validator: (data){
+                        if(data.isEmpty)
+                          return 'No tiene datos';
+
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Row(children: <Widget>[
+                          MyCheckbox(
+                          useTapTarget: false,
+                          value: _ckbLigarPale,
+                          onChanged: (newValue){
+                            setState(() {
+                            _ckbLigarPale = newValue; 
+                            });
+                          },
+                        ),
+                        // Checkbox(
+                        //   // useTapTarget: false,
+                        //   value: _ckbDescuento,
+                        //   onChanged: (newValue){
+                        //     setState(() {
+                        //     _ckbDescuento = newValue; 
+                        //     });
+                        //   },
+                        // ),
+                        SizedBox(width: 5,),
+                        GestureDetector(child: Text('Pale', ), onTap: (){setState(() => _ckbLigarPale = !_ckbLigarPale);},)
+                        ],),
+                        Row(children: <Widget>[
+                          MyCheckbox(
+                          useTapTarget: false,
+                          value: _ckbLigarTripleta,
+                          onChanged: (newValue){
+                            setState(() {
+                            _ckbLigarTripleta = newValue; 
+                            });
+                          },
+                        ),
+                        // Checkbox(
+                        //   // useTapTarget: false,
+                        //   value: _ckbDescuento,
+                        //   onChanged: (newValue){
+                        //     setState(() {
+                        //     _ckbDescuento = newValue; 
+                        //     });
+                        //   },
+                        // ),
+                        SizedBox(width: 5,),
+                        GestureDetector(child: Text('Tripleta', ), onTap: (){setState(() => _ckbLigarTripleta = !_ckbLigarTripleta);},)
+                        ],)
+                        
+                      ],
+                    ),
+                  ],),
+                ),
               ),
-              PreferredSize(preferredSize: Size.fromWidth(5),child: Container(color: Colors.red, child: RadioListTile(title: Text("Pale"), value: "pale", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value)))),
-              RadioListTile(title: Text("Tripleta"), value: "tripleta", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value)),
-              // Row(children: <Widget>[
-              //   Flexible( child: RadioListTile(dense: true, title: Text("Pale", softWrap: true, overflow: TextOverflow.ellipsis,), value: "pale", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value))),
-              //   Flexible( child: RadioListTile(dense: true, title: Text("Tripleta", softWrap: true, overflow: TextOverflow.ellipsis), value: "tripleta", groupValue: _paleOTripleta, onChanged: (value)=> setState(() => _paleOTripleta = value))),
-              // ],)
-            ],),
-          ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Cancelar"),
+                  onPressed: (){Navigator.pop(context);},
+                ),
+                FlatButton(
+                  child: Text("Ligar"),
+                  onPressed: (){
+                    if(!_formLigarKey.currentState.validate())
+                      return;
+                    // Map<String, dynamic> map = {"monto" : Utils.toDouble(_txtMontoLigar.text), "pale" : _ckbLigarPale, "tripleta" : _ckbLigarTripleta,};
+                    if(_ckbLigarPale)
+                      _ligarDirectosEnPale(Utils.toDouble(_txtMontoLigar.text));
+                    
+                    if(_ckbLigarTripleta)
+                      _ligarDirectosEnTripleta(Utils.toDouble(_txtMontoLigar.text));
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          }
         );
       }
     );
   }
 
-  _ligarDirectosEnPale(){
+  _ligarDirectosEnPale(double monto){
     var listaJugadasLigadas = List<String>();
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
@@ -1750,9 +1872,67 @@ void _getTime() {
         listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada);
       }
     }
+    print("dentro _ligarPale");
 
+    //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
+    Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
+    List<Loteria> lista = List();
+    if(loteria == null)
+      return;
+
+    //Agregamos la loteria a la lista
+    lista.add(loteria);
+
+    //Agregamos las jugadas ligadas
     for(int i=0; i < listaJugadasLigadas.length; i++){
-      print("ligada: ${listaJugadasLigadas[i]}");
+      addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: lista);
+    }
+
+  }
+
+  _ligarDirectosEnTripleta(double monto){
+    var listaJugadasLigadas = List<String>();
+    int idLoteria;
+    //Buscamos los directos de las jugadas realizadas 
+    var listaJugadaDirectos = listaJugadas.where((e) => e.jugada.length == 2).toList();
+    
+    //Validar que haya mas de 3 directos
+    if(listaJugadaDirectos.length < 3)
+      return;
+
+    //Ordenamos los directos de menor a mayor
+    listaJugadaDirectos.sort((a, b) => a.jugada.compareTo(b.jugada));
+    
+    //Validamos de que no existan directos para mas loterias
+    if(listaJugadaDirectos.indexWhere((e) => e.idLoteria != listaJugadaDirectos[0].idLoteria) != -1)
+      return;
+
+    //Vamos a recorrer dos ciclos
+    //En el primer ciclo recorremos todos los numeros
+    //En el segundo recorremos todos los numeros que sean mayores que el numero del primer ciclo
+    for(int i=0; i < listaJugadaDirectos.length; i++){
+      if(i==0)
+        idLoteria = listaJugadaDirectos[i].idLoteria;
+      //Este segundo for empezara siempre con un directo mayor que el directo del primer ciclo por eso i2 = i + 1
+      for(int i2 = i + 1; i2 < listaJugadaDirectos.length; i2++){
+        for(int i3 = i2 + 1; i3 < listaJugadaDirectos.length; i3++)
+          listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada + listaJugadaDirectos[i3].jugada);
+      }
+    }
+    print("dentro _ligarTripleta");
+
+    //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
+    Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
+    List<Loteria> lista = List();
+    if(loteria == null)
+      return;
+
+    //Agregamos la loteria a la lista
+    lista.add(loteria);
+
+    //Agregamos las jugadas ligadas
+    for(int i=0; i < listaJugadasLigadas.length; i++){
+      addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: lista);
     }
 
   }
@@ -2087,6 +2267,40 @@ void _getTime() {
     _selectedLoterias = List();
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);
+  }
+
+  _seleccionarSiguienteLoteria(){
+    if(listaLoteria == null)
+      return;
+
+    if(listaLoteria.length == 0)
+      return;
+
+    //Validamos que solo haya una loteria seleccionada
+    if(_selectedLoterias.length > 1)
+      return;
+
+    //Si no hay ninguna loteria seleccionada pues seleccionamos la primera
+    if(_selectedLoterias.length == 0){
+      setState(() => _seleccionarPrimeraLoteria());
+      return;
+    }
+      
+    int idx = listaLoteria.indexWhere((element) => element.id == _selectedLoterias[0].id);
+    if(idx != -1){
+      //Si es la ultima loteria pues entonces seleccionamos la primera
+      if(listaLoteria.length == idx + 1){
+        _seleccionarPrimeraLoteria();
+        return;
+      }
+
+      setState(() {
+        _selectedLoterias = List();
+      // final selectedValuesMap = listaLoteria.asMap();
+      _selectedLoterias.add(listaLoteria[idx + 1]);
+      });
+
+    }
   }
 
 _seleccionarBancaPertenecienteAUsuario() async {
