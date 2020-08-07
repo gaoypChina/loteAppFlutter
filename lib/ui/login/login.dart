@@ -9,6 +9,7 @@ import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/services/loginservice.dart';
+import 'package:loterias/core/services/realtime.dart';
 import 'dart:convert';
 
 import 'package:loterias/ui/views/principal/principal.dart';
@@ -206,7 +207,6 @@ _showSnackBar(String content){
                               try{
                                 setState(() => _cargando = true);
                                 var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
-                                setState(() => _cargando = false);
                                 var c = await DB.create();
                                 await c.add("recordarme", _recordarme);
                                 await c.add("apiKey", parsed["apiKey"]);
@@ -218,6 +218,9 @@ _showSnackBar(String content){
                                 
 
                                 await LoginService.guardarDatos(parsed);
+                                await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
+                                setState(() => _cargando = false);
+
                                 _navigateToHome();
                               }on Exception catch(e){
                                 print("Error desde login: ${e.toString()}");

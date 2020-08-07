@@ -3,6 +3,7 @@ import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/services/loginservice.dart';
+import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 
@@ -15,6 +16,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   var _colorPrimary = Utils.fromHex("#38B6FF");
+  var _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState(){
@@ -40,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
           await c.add("apiKey", parsed["apiKey"]);
           await c.add("tipoUsuario", parsed["tipoUsuario"]);
           await LoginService.guardarDatos(parsed);
+          await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
           return true;
        } catch(e){
          Principal.cerrarSesion(context);
@@ -71,6 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: _colorPrimary,
       body: SafeArea(
         child: Column(

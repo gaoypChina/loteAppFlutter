@@ -286,6 +286,59 @@ class Realtime{
     }
   }
 
+  static sincronizarTodosData(_scaffoldKey, var parsed) async {
+    if(parsed["version"] != null){
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      }
+      if(parsed["usuario"] != null){
+        await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
+      }
+
+       if(parsed['stocks'] != null){
+        print('dentro stocks: ${parsed['stocks']}');
+
+          List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
+          for(Stock s in lista){
+            await Db.insert("Stocks", s.toJson());
+          }
+       }
+
+        if(parsed['blocksgenerals'] != null){
+          List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
+          for(Blocksgenerals b in listBlocksgenerals){
+            await Db.insert("Blocksgenerals", b.toJson());
+          }
+        }
+
+        if(parsed['blockslotteries'] != null){
+          List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
+          for(Blockslotteries b in listBlockslotteries){
+            await Db.insert("Blockslotteries", b.toJson());
+          }
+        }
+
+        if(parsed['blocksplays'] != null){
+          List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
+          for(Blocksplays b in listBlocksplays){
+            await Db.insert("Blocksplays", b.toJson());
+          }
+        }
+
+        if(parsed['blocksplaysgenerals'] != null){
+          List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
+          for(Blocksplaysgenerals b in listBlocksplaysgenerals){
+            await Db.insert("Blocksplaysgenerals", b.toJson());
+          }
+        }
+
+        if(parsed['draws'] != null){
+          List<Draws> listDraws = parsed['draws'].map<Draws>((json) => Draws.fromMap(json)).toList();
+          for(Draws b in listDraws){
+            await Db.insert("Draws", b.toJson());
+          }
+        }
+  }
+
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
     int idUsuario = await Db.idUsuario();
     if(idUsuario != usuario["id"])

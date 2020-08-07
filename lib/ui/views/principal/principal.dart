@@ -513,6 +513,12 @@ Future<bool> _requestPermisionChannel() async {
     socket.connect();
   }
 
+
+  _ckbDescuentoChanged(newValue){
+    setState(() {
+      _ckbDescuento = newValue; 
+    });
+  }
   _ckbPrintChanged(newValue){
     setState(() {
       _ckbPrint = newValue; 
@@ -522,7 +528,6 @@ Future<bool> _requestPermisionChannel() async {
       }
     });
   }
-
   _ckbMessageChanged(newValue){
     setState(() {
       _ckbMessage = newValue; 
@@ -604,19 +609,23 @@ Future<bool> _requestPermisionChannel() async {
   }
 
 AppBar _appBar(bool screenHeightIsSmall){
+    double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
+    double _iconPaddingHorizontal = 5;
     return AppBar(
               
-      title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 18))) : Text('Principal'),
+      title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 17))) : Text('Principal'),
       // leading: SizedBox(),
-      // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: _manageDrawer),
+      // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
+      //   _scaffoldKey.currentState.openDrawer();
+      // }),
       actions: <Widget>[
         Container(),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(
-              width: screenHeightIsSmall ? 25 : 30,
-              height: screenHeightIsSmall ? 25 : 30,
+              width: screenHeightIsSmall ? 23 : 30,
+              height: screenHeightIsSmall ? 23 : 30,
               child: Visibility(
                 visible: _cargando,
                 child: Theme(
@@ -630,7 +639,7 @@ AppBar _appBar(bool screenHeightIsSmall){
 
         PopupMenuButton(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal, left: _iconPaddingHorizontal),
             child: Icon(Icons.camera_alt, size: screenHeightIsSmall ? 25 :  30),
           ),
           onSelected: (String value) async {
@@ -683,13 +692,17 @@ AppBar _appBar(bool screenHeightIsSmall){
         //     }
         //   },
         // ),
-        IconButton(
-          icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 : 30,),
-          onPressed: () async{
-            print("Screensize: ${MediaQuery.of(context).size.height}");
-            // Navigator.of(context).pushNamed('/bluetooth');
-          },
-        ),
+        Padding(
+            padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
+            child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/bluetooth');}),
+        )
+        // IconButton(
+        //   icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 23 : 30,),
+        //   onPressed: () async{
+        //     // print("Screensize: ${MediaQuery.of(context).size.height}");
+        //     Navigator.of(context).pushNamed('/bluetooth');
+        //   },
+        // ),
         // IconButton(
         //   icon: Icon(Icons.message, size: 30,),
         //   onPressed: () async{
@@ -941,7 +954,7 @@ AppBar _appBar(bool screenHeightIsSmall){
           )
           :
           PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
             child: _appBar(true),
           ),
           body: TabBarView(
@@ -1077,7 +1090,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                 ),
                               ),
                               
-                              SizedBox(height: 10,),
+                              SizedBox(height: 8,),
                               Row(
                                 children: <Widget>[
                                   GestureDetector(
@@ -1213,7 +1226,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 10,),
+                              SizedBox(height: 8,),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
@@ -1227,69 +1240,115 @@ AppBar _appBar(bool screenHeightIsSmall){
                                       return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
                                     }
                                   ),
-                                  Row(
-                                    children: <Widget>[
-                                      //MyCheckbox
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbDescuento,
-                                        onChanged: (newValue){
-                                          setState(() {
-                                          _ckbDescuento = newValue; 
-                                          });
-                                        },
+                                  GestureDetector(
+                                    onTap: (){
+                                      setState(() => _ckbDescuento = !_ckbDescuento);
+                                    },
+                                    child: Container(
+                                      // color: Colors.red,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
+                                        child: Row(
+                                          children: <Widget>[
+                                            //MyCheckbox
+                                            // MyCheckbox(
+                                            //   useTapTarget: false,
+                                            //   value: _ckbDescuento,
+                                            //   onChanged: (newValue){
+                                            //     setState(() {
+                                            //     _ckbDescuento = newValue; 
+                                            //     });
+                                            //   },
+                                            // ),
+                                            SizedBox(
+                                              width: 10,
+                                              height: 8,
+                                              child: Checkbox(
+                                                // useTapTarget: false,
+                                                value: _ckbDescuento,
+                                                onChanged: _ckbDescuentoChanged,
+                                              ),
+                                            ),
+                                            // Checkbox(
+                                            //   // useTapTarget: false,
+                                            //   value: _ckbDescuento,
+                                            //   onChanged: (newValue){
+                                            //     setState(() {
+                                            //     _ckbDescuento = newValue; 
+                                            //     });
+                                            //   },
+                                            // ),
+                                            SizedBox(width: 5,),
+                                            GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
+                                          ],
+                                        ),
                                       ),
-                                      // Checkbox(
-                                      //   // useTapTarget: false,
-                                      //   value: _ckbDescuento,
-                                      //   onChanged: (newValue){
-                                      //     setState(() {
-                                      //     _ckbDescuento = newValue; 
-                                      //     });
-                                      //   },
-                                      // ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
-                                    ],
+                                    ),
+                                  ),
+                                  
+                                  GestureDetector(
+                                    onTap: (){
+
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
+                                      child: Row(
+                                        children: <Widget>[
+                                          // MyCheckbox(
+                                          //   useTapTarget: false,
+                                          //   value: _ckbPrint,
+                                          //   onChanged: _ckbPrintChanged,
+                                          // ),
+                                          SizedBox(
+                                            width: 10,
+                                            height: 8,
+                                            child: Checkbox(
+                                              // useTapTarget: false,
+                                              value: _ckbPrint,
+                                              onChanged: _ckbPrintChanged,
+                                            ),
+                                          ),
+                                          SizedBox(width: 5,),
+                                          GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                   Row(
                                     children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbPrint,
-                                        onChanged: _ckbPrintChanged,
-                                      ),
-                                      // Checkbox(
-                                      //   // useTapTarget: false,
-                                      //   value: _ckbPrint,
-                                      //   onChanged: _ckbPrintChanged,
-                                      // ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbMessage,
-                                        onChanged: _ckbMessageChanged,
-                                      ),
-                                      // Checkbox(
-                                      //   // useTapTarget: false,
+                                      // MyCheckbox(
+                                      //   useTapTarget: false,
                                       //   value: _ckbMessage,
                                       //   onChanged: _ckbMessageChanged,
                                       // ),
+                                      SizedBox(
+                                        width: 10,
+                                        height: 8,
+                                        child: Checkbox(
+                                          // useTapTarget: false,
+                                          value: _ckbMessage,
+                                          onChanged: _ckbMessageChanged,
+                                        ),
+                                      ),
                                       SizedBox(width: 5,),
                                       GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
                                     ],
                                   ),
                                   Row(
                                     children: <Widget>[
-                                      MyCheckbox(
-                                        useTapTarget: false,
-                                        value: _ckbWhatsapp,
-                                        onChanged: _ckbWhatsappChanged,
+                                      // MyCheckbox(
+                                      //   useTapTarget: false,
+                                      //   value: _ckbWhatsapp,
+                                      //   onChanged: _ckbWhatsappChanged,
+                                      // ),
+                                      SizedBox(
+                                        width: 10,
+                                        height: 8,
+                                        child: Checkbox(
+                                          // useTapTarget: false,
+                                          value: _ckbWhatsapp,
+                                          onChanged: _ckbWhatsappChanged,
+                                        ),
                                       ),
                                       // PreferredSize(
                                       //   preferredSize: Size.fromWidth(5),
@@ -1311,7 +1370,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                 ],
                               ),
                               
-                              SizedBox(height: 10,),
+                              SizedBox(height: 8,),
                               Expanded(
                                 // flex: 3,
                                 flex: 3,
@@ -1504,7 +1563,7 @@ AppBar _appBar(bool screenHeightIsSmall){
               ),
               Column(
                 children: <Widget>[
-                  SizedBox(height: 10,),
+                  SizedBox(height: 8,),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: RaisedButton(
@@ -1772,14 +1831,27 @@ void _getTime() {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
                         Row(children: <Widget>[
-                          MyCheckbox(
-                          useTapTarget: false,
-                          value: _ckbLigarPale,
-                          onChanged: (newValue){
-                            setState(() {
-                            _ckbLigarPale = newValue; 
-                            });
-                          },
+                        //   MyCheckbox(
+                        //   useTapTarget: false,
+                        //   value: _ckbLigarPale,
+                        //   onChanged: (newValue){
+                        //     setState(() {
+                        //     _ckbLigarPale = newValue; 
+                        //     });
+                        //   },
+                        // ),
+                        SizedBox(
+                          width: 10,
+                          height: 8,
+                          child: Checkbox(
+                            // useTapTarget: false,
+                            value: _ckbLigarPale,
+                            onChanged: (newValue){
+                              setState(() {
+                              _ckbLigarPale = newValue; 
+                              });
+                            },
+                          ),
                         ),
                         // Checkbox(
                         //   // useTapTarget: false,
@@ -1794,14 +1866,27 @@ void _getTime() {
                         GestureDetector(child: Text('Pale', ), onTap: (){setState(() => _ckbLigarPale = !_ckbLigarPale);},)
                         ],),
                         Row(children: <Widget>[
-                          MyCheckbox(
-                          useTapTarget: false,
-                          value: _ckbLigarTripleta,
-                          onChanged: (newValue){
-                            setState(() {
-                            _ckbLigarTripleta = newValue; 
-                            });
-                          },
+                        //   MyCheckbox(
+                        //   useTapTarget: false,
+                        //   value: _ckbLigarTripleta,
+                        //   onChanged: (newValue){
+                        //     setState(() {
+                        //     _ckbLigarTripleta = newValue; 
+                        //     });
+                        //   },
+                        // ),
+                        SizedBox(
+                          width: 10,
+                          height: 8,
+                          child: Checkbox(
+                            // useTapTarget: false,
+                            value: _ckbLigarTripleta,
+                            onChanged: (newValue){
+                              setState(() {
+                              _ckbLigarTripleta = newValue; 
+                              });
+                            },
+                          ),
                         ),
                         // Checkbox(
                         //   // useTapTarget: false,
