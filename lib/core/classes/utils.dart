@@ -8,15 +8,16 @@ import 'package:loterias/core/classes/database.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/models/jugadas.dart';
 
 class  Utils {
-  // static final String URL = 'http://127.0.0.1:8000';
-  // static final String URL_SOCKET = 'http://192.168.43.63:3000';
+  static final String URL = 'http://127.0.0.1:8000';
+  static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  static final String URL = 'https://loteriasdo.gq';
-  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  // static final String URL = 'https://loteriasdo.gq';
+  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -148,6 +149,13 @@ class  Utils {
     return jugada;
   }
 
+  static bool esSuperpale(String jugada){
+    print("Utils esSuperpale length: ${jugada.length}");
+    print("Utils esSuperpale substring: ${jugada.substring(jugada.length - 1)}");
+    print("Utils esSuperpale isNumber: ${Utils.isNumber(jugada.substring(0, jugada.length - 1))}");
+    return (jugada.length == 5 && jugada.substring(jugada.length - 1) == "s" && Utils.isNumber(jugada.substring(0, jugada.length - 1)));
+  }
+
   static Future<String> esSorteoPickAgregarUltimoCaracter(String jugada, String sorteo, [int idSorteo]) async {
     if(idSorteo != null){
       var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
@@ -162,7 +170,7 @@ class  Utils {
     return jugada;
   }
 
-  static Future<String> esSorteoPickAgregarUltimoSigno(String jugada, String sorteo, [int idSorteo]) async {
+  static Future<String> esSorteoPickOSuperpaleAgregarUltimoSigno(String jugada, String sorteo, [int idSorteo]) async {
     if(idSorteo != null){
       var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
       sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
@@ -172,6 +180,8 @@ class  Utils {
       jugada = jugada + "+";
     else if(sorteo == 'Pick 4 Straight')
       jugada = jugada + "-";
+    else if(sorteo == 'Super pale')
+      jugada = jugada + "s";
     
     return jugada;
   }
@@ -231,6 +241,16 @@ class  Utils {
     );
   }
 
+  static removeDuplicateJugadasFromList(List<Jugada> lista){
+  // print("BEFORE DELETE");
+  for(var l in lista)
+     print(l);
+  final ids = lista.map((e) => e.jugada).toSet();
+  lista.retainWhere((x) => ids.remove(x.jugada));
+  // print("AFTER DELETE");
+  return lista;
+}
+
   static Color colorGanadorPerdedorPendiente(int status, double premio){
     if(status == 1 && premio <= 0)
       return Utils.colorRosa;
@@ -271,21 +291,37 @@ class  Utils {
   }
 
   static String ordenarMenorAMayor(String jugada){
-    if(jugada.length != 4)
-      return jugada;
+    if(jugada.length == 4){
+      if(!Utils.isNumber(jugada))
+        return jugada;
 
-    if(!Utils.isNumber(jugada))
-      return jugada;
+      String primerParNumeros = jugada.substring(0, 2);
+      String segundoParNumeros = jugada.substring(2, 4);
 
-    String primerParNumeros = jugada.substring(0, 2);
-    String segundoParNumeros = jugada.substring(2, 4);
-
-    if(Utils.toDouble(primerParNumeros) < Utils.toDouble(segundoParNumeros))
-      return jugada;
-    else{
-      jugada = segundoParNumeros + primerParNumeros;
-      return jugada;
+      if(Utils.toDouble(primerParNumeros) < Utils.toDouble(segundoParNumeros))
+        return jugada;
+      else{
+        jugada = segundoParNumeros + primerParNumeros;
+        return jugada;
+      }
     }
+    else if(jugada.length == 5 && jugada.substring(jugada.length - 1) == "s"){
+      if(!Utils.isNumber(jugada.substring(0, jugada.length - 1)))
+        return jugada;
+
+      String ultimoCaracter = jugada.substring(jugada.length - 1);
+      String primerParNumeros = jugada.substring(0, 2);
+      String segundoParNumeros = jugada.substring(2, 4);
+
+      if(Utils.toDouble(primerParNumeros) < Utils.toDouble(segundoParNumeros))
+        return jugada;
+      else{
+        jugada = segundoParNumeros + primerParNumeros;
+        return jugada + ultimoCaracter;
+      }
+    }
+
+    return jugada;
   }
 
   static List<String> generarCombinaciones(String jugada){

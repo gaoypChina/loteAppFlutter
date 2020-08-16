@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 //https://stackoverflow.com/questions/51975690/is-there-an-equivalent-widget-in-flutter-to-the-select-multiple-element-in-htm
 
 class MultiSelectDialogItem<V> {
-  const MultiSelectDialogItem(this.value, this.label);
+  const MultiSelectDialogItem(this.value, this.label, {this.unSelectOthersItems = false});
 
   final V value;
   final String label;
+  final unSelectOthersItems;
 }
 
 class MultiSelectDialog<V> extends StatefulWidget {
@@ -21,6 +22,8 @@ class MultiSelectDialog<V> extends StatefulWidget {
 
 class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
   final _selectedValues = Set<V>();
+  bool _unSelectOthersItems = false;
+  var _itemValueDoNotUnSelect = 0;
 
   void initState() {
     super.initState();
@@ -29,14 +32,50 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
     }
   }
 
-  void _onItemCheckedChange(V itemValue, bool checked) {
+  void _onItemCheckedChange(MultiSelectDialogItem item, bool checked) {
     setState(() {
       if (checked) {
-        _selectedValues.add(itemValue);
+        if(item.unSelectOthersItems){
+          _unSelectOthers(item);
+        }else{
+          _unSelectNomoverNocopiar();
+        }
+          
+        _selectedValues.add(item.value);
       } else {
-        _selectedValues.remove(itemValue);
+        if(item.unSelectOthersItems){
+          _clearUnSelect();
+        }
+        _selectedValues.remove(item.value);
       }
     });
+  }
+
+  void _unSelectOthers(MultiSelectDialogItem item){
+    setState((){
+        _unSelectOthersItems = true;
+        _itemValueDoNotUnSelect = item.value;
+        _selectedValues.clear();
+    });
+  }
+
+  void _unSelectNomoverNocopiar(){
+    var items = widget.items.where((element) => element.label == "- NO COPIAR -" || element.label == "- NO MOVER -").toList();
+    items.forEach((element) {
+      _selectedValues.remove(element.value);
+    });
+  }
+
+  void _clearUnSelect(){
+    setState((){
+        _unSelectOthersItems = false;
+        _itemValueDoNotUnSelect = 0;
+    });
+  }
+
+  bool _blockItem(MultiSelectDialogItem item){
+    print("MultiselectDialogItem: ${_unSelectOthersItems == true && _itemValueDoNotUnSelect != item.value}");
+    return _unSelectOthersItems == true && _itemValueDoNotUnSelect != item.value;
   }
 
   void _onCancelTap() {
@@ -49,27 +88,31 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select loterias'),
-      contentPadding: EdgeInsets.only(top: 12.0),
-      content: SingleChildScrollView(
-        child: ListTileTheme(
-          contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-          child: ListBody(
-            children: widget.items.map(_buildItem).toList(),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          title: Text('Select loterias'),
+          contentPadding: EdgeInsets.only(top: 12.0),
+          content: SingleChildScrollView(
+            child: ListTileTheme(
+              contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+              child: ListBody(
+                children: widget.items.map(_buildItem).toList(),
+              ),
+            ),
           ),
-        ),
-      ),
-      actions: <Widget>[
-        FlatButton(
-          child: Text('CANCEL'),
-          onPressed: _onCancelTap,
-        ),
-        FlatButton(
-          child: Text('OK'),
-          onPressed: _onSubmitTap,
-        )
-      ],
+          actions: <Widget>[
+            FlatButton(
+              child: Text('CANCEL'),
+              onPressed: _onCancelTap,
+            ),
+            FlatButton(
+              child: Text('OK'),
+              onPressed: _onSubmitTap,
+            )
+          ],
+        );
+      }
     );
   }
 
@@ -80,7 +123,7 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
       value: checked,
       title: Text(item.label),
       controlAffinity: ListTileControlAffinity.leading,
-      onChanged: (checked) => _onItemCheckedChange(item.value, checked),
+      onChanged: (checked) => _onItemCheckedChange(item, checked),
     );
   }
 }

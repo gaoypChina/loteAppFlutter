@@ -16,6 +16,7 @@ import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
+import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -142,6 +143,8 @@ class Principal{
         for(Map<String, dynamic> l in _loteriasAduplicar){
           l["duplicar"] = "- NO MOVER -";
           l["duplicarId"] = 0;
+          l["duplicarSuperpale"] = "- NO MOVER -";
+          l["duplicarIdSuperpale"] = -1;
         }
         loterias.insert(0, Loteria(descripcion: "- NO COPIAR -", id: 0));
         loterias.insert(0, Loteria(descripcion: "- NO MOVER -", id: -1));
@@ -152,29 +155,144 @@ class Principal{
               title: Text('Duplicar ticket'),
               content: ListView(
                 children: 
-                  _loteriasAduplicar.map((l) => Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      Text("${l["descripcion"]}"),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: DropdownButton(
-                          value: l["duplicar"].toString(),
-                          items: loterias.map((lo) => DropdownMenuItem<String>(
-                            value: lo.descripcion,
-                            child: Text("${lo.descripcion}"),
-                          )).toList(),
-                          onChanged: (String value){
-                            setState(() {
-                               l["duplicar"] = value;
-                               Loteria loteria = loterias.firstWhere((lote) => lote.descripcion == value);
-                               l["duplicarId"] = (loteria != null) ? loteria.id : 0;
-                            });
-                          },
-                        ),
+                  _loteriasAduplicar.map((l) => 
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Text("${l["descripcion"]}"),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: DropdownButton(
+                              value: l["duplicar"].toString(),
+                              items: loterias.map((lo) => DropdownMenuItem<String>(
+                                value: lo.descripcion,
+                                child: Text("${lo.descripcion}"),
+                              )).toList(),
+                              onChanged: (String value){
+                                setState(() {
+                                   l["duplicar"] = value;
+                                   Loteria loteria = loterias.firstWhere((lote) => lote.descripcion == value);
+                                   l["duplicarId"] = (loteria != null) ? loteria.id : 0;
+                                });
+                              },
+                            ),
+                          )
+                        ],
+                      ),
+                      Column(
+                        children: l["loteriaSuperpale"].map<Row>((e) { 
+                          
+                        
+                        print("duplicarLlenarSuperpale: ${l["duplicarSuperpale"]}");
+                        return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Text("SP(${l["abreviatura"]}/${e["abreviatura"]})", style: TextStyle(fontSize: 15),),
+                          Flexible(
+                            child: InkWell(
+                              onTap: () async{
+                                print("Dentro superpaleeeeeee");
+                                
+
+                                final selectedValues = await showDialog<Set<int>>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      
+                                      Set<int> initialSelectedValues = Set();
+                                      if(l["duplicarIdSuperpale"] is int){
+                                        // print("initialSelectedValue int: ${l["duplicarIdSuperpale"]}");
+                                        initialSelectedValues.add(l["duplicarIdSuperpale"]);
+                                      }
+                                      else{
+                                        for(int e in l["duplicarIdSuperpale"]){
+                                          // print("initialSelectedValue array: $e");
+                                          initialSelectedValues.add(e);
+                                        }
+                                      }
+                                      if(loterias.isEmpty)
+                                        loterias = List();
+
+                                      var items = loterias.map((l){
+                                        return MultiSelectDialogItem(l.id, l.descripcion, unSelectOthersItems: (l.id == 0 || l.id == -1));
+                                      }).toList();
+                                    return MultiSelectDialog(
+                                        items: items,
+                                        // initialSelectedValues: [1, 3].toSet(),
+                                        initialSelectedValues: initialSelectedValues,
+                                      );
+
+                                      
+                                    },
+                                  );
+
+                                  print("Datos seleccionados: ${selectedValues.toString()}");
+                                  if(selectedValues.length == 0)
+                                    setState(() { 
+                                      l["duplicarSuperpale"] = "- NO COPIAR -";
+                                    });
+                                  else if(selectedValues.length == 1){
+                                    // print("selectedValues.length == 1: ${selectedValues.toList()[0]}");
+                                    Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
+                                    if(loteria == null){
+                                      setState((){
+                                        l["duplicarSuperpale"] = "- NO MOVER -";
+                                        l["duplicarIdSuperpale"] = 0;
+                                      });
+                                    }
+                                    else if(loteria.descripcion != "- NO COPIAR -" && loteria.descripcion != "- NO MOVER -"){
+                                      setState((){
+                                        l["duplicarSuperpale"] = "- NO MOVER -";
+                                        l["duplicarIdSuperpale"] = 0;
+                                      });
+                                      Utils.showAlertDialog(context: context, content: "Debe seleccionar solamente 2 loterias", title: "Error");
+                                    }else{
+                                      setState(() {
+                                        l["duplicarSuperpale"] = loteria.descripcion ;
+                                        l["duplicarIdSuperpale"] = loteria.id;
+                                      });
+                                    }
+                                  }
+                                  else if(selectedValues.length > 2){
+                                    setState((){
+                                      l["duplicarSuperpale"] = "- NO MOVER -";
+                                      l["duplicarIdSuperpale"] = 0;
+                                    });
+                                    Utils.showAlertDialog(context: context, content: "Debe seleccionar solamente 2 loterias", title: "Error");
+                                  }
+                                  else{
+                                      Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
+                                      Loteria loteriaSuperpale = loterias.firstWhere((element) => element.id == selectedValues.toList()[1]);
+                                    setState(() {
+                                      l["duplicarSuperpale"] = "${loteria.abreviatura} / ${loteriaSuperpale.abreviatura}";
+                                      l["duplicarIdSuperpale"] = selectedValues.toList();
+                                    });
+
+                                    // print("dentro condicion correcta: ${loteria.descripcion} / ${loteriaSuperpale.descripcion}");
+                                  }
+
+                                  
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey, width: 1.0),
+                                  borderRadius: BorderRadius.all(Radius.circular(5))
+                                ),
+                                child: Text(l["duplicarSuperpale"], style: TextStyle(fontSize: 14)),
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                      },
+                      ).toList(),
                       )
                     ],
-                  )).toList()
+                  )
+                  
+                  ).toList()
                 ,
               ),
               actions: <Widget>[
@@ -266,6 +384,15 @@ class Principal{
         List<Jugada> _jugadas = mapVenta['jugadas'].map<Jugada>((json) => Jugada.fromMap(json)).toList();
         bool tieneJugadasPendientes = (_jugadas.indexWhere((j) => j.status == 0) != -1);
         bool _cargando = false;
+
+        _getJugadasPertenecientesALoteria(int idLoteria, List<Jugada> jugadas){
+          return jugadas.where((element) => element.idLoteria == idLoteria && element.sorteo != "Super pale").toList();
+        }
+
+        _getJugadasSuperpalePertenecientesALoteria(int idLoteria, int idLoteriaSuperpale, List<Jugada> jugadas){
+          return jugadas.where((element) => element.idLoteria == idLoteria && element.idLoteriaSuperpale == idLoteriaSuperpale && element.sorteo == "Super pale").toList();
+        }
+
         print("Tiene pendientes: $tieneJugadasPendientes");
         return StatefulBuilder(
           builder: (context, setState){
@@ -360,16 +487,45 @@ class Principal{
                           ),
                           SizedBox(height: 10,),
                           Column(
-                            children: _loterias.map<Widget>((l) => Column(
+                            children: _loterias.map<Widget>((l) { 
+                              var jugadas = _getJugadasPertenecientesALoteria(l.id, _jugadas);
+                              
+                              return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                (jugadas.length > 0)
+                                ?
+                                Column(children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                  ),
+                                  _buildTable(jugadas)
+                                ],)
+                                :
+                                SizedBox()
+                                ,
+                                Column(
+                                  children: l.loteriaSuperpale.map<Widget>((element) { 
+                                    var jugadas = _getJugadasSuperpalePertenecientesALoteria(l.id, element.id, _jugadas);
+                                  if(jugadas.length > 0 )
+                                    return Column(children:[
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text("SP (${l.descripcion}/${element.descripcion})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      ),
+                                      _buildTable(jugadas)
+                                    ]);
+
+                                    return SizedBox();
+                                  
+                                  }
+                                  ).toList(),
                                 ),
-                                _buildTable(_jugadas.where((j) => j.idLoteria == l.id).toList())
+                                
                               ],
-                            )).toList(),
+                            );}
+                            ).toList(),
                           )
                           // _buildTable(_jugadas)
                         ],

@@ -6,6 +6,7 @@ class Jugada {
   String jugada;
   int idBanca;
   int idLoteria;
+  int idLoteriaSuperpale;
   int idSorteo;
   double monto;
   double premio;
@@ -13,6 +14,9 @@ class Jugada {
   String sorteo;
   String pagadoPor;
   String descripcion;
+  String descripcionSuperpale;
+  String abreviatura;
+  String abreviaturaSuperpale;
   int status;
 
   Jugada({this.id, 
@@ -20,6 +24,7 @@ class Jugada {
         this.jugada, 
         this.idBanca, 
         this.idLoteria, 
+        this.idLoteriaSuperpale = 0, 
         this.idSorteo, 
         this.monto, 
         this.premio, 
@@ -27,6 +32,9 @@ class Jugada {
         this.sorteo, 
         this.pagadoPor, 
         this.descripcion, 
+        this.descripcionSuperpale, 
+        this.abreviatura, 
+        this.abreviaturaSuperpale, 
         this.status
       });
 
@@ -36,6 +44,7 @@ class Jugada {
         jugada = snapshot['jugada'] ?? '',
         idBanca = snapshot['idBanca'] ?? 0,
         idLoteria = snapshot['idLoteria'] ?? 0,
+        idLoteriaSuperpale = snapshot['idLoteriaSuperpale'] ?? 0,
         idSorteo = snapshot['idSorteo'] ?? 0,
         monto = Utils.toDouble(snapshot['monto'].toString()) ?? 0,
         premio = Utils.toDouble(snapshot['premio'].toString()) ?? 0,
@@ -43,6 +52,9 @@ class Jugada {
         sorteo = snapshot['sorteo'] ?? '',
         pagadoPor = snapshot['pagadoPor'] ?? '',
         descripcion = snapshot['descripcion'] ?? '',
+        descripcionSuperpale = snapshot['descripcionSuperpale'] ?? '',
+        abreviatura = snapshot['abreviatura'] ?? '',
+        abreviaturaSuperpale = snapshot['abreviaturaSuperpale'] ?? '',
         status = snapshot['status'] ?? 1;
 
   toJson() {
@@ -52,6 +64,7 @@ class Jugada {
       "jugada": jugada,
       "idBanca": idBanca,
       "idLoteria": idLoteria,
+      "idLoteriaSuperpale": idLoteriaSuperpale,
       "idSorteo": idSorteo,
       "monto": monto,
       "premio": premio,
@@ -59,6 +72,7 @@ class Jugada {
       "sorteo": sorteo,
       "pagadoPor": pagadoPor,
       "descripcion": descripcion,
+      "descripcionSuperpale": descripcionSuperpale,
       "status": status,
     };
   }

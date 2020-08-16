@@ -99,12 +99,20 @@ class Monitoreo{
         print("Tiene pendientes: $tieneJugadasPendientes");
         return StatefulBuilder(
           builder: (context, setState){
+            _getJugadasPertenecientesALoteria(int idLoteria, List<Jugada> jugadas){
+          return jugadas.where((element) => element.idLoteria == idLoteria && element.sorteo != "Super pale").toList();
+        }
+
+        _getJugadasSuperpalePertenecientesALoteria(int idLoteria, int idLoteriaSuperpale, List<Jugada> jugadas){
+          return jugadas.where((element) => element.idLoteria == idLoteria && element.idLoteriaSuperpale == idLoteriaSuperpale && element.sorteo == "Super pale").toList();
+        }
+        
             return AlertDialog(
               contentPadding: EdgeInsets.all(0),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text('Pagar ticket'),
+                  Text('Ver ticket'),
                    Visibility(
                     visible: _cargando,
                     child: CircularProgressIndicator()
@@ -187,16 +195,45 @@ class Monitoreo{
                           ),
                           SizedBox(height: 10,),
                           Column(
-                            children: _loterias.map<Widget>((l) => Column(
+                            children: _loterias.map<Widget>((l) { 
+                              var jugadas = _getJugadasPertenecientesALoteria(l.id, _jugadas);
+                              
+                              return Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                (jugadas.length > 0)
+                                ?
+                                Column(children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                                  ),
+                                  _buildTable(jugadas)
+                                ],)
+                                :
+                                SizedBox()
+                                ,
+                                Column(
+                                  children: l.loteriaSuperpale.map<Widget>((element) { 
+                                    var jugadas = _getJugadasSuperpalePertenecientesALoteria(l.id, element.id, _jugadas);
+                                  if(jugadas.length > 0 )
+                                    return Column(children:[
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text("SP (${l.descripcion}/${element.descripcion})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      ),
+                                      _buildTable(jugadas)
+                                    ]);
+
+                                    return SizedBox();
+                                  
+                                  }
+                                  ).toList(),
                                 ),
-                                _buildTable(_jugadas.where((j) => j.idLoteria == l.id).toList())
+                                
                               ],
-                            )).toList(),
+                            );}
+                            ).toList(),
                           )
                     // ConstrainedBox(
                     //   constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),

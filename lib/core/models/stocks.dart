@@ -4,6 +4,7 @@ class Stock{
    int id;
    int idBanca;
    int idLoteria;
+   int idLoteriaSuperpale;
    int idSorteo;
    String jugada;
    double montoInicial;
@@ -14,12 +15,13 @@ class Stock{
    int ignorarDemasBloqueos;
    int idMoneda;
 
-  Stock(this.id, this.idBanca, this.idLoteria, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.esBloqueoJugada, this.esGeneral, this.ignorarDemasBloqueos, this.idMoneda);
+  Stock(this.id, this.idBanca, this.idLoteria, this.idLoteriaSuperpale, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.esBloqueoJugada, this.esGeneral, this.ignorarDemasBloqueos, this.idMoneda);
 
 Stock.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
         idBanca = snapshot['idBanca'] ?? 0,
         idLoteria = snapshot['idLoteria'] ?? 0,
+        idLoteriaSuperpale = snapshot['idLoteriaSuperpale'] ?? 0,
         idSorteo = snapshot['idSorteo'] ?? 0,
         jugada = snapshot['jugada'] ?? '',
         montoInicial = double.parse(snapshot['montoInicial'].toString()) ?? 0,
@@ -36,6 +38,7 @@ Stock.fromMap(Map snapshot) :
       "id": id,
       "idBanca": idBanca,
       "idLoteria": idLoteria,
+      "idLoteriaSuperpale": idLoteriaSuperpale,
       "idSorteo": idSorteo,
       "jugada": jugada,
       "montoInicial": montoInicial,
