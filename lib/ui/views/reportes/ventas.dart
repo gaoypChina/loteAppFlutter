@@ -130,22 +130,23 @@ _showTicket(String codigoBarra, BuildContext context) async {
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["ventas"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["ventas"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["comisiones"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["comisiones"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["premios"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["premios"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
-                  color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["neto"]}", style: TextStyle(fontSize: 16)))
+                  color: (b["neto"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                  child: Center(child: Text("${Utils.toCurrency(b["neto"])}", style: TextStyle(fontSize: 16)))
+                  // Center(child: Text("${b["neto"]}", style: TextStyle(fontSize: 16)))
                 ),
               ],
             )
@@ -386,7 +387,7 @@ Widget _buildTableTicketsGanadores(List map){
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["montoAPagar"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["montoAPagar"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -465,7 +466,14 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Balance", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["balanceHastaLaFecha"]}", style: TextStyle(fontSize: 20)),),),
+                // Expanded(child: Center(child: Text("${map["balanceHastaLaFecha"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(
+                  child: Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: (map["balanceHastaLaFecha"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                  child: Center(child: Text("${Utils.toCurrency(map["balanceHastaLaFecha"])}", style: TextStyle(fontSize: 16)))
+                ),
+                ),
               ],
             )
           ]
@@ -549,7 +557,7 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Ventas", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["ventas"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(child: Center(child: Text("${Utils.toCurrency(map["ventas"])}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -561,7 +569,7 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Comisiones", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["comisiones"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(child: Center(child: Text("${Utils.toCurrency(map["comisiones"])}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -573,7 +581,7 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Descuentos", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["descuentos"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(child: Center(child: Text("${Utils.toCurrency(map["descuentos"])}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -585,7 +593,7 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Premios", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["premios"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(child: Center(child: Text("${Utils.toCurrency(map["premios"])}", style: TextStyle(fontSize: 20)),),),
               ],
             )
           ]
@@ -597,7 +605,14 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Neto", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["neto"]}", style: TextStyle(fontSize: 20)),),),
+                // Expanded(child: Center(child: Text("${map["neto"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(
+                  child: Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: (map["neto"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                  child: Center(child: Text("${Utils.toCurrency(map["neto"])}", style: TextStyle(fontSize: 16)))
+                  )
+                )
               ],
             )
           ]
@@ -609,7 +624,14 @@ Widget _buildTableTicketsGanadores(List map){
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(child: Center(child: Text("Balance mas ventas", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
-                Expanded(child: Center(child: Text("${map["balanceActual"]}", style: TextStyle(fontSize: 20)),),),
+                // Expanded(child: Center(child: Text("${map["balanceActual"]}", style: TextStyle(fontSize: 20)),),),
+                Expanded(
+                  child: Container(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  color: (map["balanceActual"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                  child: Center(child: Text("${Utils.toCurrency(map["balanceActual"])}", style: TextStyle(fontSize: 16)))
+                  )
+                )
               ],
             )
           ]

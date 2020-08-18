@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/decimaltextinputformatter.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/entidades.dart';
@@ -649,9 +650,12 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     controller: _txtDebito,
                                     enabled: _txtDebitoEnabled,
                                     decoration: InputDecoration(labelText: "Debito"),
-                                    keyboardType: TextInputType.number,
+                                    keyboardType: TextInputType.numberWithOptions(decimal: true),
                                     inputFormatters: [
-                                      WhitelistingTextInputFormatter.digitsOnly
+                                      // WhitelistingTextInputFormatter.digitsOnly,
+                                      // DecimalTextInputFormatter(decimalRange: 2),
+                                      FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+                                      // RegExp(r"^(?=.*[1-9])\s*\d*(?:\.\d{1,2})?\s*$")
                                     ],
                                     onChanged: (texto){
                                       _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
@@ -678,7 +682,9 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     decoration: InputDecoration(labelText: "Credito"),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      WhitelistingTextInputFormatter.digitsOnly
+                                      // WhitelistingTextInputFormatter.digitsOnly
+                                      FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+
                                     ],
                                     onChanged: (texto){
                                       _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();

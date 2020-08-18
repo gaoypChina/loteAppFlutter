@@ -11,13 +11,13 @@ import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/models/jugadas.dart';
 
 class  Utils {
-  static final String URL = 'http://127.0.0.1:8000';
-  static final String URL_SOCKET = 'http://192.168.43.63:3000';
+  // static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  // static final String URL = 'https://loteriasdo.gq';
-  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  static final String URL = 'https://loteriasdo.gq';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -84,7 +84,7 @@ class  Utils {
     }
   }
 
-  static double redondear(numero, decimales){
+  static double redondear(numero, [decimales = 2]){
     return double.parse((numero).toStringAsFixed(decimales));
   }
 
@@ -370,6 +370,16 @@ class  Utils {
 
   static String invertirJugada(String parDeNumeros){
     return parDeNumeros[1] + parDeNumeros[0];
+  }
+
+  static toCurrency(var number){
+    final formatCurrency = new NumberFormat.simpleCurrency();
+    number = Utils.toDouble(number.toString());
+    return formatCurrency.format(number).replaceFirst(".00", "");
+  }
+
+  static tieneDecimales(var number){
+    return (number.toString().indexOf(".") != -1) ? true : false;
   }
   
 }

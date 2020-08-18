@@ -109,7 +109,7 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: (b["balance"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
-                  child: Center(child: Text("${b["balance"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["balance"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),

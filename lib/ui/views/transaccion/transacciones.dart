@@ -138,7 +138,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["entidad1_saldo_inicial"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["entidad1_saldo_inicial"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -151,7 +151,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["entidad2_saldo_inicial"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["entidad2_saldo_inicial"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -164,7 +164,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["debito"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["debito"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -177,7 +177,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["credito"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["credito"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -190,7 +190,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["entidad1_saldo_final"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["entidad1_saldo_final"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -203,7 +203,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${b["entidad2_saldo_final"]}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${Utils.toCurrency(b["entidad2_saldo_final"])}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),
@@ -238,12 +238,12 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${Utils.toDouble(b["debito"].toString()) > 0 ? b["debito"] : b["credito"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toDouble(b["debito"].toString()) > 0 ? Utils.toCurrency(b["debito"]) : Utils.toCurrency(b["credito"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["entidad1_saldo_final"]}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)))
+                  child: Center(child: Text("${Utils.toCurrency(b["entidad1_saldo_final"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)))
                 ),
                 // Container(
                 //   // padding: EdgeInsets.only(top: 10, bottom: 10),

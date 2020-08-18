@@ -92,43 +92,43 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 14, decoration: TextDecoration.underline)))
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["ventas"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["ventas"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["comisiones"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["comisiones"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["descuentos"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["descuentos"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["premios"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["premios"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: (Utils.toDouble(b["totalNeto"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
-                  child: Center(child: Text("${b["totalNeto"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["totalNeto"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: (Utils.toDouble(b["balance"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
-                  child: Center(child: Text("${b["balance"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["balance"])}", style: TextStyle(fontSize: 14)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: (Utils.toDouble(b["balanceActual"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
-                  child: Center(child: Text("${b["balanceActual"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${Utils.toCurrency(b["balanceActual"])}", style: TextStyle(fontSize: 14)))
                 ),
                 // Center(child: IconButton(icon: Icon(Icons.delete, size: 28,), onPressed: () async {},)),
               ],
@@ -150,7 +150,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('Ventas', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                    child: Center(child: Text('Ventas', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, )),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
@@ -194,35 +194,35 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
                   // buildContainer(Colors.blue, 50.0),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('Totales', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('Totales', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["ventas"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["ventas"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["comisiones"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["comisiones"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["descuentos"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["descuentos"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["premios"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["premios"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["totalNeto"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["totalNeto"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["balance"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["balance"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('${totales["balanceActual"]}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(Utils.redondear(totales["balanceActual"]))}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                  
                 ]
@@ -238,7 +238,10 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
           padding: const EdgeInsets.all(8.0),
           child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              columnWidths: <int, TableColumnWidth>{7 : FractionColumnWidth(.28)},
+              columnWidths: <int, TableColumnWidth>{
+                // 1 : FractionColumnWidth(.12),
+                7 : FractionColumnWidth(.28)
+                },
               children: rows,
              ),
         ),

@@ -451,7 +451,7 @@ class Principal{
                                   style: TextStyle(fontSize: 18, color: Colors.grey[500]),
                                   children: [
                                     TextSpan(text: "Monto:"),
-                                    TextSpan(text: ' ${mapVenta["total"]}', style: TextStyle(color: Utils.colorInfo))
+                                    TextSpan(text: ' ${Utils.toCurrency(mapVenta["total"])}', style: TextStyle(color: Utils.colorInfo))
                                   ]
                                 ),
                               ),
@@ -465,7 +465,7 @@ class Principal{
                                   style: TextStyle(fontSize: 18, color: Colors.grey[500]),
                                   children: [
                                     TextSpan(text: "Pendiente de pago:"),
-                                    TextSpan(text: ' ${mapVenta["montoAPagar"]}', style: TextStyle(color: (Utils.toDouble(mapVenta["montoAPagar"].toString()) > 0) ? Colors.pink : Utils.colorInfo))
+                                    TextSpan(text: ' ${Utils.toCurrency(mapVenta["montoAPagar"])}', style: TextStyle(color: (Utils.toDouble(mapVenta["montoAPagar"].toString()) > 0) ? Colors.pink : Utils.colorInfo))
                                   ]
                                 ),
                               ),
@@ -479,7 +479,7 @@ class Principal{
                                   style: TextStyle(fontSize: 18, color: Colors.grey[500]),
                                   children: [
                                     TextSpan(text: "Premio total:"),
-                                    TextSpan(text: ' ${mapVenta["premio"]}', style: TextStyle(color: Utils.colorInfo))
+                                    TextSpan(text: ' ${Utils.toCurrency(mapVenta["premio"])}', style: TextStyle(color: Utils.colorInfo))
                                   ]
                                 ),
                               ),
@@ -590,8 +590,8 @@ class Principal{
             children: [
               Center(child: Text(j.jugada, style: TextStyle(fontSize: 13))),
               Center(child: Text(j.sorteo, style: TextStyle(fontSize: 13))),
-              Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 13))),
-              Center(child: Text(j.premio.toString(), style: TextStyle(fontSize: 13))),
+              Center(child: Text(Utils.toCurrency(j.monto.toString()), style: TextStyle(fontSize: 13))),
+              Center(child: Text(Utils.toCurrency(j.premio.toString()), style: TextStyle(fontSize: 13))),
               // Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 16))),
             ],
           )

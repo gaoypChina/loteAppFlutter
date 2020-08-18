@@ -346,12 +346,12 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List listaVentasGr
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["ventas"] == null ? '0' : b["ventas"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b["ventas"] == null ? Utils.toCurrency('0') : Utils.toCurrency(b["ventas"])}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["premios"] == null ? '0' : b["premios"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b["premios"] == null ? Utils.toCurrency('0') : Utils.toCurrency(b["premios"])}", style: TextStyle(fontSize: 16)))
                 ),
               ],
             )
@@ -400,11 +400,11 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List listaVentasGr
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('$_totalVentasLoterias', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(_totalVentasLoterias)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
-                    child: Center(child: Text('$_totalPremiosLoterias', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                    child: Center(child: Text('${Utils.toCurrency(_totalPremiosLoterias)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                 ]
               )
