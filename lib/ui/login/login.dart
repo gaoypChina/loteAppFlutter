@@ -218,7 +218,7 @@ _showSnackBar(String content){
                                 
 
                                 await LoginService.guardarDatos(parsed);
-                                await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
+                                await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["realtime"]);
                                 setState(() => _cargando = false);
 
                                 _navigateToHome();

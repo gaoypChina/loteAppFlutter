@@ -476,6 +476,7 @@ Future<bool> _requestPermisionChannel() async {
     });
     socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
+      print("BlocksplaysgeneralsEvent: $parsed");
       await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
     });
     socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
@@ -675,7 +676,7 @@ Future<bool> _requestPermisionChannel() async {
 
 AppBar _appBar(bool screenHeightIsSmall){
     double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
-    double _iconPaddingHorizontal = 5;
+    double _iconPaddingHorizontal = 12;
     return AppBar(
               
       title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 17))) : Text('Principal'),
@@ -2238,8 +2239,8 @@ void _getTime() {
 
     if(_txtJugada.text.length != 4)
       return;
-    if(_selectedLoterias.length != 2){
-      Utils.showSnackBar(content: "Debe seleccionar dos loterias para super pale", scaffoldKey: _scaffoldKey);
+    if(_selectedLoterias.length < 2){
+      Utils.showSnackBar(content: "Debe seleccionar dos o mas loterias para super pale", scaffoldKey: _scaffoldKey);
       return;
     }
     
@@ -2338,14 +2339,175 @@ void _getTime() {
 
     }
     else if(selectedLoterias.length == 1){
-      int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
+      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
+      // if(idx != -1){
+      //   showDialog(
+      //     context: context,
+      //     builder: (context){
+      //       return AlertDialog(
+      //         title: Text('Jugada existe'),
+      //         content: Text('La jugada ${jugada} existe en la loteria ${selectedLoterias[0].descripcion} desea agregar?'),
+      //         actions: <Widget>[
+      //           FlatButton(child: Text("Cancelar"), onPressed: (){
+      //           Navigator.of(context).pop();
+      //           },),
+      //           FlatButton(child: Text("Agregar"), onPressed: (){
+      //               Navigator.of(context).pop();
+      //               listaJugadas[idx].monto += Utils.toDouble(monto);
+      //               _streamControllerJugada.add(listaJugadas);
+      //               _txtJugada.text = '';
+      //               _txtMontoDisponible.text = '';
+      //             // });
+      //             },
+      //           )
+      //         ],
+      //       );
+      //     }
+      //   );
+      // }else{
+      //   listaJugadas.add(Jugada(
+      //     jugada: jugada,
+      //     idLoteria: selectedLoterias[0].id,
+      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
+      //     descripcion: selectedLoterias[0].descripcion,
+      //     idBanca: 0
+      //   ));
+      //   _streamControllerJugada.add(listaJugadas);
+
+      //   _txtJugada.text = '';
+      //   _txtMontoDisponible.text = '';
+      // }
+
+      insertarJugada(jugada: jugada, loteria: _selectedLoterias[0], monto: monto);
+      _streamControllerJugada.add(listaJugadas);
+      _txtJugada.text = '';
+      _txtMontoDisponible.text = '';
+      
+      // setState(() => _jugadaOmonto = true);
+    }
+    else if(_selectedLoterias.length >= 2 && Utils.esSuperpale(jugada)){
+      // Loteria loteria = selectedLoterias[0];
+      // Loteria loteriaSuperpale = selectedLoterias[1];
+      // if(loteria.id > loteriaSuperpale.id){
+      //   Loteria tmp = loteriaSuperpale;
+      //   loteriaSuperpale = loteria;
+      //   loteria = tmp;
+      // }
+
+      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
+      // if(idx != -1){
+      //   showDialog(
+      //     context: context,
+      //     builder: (context){
+      //       return AlertDialog(
+      //         title: Text('Jugada existe'),
+      //         content: Text('La jugada ${jugada} existe en la loteria Super pale(${loteria.descripcion}/${loteriaSuperpale.descripcion}) desea agregar?'),
+      //         actions: <Widget>[
+      //           FlatButton(child: Text("Cancelar"), onPressed: (){
+      //           Navigator.of(context).pop();
+      //           },),
+      //           FlatButton(child: Text("Agregar"), onPressed: (){
+      //               Navigator.of(context).pop();
+      //               listaJugadas[idx].monto += Utils.toDouble(monto);
+      //               _streamControllerJugada.add(listaJugadas);
+      //               _txtJugada.text = '';
+      //               _txtMontoDisponible.text = '';
+      //             // });
+      //             },
+      //           )
+      //         ],
+      //       );
+      //     }
+      //   );
+      // }else{
+      //   listaJugadas.add(Jugada(
+      //     jugada: jugada,
+      //     idLoteria: loteria.id,
+      //     idLoteriaSuperpale: loteriaSuperpale.id,
+      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
+      //     descripcion: loteria.descripcion,
+      //     descripcionSuperpale: loteriaSuperpale.descripcion,
+      //     abreviatura: loteria.abreviatura,
+      //     abreviaturaSuperpale: loteriaSuperpale.abreviatura,
+      //     idBanca: 0
+      //   ));
+      //   _streamControllerJugada.add(listaJugadas);
+
+      //   _txtJugada.text = '';
+      //   _txtMontoDisponible.text = '';
+      // }
+
+      
+      //Ordenamos las loterias seleccionadas de menor a mayor basedo en su id
+      _selectedLoterias.sort((a, b) => a.id.compareTo(b.id));
+      for(int i=0; i < _selectedLoterias.length; i++){
+        for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
+          insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto);
+        }
+      }
+      _streamControllerJugada.add(listaJugadas);
+      _txtJugada.text = '';
+      _txtMontoDisponible.text = '';
+    }
+    else{
+      selectedLoterias.forEach((l){
+        // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == l.id) : -1;
+        // if(idx != -1){
+        //   showDialog(
+        //     context: context,
+        //     builder: (context){
+        //       return AlertDialog(
+        //         title: Text('Jugada existe'),
+        //         content: Text('La jugada ${jugada} existe en la loteria ${l.descripcion} desea agregar?'),
+        //         actions: <Widget>[
+        //           FlatButton(child: Text("Cancelar"), onPressed: (){
+        //           Navigator.of(context).pop();
+        //           },),
+        //           FlatButton(child: Text("Agregar"), onPressed: (){
+        //               Navigator.of(context).pop();
+        //               listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(monto), 2);
+        //             // });
+        //             },
+        //           )
+        //         ],
+        //       );
+        //     }
+        //   );
+        // }
+        // else{
+        //   listaJugadas.add(Jugada(
+        //     jugada: jugada,
+        //     idLoteria: l.id,
+        //     monto: Utils.redondear(Utils.toDouble(monto), 2),
+        //     descripcion: l.descripcion,
+        //     idBanca: 0
+        //   ));
+        // }
+
+        insertarJugada(jugada: jugada, loteria: l, monto: monto);
+        
+      });
+
+      _streamControllerJugada.add(listaJugadas);
+      _txtJugada.text = '';
+      _txtMontoDisponible.text = '';
+
+    }
+
+          
+    setState(() => _jugadaOmonto = !_jugadaOmonto);
+
+  }
+
+  insertarJugada({String jugada, Loteria loteria, String monto}){
+    int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id) : -1;
       if(idx != -1){
         showDialog(
           context: context,
           builder: (context){
             return AlertDialog(
               title: Text('Jugada existe'),
-              content: Text('La jugada ${jugada} existe en la loteria ${selectedLoterias[0].descripcion} desea agregar?'),
+              content: Text('La jugada ${jugada} existe en la loteria ${loteria.descripcion} desea agregar?'),
               actions: <Widget>[
                 FlatButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
@@ -2366,23 +2528,16 @@ void _getTime() {
       }else{
         listaJugadas.add(Jugada(
           jugada: jugada,
-          idLoteria: selectedLoterias[0].id,
+          idLoteria: loteria.id,
           monto: Utils.redondear(Utils.toDouble(monto), 2),
-          descripcion: selectedLoterias[0].descripcion,
+          descripcion: loteria.descripcion,
           idBanca: 0
         ));
-        _streamControllerJugada.add(listaJugadas);
-
-        _txtJugada.text = '';
-        _txtMontoDisponible.text = '';
       }
+  }
 
-      
-      // setState(() => _jugadaOmonto = true);
-    }
-    else if(_selectedLoterias.length == 2 && Utils.esSuperpale(jugada)){
-      Loteria loteria = selectedLoterias[0];
-      Loteria loteriaSuperpale = selectedLoterias[1];
+  insertarJugadaSuperpale({String jugada, Loteria loteria, Loteria loteriaSuperpale, String monto}){
+     
       if(loteria.id > loteriaSuperpale.id){
         Loteria tmp = loteriaSuperpale;
         loteriaSuperpale = loteria;
@@ -2426,58 +2581,7 @@ void _getTime() {
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
           idBanca: 0
         ));
-        _streamControllerJugada.add(listaJugadas);
-
-        _txtJugada.text = '';
-        _txtMontoDisponible.text = '';
       }
-    }
-    else{
-      selectedLoterias.forEach((l){
-        int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == l.id) : -1;
-        if(idx != -1){
-          showDialog(
-            context: context,
-            builder: (context){
-              return AlertDialog(
-                title: Text('Jugada existe'),
-                content: Text('La jugada ${jugada} existe en la loteria ${l.descripcion} desea agregar?'),
-                actions: <Widget>[
-                  FlatButton(child: Text("Cancelar"), onPressed: (){
-                  Navigator.of(context).pop();
-                  },),
-                  FlatButton(child: Text("Agregar"), onPressed: (){
-                      Navigator.of(context).pop();
-                      listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(monto), 2);
-                    // });
-                    },
-                  )
-                ],
-              );
-            }
-          );
-        }
-        else{
-          listaJugadas.add(Jugada(
-            jugada: jugada,
-            idLoteria: l.id,
-            monto: Utils.redondear(Utils.toDouble(monto), 2),
-            descripcion: l.descripcion,
-            idBanca: 0
-          ));
-        }
-        
-      });
-
-      _streamControllerJugada.add(listaJugadas);
-      _txtJugada.text = '';
-      _txtMontoDisponible.text = '';
-
-    }
-
-          
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
-
   }
 
   insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada){
@@ -3030,6 +3134,9 @@ _selectedBanca() async {
           }
         }
 
+query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
+        // print("Monto disponible blocksplaysgenrals: $query");
+
         if(montoDisponible == null){
           query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
           if(query.isEmpty != true){
@@ -3166,9 +3273,9 @@ _selectedBanca() async {
   
     int idx = -1;
     if(idSorteo == 4)
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == _txtJugada.text);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugada);
     else
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == _txtJugada.text);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugada);
       // _selectedLoterias[0].id
     // double montoDisponibleFinal = montoDisponible.toDouble();
     double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());

@@ -42,7 +42,8 @@ class _SplashScreenState extends State<SplashScreen> {
           await c.add("apiKey", parsed["apiKey"]);
           await c.add("tipoUsuario", parsed["tipoUsuario"]);
           await LoginService.guardarDatos(parsed);
-          await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
+          // await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
+          await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["realtime"]);
           return true;
        } catch(e){
          Principal.cerrarSesion(context);

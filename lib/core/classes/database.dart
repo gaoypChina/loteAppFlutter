@@ -25,11 +25,11 @@ class Db{
      database = await openDatabase(_path, version: 1,
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
-      await db.execute('CREATE TABLE Stocks (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idLoteriaSuperpale, idSorteo INTEGER, jugada TEXT, montoInicial NUMBERIC, monto NUMERIC, created_at TEXT, esBloqueoJugada INTEGER, esGeneral INTEGER, ignorarDemasBloqueos INTEGER, idMoneda INTEGER)');
+      await db.execute('CREATE TABLE Stocks (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idLoteriaSuperpale INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMERIC, monto NUMERIC, created_at TEXT, esBloqueoJugada INTEGER, esGeneral INTEGER, ignorarDemasBloqueos INTEGER, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksgenerals (id INTEGER PRIMARY KEY, idDia INTEGER, idLoteria INTEGER, idSorteo INTEGER, monto NUMERIC, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blockslotteries (id INTEGER PRIMARY KEY, idBanca INTEGER, idDia INTEGER, idLoteria INTEGER, idSorteo INTEGER, monto NUMERIC, created_at TEXT, idMoneda INTEGER)');
-      await db.execute('CREATE TABLE Blocksplays (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMBERIC, monto NUMERIC, fechaDesde TEXT, fechaHasta TEXT, created_at TEXT, ignorarDemasBloqueos INTEGER, status INTEGER, idMoneda INTEGER)');
-      await db.execute('CREATE TABLE Blocksplaysgenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMBERIC, monto NUMERIC, fechaDesde TEXT, fechaHasta TEXT, created_at TEXT, ignorarDemasBloqueos INTEGER, status INTEGER, idMoneda INTEGER)');
+      await db.execute('CREATE TABLE Blocksplays (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMERIC, monto NUMERIC, fechaDesde TEXT, fechaHasta TEXT, created_at TEXT, ignorarDemasBloqueos INTEGER, status INTEGER, idMoneda INTEGER)');
+      await db.execute('CREATE TABLE Blocksplaysgenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMERIC, monto NUMERIC, fechaDesde TEXT, fechaHasta TEXT, created_at TEXT, ignorarDemasBloqueos INTEGER, status INTEGER, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Draws (id INTEGER PRIMARY KEY, descripcion TEXT, bolos INTEGER, cantidadNumeros INTEGER, status INTEGER, created_at TEXT)');
       await db.execute('CREATE TABLE Permissions (id INTEGER PRIMARY KEY, descripcion TEXT, status INTEGER, created_at TEXT)');
       await db.execute('CREATE TABLE Users (id INTEGER PRIMARY KEY, nombres TEXT, email TEXT, usuario TEXT, servidor TEXT, status INTEGER, created_at TEXT)');

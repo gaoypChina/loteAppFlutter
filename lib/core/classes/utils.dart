@@ -281,10 +281,10 @@ class  Utils {
     // var signer = new JWTHmacSha256Signer('culo');
     var c = await DB.create();
     var apiKey = await c.getValue("apiKey");
-    print("Before error: $apiKey");
+    // print("Before error: $apiKey");
     var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
     var signedToken = builder.getSignedToken(signer);
-    print(signedToken); // prints encoded JWT
+    //print(signedToken); // prints encoded JWT
     var stringToken = signedToken.toString();
 
     return stringToken;

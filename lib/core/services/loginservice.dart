@@ -27,7 +27,8 @@ class LoginService{
       throw Exception('Failed to load album');
     }
    
-      var parsed = Utils.parseDatos(response.body);
+      var parsed = await compute(Utils.parseDatos, response.body);
+      print("loginserviceAcceder parsed compute: $parsed");
       if(parsed["errores"] == 1){
         if(scaffoldkey != null)
         print("loginservice acceder: $parsed");

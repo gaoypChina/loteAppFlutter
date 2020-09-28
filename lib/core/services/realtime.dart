@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/database.dart';
@@ -17,6 +18,7 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/models/usuario.dart';
+import 'package:sqflite/sqflite.dart';
 
 class Realtime{
 
@@ -215,72 +217,68 @@ class Realtime{
       // insertarDatos(response.body, true);
       // stockBox.
       
-      var parsed = json.decode(response.body).cast<String, dynamic>();
+      // var parsed = json.decode(response.body).cast<String, dynamic>();
+      var parsed = await compute(Utils.parseDatos, response.body);
         
         // await c.add("maximoIdRealtime", parsed['maximoIdRealtime']);
 
         print('fuera stocks version: ${parsed['version']}');
       
-      if(parsed["version"] != null){
-        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
-      }
-      if(parsed["usuario"] != null){
-        await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
-      }
+      // if(parsed["version"] != null){
+      //   await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      // }
+      // if(parsed["usuario"] != null){
+      //   await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
+      // }
 
-       if(parsed['stocks'] != null){
-        print('dentro stocks: ${parsed['stocks']}');
+      //  if(parsed['stocks'] != null){
+      //   print('dentro stocks: ${parsed['stocks']}');
 
-          List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
-          for(Stock s in lista){
-            await Db.insert("Stocks", s.toJson());
-          }
-       }
+      //     List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
+      //     for(Stock s in lista){
+      //       await Db.insert("Stocks", s.toJson());
+      //     }
+      //  }
 
-        if(parsed['blocksgenerals'] != null){
-          List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
-          for(Blocksgenerals b in listBlocksgenerals){
-            await Db.insert("Blocksgenerals", b.toJson());
-          }
-        }
+      //   if(parsed['blocksgenerals'] != null){
+      //     List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
+      //     for(Blocksgenerals b in listBlocksgenerals){
+      //       await Db.insert("Blocksgenerals", b.toJson());
+      //     }
+      //   }
 
-        if(parsed['blockslotteries'] != null){
-          List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
-          for(Blockslotteries b in listBlockslotteries){
-            await Db.insert("Blockslotteries", b.toJson());
-          }
-        }
+      //   if(parsed['blockslotteries'] != null){
+      //     List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
+      //     for(Blockslotteries b in listBlockslotteries){
+      //       await Db.insert("Blockslotteries", b.toJson());
+      //     }
+      //   }
 
-        if(parsed['blocksplays'] != null){
-          List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
-          for(Blocksplays b in listBlocksplays){
-            await Db.insert("Blocksplays", b.toJson());
-          }
-        }
+      //   if(parsed['blocksplays'] != null){
+      //     List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
+      //     for(Blocksplays b in listBlocksplays){
+      //       await Db.insert("Blocksplays", b.toJson());
+      //     }
+      //   }
 
-        if(parsed['blocksplaysgenerals'] != null){
-          List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
-          for(Blocksplaysgenerals b in listBlocksplaysgenerals){
-            await Db.insert("Blocksplaysgenerals", b.toJson());
-          }
-        }
+      //   if(parsed['blocksplaysgenerals'] != null){
+      //     List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
+      //     for(Blocksplaysgenerals b in listBlocksplaysgenerals){
+      //       await Db.insert("Blocksplaysgenerals", b.toJson());
+      //     }
+      //   }
 
-        if(parsed['draws'] != null){
-          List<Draws> listDraws = parsed['draws'].map<Draws>((json) => Draws.fromMap(json)).toList();
-          for(Draws b in listDraws){
-            await Db.insert("Draws", b.toJson());
-          }
-        }
+      //   if(parsed['draws'] != null){
+      //     List<Draws> listDraws = parsed['draws'].map<Draws>((json) => Draws.fromMap(json)).toList();
+      //     for(Draws b in listDraws){
+      //       await Db.insert("Draws", b.toJson());
+      //     }
+      //   }
         
 
 
+        await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed);
         
-        // await c.addList("stocks", parsed['stocks']);
-        // await c.addList("blocksgenerals", parsed['blocksgenerals']);
-        // await c.addList("blockslotteries", parsed['blockslotteries']);
-        // await c.addList("blocksplays", parsed['blocksplays']);
-        // await c.addList("blocksplaysgenerals", parsed['blocksplaysgenerals']);
-        // await c.addList("draws", parsed['draws']);
 
         // print('stocks insertar: ${parsed['draws']}');
     }
@@ -337,6 +335,80 @@ class Realtime{
             await Db.insert("Draws", b.toJson());
           }
         }
+  }
+  static sincronizarTodosDataBatch(_scaffoldKey, var parsed) async {
+    Batch batch = Db.database.batch();
+    if(parsed["version"] != null){
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      }
+      if(parsed["usuario"] != null){
+        await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
+      }
+
+       if(parsed['stocks'] != null){
+        print('dentro stocks: ${parsed['stocks']}');
+
+          List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
+          for(Stock s in lista){
+            // batch.insert("Stocks", s.toJson());
+            batch.rawInsert(
+              "insert or replace into Stocks(id, idBanca, idLoteria, idLoteriaSuperpale, idSorteo, jugada, montoInicial, monto, created_at, esBloqueoJugada, esGeneral, ignorarDemasBloqueos, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                                                    [s.id, s.idBanca, s.idLoteria, s.idLoteriaSuperpale, s.idSorteo, s.jugada, s.montoInicial, s.monto, s.created_at.toString(), s.esBloqueoJugada, s.esGeneral, s.ignorarDemasBloqueos, s.idMoneda]);
+          }
+       }
+
+        if(parsed['blocksgenerals'] != null){
+          List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
+          for(Blocksgenerals b in listBlocksgenerals){
+            // batch.insert("Blocksgenerals", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Blocksgenerals(id, idDia, idLoteria, idSorteo, monto, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?)", 
+                                                        [b.id, b.idDia, b.idLoteria, b.idSorteo, b.monto, b.created_at.toString(), b.idMoneda]);
+          }
+        }
+
+        if(parsed['blockslotteries'] != null){
+          List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
+          for(Blockslotteries b in listBlockslotteries){
+            //  batch.insert("Blockslotteries", b.toJson());
+             batch.rawInsert(
+              "insert or replace into Blockslotteries(id, idBanca, idDia, idLoteria, idSorteo, monto, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?)", 
+                                                        [b.id, b.idBanca, b.idDia, b.idLoteria, b.idSorteo, b.monto, b.created_at.toString(), b.idMoneda]);
+          }
+        }
+
+        if(parsed['blocksplays'] != null){
+          List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
+          for(Blocksplays b in listBlocksplays){
+            // batch.insert("Blocksplays", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Blocksplays(id, idBanca, idLoteria, idSorteo, jugada, montoInicial, monto, fechaDesde, fechaHasta, created_at, ignorarDemasBloqueos, status, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                                                    [b.id, b.idBanca, b.idLoteria, b.idSorteo, b.jugada, b.montoInicial, b.monto, b.fechaDesde.toString(), b.fechaHasta.toString(), b.created_at.toString(), b.ignorarDemasBloqueos, b.status, b.idMoneda]);
+          }
+        }
+
+        if(parsed['blocksplaysgenerals'] != null){
+          List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
+          for(Blocksplaysgenerals b in listBlocksplaysgenerals){
+            // batch.insert("Blocksplaysgenerals", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Blocksplaysgenerals(id, idLoteria, idSorteo, jugada, montoInicial, monto, fechaDesde, fechaHasta, created_at, ignorarDemasBloqueos, status, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                                                          [b.id, b.idLoteria, b.idSorteo, b.jugada, b.montoInicial, b.monto, b.fechaDesde.toString(), b.fechaHasta.toString(), b.created_at.toString(), b.ignorarDemasBloqueos, b.status, b.idMoneda]);
+          }
+        }
+
+        if(parsed['draws'] != null){
+          List<Draws> listDraws = parsed['draws'].map<Draws>((json) => Draws.fromMap(json)).toList();
+          for(Draws b in listDraws){
+            // batch.insert("Draws", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Draws(id, descripcion, bolos, cantidadNumeros, status, created_at) values(?, ?, ?, ?, ?, ?)", 
+                                                      [b.id, b.descripcion, b.bolos, b.cantidadNumeros, b.status, b.created_at.toString()]);
+          }
+        }
+
+        await batch.commit(noResult: true);
+        print("RealtimeServer todosPrueba batch listo");
   }
 
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
