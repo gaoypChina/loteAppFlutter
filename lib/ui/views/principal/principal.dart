@@ -495,6 +495,16 @@ Future<bool> _requestPermisionChannel() async {
       quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed);
       // print("lotteriesevent: $parsed");
     });
+    socket.on("blocksdirtygenerals:App\\Events\\BlocksdirtygeneralsEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      print("Principalview blocksdirtygenerals: $parsed");
+      await Realtime.addBlocksdirtygeneralsDatosNuevos(parsed['blocksdirtygenerals'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("blocksdirty:App\\Events\\BlocksdirtyEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      print("Principalview blocksdirty: $parsed");
+      await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
+    });
     socket.on("error", (data){   //sample event
       print("onError: $data");
     // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");

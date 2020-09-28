@@ -10,6 +10,8 @@ import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/blocksdirty.dart';
+import 'package:loterias/core/models/blocksdirtygenerals.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
@@ -80,15 +82,6 @@ class Realtime{
     }
 
     static addBlocksgeneralsDatosNuevos(var parsed, bool eliminar) async {
-      // if (_isWorkingBlocksgenerals != null) {
-      //   await _isWorkingBlocksgenerals; // wait for future complete
-      //   return addBlocksgeneralsDatosNuevos(parsed, eliminar);
-      // }
-
-      // lock
-      // var completer = new Completer<Null>();
-      // _isWorkingBlocksgenerals = completer.future;
-
       if(parsed == null)
         return;
       List<Blocksgenerals> blocksgenerals = parsed.map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
@@ -445,4 +438,55 @@ class Realtime{
   all(){
 
   }
+
+  static addBlocksdirtygeneralsDatosNuevos(var parsed, bool eliminar) async {
+      if(parsed == null)
+        return;
+      List<Blocksdirtygenerals> blocksdirtygenerals = parsed.map<Blocksdirtygenerals>((json) => Blocksdirtygenerals.fromMap(json)).toList();
+      if(blocksdirtygenerals.length == 0)
+        return;
+        
+        blocksdirtygenerals.forEach((s) async {
+         List<Map<String, dynamic>> query = await Db.database.query('Blocksdirtygenerals' , where: '"id" = ?', whereArgs: [s.id]);
+          if(query.isEmpty == false){
+            print('query dentro y eliminar:$eliminar');
+            if(eliminar)
+              await Db.delete('Blocksdirtygenerals', s.id);
+            else
+              await Db.update('Blocksdirtygenerals', s.toJson(), s.id);
+          }else{
+            if(eliminar)
+              await Db.delete('Blocksdirtygenerals', s.id);
+            else
+              await Db.insert('Blocksdirtygenerals', s.toJson());
+          }
+        });
+
+        return true;
+    }
+  static addBlocksdirtyDatosNuevos(var parsed, bool eliminar) async {
+      if(parsed == null)
+        return;
+      List<Blocksdirty> blocksdirty = parsed.map<Blocksdirty>((json) => Blocksdirty.fromMap(json)).toList();
+      if(blocksdirty.length == 0)
+        return;
+        
+        blocksdirty.forEach((s) async {
+         List<Map<String, dynamic>> query = await Db.database.query('Blocksdirty' , where: '"id" = ?', whereArgs: [s.id]);
+          if(query.isEmpty == false){
+            print('query dentro y eliminar:$eliminar');
+            if(eliminar)
+              await Db.delete('Blocksdirty', s.id);
+            else
+              await Db.update('Blocksdirty', s.toJson(), s.id);
+          }else{
+            if(eliminar)
+              await Db.delete('Blocksdirty', s.id);
+            else
+              await Db.insert('Blocksdirty', s.toJson());
+          }
+        });
+
+        return true;
+    }
 }
