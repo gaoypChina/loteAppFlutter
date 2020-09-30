@@ -400,6 +400,26 @@ class Realtime{
           }
         }
 
+        if(parsed['blocksdirtygenerals'] != null){
+          List<Blocksdirtygenerals> listBlocksdirtygenerals = parsed['blocksdirtygenerals'].map<Blocksdirtygenerals>((json) => Blocksdirtygenerals.fromMap(json)).toList();
+          for(Blocksdirtygenerals b in listBlocksdirtygenerals){
+            // batch.insert("Blocksgenerals", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Blocksdirtygenerals(id, idLoteria, idSorteo, cantidad, created_at, idMoneda) values(?, ?, ?, ?, ?, ?)", 
+                                                        [b.id, b.idLoteria, b.idSorteo, b.cantidad, b.created_at.toString(), b.idMoneda]);
+          }
+        }
+
+        if(parsed['blocksdirty'] != null){
+          List<Blocksdirty> listBlocksdirty = parsed['blocksdirty'].map<Blocksdirty>((json) => Blocksdirty.fromMap(json)).toList();
+          for(Blocksdirty b in listBlocksdirty){
+            // batch.insert("Blocksgenerals", b.toJson());
+            batch.rawInsert(
+              "insert or replace into Blocksdirty(id, idBanca, idLoteria, idSorteo, cantidad, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?)", 
+                                                        [b.id, b.idBanca, b.idLoteria, b.idSorteo, b.cantidad, b.created_at.toString(), b.idMoneda]);
+          }
+        }
+
         await batch.commit(noResult: true);
         print("RealtimeServer todosPrueba batch listo");
   }
