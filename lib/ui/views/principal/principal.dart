@@ -2515,45 +2515,50 @@ void _getTime() {
     if(sorteo == null)
       return;
     var query = await Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
-    print("hayJugadasSucias query: $query");
+    if(query.isEmpty)
+      return false;
+
+    print("hayJugadasSucias query: ${sorteo.id}");
     if(sorteo.descripcion == "Directo"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 2 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
+
+      print("hayJugadasSucias tam: $tamanoJugadas");
     }
     if(sorteo.descripcion == "Pale"){
       int tamanoJugadas = listaJugadas.where((e) => Utils.toInt(e.jugada) != 0 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Tripleta"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 6 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Pick 3 Straight"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 3 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Pick 3 Box"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 4 && e.jugada.indexOf("+") != -1 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Pick 4 Box"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("+") != -1 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Pick 4 Straight"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("-") != -1 && e.idLoteria == loteria.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
     if(sorteo.descripcion == "Super pale"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("s") != -1 && e.idLoteria == loteria.id && e.idLoteriaSuperpale == loteriaSuperpale.id).length;
-      if(query.first["cantidad"] >= tamanoJugadas)
+      if(tamanoJugadas >= query.first["cantidad"])
         return true;
     }
 
@@ -2562,7 +2567,7 @@ void _getTime() {
 
   insertarJugada({String jugada, Loteria loteria, String monto}) async {
 
-    await hayJugadasSucias(jugada: jugada, loteria: loteria);
+    
     
     int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id) : -1;
       if(idx != -1){
@@ -2590,6 +2595,10 @@ void _getTime() {
           }
         );
       }else{
+        if(await hayJugadasSucias(jugada: jugada, loteria: loteria)){
+          Utils.showAlertDialog(title: "Jugada sucia", content: "Se ha detectado jugadas sucias en la ${loteria.descripcion}, comuniquese con el administrador", context: context);
+          return;
+        }
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
@@ -3540,20 +3549,20 @@ query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?',
     Draws sorteo;
 
    if(jugada.length == 2){
-     var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Directo']);
+     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
    }
   else if(jugada.length == 3){
     // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
   }
   else if(jugada.length == 4){
     if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }else{
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pale']);
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
       // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
       // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
@@ -3565,20 +3574,20 @@ query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?',
   }
   else if(jugada.length == 5){
     if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
     else if(jugada.indexOf("-") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
     else if(jugada.indexOf("s") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
   }
   else if(jugada.length == 6){
-    var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
   }
 
