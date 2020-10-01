@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
@@ -68,6 +69,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<Loteria> listaLoteria = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay bancas', id: 0));
   List<Venta> listaVenta = List<Venta>.generate(1, (i) => Venta(idTicket: BigInt.from(0), id: BigInt.from(0)));
   List<Jugada> listaJugadas = List<Jugada>();
+  List<EstadisticaJugada> listaEstadisticaJugada = List<EstadisticaJugada>();
 
 Future<String> _montoFuture;
 String _montoPrueba = '0';
@@ -200,6 +202,10 @@ Future<bool> _requestPermisionChannel() async {
       }
     }
 
+    if(await hayJugadasSuciasNuevo()){
+      return;
+    }
+
     try{
       setState(() => _cargando = true);
       var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
@@ -217,6 +223,7 @@ Future<bool> _requestPermisionChannel() async {
         _selectedLoterias.clear();
         _seleccionarPrimeraLoteria();
         _cargando = false;
+        listaEstadisticaJugada.clear();
         (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
       
       });
@@ -1645,7 +1652,10 @@ AppBar _appBar(bool screenHeightIsSmall){
                     child: RaisedButton(
                       child: Text('Eliminar todas'),
                       onPressed: (){
-                        setState(() => listaJugadas.clear());
+                        setState((){
+                          listaJugadas.clear();
+                          listaEstadisticaJugada.clear();
+                        });
                       },
                     ),
                   ),
@@ -2509,12 +2519,38 @@ void _getTime() {
 
   }
 
+
+  hayJugadasSuciasNuevo() async {
+    Banca banca = await _selectedBanca();
+    
+
+    for(int i=0; i < listaEstadisticaJugada.length; i++){
+      var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
+      if(query.isEmpty)
+        query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
+      print("hayJugadasSuciasNuevo query: $query");
+      print("hayJugadasSuciasNuevo estadisticaJugada: ${listaEstadisticaJugada[i].toJson()}");
+      if(query.isNotEmpty){
+        if(listaEstadisticaJugada[i].cantidad > query.first["cantidad"]){
+          Utils.showAlertDialog(context: context, title: "Jugadas sucias", content: "Hay jugadas sucias en la loteria ${listaEstadisticaJugada[i].descripcion}, comuniquese con el administrador o esta banca sera monitoreada y si se encuentran jugadas sucias pues se tomaran medidas severas contra usted.");
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
   hayJugadasSucias({String jugada, Loteria loteria, Loteria loteriaSuperpale}) async {
     Banca banca = await _selectedBanca();
-    Draws sorteo = await getSorteo(jugada, loteria) ;
+    Draws sorteo = await getSorteo(jugada) ;
     if(sorteo == null)
       return;
-    var query = await Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
+
+    var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
+    if(query.isEmpty)
+      query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
+    
     if(query.isEmpty)
       return false;
 
@@ -2595,10 +2631,6 @@ void _getTime() {
           }
         );
       }else{
-        if(await hayJugadasSucias(jugada: jugada, loteria: loteria)){
-          Utils.showAlertDialog(title: "Jugada sucia", content: "Se ha detectado jugadas sucias en la ${loteria.descripcion}, comuniquese con el administrador", context: context);
-          return;
-        }
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
@@ -2606,10 +2638,11 @@ void _getTime() {
           descripcion: loteria.descripcion,
           idBanca: 0
         ));
+        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria);
       }
   }
 
-  insertarJugadaSuperpale({String jugada, Loteria loteria, Loteria loteriaSuperpale, String monto}){
+  insertarJugadaSuperpale({String jugada, Loteria loteria, Loteria loteriaSuperpale, String monto}) async {
      
       if(loteria.id > loteriaSuperpale.id){
         Loteria tmp = loteriaSuperpale;
@@ -2654,10 +2687,12 @@ void _getTime() {
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
           idBanca: 0
         ));
+
+        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria);
       }
   }
 
-  insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada){
+  insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada) async {
     if(jugada["idSorteo"] != 4){
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteriaMap["id"]) : -1;
       if(idx != -1){
@@ -2692,6 +2727,7 @@ void _getTime() {
           descripcion: loteriaMap["descripcion"],
           idBanca: 0
         ));
+        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap));
         _streamControllerJugada.add(listaJugadas);
 
         _txtJugada.text = '';
@@ -2747,6 +2783,7 @@ void _getTime() {
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
           idBanca: 0
         );
+        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria);
         print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
         listaJugadas.add(j);
         _streamControllerJugada.add(listaJugadas);
@@ -2757,6 +2794,33 @@ void _getTime() {
     }
       
   }
+
+  addOrUpdateEstadisticaJugada({String jugada, Loteria loteria}) async {
+    Draws sorteo = await getSorteo(jugada);
+    int idxEstadistica = listaEstadisticaJugada.indexWhere((element) => element.idLoteria == loteria.id && element.idSorteo == sorteo.id);
+    if(idxEstadistica != -1){
+      listaEstadisticaJugada[idxEstadistica].cantidad++;
+    }else{
+      listaEstadisticaJugada.add(
+        EstadisticaJugada(
+          idLoteria: loteria.id,
+          descripcion: loteria.descripcion,
+          idSorteo: sorteo.id,
+          cantidad: 1
+        )
+      );
+    }
+  }
+  removeEstadisticaJugada({String jugada, int idLoteria}) async {
+    Draws sorteo = await getSorteo(jugada);
+    int idxEstadistica = listaEstadisticaJugada.indexWhere((element) => element.idLoteria == idLoteria && element.idSorteo == sorteo.id);
+    if(idxEstadistica != -1){
+      listaEstadisticaJugada[idxEstadistica].cantidad--;
+      if(listaEstadisticaJugada[idxEstadistica].cantidad <= 0)
+        listaEstadisticaJugada.removeAt(idxEstadistica);
+    }
+  }
+
   addJugadaViejo(){
     if(_txtJugada.text.length < 2)
       return;
@@ -2966,11 +3030,13 @@ _selectedBanca() async {
               Center(child: Text(Utils.esSuperpale(j.jugada) ? "SP(${j.abreviatura}/${j.abreviaturaSuperpale})" : j.descripcion, style: TextStyle(fontSize: Utils.esSuperpale(j.jugada) ? 14 : 16))),
               Center(child: _buildRichOrTextAndConvertJugadaToLegible(j.jugada)),
               Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 16))),
-              Center(child: IconButton(icon: Icon(Icons.delete, size: 28,), onPressed: (){
+              Center(child: IconButton(icon: Icon(Icons.delete, size: 28,), onPressed: () async {
                 setState((){
                   listaJugadas.remove(j);
                   _streamControllerJugada.add(listaJugadas);
+                  // await removeEstadisticaJugada(jugada: j.jugada, idLoteria: j.idLoteria);
                 });
+                  await removeEstadisticaJugada(jugada: j.jugada, idLoteria: j.idLoteria);
               },)),
             ],
           )
@@ -3545,7 +3611,7 @@ query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?',
   return idSorteo;
  }
 
- getSorteo(String jugada, Loteria loteria) async {
+ getSorteo(String jugada) async {
     Draws sorteo;
 
    if(jugada.length == 2){

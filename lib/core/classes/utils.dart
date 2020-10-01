@@ -258,6 +258,7 @@ class  Utils {
   return lista;
 }
 
+
   static Color colorGanadorPerdedorPendiente(int status, double premio){
     if(status == 1 && premio <= 0)
       return Utils.colorRosa;
