@@ -7,6 +7,7 @@ import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
+import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
@@ -66,6 +67,10 @@ class Router {
         case '/addTransacciones' :
           return MaterialPageRoute(
             builder: (_)=> AddTransaccionesScreen()
+          ) ;
+        case '/notificaciones' :
+          return MaterialPageRoute(
+            builder: (_)=> NotificacionScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

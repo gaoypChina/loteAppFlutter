@@ -5,6 +5,7 @@ import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
+import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
@@ -97,6 +98,7 @@ String _montoPrueba = '0';
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
   bool _tienePermisoTransacciones = false;
   bool _tienePermisoAdministrador = false;
+  bool _tienePermisoProgramador = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
   StreamController<bool> _streamControllerVenta;
@@ -203,6 +205,8 @@ Future<bool> _requestPermisionChannel() async {
     }
 
     if(await hayJugadasSuciasNuevo()){
+      Banca banca = await _selectedBanca();
+      var notificacion = Notificacion(titulo: "Jugadas sucias", subtitulo: "Se ha detectado jugadas sucias en la banca ${banca.descripcion}");
       return;
     }
 
@@ -372,7 +376,8 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoVerListaDeBalancesDeBancas = await Db.existePermiso("Ver lista de balances de bancas");
     bool permisoTransacciones = await Db.existePermiso("Manejar transacciones");
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
-
+    bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+    print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
     if(permisoAccesoAlSistema == false)
       Principal.cerrarSesion(context);
 
@@ -380,6 +385,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoJugarComoCualquierBanca = permiso;
       _tienePermisoJugarFueraDeHorario = permisoJugarFueraDeHorario;
       _tienePermisoJugarMinutosExtras = permisoJugarMinutosExtras;
+      _tienePermisoProgramador = permisoProgramador;
       _tienePermisoAdministrador = permisoAdministrador;
       _tienePermisoManejarResultados = permisoManejarResultados;
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
@@ -719,7 +725,7 @@ AppBar _appBar(bool screenHeightIsSmall){
             ),
           ],
         ),
-
+        
         PopupMenuButton(
           child: Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal, left: _iconPaddingHorizontal),
@@ -778,6 +784,13 @@ AppBar _appBar(bool screenHeightIsSmall){
         Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
             child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/bluetooth');}),
+        ),
+        Visibility(
+          visible: _tienePermisoAdministrador || _tienePermisoProgramador,
+          child: Padding(
+            padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
+            child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/notificaciones');}),
+          ),
         )
         // IconButton(
         //   icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 23 : 30,),
