@@ -6,12 +6,12 @@ import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:rxdart/rxdart.dart';
 
-class NotificacionScreen extends StatefulWidget {
+class VerNotificacionScreen extends StatefulWidget {
   @override
-  _NotificacionScreenState createState() => _NotificacionScreenState();
+  _VerNotificacionScreenState createState() => _VerNotificacionScreenState();
 }
 
-class _NotificacionScreenState extends State<NotificacionScreen> {
+class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
   StreamController<List<Notificacion>> _streamController;
   bool _cargando = false;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -33,19 +33,19 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
   }
 
 
-@override
-  void initState() {
-    // TODO: implement initState
-    _streamController = BehaviorSubject();
-    _init();
-    super.initState();
-  }
+// @override
+//   void initState() {
+//     // TODO: implement initState
+//     _streamController = BehaviorSubject();
+//     _init();
+//     super.initState();
+//   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notificaciones", style: TextStyle(color: Colors.black),),
+        title: Text("Notificacion", style: TextStyle(color: Colors.black),),
         leading: BackButton(
           color: Utils.colorPrimary,
         ),
@@ -72,7 +72,7 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
               ),
             ],
           ),
-          IconButton(icon: Icon(Icons.edit), onPressed: (){Navigator.of(context).pushNamed('/verNotificaciones');})
+          
         ],
       ),
       body: Container(

@@ -8,6 +8,7 @@ import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/notificacion/notificacion.dart';
+import 'package:loterias/ui/views/notificacion/ver.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
@@ -71,6 +72,10 @@ class Router {
         case '/notificaciones' :
           return MaterialPageRoute(
             builder: (_)=> NotificacionScreen()
+          ) ;
+        case '/verNotificaciones' :
+          return MaterialPageRoute(
+            builder: (_)=> VerNotificacionScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(
