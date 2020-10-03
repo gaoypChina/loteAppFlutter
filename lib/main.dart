@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/services/realtime.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
   tz.initializeTimeZones();
   setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
+  await MyNotification.init();
 // final appDocumentDirectory = await getApplicationDocumentsDirectory();
 
 // await getApplicationSupportDirectory();

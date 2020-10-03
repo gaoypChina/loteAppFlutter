@@ -1,13 +1,20 @@
 package com.example.loterias
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.os.Build
 import android.util.Base64
 import android.util.Log
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import androidx.annotation.NonNull
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import io.flutter.embedding.android.FlutterActivity
@@ -97,6 +104,8 @@ class MainActivity: FlutterActivity() {
             "printText" -> printText(call, result)
             "turnOnBluetooth" -> turnOnBluetooth(result)
             "quickPrinter" -> quickPrinter(result)
+            "initChannelNotification" -> createNotificationChannel(call, result)
+            "showNotification" -> showNotification(call, result)
         }
     }
 
@@ -187,5 +196,59 @@ class MainActivity: FlutterActivity() {
     fun generateQr( codigoQr: String?) : Bitmap {
         val qrgEncoder = QRGEncoder(codigoQr, null, QRGContents.Type.TEXT, 150)
         return qrgEncoder.encodeAsBitmap();
+    }
+
+    private fun createNotificationChannel(call:MethodCall, result:MethodChannel.Result) {
+        try {
+            // Create the NotificationChannel, but only on API 26+ because
+            // the NotificationChannel class is new and not in the support library
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val name = getString(R.string.channel_name)
+                val descriptionText = getString(R.string.channel_description)
+                val importance = NotificationManager.IMPORTANCE_DEFAULT
+                val channel = NotificationChannel(CHANNEL, name, importance).apply {
+                    description = descriptionText
+                }
+                // Register the channel with the system
+                val notificationManager: NotificationManager =
+                        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(channel)
+            }
+            result.success("mostrando notificacion")
+        }catch (e:Exception){
+            result.error("errorInitChannelNotification",e.message, e.message);
+        }
+
+    }
+
+    fun showNotification(call:MethodCall, result:MethodChannel.Result ){
+        val title:String? = call.argument<String>("title")
+        val content:String? = call.argument<String>("content")
+        val route:String? = call.argument<String>("route")
+        try {
+            val intent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            intent.action = Intent.ACTION_RUN
+            intent.putExtra("route", route)
+            val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+            var builder = NotificationCompat.Builder(this, CHANNEL)
+                    .setSmallIcon(R.drawable.ic_loteria)
+                    .setContentTitle(title)
+                    .setContentText(content)
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+
+
+            with(NotificationManagerCompat.from(this)) {
+                // notificationId is a unique int for each notification that you must define
+                notify(123, builder.build())
+            }
+            result.success("mostrando notificacion")
+        }catch (e:Exception){
+            result.error("errorNotification",e.message, e.message);
+        }
+
     }
 }
