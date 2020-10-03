@@ -51,10 +51,10 @@ class NotificationService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    print("notificationservice guardar: ${mapDatos.toString()}");
+    print("notificationservice guardar: ${map["notificacion"]}");
     // return listaLoteria;
 
-    var response = await http.post(Utils.URL + "/api/notificaciones/guardar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Utils.URL + "/api/notifications/guardar", body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

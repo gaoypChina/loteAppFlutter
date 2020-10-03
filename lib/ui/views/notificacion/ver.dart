@@ -12,6 +12,7 @@ class VerNotificacionScreen extends StatefulWidget {
 }
 
 class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
+  
   StreamController<List<Notificacion>> _streamController;
   bool _cargando = false;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -75,26 +76,7 @@ class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
           
         ],
       ),
-      body: Container(
-        child: StreamBuilder<List<Notificacion>>(
-          stream: _streamController.stream,
-          builder: (context, snapshot) {
-            if(snapshot.hasData)
-              return ListView.builder(
-              itemCount: listaNotificacion.length,
-              itemBuilder: (context, index){
-                return ListTile(
-                  title: Text(listaNotificacion[index].titulo),
-                  subtitle: Text(listaNotificacion[index].titulo),
-                  isThreeLine: true,
-                );
-              },
-            );
-
-            return Text("No hay datos");
-          }
-        ),
-      ),
+      body: Container(),
     );
   }
 }

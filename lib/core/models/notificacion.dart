@@ -30,7 +30,7 @@ Notificacion.fromMap(Map snapshot) :
     };
   }
 
-  static List NotificacionToJson(List<Notificacion> lista) {
+  static List notificacionToJson(List<Notificacion> lista) {
     List jsonList = List();
     lista.map((u)=>
       jsonList.add(u.toJson())

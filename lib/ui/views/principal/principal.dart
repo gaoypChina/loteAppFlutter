@@ -10,6 +10,7 @@ import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
+import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
@@ -205,8 +206,7 @@ Future<bool> _requestPermisionChannel() async {
     }
 
     if(await hayJugadasSuciasNuevo()){
-      Banca banca = await _selectedBanca();
-      var notificacion = Notificacion(titulo: "Jugadas sucias", subtitulo: "Se ha detectado jugadas sucias en la banca ${banca.descripcion}");
+      sendNotificationJugadasSucias();
       return;
     }
 
@@ -236,6 +236,109 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
+  // esDirecto(String jugada){
+  //   return jugada.length == 2;
+  // }
+
+  // esPale(String jugada){
+  //   return jugada.length == 4 && Utils.toInt(jugada) > 0;
+  // }
+
+  // esTripleta(String jugada){
+  //   return jugada.length == 6;
+  // }
+
+  Future<dynamic> sendNotificationJugadasSucias() async {
+     Banca banca = await _selectedBanca();
+      String directos = "";
+      String pales = "";
+      String tripletas = "";
+      String superPale = "";
+      String pick3 = "";
+      String pick4 = "";
+
+      int cantidadDirectos = 0;
+      int cantidadPales = 0;
+      int cantidadTripletas = 0;
+      int cantidadSuperpales = 0;
+      int cantidadPick3 = 0;
+      int cantidadPick4 = 0;
+      for(int i=0; i < listaEstadisticaJugada.length; i++){
+        print("sendNotification for: ${listaEstadisticaJugada[i].descripcionSorteo}");
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Directo"){
+           cantidadDirectos = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaDirectos = listaJugadas.where((element) => element.sorteo == "Directo").toList();
+           //Ordenamos los directos de menor a mayor
+          listaDirectos.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int i=0; i < listaDirectos.length; i++){
+            directos+= "${listaDirectos[i].jugada}\n";
+          }
+        }
+        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pale"){
+          cantidadPales = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaPale = listaJugadas.where((element) => element.sorteo == "Pale").toList();
+          listaPale.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int indexPale=0; indexPale < listaPale.length; indexPale++){
+            pales+= "${listaPale[indexPale].jugada}\n";
+          }
+        }
+        else if(listaEstadisticaJugada[i].descripcionSorteo == "Tripleta"){
+          cantidadTripletas = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaTripleta = listaJugadas.where((element) => element.sorteo == "Tripleta").toList();
+          listaTripleta.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int indexTripleta=0; indexTripleta < listaTripleta.length; indexTripleta++){
+            tripletas+= "${listaTripleta[indexTripleta].jugada}\n";
+          }
+        }
+        else if(listaEstadisticaJugada[i].descripcionSorteo == "Super pale"){
+          cantidadSuperpales = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaSuperpale = listaJugadas.where((element) => element.sorteo == "Super pale").toList();
+          listaSuperpale.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int indexSuperpale=0; indexSuperpale < listaSuperpale.length; indexSuperpale++){
+            superPale+= "${listaSuperpale[indexSuperpale].jugada}\n";
+          }
+        }
+        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Straight"){
+          cantidadPick3 = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaPick3 = listaJugadas.where((element) => element.sorteo == "Pick 3 Box" || element.sorteo == "Pick 3 Straight").toList();
+          listaPick3.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int indexPick3=0; indexPick3 < listaPick3.length; indexPick3++){
+            pick3+= "${listaPick3[indexPick3].jugada}\n";
+          }
+        }
+        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Straight"){
+          cantidadPick4 = listaEstadisticaJugada[i].cantidad;
+          List<Jugada> listaPick4 = listaJugadas.where((element) => element.sorteo == "Pick 4 Box" || element.sorteo == "Pick 4 Straight").toList();
+          listaPick4.sort((a, b) => a.jugada.compareTo(b.jugada));
+          for(int indexPick4=0; indexPick4 < listaPick4.length; indexPick4++){
+            pick4+= "${listaPick4[indexPick4].jugada}\n";
+          }
+        }
+      }
+        // print("sendNotification Directos: ${directos}");
+        // print("sendNotification Pale: ${pales}");
+        // print("sendNotification Tripletas: ${tripletas}");
+
+      String contenido = "${banca.descripcion}\n\n";
+      if(directos.isNotEmpty)
+        contenido += "Quinielas ( $cantidadDirectos )\n" + directos +"\n\n";
+      if(pales.isNotEmpty)
+        contenido += "Pales ( $cantidadPales )\n" + pales +"\n\n";
+      if(tripletas.isNotEmpty)
+        contenido += "Tripletas ( $cantidadDirectos )\n" + tripletas +"\n\n";
+      if(superPale.isNotEmpty)
+        contenido += "Super pale ( $cantidadSuperpales )\n" + superPale +"\n\n";
+      if(pick3.isNotEmpty)
+        contenido += "Pick 3 ( $cantidadPick3 )\n" + pick3 +"\n\n";
+      if(pick4.isNotEmpty)
+        contenido += "Pick 4 ( $cantidadPick4 )\n" + pick4 +"\n\n";
+
+      print("sendNotification contenido: $contenido");
+
+      var notificacion = Notificacion(titulo: "Jugadas sucias", subtitulo: "Se ha detectado jugadas sucias en la banca ${banca.descripcion}", contenido: contenido);
+      await NotificationService.guardar(context: context, notificacion: notificacion);
+    return true;
+  }
   
 
   montoDisponibleHttp() async {
@@ -2644,14 +2747,17 @@ void _getTime() {
           }
         );
       }else{
+        Draws _sorteo = await getSorteo(jugada);
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
           monto: Utils.redondear(Utils.toDouble(monto), 2),
           descripcion: loteria.descripcion,
-          idBanca: 0
+          idBanca: 0,
+          idSorteo: _sorteo.id,
+          sorteo: _sorteo.descripcion
         ));
-        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria);
+        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria, sorteo: _sorteo);
       }
   }
 
@@ -2689,6 +2795,7 @@ void _getTime() {
           }
         );
       }else{
+        Draws _sorteo = await getSorteo(jugada);
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
@@ -2698,10 +2805,12 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
-          idBanca: 0
+          idBanca: 0,
+          idSorteo: _sorteo.id,
+          sorteo: _sorteo.descripcion
         ));
 
-        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria);
+        await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria, sorteo: _sorteo);
       }
   }
 
@@ -2733,14 +2842,17 @@ void _getTime() {
           }
         );
       }else{
+        Draws _sorteo = await getSorteo(jugada["jugada"]);
         listaJugadas.add(Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteriaMap["id"],
           monto: Utils.redondear(Utils.toDouble(jugada["monto"]), 2),
           descripcion: loteriaMap["descripcion"],
-          idBanca: 0
+          idBanca: 0,
+          idSorteo: _sorteo.id,
+          sorteo: _sorteo.descripcion
         ));
-        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap));
+        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap), sorteo: _sorteo);
         _streamControllerJugada.add(listaJugadas);
 
         _txtJugada.text = '';
@@ -2785,6 +2897,7 @@ void _getTime() {
           }
         );
       }else{
+        Draws _sorteo = await getSorteo(jugada["jugada"]);
         var j = Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteria.id,
@@ -2794,9 +2907,11 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
-          idBanca: 0
+          idBanca: 0,
+          idSorteo: _sorteo.id,
+          sorteo: _sorteo.descripcion
         );
-        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria);
+        await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria, sorteo: _sorteo);
         print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
         listaJugadas.add(j);
         _streamControllerJugada.add(listaJugadas);
@@ -2808,8 +2923,7 @@ void _getTime() {
       
   }
 
-  addOrUpdateEstadisticaJugada({String jugada, Loteria loteria}) async {
-    Draws sorteo = await getSorteo(jugada);
+  addOrUpdateEstadisticaJugada({String jugada, Loteria loteria, Draws sorteo}) async {
     int idxEstadistica = listaEstadisticaJugada.indexWhere((element) => element.idLoteria == loteria.id && element.idSorteo == sorteo.id);
     if(idxEstadistica != -1){
       listaEstadisticaJugada[idxEstadistica].cantidad++;
@@ -2818,6 +2932,7 @@ void _getTime() {
         EstadisticaJugada(
           idLoteria: loteria.id,
           descripcion: loteria.descripcion,
+          descripcionSorteo: sorteo.descripcion,
           idSorteo: sorteo.id,
           cantidad: 1
         )

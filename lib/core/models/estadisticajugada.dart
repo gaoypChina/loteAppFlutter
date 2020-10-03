@@ -8,8 +8,9 @@ class EstadisticaJugada{
    int idSorteo;
    int cantidad;
    String descripcion;
+   String descripcionSorteo;
 
-  EstadisticaJugada({this.id, this.idLoteria, this.idSorteo, this.cantidad, this.descripcion});
+  EstadisticaJugada({this.id, this.idLoteria, this.idSorteo, this.cantidad, this.descripcion, this.descripcionSorteo});
 
 EstadisticaJugada.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,

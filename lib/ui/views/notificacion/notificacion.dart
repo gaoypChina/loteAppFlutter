@@ -21,8 +21,8 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
     try{
       setState(() => _cargando = true);
       var parsed = await NotificationService.index(scaffoldKey: _scaffoldKey);
-      listaNotificacion = (parsed["notificaciones"].toString().isNotEmpty) ? List.from(parsed["notificaciones"]) : List();
       print("NotificacionScreen parsed: $parsed");
+      listaNotificacion = (parsed["notificaciones"].toString().isNotEmpty) ? parsed["notificaciones"].map<Notificacion>((json) => Notificacion.fromMap(json)).toList() : List();
       setState(() => _cargando = false);
       _streamController.add(listaNotificacion);
     } on Exception catch(e){
@@ -84,9 +84,9 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
               itemCount: listaNotificacion.length,
               itemBuilder: (context, index){
                 return ListTile(
-                  title: Text(listaNotificacion[index].titulo),
-                  subtitle: Text(listaNotificacion[index].titulo),
-                  isThreeLine: true,
+                  title: Text(listaNotificacion[index].titulo, style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(listaNotificacion[index].subtitulo),
+                  // isThreeLine: true,
                 );
               },
             );
