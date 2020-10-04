@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -133,6 +134,7 @@ var _colorSegundary = Utils.colorInfo;
 FocusNode focusNode;
 SocketIOManager manager;
 SocketIO socket;
+SocketIO socketNotificaciones;
 
 Future<bool> _requestPermisionChannel() async {
     bool batteryLevel;
@@ -641,6 +643,44 @@ Future<bool> _requestPermisionChannel() async {
     });
     socket.onError((e) => print(e));
     socket.connect();
+
+
+
+
+
+    socketNotificaciones = await manager.createInstance(SocketOptions(
+                    //Socket IO server URI
+                      // 'http://pruebass.ml:3000',
+                      // 'http://192.168.43.63:3000',
+                      // '10.0.0.11:3000',
+                      Utils.URL_SOCKET,
+                      nameSpace: "/",
+                      //Query params - can be used for authentication
+                      // query: {
+                      //   "query": 'auth_token=${signedToken}'
+                      // },
+                      query: {
+                        "auth_token": '${signedToken.toString()}',
+                        "room" : await Db.servidor()
+                      },
+
+                      //Enable or disable platform channel logging
+                      enableLogging: true,
+                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+        )); 
+    socketNotificaciones.onConnect((data) async {
+      print("socketNotificaciones connected...");
+      print(data);
+    });
+    socket.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      
+      if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
+        print("Principalview NotificationEvent Mostrar notificacion");
+        MyNotification.show(route: "/notificaciones", title: parsed["titulo"], content: parsed["subtitulo"]);
+      }
+      print("Principalview NotificationEvent: $parsed");
+    });
   }
 
 
