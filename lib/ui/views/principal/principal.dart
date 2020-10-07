@@ -932,7 +932,10 @@ AppBar _appBar(bool screenHeightIsSmall){
           visible: _tienePermisoAdministrador || _tienePermisoProgramador,
           child: Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
-            child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/notificaciones');}),
+            child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){
+              // Navigator.of(context).pushNamed('/notificaciones');
+              MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/bluetooth");
+            }),
           ),
         )
         // IconButton(

@@ -19,10 +19,20 @@ class _SplashScreenState extends State<SplashScreen> {
   var _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    print("Dentro didChangeDependendies splashScreen");
+  }
+
+  @override
   void initState(){
     super.initState();
-
+    print("Dentro init splashscreen");
+    
     _mockCheckForSession().then((status){
+    print("Splash screen _mockCheckForSession route: ${ModalRoute.of(context).settings.name}");
+
       if(status){
         _navigateToHome();
       }else{

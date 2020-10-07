@@ -11,6 +11,7 @@ import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
+import 'package:loterias/ui/views/principal/prueba2.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
@@ -25,6 +26,10 @@ class Router {
         return  MaterialPageRoute(
           builder: (_)=> SplashScreen()
         );
+      // case '/' :
+      //   return  MaterialPageRoute(
+      //     builder: (_)=> Prueba2()
+      //   );
         case '/bluetooth' :
           return MaterialPageRoute(
             builder: (_)=> BluetoothScreen()
@@ -75,7 +80,7 @@ class Router {
           ) ;
         case '/verNotificaciones' :
           return MaterialPageRoute(
-            builder: (_)=> VerNotificacionScreen()
+            builder: (_)=> VerNotificacionScreen(settings.arguments)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

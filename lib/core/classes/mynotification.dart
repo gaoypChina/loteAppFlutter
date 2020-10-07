@@ -12,10 +12,10 @@ class MyNotification{
     }
   }
 
-  static show({String title, String content, String route}) async {
+  static show({String title, String subtitle, String content, String route}) async {
     try {
-      final String result = await platform.invokeMethod('showNotification', {"title" : title, "content" : content, "route" : route});
-      print("Notification init correctly");
+      final String result = await platform.invokeMethod('showNotification', {"title" : title, "subtitle" : subtitle, "content" : content, "route" : route});
+      print("Notification init correctly: $result");
     } on PlatformException catch (e) {
       print("Notification init error: ${e.message}");
     }

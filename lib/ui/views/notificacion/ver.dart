@@ -7,6 +7,8 @@ import 'package:loterias/core/services/notificationservice.dart';
 import 'package:rxdart/rxdart.dart';
 
 class VerNotificacionScreen extends StatefulWidget {
+    Map<String, dynamic> notificacion;
+  VerNotificacionScreen(notificacion);
   @override
   _VerNotificacionScreenState createState() => _VerNotificacionScreenState();
 }
@@ -76,7 +78,18 @@ class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
           
         ],
       ),
-      body: Container(),
+      body: 
+      (widget.notificacion == null)
+      ?
+      Center(child: Text("No hay datos"),)
+      :
+      ListView(
+        children: [
+          Text(widget.notificacion["titulo"], style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+          Text(widget.notificacion["subtitulo"], style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+          Text(widget.notificacion["contenido"])
+        ],
+      ),
     );
   }
 }

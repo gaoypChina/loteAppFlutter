@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import kotlin.math.log
 
 class MainActivity: FlutterActivity() {
 //    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -206,7 +207,7 @@ class MainActivity: FlutterActivity() {
                 val name = getString(R.string.channel_name)
                 val descriptionText = getString(R.string.channel_description)
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel(CHANNEL, name, importance).apply {
+                val channel = NotificationChannel("com.example.loterias", name, importance).apply {
                     description = descriptionText
                 }
                 // Register the channel with the system
@@ -223,16 +224,23 @@ class MainActivity: FlutterActivity() {
 
     fun showNotification(call:MethodCall, result:MethodChannel.Result ){
         val title:String? = call.argument<String>("title")
+        val subtitle:String? = call.argument<String>("subtitle")
         val content:String? = call.argument<String>("content")
         val route:String? = call.argument<String>("route")
         try {
+            val notificacion = HashMap<String, Any>()
+            notificacion["titulo"] = title!!;
+            notificacion["subtitulo"] = subtitle!!;
+            notificacion["contenido"] = content!!;
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             intent.action = Intent.ACTION_RUN
+            intent.putExtra("notificacion", notificacion)
             intent.putExtra("route", route)
+            Log.e("showNotification", "route: " + route);
             val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
-            var builder = NotificationCompat.Builder(this, CHANNEL)
+            var builder = NotificationCompat.Builder(this, "com.example.loterias")
                     .setSmallIcon(R.drawable.ic_loteria)
                     .setContentTitle(title)
                     .setContentText(content)

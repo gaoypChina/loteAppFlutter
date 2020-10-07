@@ -23,9 +23,10 @@ import 'locator.dart';
 Future<void> main() async {
   // var path = Directory.current.path;
   tz.initializeTimeZones();
-  setupLocator();
+  // setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
   await MyNotification.init();
+  
 // final appDocumentDirectory = await getApplicationDocumentsDirectory();
 
 // await getApplicationSupportDirectory();
@@ -40,19 +41,20 @@ class MyApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // ChangeNotifierProvider(builder: (_) => locator<CRUDModel>()),
-        // ChangeNotifierProvider(builder: (_) => locator<UnidadCRUD>()),
-        // ChangeNotifierProvider(builder: (_) => locator<CRUDArticulo>()),
-      ],
-      child: MaterialApp(
+    // return MultiProvider(
+    //   providers: [
+    //     // ChangeNotifierProvider(builder: (_) => locator<CRUDModel>()),
+    //     // ChangeNotifierProvider(builder: (_) => locator<UnidadCRUD>()),
+    //     // ChangeNotifierProvider(builder: (_) => locator<CRUDArticulo>()),
+    //   ],
+    //   child: 
+      return MaterialApp(
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         title: 'Product App',
         theme: ThemeData(),
         onGenerateRoute: Router.generateRoute,
-      ),
-    );
+      );
+    // );
   }
 }
