@@ -125,6 +125,7 @@ class MainActivity: FlutterActivity() {
             "quickPrinter" -> quickPrinter(result)
             "initChannelNotification" -> createNotificationChannel(call, result)
             "showNotification" -> showNotification(call, result)
+            "getIntentDataNotification" -> getIntentDataNotification(call, result)
         }
     }
 
@@ -276,5 +277,13 @@ class MainActivity: FlutterActivity() {
             result.error("errorNotification",e.message, e.message);
         }
 
+    }
+
+    fun getIntentDataNotification(call:MethodCall, result:MethodChannel.Result ){
+        try {
+            result.success(dataNotification)
+        }catch (e:Exception){
+            result.error("errorNotification",e.message, e.message);
+        }
     }
 }

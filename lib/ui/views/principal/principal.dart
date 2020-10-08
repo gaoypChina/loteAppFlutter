@@ -421,6 +421,7 @@ Future<bool> _requestPermisionChannel() async {
       initSocket();
       futureBanca = Db.getBanca();
       futureUsuario = Db.getUsuario();
+      _showIntentNotificationIfExists();
     }else{
       _getDatosSessionUsuario().then((value){
         _requestPermisionChannel();
@@ -430,6 +431,7 @@ Future<bool> _requestPermisionChannel() async {
         initSocket();
         futureBanca = Db.getBanca();
         futureUsuario = Db.getUsuario();
+        _showIntentNotificationIfExists();
       });
     }
     
@@ -705,6 +707,13 @@ Future<bool> _requestPermisionChannel() async {
     });
   }
 
+_showIntentNotificationIfExists() async {
+  var notificacion = await MyNotification.getIntentDataNotification();
+  print("_showIntentNotificationIfExists $notificacion");
+  if(notificacion != null){
+    Navigator.pushNamed(context, "/verNotificaciones", arguments: notificacion);
+  }
+}
 
   _ckbDescuentoChanged(newValue){
     setState(() {

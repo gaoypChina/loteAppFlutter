@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+import 'package:loterias/core/models/notificacion.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MyNotification{
   static const platform = const MethodChannel('flutter.loterias');
@@ -20,4 +22,18 @@ class MyNotification{
       print("Notification init error: ${e.message}");
     }
   }
+
+  static Future<Notificacion> getIntentDataNotification() async {
+    try {
+      final result = await platform.invokeMethod('getIntentDataNotification');
+      if(result != null){
+        return Notificacion.fromMap(result);
+      }
+      return null;
+    } on PlatformException catch (e) {
+      print("FlutterNotification getIntentData error: ${e.message}");
+      return null;
+    }
+  }
+
 }
