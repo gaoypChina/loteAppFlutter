@@ -24,12 +24,20 @@ class Router {
     switch (settings.name) {
       case '/' :
         return  MaterialPageRoute(
-          builder: (_)=> SplashScreen()
+          builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? settings.arguments : false,)
         );
-      // case '/' :
-      //   return  MaterialPageRoute(
-      //     builder: (_)=> Prueba2()
-      //   );
+      case '/prueba2' :
+        return  MaterialPageRoute(
+          builder: (_)=> Prueba2()
+        );
+      case '/login' :
+        return  MaterialPageRoute(
+          builder: (_)=> LoginScreen()
+        );
+      case '/principal' :
+        return  MaterialPageRoute(
+          builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? true : false,)
+        );
         case '/bluetooth' :
           return MaterialPageRoute(
             builder: (_)=> BluetoothScreen()

@@ -349,6 +349,7 @@ class TicketService{
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     map2["datos"] =jwt;
+    print("TicketService INdexPost servidor: ${map["servidor"]} ");
     var response = await http.post(Utils.URL +"/api/principal/indexPost", body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){

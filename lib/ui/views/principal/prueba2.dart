@@ -12,13 +12,18 @@ class _Prueba2State extends State<Prueba2> {
     return Scaffold(
       appBar: AppBar(title: Text("Prueba2"),),
       body: Center(
-        child: Padding(
-            padding: EdgeInsets.all(8),
-            child: GestureDetector(child: Icon(Icons.notifications, size: 30), onTap: (){
-              // Navigator.of(context).pushNamed('/notificaciones');
-              MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/bluetooth");
-            }),
-          ),
+        child: Column(
+          children: [
+            Padding(
+                padding: EdgeInsets.all(8),
+                child: GestureDetector(child: Icon(Icons.notifications, size: 30), onTap: (){
+                  // Navigator.of(context).pushNamed('/notificaciones');
+                  MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/bluetooth");
+                }),
+              ),
+              // RaisedButton(child: Text("Ir al login"),)
+          ],
+        ),
       ),
     );
   }

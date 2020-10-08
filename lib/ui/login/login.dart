@@ -13,6 +13,7 @@ import 'package:loterias/core/services/realtime.dart';
 import 'dart:convert';
 
 import 'package:loterias/ui/views/principal/principal.dart';
+import 'package:loterias/ui/views/principal/prueba2.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -66,11 +67,15 @@ _showSnackBar(String content){
   }
 
   void _navigateToHome(){
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (BuildContext context) => PrincipalApp()
-      )
-    );
+    // Navigator.of(context).pushReplacement(
+    //   MaterialPageRoute(
+    //     builder: (BuildContext context) => Prueba2()
+    //   )
+    //   // MaterialPageRoute(
+    //   //   builder: (BuildContext context) => PrincipalApp(callThisScreenFromLogin: true,)
+    //   // )
+    // );
+    Navigator.pushReplacementNamed(context, "/principal", arguments: true);
   }
   
 

@@ -13,6 +13,7 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
+import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
@@ -21,6 +22,36 @@ import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
 class Principal{
+  static Future<bool> mockCheckForSession({BuildContext context, scaffoldKey}) async{
+    // await Future.delayed(Duration(milliseconds: 2000), (){});
+    var c = await DB.create();
+    var value = await c.getValue("recordarme");
+    if(value != null){
+      if(value == true){
+       try{
+          var parsed = await LoginService.acceder(usuario: await c.getValue("usuario"), password: await c.getValue("password"));
+          await c.add("apiKey", parsed["apiKey"]);
+          await c.add("tipoUsuario", parsed["tipoUsuario"]);
+          await LoginService.guardarDatos(parsed);
+          // await Realtime.sincronizarTodosData(_scaffoldKey, parsed["realtime"]);
+          await Realtime.sincronizarTodosDataBatch(scaffoldKey, parsed["realtime"]);
+          return true;
+       } catch(e){
+         Principal.cerrarSesion(context);
+         return false;
+       }
+      }else{
+        await Future.delayed(Duration(milliseconds: 2000), (){});
+        return false;
+      }
+        
+    }else{
+      await Future.delayed(Duration(milliseconds: 2000), (){});
+    }
+
+    return false;
+  }
+
   static Map<String, dynamic> parseDatos(String responseBody, ) {
     final parsed = json.decode(responseBody).cast<String, dynamic>();
     print('parsed: ${parsed['errores']}');
@@ -705,9 +736,10 @@ class Principal{
       await c.add("recordarme", false);
       await c.delete("usuario");
       await c.delete("password");
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-      );
+      // Navigator.of(context).pushReplacement(
+      //   MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+      // );
+      Navigator.pushReplacementNamed(context, "/login");
     }
  }
 

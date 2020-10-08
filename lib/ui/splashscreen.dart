@@ -30,15 +30,15 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     print("Dentro init splashscreen");
     
-    _mockCheckForSession().then((status){
-    print("Splash screen _mockCheckForSession route: ${ModalRoute.of(context).settings.name}");
+    // _mockCheckForSession().then((status){
+    // print("Splash screen _mockCheckForSession route: ${ModalRoute.of(context).settings.name}");
 
-      if(status){
-        _navigateToHome();
-      }else{
-        _navigateToLogin();
-      }
-    });
+    //   if(status){
+    //     _navigateToHome();
+    //   }else{
+    //     _navigateToLogin();
+    //   }
+    // });
   }
 
   Future<bool> _mockCheckForSession() async{

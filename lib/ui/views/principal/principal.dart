@@ -16,6 +16,8 @@ import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:loterias/ui/splashscreen.dart';
+import 'package:loterias/ui/views/principal/principalshimmerscreen.dart';
 
 
 
@@ -51,15 +53,11 @@ import 'package:timezone/timezone.dart' as tz;
 
 
 class PrincipalApp extends StatefulWidget {
+  final bool callThisScreenFromLogin;
+  PrincipalApp({Key key, this.callThisScreenFromLogin = false}) : super(key: key);
   @override
   _PrincipalAppState createState() => _PrincipalAppState();
 }
-  
-
- 
-
- 
-
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
   List<String> _listaMensajes = List();
@@ -81,6 +79,7 @@ String _montoPrueba = '0';
   int _indexVenta = 0;
   String _timeString;
   bool _cargando = false;
+  bool _cargandoDatosSesionUsuario = false;
   bool _ckbDescuento = false;
   bool _ckbPrint = true;
   bool _ckbMessage = false;
@@ -399,6 +398,14 @@ Future<bool> _requestPermisionChannel() async {
   
   
   Future<List<Banca>> _futureBanca;
+  Future<void> _getDatosSessionUsuario() async {
+    setState(() => _cargandoDatosSesionUsuario = true);
+    bool seGuardaronLosDatosDeLaSesion = await Principal.mockCheckForSession(scaffoldKey: _scaffoldKey);
+    setState(() => _cargandoDatosSesionUsuario = false);
+    if(seGuardaronLosDatosDeLaSesion == false){
+      Principal.cerrarSesion(context);
+    }
+  }
 
   @override
   void initState() {
@@ -406,9 +413,27 @@ Future<bool> _requestPermisionChannel() async {
         DeviceOrientation.portraitDown,
         DeviceOrientation.portraitUp,
     ]);
-    _requestPermisionChannel();
-    _getPermisos();
-    _getUsuarioYBanca();
+    if(widget.callThisScreenFromLogin){
+      _requestPermisionChannel();
+      _getPermisos();
+      _getUsuarioYBanca();
+      indexPost(true);
+      initSocket();
+      futureBanca = Db.getBanca();
+      futureUsuario = Db.getUsuario();
+    }else{
+      _getDatosSessionUsuario().then((value){
+        _requestPermisionChannel();
+        _getPermisos();
+        _getUsuarioYBanca();
+        indexPost(true);
+        initSocket();
+        futureBanca = Db.getBanca();
+        futureUsuario = Db.getUsuario();
+      });
+    }
+    
+    
     _timeString = Utils.formatDateTime(DateTime.now());
     _streamControllerBanca = BehaviorSubject();
     _streamControllerLoteria = BehaviorSubject();
@@ -424,12 +449,9 @@ Future<bool> _requestPermisionChannel() async {
     focusNode = FocusNode();
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    indexPost(true);
-    //_montoFuture = fetchMonto();
-    initSocket();
     
-    futureBanca = Db.getBanca();
-    futureUsuario = Db.getUsuario();
+    //_montoFuture = fetchMonto();
+    
   // platform.setMethodCallHandler(this._saludos);
 
   }
@@ -928,16 +950,17 @@ AppBar _appBar(bool screenHeightIsSmall){
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
             child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/bluetooth');}),
         ),
-        Visibility(
-          visible: _tienePermisoAdministrador || _tienePermisoProgramador,
-          child: Padding(
+        // Visibility(
+        //   visible: _tienePermisoAdministrador || _tienePermisoProgramador,
+        //   child: 
+          Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
             child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){
               // Navigator.of(context).pushNamed('/notificaciones');
-              MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/bluetooth");
+              MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
             }),
           ),
-        )
+        // )
         // IconButton(
         //   icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 23 : 30,),
         //   onPressed: () async{
@@ -983,225 +1006,10 @@ AppBar _appBar(bool screenHeightIsSmall){
       ),
     );
   }
-  
-  @override
-  build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // backgroundColor: Colors.white,
-        primarySwatch: Utils.colorMaterialCustom,
-        accentColor: Colors.pink,
-        // accentColor: Utils.fromHex("#F0807F")
-      ),
-      home: DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            key: _scaffoldKey,
-          drawer: SafeArea(
-            child: Drawer(
-              child: 
-              ListView(
-                children: <Widget>[
-                  ListTile(
-                    title: FutureBuilder<Map<String, dynamic>>(
-                      future: futureBanca,
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                        }
 
-                        return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                      }
-                    ),
-                    subtitle: FutureBuilder<Map<String, dynamic>>(
-                      future: futureUsuario,
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          return Text('${snapshot.data["servidor"]}');
-                        }
-
-                        return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                      }
-                    ),
-                    leading: Container(
-                      width: 30,
-                      height: 30,
-                      child:  ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            widthFactor: 0.75,
-                            heightFactor: 0.75,
-                            child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    onTap: () async {
-                      _cambiarServidor();
-                      _scaffoldKey.currentState.openEndDrawer();
-
-                    },
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerDashboard,
-                    child: ListTile(
-                      title: Text('Dashboard'),
-                      leading: Icon(Icons.dashboard),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/dashboard");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoTransacciones,
-                    child: ListTile(
-                      title: Text('Transacciones'),
-                      leading: Icon(Icons.transfer_within_a_station),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/transacciones");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoMonitorearTicket,
-                    child: ListTile(
-                      title: Text('Monitoreo'),
-                      leading: Icon(Icons.donut_large),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/monitoreo");
-                      _scaffoldKey.currentState.openEndDrawer();},
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoManejarResultados,
-                    child: ListTile(
-                      title: Text('Registrar premios'),
-                      leading: Icon(Icons.format_list_numbered),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/registrarPremios");
-                      _scaffoldKey.currentState.openEndDrawer();},
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerHistoricoVentas,
-                    child: ListTile(
-                      title: Text('Historico ventas'),
-                      leading: Icon(Icons.timeline),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/historicoVentas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerVentas,
-                    child: ListTile(
-                      title: Text('Ventas'),
-                      leading: Icon(Icons.insert_chart),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/ventas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerListaDeBalancesDeBancass,
-                    child: ListTile(
-                      title: Text('Balance bancas'),
-                      leading: Icon(Icons.account_balance),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/balanceBancas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Pendientes de pago'),
-                    leading: Icon(Icons.attach_money),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/pendientesPago");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
-                  ),
-                  ListTile(
-                    title: Text('Duplicar'),
-                    leading: Icon(Icons.scatter_plot),
-                    dense: true,
-                    onTap: () async {
-                      Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
-                      _scaffoldKey.currentState.openEndDrawer();
-                      if(datos.isNotEmpty){
-                        await _duplicar(datos);
-                      }
-                      // print("prueba alertdialog: $prueba");
-                    },
-                  ),
-                  Visibility(
-                    visible: _tienePermisoMarcarTicketComoPagado,
-                    child: ListTile(
-                      title: Text("Pagar"),
-                      leading: Icon(Icons.payment),
-                      dense: true,
-                      onTap: () async {
-                        dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
-                        _scaffoldKey.currentState.openEndDrawer();
-                        if(datos.isNotEmpty){
-                          print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
-                          Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
-                        }
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Version'),
-                    dense: true,
-                    leading: Icon(Icons.assignment),
-                    onTap: () async {
-                    Principal.showVersion(context: context);
-                    },
-                  ),
-                  ListTile(
-                    title: Text('Cerrar sesion'),
-                    dense: true,
-                    leading: Icon(Icons.clear),
-                    onTap: () async {
-                      
-                      Principal.cerrarSesion(context);
-                    },
-                  )
-                ],
-              ),
-
-            ),
-          ),
-          appBar: MediaQuery.of(context).size.height > 630
-          ?
-          // _appBar(false)
-          PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
-            child: _appBar(false),
-          )
-          :
-          PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
-            child: _appBar(true),
-          ),
-          body: TabBarView(
-            children: <Widget>[
-              LayoutBuilder(
+  _myPrincipalScreen(){
+    
+    return LayoutBuilder(
                 builder:(context, BoxConstraints boxConstraints){ 
                   return ListView(
                     children: <Widget>[
@@ -1802,8 +1610,12 @@ AppBar _appBar(bool screenHeightIsSmall){
                     ],
                   );
                 }
-              ),
-              Column(
+              );
+              
+  }
+  
+  _myJugadasScreen(){
+    return Column(
                 children: <Widget>[
                   SizedBox(height: 8,),
                   SizedBox(
@@ -1832,7 +1644,233 @@ AppBar _appBar(bool screenHeightIsSmall){
                     },
                   ),
                 ],
+              );
+            
+  }
+  @override
+  build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // backgroundColor: Colors.white,
+        primarySwatch: Utils.colorMaterialCustom,
+        accentColor: Colors.pink,
+        // accentColor: Utils.fromHex("#F0807F")
+      ),
+      home: 
+      (_cargandoDatosSesionUsuario)
+      ?
+      SplashScreen()
+      :
+      DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            key: _scaffoldKey,
+          drawer: SafeArea(
+            child: Drawer(
+              child: 
+              ListView(
+                children: <Widget>[
+                  ListTile(
+                    title: FutureBuilder<Map<String, dynamic>>(
+                      future: futureBanca,
+                      builder: (context, snapshot){
+                        if(snapshot.hasData){
+                          return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                        }
+
+                        return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                      }
+                    ),
+                    subtitle: FutureBuilder<Map<String, dynamic>>(
+                      future: futureUsuario,
+                      builder: (context, snapshot){
+                        if(snapshot.hasData){
+                          return Text('${snapshot.data["servidor"]}');
+                        }
+
+                        return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                      }
+                    ),
+                    leading: Container(
+                      width: 30,
+                      height: 30,
+                      child:  ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            widthFactor: 0.75,
+                            heightFactor: 0.75,
+                            child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    onTap: () async {
+                      _cambiarServidor();
+                      _scaffoldKey.currentState.openEndDrawer();
+
+                    },
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerDashboard,
+                    child: ListTile(
+                      title: Text('Dashboard'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/dashboard");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoTransacciones,
+                    child: ListTile(
+                      title: Text('Transacciones'),
+                      leading: Icon(Icons.transfer_within_a_station),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/transacciones");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoMonitorearTicket,
+                    child: ListTile(
+                      title: Text('Monitoreo'),
+                      leading: Icon(Icons.donut_large),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/monitoreo");
+                      _scaffoldKey.currentState.openEndDrawer();},
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoManejarResultados,
+                    child: ListTile(
+                      title: Text('Registrar premios'),
+                      leading: Icon(Icons.format_list_numbered),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/registrarPremios");
+                      _scaffoldKey.currentState.openEndDrawer();},
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerHistoricoVentas,
+                    child: ListTile(
+                      title: Text('Historico ventas'),
+                      leading: Icon(Icons.timeline),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/historicoVentas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerVentas,
+                    child: ListTile(
+                      title: Text('Ventas'),
+                      leading: Icon(Icons.insert_chart),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/ventas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerListaDeBalancesDeBancass,
+                    child: ListTile(
+                      title: Text('Balance bancas'),
+                      leading: Icon(Icons.account_balance),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/balanceBancas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: Text('Pendientes de pago'),
+                    leading: Icon(Icons.attach_money),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/pendientesPago");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Duplicar'),
+                    leading: Icon(Icons.scatter_plot),
+                    dense: true,
+                    onTap: () async {
+                      Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
+                      _scaffoldKey.currentState.openEndDrawer();
+                      if(datos.isNotEmpty){
+                        await _duplicar(datos);
+                      }
+                      // print("prueba alertdialog: $prueba");
+                    },
+                  ),
+                  Visibility(
+                    visible: _tienePermisoMarcarTicketComoPagado,
+                    child: ListTile(
+                      title: Text("Pagar"),
+                      leading: Icon(Icons.payment),
+                      dense: true,
+                      onTap: () async {
+                        dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                        _scaffoldKey.currentState.openEndDrawer();
+                        if(datos.isNotEmpty){
+                          print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
+                          Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+                        }
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: Text('Version'),
+                    dense: true,
+                    leading: Icon(Icons.assignment),
+                    onTap: () async {
+                    Principal.showVersion(context: context);
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Cerrar sesion'),
+                    dense: true,
+                    leading: Icon(Icons.clear),
+                    onTap: () async {
+                      
+                      Principal.cerrarSesion(context);
+                    },
+                  )
+                ],
               ),
+
+            ),
+          ),
+          appBar: MediaQuery.of(context).size.height > 630
+          ?
+          // _appBar(false)
+          PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+            child: _appBar(false),
+          )
+          :
+          PreferredSize(
+            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
+            child: _appBar(true),
+          ),
+          body: TabBarView(
+            children: <Widget>[
+              _myPrincipalScreen(),
+              _myJugadasScreen()
             ],
           ),
         ),

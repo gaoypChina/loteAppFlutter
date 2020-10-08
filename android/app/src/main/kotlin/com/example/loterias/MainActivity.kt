@@ -29,21 +29,39 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-import kotlin.math.log
 
 class MainActivity: FlutterActivity() {
 //    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
 //        GeneratedPluginRegistrant.registerWith(flutterEngine);
 //    }
 
-
+    var dataNotification : HashMap<String, Any>? = null;
     private val CHANNEL = "flutter.loterias";
     lateinit var sink:EventSink;
     lateinit var bluetoothManager : BluetoothManager;
     lateinit var bluetoothManagerConnection : BluetoothManager;
 
+//    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+//        super.onCreate(savedInstanceState, persistentState)
+//        GeneratedPluginRegistrant.registerWith(this);
+//    }
+
+    fun getIntentData(intent: Intent){
+        val data = intent.getSerializableExtra("notificacion")
+        if(data != null)
+            dataNotification = data as HashMap<String, Any>
+        else
+            dataNotification = null
+
+        Log.e("AndroidNativeCode", "configureFlutterEngine onCreate intentData: " + data);
+    }
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        getIntentData(intent)
+
+
+        //https://flutter.dev/docs/get-started/flutter-for/android-devs#how-do-i-handle-incoming-intents-from-external-applications-in-flutter
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
             call, result ->
             // Note: this method is invoked on the main thread.
@@ -237,7 +255,7 @@ class MainActivity: FlutterActivity() {
             }
             intent.action = Intent.ACTION_RUN
             intent.putExtra("notificacion", notificacion)
-            intent.putExtra("route", route)
+//            intent.putExtra("route", route)
             Log.e("showNotification", "route: " + route);
             val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
             var builder = NotificationCompat.Builder(this, "com.example.loterias")
