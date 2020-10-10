@@ -320,7 +320,8 @@ Future<bool> _requestPermisionChannel() async {
         // print("sendNotification Pale: ${pales}");
         // print("sendNotification Tripletas: ${tripletas}");
 
-      String contenido = "${banca.descripcion}\n\n";
+      var u = await Db.getUsuario();
+      String contenido = "${banca.descripcion} ( ${u["usuario"]} )\n\n";
       if(directos.isNotEmpty)
         contenido += "Quinielas ( $cantidadDirectos )\n" + directos +"\n\n";
       if(pales.isNotEmpty)
@@ -401,9 +402,13 @@ Future<bool> _requestPermisionChannel() async {
   Future<void> _getDatosSessionUsuario() async {
     setState(() => _cargandoDatosSesionUsuario = true);
     bool seGuardaronLosDatosDeLaSesion = await Principal.mockCheckForSession(scaffoldKey: _scaffoldKey);
-    setState(() => _cargandoDatosSesionUsuario = false);
+    
     if(seGuardaronLosDatosDeLaSesion == false){
       Principal.cerrarSesion(context);
+      await manager.clearInstance(socketNotificaciones);
+      setState(() => _cargandoDatosSesionUsuario = false);
+    }else{
+      setState(() => _cargandoDatosSesionUsuario = false);
     }
   }
 
@@ -507,8 +512,10 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
     bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    if(permisoAccesoAlSistema == false)
+    if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
+      await manager.clearInstance(socketNotificaciones);
+    }
 
     setState((){
       _tienePermisoJugarComoCualquierBanca = permiso;
@@ -695,22 +702,30 @@ Future<bool> _requestPermisionChannel() async {
     socketNotificaciones.onConnect((data) async {
       print("socketNotificaciones connected...");
       print(data);
+      // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
     });
-    socket.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
+    socketNotificaciones.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       
       if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
-        print("Principalview NotificationEvent Mostrar notificacion");
-        MyNotification.show(route: "/notificaciones", title: parsed["titulo"], content: parsed["subtitulo"]);
+        var notificacion = Notificacion.fromMap(parsed["notification"]);
+        print("Principalview NotificationEvent Mostrar notificacion: ${notificacion.toJson()}");
+        MyNotification.show(route: "/notificaciones", title: notificacion.titulo, subtitle: notificacion.subtitulo, content: notificacion.contenido);
       }
       print("Principalview NotificationEvent: $parsed");
     });
+    socketNotificaciones.onConnectError((er) async {
+      print("onConnectError: $er");
+    });
+    socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
+    socketNotificaciones.connect();
   }
 
 _showIntentNotificationIfExists() async {
   var notificacion = await MyNotification.getIntentDataNotification();
-  print("_showIntentNotificationIfExists $notificacion");
+  
   if(notificacion != null){
+    print("_showIntentNotificationIfExists ${notificacion.toJson()}");
     Navigator.pushNamed(context, "/verNotificaciones", arguments: notificacion);
   }
 }
@@ -965,8 +980,8 @@ AppBar _appBar(bool screenHeightIsSmall){
           Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
             child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){
-              // Navigator.of(context).pushNamed('/notificaciones');
-              MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
+              Navigator.of(context).pushNamed('/notificaciones');
+              // MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
             }),
           ),
         // )
@@ -1857,6 +1872,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                     onTap: () async {
                       
                       Principal.cerrarSesion(context);
+                      await manager.clearInstance(socketNotificaciones);
                     },
                   )
                 ],

@@ -88,7 +88,7 @@ class Router {
           ) ;
         case '/verNotificaciones' :
           return MaterialPageRoute(
-            builder: (_)=> VerNotificacionScreen(settings.arguments)
+            builder: (_)=> VerNotificacionScreen(notificacion: settings.arguments,)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

@@ -86,6 +86,9 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
                 return ListTile(
                   title: Text(listaNotificacion[index].titulo, style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(listaNotificacion[index].subtitulo),
+                  onTap: (){
+                    Navigator.pushNamed(context, "/verNotificaciones", arguments: listaNotificacion[index]);
+                  },
                   // isThreeLine: true,
                 );
               },

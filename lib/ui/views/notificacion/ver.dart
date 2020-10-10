@@ -7,8 +7,8 @@ import 'package:loterias/core/services/notificationservice.dart';
 import 'package:rxdart/rxdart.dart';
 
 class VerNotificacionScreen extends StatefulWidget {
-    Map<String, dynamic> notificacion;
-  VerNotificacionScreen(notificacion);
+   final Notificacion notificacion;
+  VerNotificacionScreen({Key key, @required this.notificacion}) : super(key: key);
   @override
   _VerNotificacionScreenState createState() => _VerNotificacionScreenState();
 }
@@ -36,13 +36,14 @@ class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
   }
 
 
-// @override
-//   void initState() {
-//     // TODO: implement initState
-//     _streamController = BehaviorSubject();
-//     _init();
-//     super.initState();
-//   }
+@override
+  void initState() {
+    // TODO: implement initState
+    // _streamController = BehaviorSubject();
+    // _init();
+    print("VernotificacionScreen ${widget.notificacion}");
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,12 +84,15 @@ class _VerNotificacionScreenState extends State<VerNotificacionScreen> {
       ?
       Center(child: Text("No hay datos"),)
       :
-      ListView(
-        children: [
-          Text(widget.notificacion["titulo"], style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-          Text(widget.notificacion["subtitulo"], style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-          Text(widget.notificacion["contenido"])
-        ],
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView(
+          children: [
+            Text(widget.notificacion.titulo, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            Text(widget.notificacion.subtitulo, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+            Text(widget.notificacion.contenido)
+          ],
+        ),
       ),
     );
   }
