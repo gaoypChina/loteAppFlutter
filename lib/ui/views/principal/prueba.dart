@@ -13,13 +13,13 @@ import 'package:barcode_scan/barcode_scan.dart';
 
 
 
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+// import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_share_me/flutter_share_me.dart';
+// import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';

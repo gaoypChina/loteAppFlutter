@@ -5,6 +5,7 @@ import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/mynotification.dart';
+import 'package:loterias/core/classes/mysocket.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -18,16 +19,16 @@ import 'package:loterias/ui/login/login.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/principal/principalshimmerscreen.dart';
+import 'package:workmanager/workmanager.dart';
 
 
-
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+// import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_share_me/flutter_share_me.dart';
+// import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -48,8 +49,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart';
 
-
+void callbackDispatcher() {
+  Workmanager.executeTask((task, inputData) async {
+    print("Native called background task: "); //simpleTask will be emitted here.
+    await _PrincipalAppState.initSocketNoticacion();
+    return Future.value(true);
+  });
+}
 
 
 class PrincipalApp extends StatefulWidget {
@@ -62,6 +70,7 @@ class PrincipalApp extends StatefulWidget {
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
+  static int _socketNotificacionContadorErrores = 0;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _formLigarKey = GlobalKey<FormState>();
   bool _jugadaOmonto = true;
@@ -98,8 +107,8 @@ String _montoPrueba = '0';
   bool _tienePermisoVerHistoricoVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
   bool _tienePermisoTransacciones = false;
-  bool _tienePermisoAdministrador = false;
-  bool _tienePermisoProgramador = false;
+  static bool _tienePermisoAdministrador = false;
+  static bool _tienePermisoProgramador = false;
   StreamController<bool> _streamControllerBanca;
   StreamController<List<Loteria>> _streamControllerLoteria;
   StreamController<bool> _streamControllerVenta;
@@ -131,9 +140,33 @@ MaterialColor colorCustom = MaterialColor(0xFF0990D0, Utils.color);
 var _colorPrimary = Utils.fromHex("#1db7bd");
 var _colorSegundary = Utils.colorInfo;
 FocusNode focusNode;
-SocketIOManager manager;
+static SocketIOManager manager;
 SocketIO socket;
-SocketIO socketNotificaciones;
+static SocketIO socketNotificaciones;
+String initSocketNotificationTask = "initSocketNotificationTask";
+
+_initWorkManager(){
+  Workmanager.initialize(callbackDispatcher, isInDebugMode: true);
+  
+  Workmanager.registerOneOffTask(
+    "1",
+    initSocketNotificationTask, //This is the value that will be returned in the callbackDispatcher
+    // initialDelay: Duration(minutes: 5),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
+  );
+}
+  // Workmanager.initialize(callbackDispatcher);
+  // Workmanager.registerOneOffTask(
+  //   "1",
+  //   myTask, //This is the value that will be returned in the callbackDispatcher
+  //   initialDelay: Duration(minutes: 5),
+  //   constraints: WorkManagerConstraintConfig(
+  //     requiresCharging: true,
+  //     networkType: NetworkType.connected,
+  //   ),
+  // );
 
 Future<bool> _requestPermisionChannel() async {
     bool batteryLevel;
@@ -423,7 +456,10 @@ Future<bool> _requestPermisionChannel() async {
       _getPermisos();
       _getUsuarioYBanca();
       indexPost(true);
+      manager = SocketIOManager();
       initSocket();
+      // initSocketNoticacion();
+      _initWorkManager();
       futureBanca = Db.getBanca();
       futureUsuario = Db.getUsuario();
       _showIntentNotificationIfExists();
@@ -433,7 +469,10 @@ Future<bool> _requestPermisionChannel() async {
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
+        manager = SocketIOManager();
         initSocket();
+        // initSocketNoticacion();
+      _initWorkManager();
         futureBanca = Db.getBanca();
         futureUsuario = Db.getUsuario();
         _showIntentNotificationIfExists();
@@ -541,6 +580,13 @@ Future<bool> _requestPermisionChannel() async {
     initSocket();
   }
 
+  static Future _desconectarYConectarNuevamenteSocketNotificacion() async {
+    print("_desconectarYConectarNuevamente desconectar socket y conectar");
+    await manager.clearInstance(socketNotificaciones);
+    _socketNotificacionContadorErrores = 0;
+    initSocketNoticacion();
+  }
+
   initSocket() async {
     var builder = new JWTBuilder();
     var token = builder
@@ -557,7 +603,7 @@ Future<bool> _requestPermisionChannel() async {
   // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
-    manager = SocketIOManager();
+    // manager = SocketIOManager();
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
@@ -679,6 +725,34 @@ Future<bool> _requestPermisionChannel() async {
 
 
 
+    
+  }
+
+
+  //Socket notificacion
+  static initSocketNoticacion() async {
+    var builder = new JWTBuilder();
+    var token = builder
+      // ..issuer = 'https://api.foobar.com'
+      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+      ..getToken(); // returns token without signature
+
+    var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    var signedToken = builder.getSignedToken(signer);
+    print(signedToken); // prints encoded JWT
+    var stringToken = signedToken.toString();
+
+  // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
+    
+    // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
+    
+    
+
+
+
+print("Inside socketNotificaciones");
+
     socketNotificaciones = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
@@ -700,6 +774,7 @@ Future<bool> _requestPermisionChannel() async {
                       // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
         )); 
     socketNotificaciones.onConnect((data) async {
+      _socketNotificacionContadorErrores = 0;
       print("socketNotificaciones connected...");
       print(data);
       // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
@@ -715,10 +790,23 @@ Future<bool> _requestPermisionChannel() async {
       print("Principalview NotificationEvent: $parsed");
     });
     socketNotificaciones.onConnectError((er) async {
+      _socketNotificacionContadorErrores++;
+      if(_socketNotificacionContadorErrores == 4)
+        await _desconectarYConectarNuevamenteSocketNotificacion();
       print("onConnectError: $er");
+    });
+    socketNotificaciones.on("error", (data){   //sample event
+      print("onErrorNoti: $data");
+    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
+
+  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
+
+      // print(data);
     });
     socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
     socketNotificaciones.connect();
+
+    print("inside NotificationEvent:");
   }
 
 _showIntentNotificationIfExists() async {
@@ -979,8 +1067,9 @@ AppBar _appBar(bool screenHeightIsSmall){
         //   child: 
           Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
-            child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: (){
-              Navigator.of(context).pushNamed('/notificaciones');
+            child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: () async {
+              // Navigator.of(context).pushNamed('/notificaciones');
+              MySocket.connect(await Db.servidor());
               // MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
             }),
           ),

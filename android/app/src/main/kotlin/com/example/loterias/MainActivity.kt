@@ -126,7 +126,15 @@ class MainActivity: FlutterActivity() {
             "initChannelNotification" -> createNotificationChannel(call, result)
             "showNotification" -> showNotification(call, result)
             "getIntentDataNotification" -> getIntentDataNotification(call, result)
+            "mySocket" -> mySocket(call, result)
         }
+    }
+
+    fun mySocket(call:MethodCall, result:MethodChannel.Result ){
+        //IO, Main, Default
+        val room = call.argument<String>("room")
+        MySocket.connect(room!!);
+        result.success("Se conecto correctamente")
     }
 
     fun requestPermission(result:MethodChannel.Result){
