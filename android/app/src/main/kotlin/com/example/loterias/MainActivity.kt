@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
+import android.os.Handler
 import android.util.Base64
 import android.util.Log
 import androidmads.library.qrgenearator.QRGContents
@@ -15,8 +16,10 @@ import androidmads.library.qrgenearator.QRGEncoder
 import androidx.annotation.NonNull
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
+import com.loterias.jean2.creta.MyService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -59,6 +62,7 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
 
         getIntentData(intent)
+        mContext = context
 
 
         //https://flutter.dev/docs/get-started/flutter-for/android-devs#how-do-i-handle-incoming-intents-from-external-applications-in-flutter
@@ -127,13 +131,16 @@ class MainActivity: FlutterActivity() {
             "showNotification" -> showNotification(call, result)
             "getIntentDataNotification" -> getIntentDataNotification(call, result)
             "mySocket" -> mySocket(call, result)
+            "starService" -> starService(call, result)
+            "stopService" -> stopService(call, result)
         }
     }
 
     fun mySocket(call:MethodCall, result:MethodChannel.Result ){
         //IO, Main, Default
         val room = call.argument<String>("room")
-        MySocket.connect(room!!);
+        val url = call.argument<String>("url")
+        MySocket.connect(url!!, room!!);
         result.success("Se conecto correctamente")
     }
 
@@ -287,11 +294,67 @@ class MainActivity: FlutterActivity() {
 
     }
 
+    companion object{
+        lateinit var mContext:Context;
+        fun showNotificationNative(title:String, subtitle:String, content:String){
+
+            try {
+                val notificacion = HashMap<String, Any>()
+                notificacion["titulo"] = title!!;
+                notificacion["subtitulo"] = subtitle!!;
+                notificacion["contenido"] = content!!;
+                val intent = Intent(mContext, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                intent.action = Intent.ACTION_RUN
+                intent.putExtra("notificacion", notificacion)
+//            intent.putExtra("route", route)
+                val pendingIntent: PendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0)
+                var builder = NotificationCompat.Builder(mContext, "com.example.loterias")
+                        .setSmallIcon(R.drawable.ic_loteria)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setContentIntent(pendingIntent)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setAutoCancel(true)
+
+
+                with(NotificationManagerCompat.from(mContext)) {
+                    // notificationId is a unique int for each notification that you must define
+                    notify(123, builder.build())
+                }
+            }catch (e:Exception){
+                Log.e("errorNotificationNative",e.message);
+            }
+
+        }
+    }
+
     fun getIntentDataNotification(call:MethodCall, result:MethodChannel.Result ){
         try {
             result.success(dataNotification)
         }catch (e:Exception){
             result.error("errorNotification",e.message, e.message);
         }
+    }
+
+    private fun starService(call:MethodCall, result:MethodChannel.Result){
+        val room = call.argument<String>("room")
+        val url = call.argument<String>("url")
+        val intenservice = Intent(this, MyService::class.java)
+        intenservice.putExtra("room", room)
+        intenservice.putExtra("url", url)
+        Log.e("starServiceKotlin", "Antes de empezar el servico")
+//        Handler().postDelayed({ ContextCompat.startForegroundService(this, intenservice) }, 500)
+        ContextCompat.startForegroundService(this, intenservice)
+        Log.e("starServiceKotlin", "Despues de empezar el servico")
+//        startService(intenservice)
+        result.success("startService Correctly")
+    }
+
+    private fun stopService(call:MethodCall, result:MethodChannel.Result){
+        val intenservice = Intent(this, MyService::class.java)
+        stopService(intenservice)
+        result.success("stopService Correctly")
     }
 }

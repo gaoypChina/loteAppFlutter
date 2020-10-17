@@ -6,11 +6,12 @@ import com.github.nkzawa.socketio.client.IO
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import com.github.nkzawa.socketio.client.Socket;
+import org.json.JSONObject
 
 
 class MySocket {
     companion object{
-        fun connect(room:String){
+        fun connect(url:String, room:String){
             val opts = IO.Options();
 
 
@@ -21,7 +22,7 @@ class MySocket {
 //            opts.path = "/path/to/ws"
             opts.query = "auth_token=$jwt&room=$room"
             opts.transports = arrayOf(WebSocket.NAME)
-            val webSocket = IO.socket("http://loteriasdo.gq:3000", opts)
+            val webSocket = IO.socket(url, opts)
             webSocket.connect()
                     .on(Socket.EVENT_CONNECT) {
                         // Do your stuff here
@@ -30,7 +31,13 @@ class MySocket {
                     .on("notification:App\\Events\\NotificationEvent") { parameters -> // do something on recieving a 'foo' event
                         // 'parameters' is an Array of all parameters you sent
                         // Do your stuff here
-                        Log.d("MySocketKotlin", parameters[0].toString())
+//                        val jsonString = parameters[0] as String;
+                        val map = parameters[0] as JSONObject
+                        val notificacion = map.getJSONObject("notification");
+
+//                        Log.d("MySocketKotlin", )
+                        Log.d("MySocketKotlin", notificacion.getString("titulo"))
+                        MainActivity.showNotificationNative(notificacion.getString("titulo"), notificacion.getString("subtitulo"), notificacion.getString("contenido"))
                     }
                     .on(Socket.EVENT_CONNECT_ERROR){ parameters ->
                         Log.d("MySocketKotlin", "Error: " + parameters[1])

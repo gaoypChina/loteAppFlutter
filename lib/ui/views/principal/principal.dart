@@ -459,7 +459,7 @@ Future<bool> _requestPermisionChannel() async {
       manager = SocketIOManager();
       initSocket();
       // initSocketNoticacion();
-      _initWorkManager();
+      // _initWorkManager();
       futureBanca = Db.getBanca();
       futureUsuario = Db.getUsuario();
       _showIntentNotificationIfExists();
@@ -472,7 +472,7 @@ Future<bool> _requestPermisionChannel() async {
         manager = SocketIOManager();
         initSocket();
         // initSocketNoticacion();
-      _initWorkManager();
+      // _initWorkManager();
         futureBanca = Db.getBanca();
         futureUsuario = Db.getUsuario();
         _showIntentNotificationIfExists();
