@@ -49,16 +49,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:workmanager/workmanager.dart';
-
-void callbackDispatcher() {
-  Workmanager.executeTask((task, inputData) async {
-    print("Native called background task: "); //simpleTask will be emitted here.
-    await _PrincipalAppState.initSocketNoticacion();
-    return Future.value(true);
-  });
-}
-
 
 class PrincipalApp extends StatefulWidget {
   final bool callThisScreenFromLogin;
@@ -144,29 +134,6 @@ static SocketIOManager manager;
 SocketIO socket;
 static SocketIO socketNotificaciones;
 String initSocketNotificationTask = "initSocketNotificationTask";
-
-_initWorkManager(){
-  Workmanager.initialize(callbackDispatcher, isInDebugMode: true);
-  
-  Workmanager.registerOneOffTask(
-    "1",
-    initSocketNotificationTask, //This is the value that will be returned in the callbackDispatcher
-    // initialDelay: Duration(minutes: 5),
-    constraints: Constraints(
-      networkType: NetworkType.connected,
-    ),
-  );
-}
-  // Workmanager.initialize(callbackDispatcher);
-  // Workmanager.registerOneOffTask(
-  //   "1",
-  //   myTask, //This is the value that will be returned in the callbackDispatcher
-  //   initialDelay: Duration(minutes: 5),
-  //   constraints: WorkManagerConstraintConfig(
-  //     requiresCharging: true,
-  //     networkType: NetworkType.connected,
-  //   ),
-  // );
 
 Future<bool> _requestPermisionChannel() async {
     bool batteryLevel;
@@ -438,7 +405,7 @@ Future<bool> _requestPermisionChannel() async {
     
     if(seGuardaronLosDatosDeLaSesion == false){
       Principal.cerrarSesion(context);
-      await manager.clearInstance(socketNotificaciones);
+      await stopSocketNoticacionInForeground();
       setState(() => _cargandoDatosSesionUsuario = false);
     }else{
       setState(() => _cargandoDatosSesionUsuario = false);
@@ -459,7 +426,7 @@ Future<bool> _requestPermisionChannel() async {
       manager = SocketIOManager();
       initSocket();
       // initSocketNoticacion();
-      // _initWorkManager();
+      // initSocketNoticacionInForeground();
       futureBanca = Db.getBanca();
       futureUsuario = Db.getUsuario();
       _showIntentNotificationIfExists();
@@ -472,7 +439,7 @@ Future<bool> _requestPermisionChannel() async {
         manager = SocketIOManager();
         initSocket();
         // initSocketNoticacion();
-      // _initWorkManager();
+        // initSocketNoticacionInForeground();
         futureBanca = Db.getBanca();
         futureUsuario = Db.getUsuario();
         _showIntentNotificationIfExists();
@@ -553,7 +520,7 @@ Future<bool> _requestPermisionChannel() async {
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
-      await manager.clearInstance(socketNotificaciones);
+      await stopSocketNoticacionInForeground();
     }
 
     setState((){
@@ -570,6 +537,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
+      initSocketNoticacionInForeground();
     });
   }
 
@@ -728,6 +696,16 @@ Future<bool> _requestPermisionChannel() async {
     
   }
 
+  initSocketNoticacionInForeground() async {
+    print("Principal initSocketNoticacionInForeground: admin: $_tienePermisoAdministrador pro: $_tienePermisoProgramador");
+    if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true)
+      await MySocket.connect(await Db.servidor());
+  }
+
+  stopSocketNoticacionInForeground() async {
+    if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true)
+      await MySocket.disconnect();
+  }
 
   //Socket notificacion
   static initSocketNoticacion() async {
@@ -1961,7 +1939,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                     onTap: () async {
                       
                       Principal.cerrarSesion(context);
-                      await manager.clearInstance(socketNotificaciones);
+                      await stopSocketNoticacionInForeground();
                     },
                   )
                 ],

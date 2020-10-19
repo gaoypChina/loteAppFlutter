@@ -11,6 +11,7 @@ import org.json.JSONObject
 
 class MySocket {
     companion object{
+        lateinit var webSocket:Socket;
         fun connect(url:String, room:String){
             val opts = IO.Options();
 
@@ -22,7 +23,7 @@ class MySocket {
 //            opts.path = "/path/to/ws"
             opts.query = "auth_token=$jwt&room=$room"
             opts.transports = arrayOf(WebSocket.NAME)
-            val webSocket = IO.socket(url, opts)
+            webSocket = IO.socket(url, opts)
             webSocket.connect()
                     .on(Socket.EVENT_CONNECT) {
                         // Do your stuff here
@@ -37,11 +38,17 @@ class MySocket {
 
 //                        Log.d("MySocketKotlin", )
                         Log.d("MySocketKotlin", notificacion.getString("titulo"))
-                        MainActivity.showNotificationNative(notificacion.getString("titulo"), notificacion.getString("subtitulo"), notificacion.getString("contenido"))
+                        val ramdonId = (0..1000).random()
+                        MainActivity.showNotificationNative(notificacion.getString("titulo"), notificacion.getString("subtitulo"), notificacion.getString("contenido"), ramdonId)
                     }
                     .on(Socket.EVENT_CONNECT_ERROR){ parameters ->
                         Log.d("MySocketKotlin", "Error: " + parameters[1])
                     }
+        }
+
+        fun disconnect(){
+            if(webSocket != null)
+                webSocket.disconnect();
         }
     }
 }

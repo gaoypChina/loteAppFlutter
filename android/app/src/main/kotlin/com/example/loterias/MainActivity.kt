@@ -244,10 +244,20 @@ class MainActivity: FlutterActivity() {
                 val channel = NotificationChannel("com.example.loterias", name, importance).apply {
                     description = descriptionText
                 }
+
+                val channelForeground = NotificationChannel("com.example.loterias.foreground", name, importance).apply {
+                    description = descriptionText
+                }
+                channelForeground.setSound(null, null)
+
                 // Register the channel with the system
                 val notificationManager: NotificationManager =
                         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.createNotificationChannel(channel)
+
+                val notificationForegroundManager: NotificationManager =
+                        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationForegroundManager.createNotificationChannel(channelForeground)
             }
             result.success("mostrando notificacion")
         }catch (e:Exception){
@@ -296,7 +306,7 @@ class MainActivity: FlutterActivity() {
 
     companion object{
         lateinit var mContext:Context;
-        fun showNotificationNative(title:String, subtitle:String, content:String){
+        fun showNotificationNative(title:String, subtitle:String, content:String, id:Int){
 
             try {
                 val notificacion = HashMap<String, Any>()
@@ -321,7 +331,7 @@ class MainActivity: FlutterActivity() {
 
                 with(NotificationManagerCompat.from(mContext)) {
                     // notificationId is a unique int for each notification that you must define
-                    notify(123, builder.build())
+                    notify(id, builder.build())
                 }
             }catch (e:Exception){
                 Log.e("errorNotificationNative",e.message);

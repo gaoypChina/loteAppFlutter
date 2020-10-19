@@ -24,6 +24,7 @@ class MyService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        MySocket.disconnect();
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -35,11 +36,12 @@ class MyService : Service() {
 
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-        val builder = NotificationCompat.Builder(this, "com.example.loterias")
+        val builder = NotificationCompat.Builder(this, "com.example.loterias.foreground")
                 .setSmallIcon(R.drawable.ic_loteria)
                 .setContentTitle("Procesos internos")
                 .setContentText("Procesos internos del sistema")
                 .setContentIntent(pendingIntent)
+                .setSound(null)
 //                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 //                    .setAutoCancel(true)
                 .build()
