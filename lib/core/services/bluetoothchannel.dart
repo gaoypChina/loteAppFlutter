@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/loterias.dart';
 
 class BluetoothChannel{
   static const String TYPE_ORIGINAL = "ORIGINAL";
@@ -107,6 +108,8 @@ class BluetoothChannel{
         final bool result = await _methodChannel.invokeMethod("printText", {"data" : generateCuadre(map)});
         disconnect();
         print("Listen OnData print: $result");
+
+        // generateCuadre(map);
       },
       onError: (error){
         _connectado = false;
@@ -177,6 +180,168 @@ class BluetoothChannel{
     map[map.length] = _getMapNuevo(text:"neto:               ${mapCuadre["neto"]}\n");
     map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n\n\n\n");
     print("bluetooth channel cuadure: ${map.toString()}");
+    
+    
+    /****************** TOTALES POR LOTERIA ************************/
+    map[map.length] = _getMapNuevo(text:"LOTERIA VENTA COM. PRE. NETO\n");
+    String espacioHastaVenta = "        ";
+    String espacioHastaComision = espacioHastaVenta + "      ";
+    String espacioTercera = "                ";
+    String espacioPick3 = "                    ";
+    String espacioPick4 = "                        ";
+    String espacioTotal = "                           ";
+    int espaciosYaAgregados = 0; 
+    String textoAImprimir = "";
+    List<Loteria> listaLoteria = mapCuadre["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+    for(int i=0; i < listaLoteria.length; i++){
+      Loteria element = listaLoteria[i];
+      espaciosYaAgregados = 0; 
+      textoAImprimir = "";
+      map[map.length] = _getMapNuevo(text: element.abreviatura);
+      espaciosYaAgregados = element.abreviatura.length;
+
+      if(element.primera == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPrimera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPrimera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.primera;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.segunda == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioSegunda.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioSegunda.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.segunda;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.tercera == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioTercera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioTercera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.tercera;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.pick3 == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick3.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick3.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick3;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.pick4 == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick4.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick4.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick4;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      
+      map[map.length] = _getMapNuevo(text:"\n");
+      print("bluetoothChannel generateCuadre Loteria abreviatura: ${element.abreviatura} 1ra: ${element.primera} 2da: ${element.segunda} 3ra: ${element.tercera}");
+    }
+    
+    /****************** NUMEROS GANADORES ************************/
+    
+    map[map.length] = _getMapNuevo(text:"LOTERIA 1RA 2DA 3RA PI3 PI4\n");
+    String espacioPrimera = "        ";
+    String espacioSegunda = "            ";
+    String espacioTercera = "                ";
+    String espacioPick3 = "                    ";
+    String espacioPick4 = "                        ";
+    String espacioTotal = "                           ";
+    int espaciosYaAgregados = 0; 
+    String textoAImprimir = "";
+    List<Loteria> listaLoteria = mapCuadre["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+    for(int i=0; i < listaLoteria.length; i++){
+      Loteria element = listaLoteria[i];
+      espaciosYaAgregados = 0; 
+      textoAImprimir = "";
+      map[map.length] = _getMapNuevo(text: element.abreviatura);
+      espaciosYaAgregados = element.abreviatura.length;
+
+      if(element.primera == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPrimera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPrimera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.primera;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.segunda == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioSegunda.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioSegunda.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.segunda;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.tercera == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioTercera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioTercera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.tercera;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.pick3 == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick3.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick3.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick3;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element.pick4 == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick4.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick4.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick4;
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      
+      map[map.length] = _getMapNuevo(text:"\n");
+      print("bluetoothChannel generateCuadre Loteria abreviatura: ${element.abreviatura} 1ra: ${element.primera} 2da: ${element.segunda} 3ra: ${element.tercera}");
+    }
+
+
+
+
     return map;
   }
 

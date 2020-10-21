@@ -389,5 +389,16 @@ class  Utils {
   static tieneDecimales(var number){
     return (number.toString().indexOf(".") != -1) ? true : false;
   }
+
+  static quitarEspaciosAUnString({@required int tamanoString, @required int cantidadDeCaracteresAQuitar}){
+        // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
+        // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
+   String string = "";
+   //Creamos un string de espacios en blanco y su tamano sera igual a la variable tamanoString
+   //Si la variable tamanoString = 3 entonces la variable string tendra como valor 3 espacios
+   for(int i=0; i < tamanoString; i++)
+    string += " ";
+   return string.substring(0, tamanoString - cantidadDeCaracteresAQuitar);
+  }
   
 }
