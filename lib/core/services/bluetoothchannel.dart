@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
@@ -179,7 +180,7 @@ class BluetoothChannel{
     map[map.length] = _getMapNuevo(text:"descuentos:         ${mapCuadre["descuentos"]}\n");
     map[map.length] = _getMapNuevo(text:"premios:            ${mapCuadre["premios"]}\n");
     map[map.length] = _getMapNuevo(text:"neto:               ${mapCuadre["neto"]}\n");
-    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n\n\n\n");
+    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n");
     print("bluetooth channel cuadure: ${map.toString()}");
     
     
@@ -187,7 +188,10 @@ class BluetoothChannel{
     
     /****************** NUMEROS GANADORES ************************/
     map[map.length] = _getMapNuevo(cmd: CMD.center);
-    map[map.length] = _getMapNuevo(text:"LOTERIA 1RA 2DA 3RA PI3 PI4\n");
+    map[map.length] = _getMapNuevo(text: "Numeros Ganadores\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.left);
+
+    map[map.length] = _getMapNuevo(text:"LOTERIA 1RA 2DA 3RA PI3 PI4\n", cmd: CMD.p);
     String espacioPrimera = "        ";
     String espacioSegunda = "            ";
     String espacioTercera = "                ";
@@ -201,7 +205,7 @@ class BluetoothChannel{
       Loteria element = listaLoteria[i];
       espaciosYaAgregados = 0; 
       textoAImprimir = "";
-      map[map.length] = _getMapNuevo(text: element.abreviatura);
+      map[map.length] = _getMapNuevo(text: element.abreviatura, cmd: CMD.p);
       espaciosYaAgregados = element.abreviatura.length;
 
       if(element.primera == null){
@@ -211,7 +215,7 @@ class BluetoothChannel{
       }
       else{
         textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPrimera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.primera;
-        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
         espaciosYaAgregados += textoAImprimir.length;
       }
 
@@ -222,7 +226,7 @@ class BluetoothChannel{
       }
       else{
         textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioSegunda.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.segunda;
-        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
         espaciosYaAgregados += textoAImprimir.length;
       }
 
@@ -233,7 +237,7 @@ class BluetoothChannel{
       }
       else{
         textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioTercera.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.tercera;
-        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
         espaciosYaAgregados += textoAImprimir.length;
       }
 
@@ -244,7 +248,7 @@ class BluetoothChannel{
       }
       else{
         textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick3.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick3;
-        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
         espaciosYaAgregados += textoAImprimir.length;
       }
 
@@ -255,7 +259,7 @@ class BluetoothChannel{
       }
       else{
         textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioPick4.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element.pick4;
-        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
         espaciosYaAgregados += textoAImprimir.length;
       }
 
@@ -266,13 +270,17 @@ class BluetoothChannel{
 
 
     /****************** TOTALES POR LOTERIA ************************/
+    // map[map.length] = _getMapNuevo(cmd: CMD.center);
     map[map.length] = _getMapNuevo(text:"\n\n");
-    map[map.length] = _getMapNuevo(text:"LOTERIA   VENTA   COM.   PREMIOS   NETO\n", cmd: CMD.p);
-    String espacioHastaVenta = "          ";
-    String espacioHastaComision = espacioHastaVenta + "        ";
-    String espacioHastaPremio = espacioHastaComision + "       ";
-    String espacioHastaNeto = espacioHastaPremio + "          ";
-    espacioTotal = "                                       ";
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text: "Totales por loteria\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.left);
+    map[map.length] = _getMapNuevo(text:"LOTERIA VENT.  COM.  PREM.  NETO\n", cmd: CMD.p);
+    String espacioHastaVenta = "        ";
+    String espacioHastaComision = espacioHastaVenta + "       ";
+    String espacioHastaPremio = espacioHastaComision + "      ";
+    String espacioHastaNeto = espacioHastaPremio + "       ";
+    espacioTotal = "                                  ";
     espaciosYaAgregados = 0; 
     textoAImprimir = "";
     List lista = List.from(mapCuadre["loterias"]);
@@ -331,6 +339,53 @@ class BluetoothChannel{
       // print("bluetoothChannel generateCuadre Loteria abreviatura: ${element.abreviatura} 1ra: ${element.primera} 2da: ${element.segunda} 3ra: ${element.tercera}");
     }
 
+    /****************** TICKETS GANADORES ************************/
+    // map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text:"\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text: "Tickets ganadores\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.left);
+    map[map.length] = _getMapNuevo(text:"# TICKET  A PAGAR  FECHA\n", cmd: CMD.p);
+    String espacioHastaAPagar = "          ";
+    String espacioHastaFecha = espacioHastaAPagar + "         ";
+    espacioTotal = "                        ";
+    espaciosYaAgregados = 0; 
+    textoAImprimir = "";
+    List listaTicketGanadores = List.from(mapCuadre["ticketsGanadores"]);
+    for(int i=0; i < listaTicketGanadores.length; i++){
+      Map<String, dynamic> element = listaTicketGanadores[i];
+      espaciosYaAgregados = 0; 
+      textoAImprimir = "";
+      map[map.length] = _getMapNuevo(text: Utils.toSecuencia("", BigInt.from(element["idTicket"]), false), cmd: CMD.p);
+      espaciosYaAgregados =  Utils.toSecuencia("", BigInt.from(element["idTicket"]), false).length;
+
+      
+      if(element["montoAPagar"] == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioHastaAPagar.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioHastaAPagar.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + Utils.toCurrency(element["montoAPagar"]);
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+
+      if(element["fecha"] == null){
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioHastaFecha.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados);
+        map[map.length] = _getMapNuevo(text: textoAImprimir);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      else{
+        textoAImprimir = Utils.quitarEspaciosAUnString(tamanoString: espacioHastaFecha.length, cantidadDeCaracteresAQuitar: espaciosYaAgregados) + element["fecha"];
+        map[map.length] = _getMapNuevo(text: textoAImprimir, cmd: CMD.p);
+        espaciosYaAgregados += textoAImprimir.length;
+      }
+      
+      map[map.length] = _getMapNuevo(text:"\n");
+      // print("bluetoothChannel generateCuadre Loteria abreviatura: ${element.abreviatura} 1ra: ${element.primera} 2da: ${element.segunda} 3ra: ${element.tercera}");
+    }
+
     map[map.length] = _getMapNuevo(text:"\n\n");
 
     return map;
@@ -346,7 +401,9 @@ class BluetoothChannel{
     map[map.length] = _getMapNuevo(cmd: CMD.center);
     map[map.length] = _getMapNuevo(text:"${mapVenta["banca"]["descripcion"]}\n", cmd: CMD.h1);
     map[map.length] = _printTicketHeader(typeTicket);
-    map[map.length] = _getMapNuevo(text:"${mapVenta["fecha"]}\n", cmd: CMD.p);
+    // var fecha = DateTime.parse(mapVenta["created_at"]);
+    //${DateFormat('EEEE').format(fecha)} 
+    map[map.length] = _getMapNuevo(text:"${mapVenta["created_at"]}\n", cmd: CMD.p);
     map[map.length] = _getMapNuevo(text:"Ticket:" + Utils.toSecuencia(mapVenta["banca"]["codigo"], BigInt.from(mapVenta["idTicket"])) + "\n", cmd: CMD.p);
     map[map.length] = _getMapNuevo(text:"Fecha: ${mapVenta["fecha"]}\n", cmd: CMD.p);
     if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)

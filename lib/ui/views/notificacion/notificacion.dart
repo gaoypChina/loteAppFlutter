@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/services/notificationservice.dart';
@@ -84,8 +85,18 @@ class _NotificacionScreenState extends State<NotificacionScreen> {
               itemCount: listaNotificacion.length,
               itemBuilder: (context, index){
                 return ListTile(
+                  trailing: Text("${Jiffy(listaNotificacion[index].created_at).fromNow()}"),
+                  //Column(
+                  //   children: [
+                  //     Text("${Jiffy(listaNotificacion[index].created_at).fromNow()}"),
+                  //     FlatButton(child: Text("Ver"), onPressed: null,)
+                  //     // Text("${Utils.toDosDigitos(listaNotificacion[index].created_at.day.toString())}-${Utils.toDosDigitos(listaNotificacion[index].created_at.month.toString())}-${listaNotificacion[index].created_at.year}"),
+                  //     // Text("${Utils.toDosDigitos(listaNotificacion[index].created_at.hour.toString())}:${Utils.toDosDigitos(listaNotificacion[index].created_at.second.toString())}")
+                  //   ],
+                  // ),
                   title: Text(listaNotificacion[index].titulo, style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(listaNotificacion[index].subtitulo),
+                  isThreeLine: true,
                   onTap: (){
                     Navigator.pushNamed(context, "/verNotificaciones", arguments: listaNotificacion[index]);
                   },

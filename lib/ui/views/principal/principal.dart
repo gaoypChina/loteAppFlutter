@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
@@ -19,7 +20,6 @@ import 'package:loterias/ui/login/login.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/principal/principalshimmerscreen.dart';
-import 'package:workmanager/workmanager.dart';
 
 
 // import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -264,55 +264,68 @@ Future<bool> _requestPermisionChannel() async {
       int cantidadSuperpales = 0;
       int cantidadPick3 = 0;
       int cantidadPick4 = 0;
+      listaEstadisticaJugada.sort((a, b) => a.idLoteria.compareTo(b.idLoteria));
       for(int i=0; i < listaEstadisticaJugada.length; i++){
         print("sendNotification for: ${listaEstadisticaJugada[i].descripcionSorteo}");
         if(listaEstadisticaJugada[i].descripcionSorteo == "Directo"){
            cantidadDirectos = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaDirectos = listaJugadas.where((element) => element.sorteo == "Directo").toList();
+          List<Jugada> listaDirectos = listaJugadas.where((element) => element.sorteo == "Directo" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
            //Ordenamos los directos de menor a mayor
           listaDirectos.sort((a, b) => a.jugada.compareTo(b.jugada));
-          for(int i=0; i < listaDirectos.length; i++){
-            directos+= "${listaDirectos[i].jugada}\n";
+          for(int indexDirecto=0; indexDirecto < listaDirectos.length; indexDirecto++){
+            if(indexDirecto == 0)
+              directos+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            directos+= "${listaDirectos[indexDirecto].jugada}\n";
           }
         }
-        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pale"){
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Pale"){
           cantidadPales = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaPale = listaJugadas.where((element) => element.sorteo == "Pale").toList();
+          List<Jugada> listaPale = listaJugadas.where((element) => element.sorteo == "Pale" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
           listaPale.sort((a, b) => a.jugada.compareTo(b.jugada));
           for(int indexPale=0; indexPale < listaPale.length; indexPale++){
-            pales+= "${listaPale[indexPale].jugada}\n";
+            if(indexPale == 0)
+              pales+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            pales+= "${Utils.agregarSignoYletrasParaImprimir(listaPale[indexPale].jugada, listaEstadisticaJugada[i].descripcionSorteo)}\n";
           }
         }
-        else if(listaEstadisticaJugada[i].descripcionSorteo == "Tripleta"){
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Tripleta"){
           cantidadTripletas = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaTripleta = listaJugadas.where((element) => element.sorteo == "Tripleta").toList();
+          List<Jugada> listaTripleta = listaJugadas.where((element) => element.sorteo == "Tripleta" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
           listaTripleta.sort((a, b) => a.jugada.compareTo(b.jugada));
           for(int indexTripleta=0; indexTripleta < listaTripleta.length; indexTripleta++){
-            tripletas+= "${listaTripleta[indexTripleta].jugada}\n";
+            if(indexTripleta == 0)
+              tripletas+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            tripletas+= "${Utils.agregarSignoYletrasParaImprimir(listaTripleta[indexTripleta].jugada, listaEstadisticaJugada[i].descripcionSorteo)}\n";
           }
         }
-        else if(listaEstadisticaJugada[i].descripcionSorteo == "Super pale"){
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Super pale"){
           cantidadSuperpales = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaSuperpale = listaJugadas.where((element) => element.sorteo == "Super pale").toList();
+          List<Jugada> listaSuperpale = listaJugadas.where((element) => element.sorteo == "Super pale" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
           listaSuperpale.sort((a, b) => a.jugada.compareTo(b.jugada));
           for(int indexSuperpale=0; indexSuperpale < listaSuperpale.length; indexSuperpale++){
-            superPale+= "${listaSuperpale[indexSuperpale].jugada}\n";
+            if(indexSuperpale == 0)
+              superPale+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            superPale+= "${Utils.agregarSignoYletrasParaImprimir(listaSuperpale[indexSuperpale].jugada, listaEstadisticaJugada[i].descripcionSorteo)}\n";
           }
         }
-        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Straight"){
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 3 Straight"){
           cantidadPick3 = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaPick3 = listaJugadas.where((element) => element.sorteo == "Pick 3 Box" || element.sorteo == "Pick 3 Straight").toList();
+          List<Jugada> listaPick3 = listaJugadas.where((element) => (element.sorteo == "Pick 3 Box" || element.sorteo == "Pick 3 Straight") && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
           listaPick3.sort((a, b) => a.jugada.compareTo(b.jugada));
           for(int indexPick3=0; indexPick3 < listaPick3.length; indexPick3++){
-            pick3+= "${listaPick3[indexPick3].jugada}\n";
+            if(indexPick3 == 0)
+              pick3+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            pick3+= "${Utils.agregarSignoYletrasParaImprimir(listaPick3[indexPick3].jugada, listaEstadisticaJugada[i].descripcionSorteo)}\n";
           }
         }
-        else if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Straight"){
+        if(listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Box" || listaEstadisticaJugada[i].descripcionSorteo == "Pick 4 Straight"){
           cantidadPick4 = listaEstadisticaJugada[i].cantidad;
-          List<Jugada> listaPick4 = listaJugadas.where((element) => element.sorteo == "Pick 4 Box" || element.sorteo == "Pick 4 Straight").toList();
+          List<Jugada> listaPick4 = listaJugadas.where((element) => (element.sorteo == "Pick 4 Box" || element.sorteo == "Pick 4 Straight") && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
           listaPick4.sort((a, b) => a.jugada.compareTo(b.jugada));
           for(int indexPick4=0; indexPick4 < listaPick4.length; indexPick4++){
-            pick4+= "${listaPick4[indexPick4].jugada}\n";
+            if(indexPick4 == 0)
+              pick4+= "\n${listaEstadisticaJugada[i].descripcion} ${listaEstadisticaJugada[i].descripcionSorteo} ( ${listaEstadisticaJugada[i].cantidad} ) \n";
+            pick4+= "${Utils.agregarSignoYletrasParaImprimir(listaPick4[indexPick4].jugada, listaEstadisticaJugada[i].descripcionSorteo)}\n";
           }
         }
       }
@@ -321,19 +334,20 @@ Future<bool> _requestPermisionChannel() async {
         // print("sendNotification Tripletas: ${tripletas}");
 
       var u = await Db.getUsuario();
-      String contenido = "${banca.descripcion} ( ${u["usuario"]} )\n\n";
+      var fechaActual = DateTime.now();
+      String contenido = "${banca.descripcion} ( ${u["usuario"]} ) ${Utils.toDosDigitos(fechaActual.day.toString())}-${Utils.toDosDigitos(fechaActual.month.toString())}-${fechaActual.year} ${Utils.toDosDigitos(fechaActual.hour.toString())}:${Utils.toDosDigitos(fechaActual.second.toString())}\n\n";
       if(directos.isNotEmpty)
-        contenido += "Quinielas ( $cantidadDirectos )\n" + directos +"\n\n";
+        contenido += directos +"\n\n";
       if(pales.isNotEmpty)
-        contenido += "Pales ( $cantidadPales )\n" + pales +"\n\n";
+        contenido += pales +"\n\n";
       if(tripletas.isNotEmpty)
-        contenido += "Tripletas ( $cantidadDirectos )\n" + tripletas +"\n\n";
+        contenido += tripletas +"\n\n";
       if(superPale.isNotEmpty)
-        contenido += "Super pale ( $cantidadSuperpales )\n" + superPale +"\n\n";
+        contenido += superPale +"\n\n";
       if(pick3.isNotEmpty)
-        contenido += "Pick 3 ( $cantidadPick3 )\n" + pick3 +"\n\n";
+        contenido += pick3 +"\n\n";
       if(pick4.isNotEmpty)
-        contenido += "Pick 4 ( $cantidadPick4 )\n" + pick4 +"\n\n";
+        contenido += pick4 +"\n\n";
 
       print("sendNotification contenido: $contenido");
 
