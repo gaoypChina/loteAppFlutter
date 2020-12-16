@@ -703,6 +703,9 @@ class Principal{
  static version({Map<String, dynamic> version, BuildContext context}) async {
    PackageInfo packageInfo = await PackageInfo.fromPlatform();
    print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
+  if(version["urgente"] != 1)
+    return;
+    print("Principal.version: ${version}");
   if(packageInfo.buildNumber != version["version"]){
      Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
@@ -736,10 +739,10 @@ class Principal{
       await c.add("recordarme", false);
       await c.delete("usuario");
       await c.delete("password");
-      // Navigator.of(context).pushReplacement(
-      //   MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-      // );
-      Navigator.pushReplacementNamed(context, "/login");
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+      );
+      // Navigator.pushReplacementNamed(context, "/login");
     }
  }
 

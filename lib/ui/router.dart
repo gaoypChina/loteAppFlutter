@@ -19,7 +19,7 @@ import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
 
 
-class Router {
+class MyRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/' :

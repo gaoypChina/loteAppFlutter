@@ -99,7 +99,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: Center(child: Text("${DateFormat.yMd().add_jm().format(DateTime.parse(b["created_at"]["date"]))}", style: TextStyle(fontSize: 16))),
+                                        child: Center(child: Text("${DateFormat.yMd().add_jm().format(DateTime.parse(b["created_at"]))}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ]
                                   ),

@@ -12,6 +12,7 @@ import 'package:loterias/core/models/jugadas.dart';
 
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';

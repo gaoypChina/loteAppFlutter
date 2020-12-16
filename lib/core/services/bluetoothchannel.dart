@@ -167,6 +167,7 @@ class BluetoothChannel{
   static Map<int, dynamic> generateCuadre(Map<String, dynamic> mapCuadre){
     Map<int, dynamic> map = Map<int, dynamic>();
     map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text:"${mapCuadre["fecha"]}\n", cmd: CMD.h1);
     map[map.length] = _getMapNuevo(text:"Cuadre\n", cmd: CMD.h1);
     map[map.length] = _getMapNuevo(text:"${mapCuadre["banca"]["descripcion"]}\n", cmd: CMD.h1);
     map[map.length] = _getMapNuevo(cmd: CMD.left);

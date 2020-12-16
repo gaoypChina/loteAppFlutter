@@ -28,15 +28,24 @@ class Utils {
             val permisosCamara: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
             val permisosStorage: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
             //        int permisosSms = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.SEND_SMS);
-            val permisosLocation: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            val permisosLocationCoarse: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+//            val permisosLocation: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+//            val permisosLocationCoarse: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
 
 
             //|| permisosSms != PackageManager.PERMISSION_GRANTED
             //, Manifest.permission.SEND_SMS
-            if (permisosStorage != PackageManager.PERMISSION_GRANTED || permisosCamara != PackageManager.PERMISSION_GRANTED || permisosLocation != PackageManager.PERMISSION_GRANTED || permisosLocationCoarse != PackageManager.PERMISSION_GRANTED) {
+            if (permisosStorage != PackageManager.PERMISSION_GRANTED || permisosCamara != PackageManager.PERMISSION_GRANTED
+//                    || permisosLocation != PackageManager.PERMISSION_GRANTED
+//                    || permisosLocationCoarse != PackageManager.PERMISSION_GRANTED
+            ) {
                 //if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-                requestPermissions(context as Activity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_CODE_ASK_PERMISSION)
+                requestPermissions(context as Activity,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.CAMERA
+//                                ,
+//                                Manifest.permission.ACCESS_FINE_LOCATION,
+//                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        ), REQUEST_CODE_ASK_PERMISSION)
                 //}
             }
         }

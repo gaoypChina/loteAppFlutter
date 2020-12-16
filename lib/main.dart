@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         title: 'Product App',
         theme: ThemeData(),
-        onGenerateRoute: Router.generateRoute,
+        onGenerateRoute: MyRouter.generateRoute,
       );
     // );
   }

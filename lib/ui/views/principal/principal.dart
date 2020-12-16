@@ -1617,7 +1617,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                               icon: Icon(Icons.delete, color: Colors.red, size: 38,),
                                               onPressed: () async {
                                                 if(listaVenta.isNotEmpty){
-                                                  var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra);
+                                                  var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra, scaffoldKey: _scaffoldKey);
                                                   listaVenta.removeAt(_indexVenta);
                                                   _indexVenta = 0;
                                                   _streamControllerVenta.add(true);
@@ -3590,7 +3590,7 @@ _selectedBanca() async {
           }
         }
 
-query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
+// query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
         // print("Monto disponible blocksplaysgenrals: $query");
 
         if(montoDisponible == null){
@@ -3996,6 +3996,7 @@ Future quitarLoteriasCerradas()
       var fechaActualRd = tz.TZDateTime.now(santoDomingo);
       var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
       var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+      // print("principalview quitarLoteriasCerradas ${fechaFinalRd.hour} : ${fechaFinalRd.minute}");
       if(fechaFinalRd.isAfter(fechaLoteria)){
         if(!_tienePermisoJugarFueraDeHorario){
           if(_tienePermisoJugarMinutosExtras){

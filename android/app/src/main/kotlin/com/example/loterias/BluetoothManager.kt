@@ -46,9 +46,9 @@ class BluetoothManager : Activity {
                 val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
                 this.activity.registerReceiver(receiver, filter);
                 try {
-                    bluetoothAdapter.cancelDiscovery()
+//                    bluetoothAdapter.cancelDiscovery()
                     returnBondedDevice()
-                    bluetoothAdapter.startDiscovery();
+//                    bluetoothAdapter.startDiscovery();
 //                    val timer = object: CountDownTimer(20000, 1000) {
 //                        override fun onTick(millisUntilFinished: Long) {...}
 //
