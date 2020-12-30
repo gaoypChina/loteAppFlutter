@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/router.dart';
@@ -50,9 +51,15 @@ class MyApp extends StatelessWidget {
     //   child: 
       return MaterialApp(
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          // backgroundColor: Colors.white,
+          primarySwatch: Utils.colorMaterialCustom,
+          accentColor: Colors.pink,
+          // accentColor: Utils.fromHex("#F0807F")
+        ),
         initialRoute: '/',
         title: 'Product App',
-        theme: ThemeData(),
+        // theme: ThemeData(),
         onGenerateRoute: MyRouter.generateRoute,
       );
     // );

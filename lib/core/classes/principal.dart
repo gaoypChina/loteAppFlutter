@@ -739,10 +739,10 @@ class Principal{
       await c.add("recordarme", false);
       await c.delete("usuario");
       await c.delete("password");
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-      );
-      // Navigator.pushReplacementNamed(context, "/login");
+      // Navigator.of(context).pushReplacement(
+      //   MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+      // );
+      Navigator.pushReplacementNamed(context, "/login");
     }
  }
 

@@ -1147,7 +1147,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         child: DropdownButton(
                                               hint: Text('sel. banca'),
                                               // isExpanded: true,
-                                              value:  listaBanca[_indexBanca],
+                                              value: (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca],
                                               onChanged: (Banca banca){
                                                 setState(() {
                                                 _indexBanca = listaBanca.indexOf(banca); 
@@ -1167,7 +1167,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         return Padding(
                                           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                           child: DropdownButton(
-                                              hint: Text('Selec. banca'),
+                                              hint: Text('Sin datos...'),
                                               value:  'Sin datos',
                                               onChanged: (String banca){
                                                 setState(() {
@@ -1756,15 +1756,7 @@ AppBar _appBar(bool screenHeightIsSmall){
   }
   @override
   build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // backgroundColor: Colors.white,
-        primarySwatch: Utils.colorMaterialCustom,
-        accentColor: Colors.pink,
-        // accentColor: Utils.fromHex("#F0807F")
-      ),
-      home: 
+    return  
       (_cargandoDatosSesionUsuario)
       ?
       SplashScreen()
@@ -1982,8 +1974,9 @@ AppBar _appBar(bool screenHeightIsSmall){
             ],
           ),
         ),
-      ),
-    );
+      
+      );
+    
 
 
   }
