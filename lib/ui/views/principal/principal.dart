@@ -413,17 +413,19 @@ Future<bool> _requestPermisionChannel() async {
   
   
   Future<List<Banca>> _futureBanca;
-  Future<void> _getDatosSessionUsuario() async {
+  Future<bool> _getDatosSessionUsuario() async {
     setState(() => _cargandoDatosSesionUsuario = true);
     bool seGuardaronLosDatosDeLaSesion = await Principal.mockCheckForSession(scaffoldKey: _scaffoldKey);
-    
+    print("PrincipalScreen inside function seGuardaronLosDatosDeLaSesion: $seGuardaronLosDatosDeLaSesion");
     if(seGuardaronLosDatosDeLaSesion == false){
-      Principal.cerrarSesion(context);
+      await Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
       setState(() => _cargandoDatosSesionUsuario = false);
     }else{
       setState(() => _cargandoDatosSesionUsuario = false);
     }
+
+    return seGuardaronLosDatosDeLaSesion;
   }
 
   @override
@@ -445,8 +447,13 @@ Future<bool> _requestPermisionChannel() async {
       futureUsuario = Db.getUsuario();
       _showIntentNotificationIfExists();
     }else{
+      print("PrincipalScreen before _getDatosSessionUsuaro");
       _getDatosSessionUsuario().then((value){
-        _requestPermisionChannel();
+      print("PrincipalScreen _getDatosSessionUsuaro inside then function");
+       if(value == false)
+        return;
+
+         _requestPermisionChannel();
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
@@ -484,8 +491,15 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _getUsuarioYBanca() async {
-    _usuario = Usuario.fromMap(await Db.getUsuario());
-    _banca = Banca.fromMap(await Db.getBanca());
+    var usuario = await Db.getUsuario();
+    print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
+    if(usuario != null){
+      _usuario = Usuario.fromMap(usuario);
+      _banca = Banca.fromMap(await Db.getBanca());
+    }else{
+      await Principal.cerrarSesion(context);
+      print("PrincipalScreen _getUsuarioYBanca null: ${usuario}");
+    }
   }
 
    @override

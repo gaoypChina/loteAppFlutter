@@ -11,6 +11,7 @@ import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
+import 'package:loterias/ui/views/principal/probarnullsafety.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
@@ -26,6 +27,9 @@ class MyRouter {
         return  MaterialPageRoute(
           builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? settings.arguments : false,)
         );
+        // return  MaterialPageRoute(
+        //   builder: (_)=> ProbarNullSafety()
+        // );
       case '/prueba2' :
         return  MaterialPageRoute(
           builder: (_)=> Prueba2()

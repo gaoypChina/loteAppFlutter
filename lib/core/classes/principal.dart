@@ -24,6 +24,7 @@ import 'package:rxdart/rxdart.dart';
 class Principal{
   static Future<bool> mockCheckForSession({BuildContext context, scaffoldKey}) async{
     // await Future.delayed(Duration(milliseconds: 2000), (){});
+    // return false;
     var c = await DB.create();
     var value = await c.getValue("recordarme");
     if(value != null){
@@ -730,20 +731,24 @@ class Principal{
 
  static cerrarSesion(BuildContext context, [bool salir = true]) async {
    var c = await DB.create();
-    await c.delete("administrador");
-    await c.delete("apiKey");
-    await c.delete("tipoUsuario");
-    await Db.deleteDB();
-    if(salir){
-      await c.delete("banca");
-      await c.add("recordarme", false);
-      await c.delete("usuario");
-      await c.delete("password");
-      // Navigator.of(context).pushReplacement(
-      //   MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
-      // );
-      Navigator.pushReplacementNamed(context, "/login");
-    }
+   if(c != null){
+     await c.delete("administrador");
+      await c.delete("apiKey");
+      await c.delete("tipoUsuario");
+      await Db.deleteDB();
+      if(salir){
+        await c.delete("banca");
+        await c.add("recordarme", false);
+        await c.delete("usuario");
+        await c.delete("password");
+        // Navigator.of(context).pushReplacement(
+        //   MaterialPageRoute(builder: (BuildContext context) => LoginScreen())
+        // );
+        Navigator.pushReplacementNamed(context, "/login");
+      }
+   }
+   else
+    Navigator.pushReplacementNamed(context, "/login");
  }
 
  static seleccionarServidor(BuildContext context, List<Servidor> listaServidor, String servidorActual){

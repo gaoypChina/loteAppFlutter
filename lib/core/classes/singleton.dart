@@ -15,7 +15,7 @@ static DB _instance;
 static var _dir;
 static var _dbPath;
 static Database _db;
-static var _store;
+static StoreRef _store;
 // get the application documents directory
 
 
@@ -52,6 +52,16 @@ static var _store;
       // open the database
       _db = await databaseFactoryIo.openDatabase(_dbPath);
     }
+    else if(_db == null){
+      //  _instance = DB._internal();
+        _dir = await getApplicationDocumentsDirectory();
+      // make sure it exists
+      await _dir.create(recursive: true);
+      // build the database path
+       _dbPath = _dir.path + 'my_database.db';
+      // open the database
+      _db = await databaseFactoryIo.openDatabase(_dbPath);
+    }
 
     // Call the private constructor
     var component = DB._create();
@@ -75,14 +85,18 @@ static var _store;
 
   getValue(String key) async {
     try {
-      return await _store.record(key).get(_db) as dynamic;
+      var data = await _store.record(key).get(_db) as dynamic;
+      if(data != null)
+        return data;
+      else
+        return null;
     } catch (e) {
       return null;
     }
   }
 
   delete(String key) async {
-    return await _store.record(key).delete(_db);
+    return (_db != null) ? await _store.record(key).delete(_db) : false;
   }
 
   addList(String key, List<dynamic> s) async{
