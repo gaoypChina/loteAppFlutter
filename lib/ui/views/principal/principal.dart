@@ -1264,7 +1264,8 @@ AppBar _appBar(bool screenHeightIsSmall){
                                     decoration: BoxDecoration(
                                       border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
                                     ),
-                                    child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+                                    // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+                                    child: Center(child: _getSelectedLoteriaStream(),),
                                   ),
                                 ),
                               ),
@@ -2058,17 +2059,33 @@ void _getTime() {
     var convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone = _horaCierreLoteriaToCurrentTimeZone(loteria);
 
     //Formato de minutos
-    DateFormat format = DateFormat("mm");
+    DateFormat format = DateFormat("m");
     // int now = DateTime.now().millisecondsSinceEpoch;
     int now = DateTime.now().millisecondsSinceEpoch;
     Duration remaining = Duration(milliseconds: convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone.millisecondsSinceEpoch - now);
 
     String dateString = "";
-    if(remaining.inHours == 0){
-      return Text("${format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds))} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+    if(remaining.inHours == 0 && remaining.inMinutes > 0 ){
+      String formato = format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds));
+      // String formato = format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds));
+    print("_getLoteriaRemainingTime: ${remaining.inMinutes}");
+
+
+      // if(remaining.inMinutes > 0)
+        return Text("${remaining.inMinutes} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+      // else{
+      //   format = DateFormat("ss");
+      //   return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+      // }
     }
+    else if(remaining.inHours == 0 && remaining.inSeconds > 0)
+        return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+    else if(remaining.inHours <= 0 && remaining.inSeconds <= 0)
+        return Text("Cerrada", style: TextStyle(fontSize: 12, color: Colors.red));
     else{
       format = new DateFormat('hh:mm a');
+    print("Cerrado _getLoteriaRemainingTime: m:${remaining.inMinutes} s:${remaining.inSeconds}");
+
       // dateString = "${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}";
       return Text("${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}", style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)));
     }
@@ -2102,7 +2119,40 @@ void _getTime() {
       });
   }
 
-  
+  StreamBuilder _getSelectedLoteriaStream(){
+    
+
+    return StreamBuilder(
+      stream: Stream.periodic(Duration(seconds: 1), (i) => i),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        String dateString = "";
+        print(dateString);
+        if(_selectedLoterias == null)
+          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
+
+        if(_selectedLoterias.length > 1 || _selectedLoterias.length == 0)
+          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
+
+        return Column(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Text("${_selectedLoterias[0].descripcion}"),
+            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),
+            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
+            _getLoteriaRemainingTime(_selectedLoterias[0])
+          ],
+        );
+        // return ListTile(
+        //   title: Text("${loteria.descripcion}"),
+        //   subtitle: Text(dateString),
+        // );
+        // return Container(color: Colors.greenAccent.withOpacity(0.3),
+        //   alignment: Alignment.center,
+        //   child: Text(dateString),);
+      });
+  }
+
 
   void _showMultiSelect(BuildContext context) async {
     // final items = <MultiSelectDialogItem<int>>[
@@ -2144,7 +2194,8 @@ void _getTime() {
             return MultiSelectDialog(
               items: items,
               // initialSelectedValues: [1, 3].toSet(),
-              initialSelectedValues: initialSelectedValues,
+              // initialSelectedValues: initialSelectedValues,
+              initialSelectedValues: (_selectedLoterias != null) ? _selectedLoterias.map((l) => l.id).toSet() : null,
             );
           },
         );
@@ -2155,10 +2206,14 @@ void _getTime() {
     if(selectedValues != null){
       final selectedValuesMap = selectedValues.toList().asMap();
       for(int c=0; c < selectedValuesMap.length; c++){
-        _selectedLoterias.add(listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c]));
+        print("Principal selectedLoterias: ${ selectedValuesMap[c]}");
+        print("Principal selectedLoterias: ${ listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null)}");
+        Loteria data = listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null);
+        if(data != null)
+          _selectedLoterias.add(data);
       }
     }
-    print(_selectedLoterias.length);
+    // print(_selectedLoterias.length);
   }
 
   
@@ -4091,8 +4146,50 @@ Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
   return jugada;
 }
 
- 
+
+
+
 Future quitarLoteriasCerradas()
+{
+  try {
+      for(Loteria l in listaLoteria) {
+      
+      DateTime fechaLoteria = _horaCierreLoteriaToCurrentTimeZone(l);
+      DateTime now = DateTime.now();
+
+      if(now.isAfter(fechaLoteria)){
+        if(!_tienePermisoJugarFueraDeHorario){
+          if(_tienePermisoJugarMinutosExtras){
+            var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
+            if(now.isAfter(fechaLoteriaMinutosExtras)){
+              setState(() {
+                listaLoteria.remove(l);
+                _seleccionarPrimeraLoteria();
+              });
+
+            }
+          }
+          else{
+            setState(() {
+                listaLoteria.remove(l);
+              _seleccionarPrimeraLoteria();
+              });
+
+          }
+        }
+      }
+      // print("Detroit: ${now.toString()}");
+    }
+
+    _streamControllerLoteria.add(listaLoteria);
+  } catch (e) {
+  }
+  
+}
+
+
+
+Future quitarLoteriasCerradasViejo()
 {
   try {
       listaLoteria.forEach((l) {
@@ -4135,16 +4232,16 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
   List<int> listaIdloteriasAEliminar = List();
    listaLoteriaEvent.forEach((l) async {
     print("dentro foreach loterias: ${l.descripcion}");
-    var santoDomingo = tz.getLocation('America/Santo_Domingo');
-    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
-    var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
-    var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
-    if(fechaFinalRd.isAfter(fechaLoteria)){
+
+    DateTime fechaLoteria = _horaCierreLoteriaToCurrentTimeZone(l);
+    DateTime now = DateTime.now();
+
+    if(now.isAfter(fechaLoteria)){
       if(!_tienePermisoJugarFueraDeHorario){
       print("dentro foreach loterias eliminar: ${l.descripcion}");
         if(_tienePermisoJugarMinutosExtras){
           var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
-          if(fechaFinalRd.isAfter(fechaLoteriaMinutosExtras)){
+          if(now.isAfter(fechaLoteriaMinutosExtras)){
             // listaLoteriaEvent.remove(l);
             listaIdloteriasAEliminar.add(l.id);
           }
