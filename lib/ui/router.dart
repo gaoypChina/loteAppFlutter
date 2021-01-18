@@ -12,6 +12,7 @@ import 'package:loterias/ui/views/notificacion/ver.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/principal/probarnullsafety.dart';
+import 'package:loterias/ui/views/principal/probartiemporestante.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
@@ -29,6 +30,9 @@ class MyRouter {
         );
         // return  MaterialPageRoute(
         //   builder: (_)=> ProbarNullSafety()
+        // );
+        // return  MaterialPageRoute(
+        //   builder: (_)=> ProbarTiempoRestante()
         // );
       case '/prueba2' :
         return  MaterialPageRoute(

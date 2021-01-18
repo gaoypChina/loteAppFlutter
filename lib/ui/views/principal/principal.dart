@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/mynotification.dart';
@@ -71,6 +72,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<Jugada> listaJugadas = List<Jugada>();
   List<EstadisticaJugada> listaEstadisticaJugada = List<EstadisticaJugada>();
 
+String currentTimeZone;
 Future<String> _montoFuture;
 String _montoPrueba = '0';
   String _idVenta = null;
@@ -428,6 +430,10 @@ Future<bool> _requestPermisionChannel() async {
     return seGuardaronLosDatosDeLaSesion;
   }
 
+  _getCurrentTimeZone() async {
+    currentTimeZone = await FlutterNativeTimezone.getLocalTimezone();
+  }
+
   @override
   void initState() {
     SystemChrome.setPreferredOrientations([
@@ -435,6 +441,7 @@ Future<bool> _requestPermisionChannel() async {
         DeviceOrientation.portraitUp,
     ]);
     if(widget.callThisScreenFromLogin){
+      _getCurrentTimeZone();
       _requestPermisionChannel();
       _getPermisos();
       _getUsuarioYBanca();
@@ -452,7 +459,8 @@ Future<bool> _requestPermisionChannel() async {
       print("PrincipalScreen _getDatosSessionUsuaro inside then function");
        if(value == false)
         return;
-
+        
+        _getCurrentTimeZone();
          _requestPermisionChannel();
         _getPermisos();
         _getUsuarioYBanca();
@@ -1999,9 +2007,99 @@ void _getTime() {
     final DateTime now = DateTime.now();
     final String formattedDateTime = Utils.formatDateTime(now);
     setState(() {
+
       _timeString = formattedDateTime;
     });
     quitarLoteriasCerradas();
+  }
+
+  DateTime _convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone(Loteria loteria) {
+    var santoDomingo = tz.getLocation('America/Santo_Domingo');
+    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
+    // var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+
+    
+    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
+    // var currentTimeZoneFechaActual = tz.TZDateTime.now(currentTimeZoneLocation);
+    // var fechaLoteriaCurrentTimeZone = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre}");
+    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
+    print("_convertirHoraCierreLoteria currentTImeZone: $currentTimeZone");
+    print("hora actual currentTimeZone: ${fechaLoteriaCurrentTimeZone.toString()} santoDomingo: ${fechaLoteriaRD.toString()}");
+
+    return fechaLoteriaCurrentTimeZone;
+  }
+
+  DateTime _horaCierreLoteriaToCurrentTimeZone(Loteria loteria) {
+    var santoDomingo = tz.getLocation('America/Santo_Domingo');
+    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
+    
+    int horasASumar = (fechaLoteriaRD.hour - fechaActualRd.hour);
+    int minutosASumar = (fechaLoteriaRD.minute - fechaActualRd.minute);
+    int segundosARestar = fechaActualRd.second;
+    
+    var fechaLoteriaConvertidaAFormatoRD;
+    fechaLoteriaConvertidaAFormatoRD = fechaActualRd.add(Duration(hours: horasASumar, minutes: minutosASumar));
+    fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
+
+    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
+    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaConvertidaAFormatoRD, currentTimeZoneLocation);
+
+    return fechaLoteriaCurrentTimeZone;
+  }
+
+  Text _getLoteriaRemainingTime(Loteria loteria) {
+    
+
+    //Formato de minutos y segundos
+    // DateFormat format = DateFormat("mm:ss");
+
+    var convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone = _horaCierreLoteriaToCurrentTimeZone(loteria);
+
+    //Formato de minutos
+    DateFormat format = DateFormat("mm");
+    // int now = DateTime.now().millisecondsSinceEpoch;
+    int now = DateTime.now().millisecondsSinceEpoch;
+    Duration remaining = Duration(milliseconds: convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone.millisecondsSinceEpoch - now);
+
+    String dateString = "";
+    if(remaining.inHours == 0){
+      return Text("${format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds))} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+    }
+    else{
+      format = new DateFormat('hh:mm a');
+      // dateString = "${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}";
+      return Text("${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}", style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)));
+    }
+    dateString = '${remaining.inHours}:${format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds))}';
+    // return dateString;
+  }
+
+  StreamBuilder _getLoteriaStream(Loteria loteria){
+    
+
+    return StreamBuilder(
+      stream: Stream.periodic(Duration(seconds: 1), (i) => i),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        String dateString = "";
+        print(dateString);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("${loteria.descripcion}"),
+            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
+            _getLoteriaRemainingTime(loteria)
+          ],
+        );
+        return ListTile(
+          title: Text("${loteria.descripcion}"),
+          subtitle: Text(dateString),
+        );
+        return Container(color: Colors.greenAccent.withOpacity(0.3),
+          alignment: Alignment.center,
+          child: Text(dateString),);
+      });
   }
 
   
@@ -2041,7 +2139,7 @@ void _getTime() {
               lista.add(Loteria(descripcion: 'No hay datos', id: 0));
             }
             var items = lista.map((l){
-              return MultiSelectDialogItem(l.id, l.descripcion);
+              return MultiSelectDialogItem(l.id, _getLoteriaStream(l));
             }).toList();
             return MultiSelectDialog(
               items: items,

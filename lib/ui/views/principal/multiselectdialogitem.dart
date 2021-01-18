@@ -6,7 +6,7 @@ class MultiSelectDialogItem<V> {
   const MultiSelectDialogItem(this.value, this.label, {this.unSelectOthersItems = false});
 
   final V value;
-  final String label;
+  final dynamic label;
   final unSelectOthersItems;
 }
 
@@ -121,7 +121,7 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
     return CheckboxListTile(
       dense: true,
       value: checked,
-      title: Text(item.label),
+      title: (item.label is Widget) ? item.label : Text(item.label),
       controlAffinity: ListTileControlAffinity.leading,
       onChanged: (checked) => _onItemCheckedChange(item, checked),
     );
