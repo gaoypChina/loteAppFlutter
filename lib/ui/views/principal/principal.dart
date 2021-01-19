@@ -2057,18 +2057,22 @@ void _getTime() {
     // DateFormat format = DateFormat("mm:ss");
 
     var convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone = _horaCierreLoteriaToCurrentTimeZone(loteria);
+    if(_tienePermisoJugarMinutosExtras)
+      convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone = convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone.add(Duration(minutes: loteria.minutosExtras));
 
     //Formato de minutos
     DateFormat format = DateFormat("m");
     // int now = DateTime.now().millisecondsSinceEpoch;
     int now = DateTime.now().millisecondsSinceEpoch;
     Duration remaining = Duration(milliseconds: convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone.millisecondsSinceEpoch - now);
-
+    
+     
     String dateString = "";
+    // print("_getLoteriaRemainingTime: ${remaining.inHours} m:${remaining.inMinutes} s:${remaining.inSeconds}");
     if(remaining.inHours == 0 && remaining.inMinutes > 0 ){
       String formato = format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds));
       // String formato = format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds));
-    print("_getLoteriaRemainingTime: ${remaining.inMinutes}");
+    // print("_getLoteriaRemainingTime: ${remaining.inMinutes}");
 
 
       // if(remaining.inMinutes > 0)
@@ -2084,7 +2088,7 @@ void _getTime() {
         return Text("Cerrada", style: TextStyle(fontSize: 12, color: Colors.red));
     else{
       format = new DateFormat('hh:mm a');
-    print("Cerrado _getLoteriaRemainingTime: m:${remaining.inMinutes} s:${remaining.inSeconds}");
+    // print("Cerrado _getLoteriaRemainingTime: m:${remaining.inMinutes} s:${remaining.inSeconds}");
 
       // dateString = "${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}";
       return Text("${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}", style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)));
