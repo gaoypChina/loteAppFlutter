@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 
 //https://stackoverflow.com/questions/51975690/is-there-an-equivalent-widget-in-flutter-to-the-select-multiple-element-in-htm
 
@@ -119,6 +120,7 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
   Widget _buildItem(MultiSelectDialogItem<V> item) {
     final checked = _selectedValues.contains(item.value);
     return CheckboxListTile(
+      activeColor: Colors.blue,
       dense: true,
       value: checked,
       title: (item.label is Widget) ? item.label : Text(item.label),

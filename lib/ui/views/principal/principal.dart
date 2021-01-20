@@ -2247,9 +2247,10 @@ void _getTime() {
   Future<void> _escribir(String caracter) async {
     print("Hey: $caracter");
     if(caracter == '.'){
-      if(_txtJugada.text.isEmpty && listaJugadas.length >= 2)
+      if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
         _showLigarDialog();
-      return;
+        return;
+      }
     }
     // if(caracter == 'S'){
     //   if(_txtJugada.text.isEmpty && _selectedLoterias.length == 2)
@@ -2691,8 +2692,14 @@ void _getTime() {
   }
 
    ponerPuntoEnMonto(){
-    if(_txtMonto.text.indexOf('.') == -1){
-      _txtMonto.text = _txtMonto.text + '.';
+     if(_txtMontoPrimerCaracter){
+       _txtMonto.text = '.';
+       setState(() => _txtMontoPrimerCaracter = false);
+     }
+    else{
+      if(_txtMonto.text.indexOf('.') == -1){
+        _txtMonto.text = _txtMonto.text + '.';
+      }
     }
   }
 
