@@ -98,7 +98,7 @@ class BluetoothManager : Activity {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val action: String = intent.action
+            val action: String = intent.action!!
             when (action) {
                 BluetoothDevice.ACTION_FOUND -> {
                     val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)

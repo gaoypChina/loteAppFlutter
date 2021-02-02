@@ -323,7 +323,7 @@ class TicketService{
 
      if(parsed["errores"] == 1){
       print("Principal parsedDatos: ${parsed["mensaje"]}");
-      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: parsed["mensaje"]);
+      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: (parsed["mensaje"] != null) ? parsed["mensaje"] : "Error");
       throw Exception("Error Principal parsedDatos: ${parsed["mensaje"]}");
     }
 

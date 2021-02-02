@@ -211,7 +211,7 @@ class MainActivity: FlutterActivity() {
         val bmOverlay = Bitmap.createBitmap(bitmap1!!.width, bitmap1.height, bitmap1.config)
         val canvas = Canvas(bmOverlay)
         canvas.drawBitmap(bitmap1, 0f, 0f, null)
-        canvas.drawBitmap(bitmap2, 125f, bitmap1.height - 150.toFloat(), null)
+        canvas.drawBitmap(bitmap2!!, 125f, bitmap1.height - 150.toFloat(), null)
         return bmOverlay
     }
 

@@ -223,7 +223,7 @@ class  Utils {
 
  static showSnackBar({String content, scaffoldKey}){
     scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text(content),
+        content: Text("${content != null ? content : ''}",),
         elevation: 25,
         action: SnackBarAction(label: 'CERRAR', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar(),),
       ));
