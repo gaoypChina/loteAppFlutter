@@ -443,16 +443,17 @@ Future<bool> _requestPermisionChannel() async {
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
       _requestPermisionChannel();
+      indexPost(true);
       _getPermisos();
       _getUsuarioYBanca();
-      indexPost(true);
+      // indexPost(true);
       manager = SocketIOManager();
       initSocket();
-      // initSocketNoticacion();
-      // initSocketNoticacionInForeground();
+      // // initSocketNoticacion();
+      // // initSocketNoticacionInForeground();
       futureBanca = Db.getBanca();
       futureUsuario = Db.getUsuario();
-      _showIntentNotificationIfExists();
+      // _showIntentNotificationIfExists();
     }else{
       print("PrincipalScreen before _getDatosSessionUsuaro");
       _getDatosSessionUsuario().then((value){
@@ -573,7 +574,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
-      initSocketNoticacionInForeground();
+      // initSocketNoticacionInForeground();
     });
   }
 
@@ -1760,7 +1761,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                       },
                     ),
                   ),
-                  StreamBuilder(
+                  StreamBuilder<List<Jugada>>(
                     stream: _streamControllerJugada.stream,
                     builder: (context, snapshot){
                       if(snapshot.hasData){
@@ -1768,7 +1769,7 @@ AppBar _appBar(bool screenHeightIsSmall){
 
                         return _buildTable(listaJugadas);
                       }else{
-                        return _buildTable(List());
+                        return _buildTable([]);
                       }
                       
                     },
@@ -1993,6 +1994,7 @@ AppBar _appBar(bool screenHeightIsSmall){
           body: TabBarView(
             children: <Widget>[
               _myPrincipalScreen(),
+              // Center(child: Text("KLkl mi pana")),
               _myJugadasScreen()
             ],
           ),

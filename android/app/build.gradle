@@ -37,6 +37,12 @@ android {
         disable 'InvalidPackage'
     }
 
+    configurations {
+        all {
+            exclude group: 'org.json', module: 'json'
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
 //        applicationId "com.example.loterias"
@@ -74,6 +80,7 @@ dependencies {
     implementation 'androidmads.library.qrgenearator:QRGenearator:1.0.3'
     implementation 'androidx.core:core:1.0.0'
     implementation 'com.github.nkzawa:socket.io-client:0.6.0'
+    //noinspection DuplicatePlatformClasses
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'androidx.multidex:multidex:2.0.0'
 }

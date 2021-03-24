@@ -10,6 +10,7 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
+import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'dart:convert';
 
 import 'package:loterias/ui/views/principal/principal.dart';
@@ -76,6 +77,21 @@ _showSnackBar(String content){
     //   // )
     // );
     Navigator.pushReplacementNamed(context, "/principal", arguments: true);
+  }
+
+  _navigateToContact(){
+    // Navigator.pushNamed(context, "/contacto", arguments: true);
+    showModalBottomSheet(
+      context: context, 
+      shape:  RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(15),
+        ),
+      ),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+      return ContactoScreen();
+    });
   }
   
 
@@ -245,10 +261,15 @@ _showSnackBar(String content){
               flex: 3,
               child: Align(
                 alignment: Alignment.center,
-                child: Text(
-                  'Ha olvidado la contrasena?. Comuniquese con el administrador para reestablecerla', 
-                  style: TextStyle(color: Colors.grey, ),
-                  textAlign: TextAlign.center,
+                child: Wrap(
+                  children: [
+                    Text(
+                      'Desea registrarse o ha olvidado la contrasena?. Comuniquese con el administrador para reestablecerla.', 
+                      style: TextStyle(color: Colors.grey, ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Center(child: TextButton(onPressed: _navigateToContact, child: Text("Contacto")))
+                  ],
                 ),
               ),
             ),

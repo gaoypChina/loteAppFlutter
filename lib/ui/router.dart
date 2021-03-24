@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
@@ -93,6 +94,10 @@ class MyRouter {
         case '/notificaciones' :
           return MaterialPageRoute(
             builder: (_)=> NotificacionScreen()
+          ) ;
+        case '/contacto' :
+          return MaterialPageRoute(
+            builder: (_)=> ContactoScreen()
           ) ;
         case '/verNotificaciones' :
           return MaterialPageRoute(
