@@ -18,6 +18,8 @@ class Jugada {
   String abreviatura;
   String abreviaturaSuperpale;
   int status;
+  int cantidadVecesQueSeHaJugado;
+  int cantidadVecesQueHaSalido;
 
   Jugada({this.id, 
         this.idVenta, 
@@ -35,12 +37,14 @@ class Jugada {
         this.descripcionSuperpale, 
         this.abreviatura, 
         this.abreviaturaSuperpale, 
-        this.status
+        this.status,
+        this.cantidadVecesQueSeHaJugado,
+        this.cantidadVecesQueHaSalido,
       });
 
   Jugada.fromMap(Map snapshot) :
-        id = BigInt.from(snapshot['id']) ?? BigInt.from(0),
-        idVenta = BigInt.from(snapshot['idVenta']) ?? BigInt.from(0),
+        id = (snapshot['id'] != null) ? BigInt.from(snapshot['id']) : BigInt.from(0),
+        idVenta = (snapshot['idVenta'] != null) ? BigInt.from(snapshot['idVenta']) : BigInt.from(0),
         jugada = snapshot['jugada'] ?? '',
         idBanca = snapshot['idBanca'] ?? 0,
         idLoteria = snapshot['idLoteria'] ?? 0,
@@ -55,7 +59,9 @@ class Jugada {
         descripcionSuperpale = snapshot['descripcionSuperpale'] ?? '',
         abreviatura = snapshot['abreviatura'] ?? '',
         abreviaturaSuperpale = snapshot['abreviaturaSuperpale'] ?? '',
-        status = snapshot['status'] ?? 1;
+        status = snapshot['status'] ?? 1,
+        cantidadVecesQueSeHaJugado = snapshot['cantidadVecesQueSeHaJugado'] ?? null,
+        cantidadVecesQueHaSalido = snapshot['cantidadVecesQueHaSalido'] ?? null;
 
   toJson() {
     return {
@@ -74,6 +80,8 @@ class Jugada {
       "descripcion": descripcion,
       "descripcionSuperpale": descripcionSuperpale,
       "status": status,
+      "cantidadVecesQueSeHaJugado": cantidadVecesQueSeHaJugado,
+      "cantidadVecesQueHaSalido": cantidadVecesQueHaSalido,
     };
   }
 }

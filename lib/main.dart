@@ -39,6 +39,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+
+  static Locale myLocale;
   
   @override
   Widget build(BuildContext context) {
@@ -57,6 +59,10 @@ class MyApp extends StatelessWidget {
           accentColor: Colors.pink,
           // accentColor: Utils.fromHex("#F0807F")
         ),
+        localeResolutionCallback: (deviceLocale, supportedLocales){
+          myLocale = deviceLocale;
+          print("myLanguaCode: ${myLocale.languageCode}");
+        },
         initialRoute: '/',
         title: 'Product App',
         // theme: ThemeData(),

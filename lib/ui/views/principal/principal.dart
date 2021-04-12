@@ -98,6 +98,7 @@ String _montoPrueba = '0';
   bool _tienePermisoVerVentas = false;
   bool _tienePermisoVerHistoricoVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
+  bool _tienePermisoVerReporteJugadas = false;
   bool _tienePermisoTransacciones = false;
   static bool _tienePermisoAdministrador = false;
   static bool _tienePermisoProgramador = false;
@@ -554,6 +555,7 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoTransacciones = await Db.existePermiso("Manejar transacciones");
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
     bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+    bool permisoVerReporteJugadas  = await Db.existePermiso("Ver reporte jugadas");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
@@ -574,6 +576,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
+      _tienePermisoVerReporteJugadas = permisoVerReporteJugadas;
       // initSocketNoticacionInForeground();
     });
   }
@@ -1880,6 +1883,18 @@ AppBar _appBar(bool screenHeightIsSmall){
                       onTap: (){
                         Navigator.of(context).pushNamed("/registrarPremios");
                       _scaffoldKey.currentState.openEndDrawer();},
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerReporteJugadas,
+                    child: ListTile(
+                      title: Text('Reporte jugadas'),
+                      leading: Icon(Icons.receipt_long),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/reporteJugadas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
                     ),
                   ),
                   Visibility(

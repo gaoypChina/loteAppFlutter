@@ -4,10 +4,58 @@ import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'dart:convert';
+
+import 'package:loterias/core/models/loterias.dart';
 
 
 class ReporteService{
+
+   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, int limite = 20}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
+
+    map["retornarLoterias"] = retornarLoterias;
+    map["retornarSorteos"] = retornarSorteos;
+    map["fechaInicial"] = fechaInicial.toString();
+    map["fechaFinal"] = fechaFinal.toString();
+    map["sorteo"] = (sorteo != null) ? sorteo.toJson() : null;
+    map["loteria"] = (loteria != null) ? loteria.toJson() : null;
+    map["jugada"] = (jugada != null) ? jugada : null;
+    map["limite"] = limite;
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService historico: ${mapDatos.toString()}");
+    // return listaBanca;
+
+    var response = await http.post(Utils.URL + "/api/reportes/reporteJugadas", body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService historico: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Reporte jugadas", title: "Error");
+      else
+        Utils.showSnackBar(content: "Reporte jugadas", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ReporteService Reporte jugadas");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ReporteService historico: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
   
 
   static Future<List> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta}) async {
