@@ -194,11 +194,14 @@ class MainActivity: FlutterActivity() {
                 "prueba" -> bluetoothManagerConnection.prueba(m["text"] as String)
                 "h1" -> bluetoothManagerConnection.h1(m["text"] as String)
                 "h2" -> bluetoothManagerConnection.h2(m["text"] as String)
+                "textSizeDoubleWidth" -> bluetoothManagerConnection.textSizeDoubleWidth(m["text"] as String)
                 "p" -> bluetoothManagerConnection.p(m["text"] as String)
                 "left" -> bluetoothManagerConnection.left()
                 "right" -> bluetoothManagerConnection.right()
                 "center" -> bluetoothManagerConnection.center()
                 "qr" -> bluetoothManagerConnection.qr(m["text"] as String)
+                "textBoldOn" -> bluetoothManagerConnection.textBoldOn()
+                "textBoldOff" -> bluetoothManagerConnection.textBoldOff()
             }
         }
         CoroutineScope(Dispatchers.Main).launch {

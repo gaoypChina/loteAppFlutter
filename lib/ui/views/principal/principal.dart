@@ -100,6 +100,7 @@ String _montoPrueba = '0';
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
   bool _tienePermisoVerReporteJugadas = false;
   bool _tienePermisoTransacciones = false;
+  bool _tienePermisoVerAjustes = false;
   static bool _tienePermisoAdministrador = false;
   static bool _tienePermisoProgramador = false;
   StreamController<bool> _streamControllerBanca;
@@ -218,7 +219,7 @@ Future<bool> _requestPermisionChannel() async {
       setState(() => _cargando = true);
       var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
       
-      setState((){
+      setState(() {
          
         _idVenta = datos['idVenta'];
         listaBanca = datos["bancas"];
@@ -449,7 +450,7 @@ Future<bool> _requestPermisionChannel() async {
       _getUsuarioYBanca();
       // indexPost(true);
       manager = SocketIOManager();
-      initSocket();
+      // initSocket();
       // // initSocketNoticacion();
       // // initSocketNoticacionInForeground();
       futureBanca = Db.getBanca();
@@ -468,7 +469,7 @@ Future<bool> _requestPermisionChannel() async {
         _getUsuarioYBanca();
         indexPost(true);
         manager = SocketIOManager();
-        initSocket();
+        // initSocket();
         // initSocketNoticacion();
         // initSocketNoticacionInForeground();
         futureBanca = Db.getBanca();
@@ -556,7 +557,9 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
     bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
     bool permisoVerReporteJugadas  = await Db.existePermiso("Ver reporte jugadas");
+    bool permisoVerAjustes  = await Db.existePermiso("Ver ajustes");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
+    print("_getPermisos tiene permiso ver ajustes: $permisoVerAjustes");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -577,6 +580,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
       _tienePermisoVerReporteJugadas = permisoVerReporteJugadas;
+      _tienePermisoVerAjustes = permisoVerAjustes;
       // initSocketNoticacionInForeground();
     });
   }
@@ -1173,7 +1177,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         child: DropdownButton(
                                               hint: Text('sel. banca'),
                                               // isExpanded: true,
-                                              value: (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca],
+                                              value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
                                               onChanged: (Banca banca){
                                                 setState(() {
                                                 _indexBanca = listaBanca.indexOf(banca); 
@@ -1636,7 +1640,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                               onPressed: () async {
                                                 if(listaVenta.isNotEmpty){
                                                   var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
-                                                  BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA);
+                                                  BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA );
                                                 }
                                               },
                                             ),
@@ -1968,6 +1972,18 @@ AppBar _appBar(bool screenHeightIsSmall){
                           print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
                           Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
                         }
+                      },
+                    ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerAjustes,
+                    child: ListTile(
+                      title: Text('Ajustes'),
+                      leading: Icon(Icons.settings),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/ajustes");
+                        _scaffoldKey.currentState.openEndDrawer();
                       },
                     ),
                   ),

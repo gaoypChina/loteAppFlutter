@@ -4,6 +4,7 @@ import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
+import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
@@ -107,6 +108,10 @@ class MyRouter {
         case '/reporteJugadas' :
           return MaterialPageRoute(
             builder: (_)=> ReporteJugadasScreen()
+          ) ;
+        case '/ajustes' :
+          return MaterialPageRoute(
+            builder: (_)=> AjustesScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

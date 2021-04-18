@@ -6,4 +6,7 @@ class CMD{
   static const String right = "right";
   static const String center = "center";
   static const String qr = "qr";
+  static const String textBoldOn = "textBoldOn";
+  static const String textBoldOff = "textBoldOff";
+  static const String textSizeDoubleWidth = "textSizeDoubleWidth";
 }

@@ -340,6 +340,22 @@ class BluetoothManager : Activity {
             return false;
         }
     }
+
+    fun textSizeDoubleWidth(text: String) : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textSizeDoubleWidth)
+            os.write(text.toByteArray(), 0, text.toByteArray().size)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
     fun p(text: String) : Boolean {
         try {
             val os: OutputStream = mBluetoothSocket
@@ -392,6 +408,36 @@ class BluetoothManager : Activity {
                     .getOutputStream()
 
             os.write(CMD.textAlignRight)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun textBoldOn() : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textBoldOn)
+            os.flush()
+
+            return true;
+        } catch (var15: java.lang.Exception) {
+            Log.i("Pos", var15.toString())
+            return false;
+        }
+    }
+
+    fun textBoldOff() : Boolean {
+        try {
+            val os: OutputStream = mBluetoothSocket
+                    .getOutputStream()
+
+            os.write(CMD.textBoldOff)
             os.flush()
 
             return true;

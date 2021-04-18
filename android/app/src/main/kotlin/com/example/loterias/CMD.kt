@@ -8,6 +8,9 @@ class CMD{
         val textAlignLeft = byteArrayOf(0x1b, 0x61, 0x00)
         val textAlignCenter = byteArrayOf(0x1b, 0x61, 0x01)
         val textAlignRight = byteArrayOf(0x1b, 0x61, 0x02)
+        val textBoldOn = byteArrayOf(0x1b, 0x45, 0x01)
+        val textBoldOff = byteArrayOf(0x1b, 0x45, 0x00)
+        val textSizeDoubleWidth = byteArrayOf(0x1b, 0x21, 0x20)
 
         open fun qr(content: String): ByteArray? {
             val commands = HashMap<Any, Any>()

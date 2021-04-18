@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
@@ -123,6 +124,20 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     // BluetoothChannel.printText(content: "TE AMOOOO\n**MI REINA**\n\n\n", normalOPrueba: normalOPrueba);
   }
 
+  _negrita(){
+    // BluetoothChannel.printTextCmd(content: "**Negrita**\n\n\n", cmd: CMD.textBoldOn);
+    // BluetoothChannel.printTextCmd(content: "**Negrita**\n\n\n", cmd: CMD.h2);
+    Map<int, dynamic> map = Map<int, dynamic>();
+    map[map.length] = {"text" : "TP JUGADA MONTO\n", "cmd" : CMD.textBoldOn};
+    map[map.length] = {"text" : "TP JUGADA MONTO\n", "cmd" : CMD.h1};
+    map[map.length] = {"text" : "QU 09     1.00 \n\n\n", "cmd" : CMD.h1};
+    BluetoothChannel.printTextCmdMap(content: "TP JUGADA MONTO\n", map: map);
+  }
+  _normal(){
+    BluetoothChannel.printTextCmd(content: "**Normal**\n\n\n", cmd: CMD.textBoldOff);
+    BluetoothChannel.printTextCmd(content: "**Normal**\n\n\n", cmd: CMD.h2);
+  }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -219,6 +234,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: [
+            IconButton(icon: Icon(Icons.offline_bolt, color: Utils.colorPrimary,), onPressed: _negrita),
+            IconButton(icon: Icon(Icons.offline_bolt_outlined, color: Utils.colorPrimary), onPressed: _normal),
+          ],
         ),
         body: SafeArea(
           child: Center(

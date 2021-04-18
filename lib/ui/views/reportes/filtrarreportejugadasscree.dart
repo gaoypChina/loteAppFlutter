@@ -360,6 +360,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
               // style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Utils.colorPrimary)),)
           ],
         ),
+        
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),

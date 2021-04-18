@@ -37,6 +37,7 @@ class Db{
       await db.execute('CREATE TABLE Servers (id INTEGER PRIMARY KEY, descripcion TEXT, pordefecto INTEGER)');
       await db.execute('CREATE TABLE Blocksdirty (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksdirtygenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
+      await db.execute('CREATE TABLE Settings (id INTEGER PRIMARY KEY, consorcio TEXT, imprimirNombreConsorcio INTEGER, idTipoFormatoTicket INTEGER, descripcionTipoFormatoTicket Text)');
 
     });
   }
@@ -126,6 +127,24 @@ class Db{
 
   static Future deleteDB() async {
       await deleteDatabase(_path);
+  }
+
+  static Future<Map<String, dynamic>> ajustes() async {
+      var query = await database.query('Settings');
+      if(query.isEmpty){
+        return null;
+      }else{
+        return query.first;
+      }
+  }
+
+  static Future<String> tipoFormatoTicket() async {
+      var query = await database.query('Settings');
+      if(query.isEmpty){
+        return null;
+      }else{
+        return query.first["tipoFormatoTicket"];
+      }
   }
 
 }

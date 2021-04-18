@@ -11,13 +11,13 @@ import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/models/jugadas.dart';
 
 class  Utils {
-  // static final String URL = 'http://127.0.0.1:8000';
+  static final String URL = 'http://127.0.0.1:8000';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  static final String URL = 'https://loteriasdo.gq';
+  // static final String URL = 'https://loteriasdo.gq';
   static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
@@ -119,6 +119,10 @@ class  Utils {
     // return true;
   }
 
+  static Map<String, dynamic> parsedToJsonOrNot(dynamic responseBody) {
+    return (responseBody is String) ? json.decode(responseBody).cast<String, dynamic>() : responseBody;
+  }
+
   static Map<String, dynamic> parseDatosDynamic(dynamic responseBodyDynamic) {
     final parsed = responseBodyDynamic.cast<String, dynamic>();
     return parsed;
@@ -194,9 +198,21 @@ class  Utils {
     return jugada;
   }
 
-  static String agregarSignoYletrasParaImprimir(String jugada, String sorteo){
+  static String sorteoToDosLetras(String sorteo){
+    var arraySorteoSeparadoPorEspacios = sorteo.split(" ");
+    String dosLetras = (arraySorteoSeparadoPorEspacios.length > 1) ? arraySorteoSeparadoPorEspacios[0].substring(0, 1) + arraySorteoSeparadoPorEspacios[1].substring(0, 1) : arraySorteoSeparadoPorEspacios[0].substring(0, 1) + arraySorteoSeparadoPorEspacios[0].substring(1, 2);
+    dosLetras = dosLetras.toUpperCase();
+    if(dosLetras == "DI")
+      dosLetras = "QU";
+
+    return dosLetras;
+  }
+
+  static String agregarSignoYletrasParaImprimir(String jugada, String sorteo, [bool quitarGuionPaleTripleta = false]){
     switch(sorteo){
       case "Pale":
+      if(quitarGuionPaleTripleta)
+          return jugada;
         return jugada.substring(0, 2) + '-' + jugada.substring(2, 4);
         break;
       case "Pick 3 Box":
@@ -212,6 +228,8 @@ class  Utils {
         return jugada + "S";
         break;
       case "Tripleta":
+        if(quitarGuionPaleTripleta)
+          return jugada;
         return jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6);
         break;
       default:
@@ -292,6 +310,30 @@ class  Utils {
     var apiKey = await c.getValue("apiKey");
     print("Before error: $apiKey");
     var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+    var signedToken = builder.getSignedToken(signer);
+    //print(signedToken); // prints encoded JWT
+    var stringToken = signedToken.toString();
+
+    return stringToken;
+  }
+
+  static Future<String> createJwtForTest(Map<String, dynamic> data) async {
+    var builder = new JWTBuilder();
+    var token = builder
+      // ..issuer = 'https://api.foobar.com'
+      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+      ..setClaim('datosMovil', 
+      // {'id': 836, 'username' : "john.doe"}
+      data
+      )
+      ..getToken(); // returns token without signature
+
+    // var signer = new JWTHmacSha256Signer('culo');
+    // var c = await DB.create();
+    // var apiKey = await c.getValue("apiKey");
+    // print("Before error: $apiKey");
+    // var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+    var signer = new JWTHmacSha256Signer("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2");
     var signedToken = builder.getSignedToken(signer);
     //print(signedToken); // prints encoded JWT
     var stringToken = signedToken.toString();
@@ -381,10 +423,11 @@ class  Utils {
     return parDeNumeros[1] + parDeNumeros[0];
   }
 
-  static toCurrency(var number){
+  static toCurrency(var number, [quitarSignoDolar = false]){
     final formatCurrency = new NumberFormat.simpleCurrency();
     number = Utils.toDouble(number.toString());
-    return formatCurrency.format(number).replaceFirst(".00", "");
+    var data = formatCurrency.format(number).replaceFirst(".00", "");
+    return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
   }
 
   static tieneDecimales(var number){

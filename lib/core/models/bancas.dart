@@ -12,8 +12,14 @@ class Banca {
   String monedaColor;
   double descontar;
   double deCada;
+  int imprimirCodigoQr;
+  String piepagina1;
+  String piepagina2;
+  String piepagina3;
+  String piepagina4;
 
-  Banca({this.id, this.descripcion, this.codigo, this.status, this.idMoneda, this.moneda, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada});
+
+  Banca({this.id, this.descripcion, this.codigo, this.status, this.idMoneda, this.moneda, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.imprimirCodigoQr});
 
   Banca.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -25,7 +31,13 @@ class Banca {
         monedaAbreviatura = snapshot['monedaAbreviatura'] ?? '',
         monedaColor = snapshot['monedaColor'] ?? '',
         descontar = Utils.toDouble(snapshot['descontar'].toString()) ?? 0.0,
-        deCada = Utils.toDouble(snapshot['deCada'].toString()) ?? 0.0
+        deCada = Utils.toDouble(snapshot['deCada'].toString()) ?? 0.0,
+        imprimirCodigoQr = snapshot['imprimirCodigoQr'] ?? 1,
+        piepagina1 = snapshot['piepagina1'] ?? '',
+        piepagina2 = snapshot['piepagina2'] ?? '',
+        piepagina3 = snapshot['piepagina3'] ?? '',
+        piepagina4 = snapshot['piepagina4'] ?? ''
+
         ;
 
   toJson() {
@@ -40,6 +52,11 @@ class Banca {
       "monedaColor": monedaColor,
       "descontar": descontar,
       "deCada": deCada,
+      // "imprimirCodigoQr": imprimirCodigoQr,
+      "piepagina1": piepagina1,
+      "piepagina2": piepagina2,
+      "piepagina3": piepagina3,
+      "piepagina4": piepagina4,
     };
   }
 }

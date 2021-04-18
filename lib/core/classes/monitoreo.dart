@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -68,15 +69,16 @@ class Monitoreo{
                 child: Text("Imprimir"),
                 onPressed: () async {
 
-                  try{
+                  // try{
                     setState(() => _cargando = true);
                     var datos = await TicketService.buscarTicketAPagar(context: context, codigoBarra: venta.codigoBarra);
+                    print("Monitoreo classes showDialogCompartirTIcket: $datos");
                     await BluetoothChannel.printTicket(datos["venta"], BluetoothChannel.TYPE_COPIA);
                     setState(() => _cargando = false);
                     Navigator.pop(context);
-                  } on Exception catch(e){
-                    setState(() => _cargando = false);
-                  }
+                  // } on Exception catch(e){
+                  //   setState(() => _cargando = false);
+                  // }
 
                 },
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -78,6 +79,7 @@ class LoginService{
   static guardarDatos(Map<String, dynamic> parsed) async {
     Usuario u = Usuario.fromMap(parsed['usuario']);
     Banca b = Banca.fromMap(parsed['bancaObject']);
+    Ajuste a = Ajuste.fromMap(parsed['ajustes']);
     List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
     List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
 
@@ -88,6 +90,13 @@ class LoginService{
 
     await Db.insert('Users', u.toJson());
     await Db.insert('Branches', b.toJson());
+    await Db.insert("Settings", {
+      "id" : a.id, 
+      "consorcio" : a.consorcio,
+      "idTipoFormatoTicket" : a.tipoFormatoTicket.id,
+      "imprimirNombreConsorcio" : a.imprimirNombreConsorcio,
+      "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
+    });
     
     for(Permiso p in permisos){
       await Db.insert('Permissions', p.toJson());
@@ -96,5 +105,7 @@ class LoginService{
     for(Servidor s in servidores){
       await Db.insert('Servers', s.toJson());
     }
+
+
   }
 }
