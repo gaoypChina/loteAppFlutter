@@ -197,23 +197,23 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
             )
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: RaisedButton(
-                  elevation: 0,
-                  color: Utils.fromHex("#e4e6e8"),
-                  child: Text('Probar quick print', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
-                  onPressed: () async {
-                    await _connect(false);
-                  },
-              ),
-            ),
-          ),
-        ),
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: SizedBox(
+        //     width: double.infinity,
+        //     child: ClipRRect(
+        //         borderRadius: BorderRadius.circular(5),
+        //         child: RaisedButton(
+        //           elevation: 0,
+        //           color: Utils.fromHex("#e4e6e8"),
+        //           child: Text('Probar quick print', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
+        //           onPressed: () async {
+        //             await _connect(false);
+        //           },
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
@@ -234,10 +234,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          actions: [
-            IconButton(icon: Icon(Icons.offline_bolt, color: Utils.colorPrimary,), onPressed: _negrita),
-            IconButton(icon: Icon(Icons.offline_bolt_outlined, color: Utils.colorPrimary), onPressed: _normal),
-          ],
+          // actions: [
+          //   IconButton(icon: Icon(Icons.offline_bolt, color: Utils.colorPrimary,), onPressed: _negrita),
+          //   IconButton(icon: Icon(Icons.offline_bolt_outlined, color: Utils.colorPrimary), onPressed: _normal),
+          // ],
         ),
         body: SafeArea(
           child: Center(

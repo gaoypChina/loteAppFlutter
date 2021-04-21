@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/tipos.dart';
@@ -19,6 +20,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
   Ajuste _ajuste;
   Tipo _tipo;
   bool _imprimirNombreConsorcio = true;
+  bool _imprimirNombreBanca = true;
+  bool _cancelarTicketWhatsapp = false;
   
   Future _init() async{
     var parsed = await AjustesService.index(scaffoldKey: _scaffoldKey);
@@ -32,6 +35,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
     listaTipo = parsed["tipos"].map<Tipo>((e) => Tipo.fromMap(e)).toList();
     _tipo = (_ajuste != null) ? listaTipo.firstWhere((element) => element.id == _ajuste.tipoFormatoTicket.id) : listaTipo[0];
     _imprimirNombreConsorcio = (_ajuste != null) ? _ajuste.imprimirNombreConsorcio == 1 : true; 
+    _imprimirNombreBanca = (_ajuste != null) ? _ajuste.imprimirNombreBanca == 1 : true; 
+    _cancelarTicketWhatsapp = (_ajuste != null) ? _ajuste.cancelarTicketWhatsapp == 1 : true; 
   }
 
   _guardar() async {
@@ -40,6 +45,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
       _ajuste.consorcio = _txtConsorcio.text;
       _ajuste.tipoFormatoTicket = _tipo;
       _ajuste.imprimirNombreConsorcio = (_imprimirNombreConsorcio) ? 1 : 0;
+      _ajuste.imprimirNombreBanca = (_imprimirNombreBanca) ? 1 : 0;
+      _ajuste.cancelarTicketWhatsapp = (_cancelarTicketWhatsapp) ? 1 : 0;
       var parsed = await AjustesService.guardar(scaffoldKey: _scaffoldKey, ajuste: _ajuste);
       _ajuste = parsed;
       setState(() => _cargando = false);
@@ -110,6 +117,14 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   _imprimirNombreConsorcioChanged(value){
     setState(() => _imprimirNombreConsorcio = value);
+  }
+
+  _imprimirNombreBancaChanged(value){
+    setState(() => _imprimirNombreBanca = value);
+  }
+
+  _cancelarTicketWhatsappChanged(value){
+    setState(() => _cancelarTicketWhatsapp = value);
   }
 
   @override
@@ -219,6 +234,16 @@ class _AjustesScreenState extends State<AjustesScreen> {
                   leading: Icon(Icons.print_rounded),
                   title: Text("Imprimir consorcio"),
                   trailing: Switch(activeColor: Utils.colorPrimary, value: _imprimirNombreConsorcio, onChanged: _imprimirNombreConsorcioChanged),
+                ),
+                ListTile(
+                  leading: Icon(Icons.home_work_sharp),
+                  title: Text("Imprimir nombre banca"),
+                  trailing: Switch(activeColor: Utils.colorPrimary, value: _imprimirNombreBanca, onChanged: _imprimirNombreBancaChanged),
+                ),
+                ListTile(
+                  leading: FaIcon(FontAwesomeIcons.whatsapp),
+                  title: Text("Cancelar tickets WhatsApp"),
+                  trailing: Switch(activeColor: Utils.colorPrimary, value: _cancelarTicketWhatsapp, onChanged: _cancelarTicketWhatsappChanged),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),

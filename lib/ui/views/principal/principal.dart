@@ -8,6 +8,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -450,7 +451,7 @@ Future<bool> _requestPermisionChannel() async {
       _getUsuarioYBanca();
       // indexPost(true);
       manager = SocketIOManager();
-      // initSocket();
+      initSocket();
       // // initSocketNoticacion();
       // // initSocketNoticacionInForeground();
       futureBanca = Db.getBanca();
@@ -469,7 +470,7 @@ Future<bool> _requestPermisionChannel() async {
         _getUsuarioYBanca();
         indexPost(true);
         manager = SocketIOManager();
-        // initSocket();
+        initSocket();
         // initSocketNoticacion();
         // initSocketNoticacionInForeground();
         futureBanca = Db.getBanca();
@@ -711,6 +712,11 @@ Future<bool> _requestPermisionChannel() async {
       var parsed = data.cast<String, dynamic>();
       print("Principalview blocksdirty: $parsed");
       await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
+    });
+    socket.on("settings:App\\Events\\SettingsEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      Realtime.ajustes(parsed);
+      // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
     socket.on("error", (data){   //sample event
       print("onError: $data");

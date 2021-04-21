@@ -10,6 +10,7 @@ import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/blocksdirty.dart';
 import 'package:loterias/core/models/blocksdirtygenerals.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
@@ -451,6 +452,30 @@ class Realtime{
     }
   }
   
+
+  static ajustes(Map<String, dynamic> parsed) async {
+    print("Realtime AJustes SettingsEvent data: $parsed");
+      try {
+        if(parsed["settings"] != null){
+            Ajuste a = Ajuste.fromMap(parsed["settings"]);
+            await Db.database.delete("Settings");
+            await Db.insert("Settings", {
+              "id" : a.id, 
+              "consorcio" : a.consorcio,
+              "idTipoFormatoTicket" : a.tipoFormatoTicket.id,
+              "imprimirNombreConsorcio" : a.imprimirNombreConsorcio,
+              "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
+              "imprimirNombreBanca" : a.imprimirNombreBanca,
+              "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
+            });
+        
+          print("RealTime ajustes, se guardaron correctamente");
+        }
+      } on Exception catch (e) {
+        print("Error RealTime.ajustes: ${e.toString()}");
+      }
+  }
+
   static hello(){
     print('hola');
   }

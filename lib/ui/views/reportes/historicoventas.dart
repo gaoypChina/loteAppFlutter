@@ -234,16 +234,63 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   return Flexible(
       child: ListView(
       children: <Widget>[
+        // ListTile(
+        //   leading: CircleAvatar(child: Text("01", style: TextStyle(color: Colors.white),), backgroundColor: Colors.blue,),
+        //   title: Text("Banca1"),
+        //   subtitle: RichText(text: TextSpan(
+        //     style: TextStyle(color: Colors.grey),
+        //     children: [
+        //       TextSpan(text: "10,000 Comis."),
+        //       TextSpan(text: "  •  100 Desc."),
+        //       TextSpan(text: "  •  200,000 premios"),
+        //       TextSpan(text: "  •  200,000 Balance"),
+        //       TextSpan(text: "  •  1000,000 Balance mas ventas"),
+              
+        //     ]
+        //   )),
+        //   trailing: Text("\$30,000", style: TextStyle(color: Colors.green[700]),),
+        // ),
+        // ListTile(
+        //   leading: CircleAvatar(child: Text("02", style: TextStyle(color: Colors.white)), backgroundColor: Colors.red,),
+        //   title: Text("Banca2"),
+        //   subtitle: RichText(text: TextSpan(
+        //     style: TextStyle(color: Colors.grey),
+        //     children: [
+        //       TextSpan(text: "200 Comis."),
+        //       TextSpan(text: "  •  500 Desc."),
+        //       TextSpan(text: "  •  1,000 premios"),
+        //       TextSpan(text: "  •  200,000 Balance"),
+        //       TextSpan(text: "  •  1000,000 Balance mas ventas"),
+        //     ]
+        //   )),
+        //   trailing: Text("\$30,000", style: TextStyle(color: Colors.green[700]),),
+        // ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              columnWidths: <int, TableColumnWidth>{
-                // 1 : FractionColumnWidth(.12),
-                7 : FractionColumnWidth(.28)
-                },
-              children: rows,
-             ),
+          child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: 
+                DataTable(
+                  headingRowHeight: 36,
+                  headingTextStyle: TextStyle(color: Colors.white),
+                  headingRowColor: MaterialStateProperty.all(Utils.colorPrimary),
+                  columns: [DataColumn(label: Text("Banca",)), DataColumn(label: Text("Venta")), DataColumn(label: Text("Comis.")), DataColumn(label: Text("Desc.")), DataColumn(label: Text("Premios")), DataColumn(label: Text("Neto")), DataColumn(label: Text("Balance")), DataColumn(label: Text("Balance mas ventas"))],
+                  rows: map.asMap().map((idx, b)
+                    => MapEntry(
+                      idx,
+                      DataRow(cells: [DataCell(Text(b["descripcion"])), DataCell(Text("${Utils.toCurrency(b["ventas"])}")), DataCell(Text("${Utils.toCurrency(b["comisiones"])}")), DataCell(Text("${Utils.toCurrency(b["descuentos"])}")), DataCell(Text("${Utils.toCurrency(b["premios"])}")), DataCell(Text("${Utils.toCurrency(b["totalNeto"])}")), DataCell(Text("${Utils.toCurrency(b["balance"])}")), DataCell(Text("${Utils.toCurrency(b["balanceActual"])}"))])
+                    )
+                  ).values.toList()
+                ),
+              //   Table(
+              //   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              //   columnWidths: <int, TableColumnWidth>{
+              //     // 1 : FractionColumnWidth(.12),
+              //     7 : FractionColumnWidth(.28)
+              //     },
+              //   children: rows,
+              //  ),
+          ),
         ),
       ],
     ),

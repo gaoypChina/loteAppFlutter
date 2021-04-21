@@ -79,7 +79,7 @@ class LoginService{
   static guardarDatos(Map<String, dynamic> parsed) async {
     Usuario u = Usuario.fromMap(parsed['usuario']);
     Banca b = Banca.fromMap(parsed['bancaObject']);
-    Ajuste a = Ajuste.fromMap(parsed['ajustes']);
+    Ajuste a = (parsed['ajustes'] != null) ? Ajuste.fromMap(parsed['ajustes']) : null;
     List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
     List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
 
@@ -90,13 +90,17 @@ class LoginService{
 
     await Db.insert('Users', u.toJson());
     await Db.insert('Branches', b.toJson());
-    await Db.insert("Settings", {
-      "id" : a.id, 
-      "consorcio" : a.consorcio,
-      "idTipoFormatoTicket" : a.tipoFormatoTicket.id,
-      "imprimirNombreConsorcio" : a.imprimirNombreConsorcio,
-      "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
-    });
+    print("Loginservice guardarDatos: ${a.toJson()}");
+    if(a != null)
+      await Db.insert("Settings", {
+        "id" : a.id, 
+        "consorcio" : a.consorcio,
+        "idTipoFormatoTicket" : a.tipoFormatoTicket.id,
+        "imprimirNombreConsorcio" : a.imprimirNombreConsorcio,
+        "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
+        "imprimirNombreBanca" : a.imprimirNombreBanca,
+        "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
+      });
     
     for(Permiso p in permisos){
       await Db.insert('Permissions', p.toJson());

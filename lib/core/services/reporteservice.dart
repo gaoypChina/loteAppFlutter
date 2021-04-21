@@ -97,12 +97,13 @@ class ReporteService{
     return List.from(parsed["bancas"]);
   }
 
-  static Future<Map<String, dynamic>> ventas({BuildContext context, scaffoldKey, DateTime fecha, int idBanca}) async {
+  static Future<Map<String, dynamic>> ventas({BuildContext context, scaffoldKey, DateTime fecha, DateTime fechaFinal, int idBanca}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
     map["fecha"] = fecha.toString();
+    map["fechaFinal"] = fechaFinal.toString();
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
     map["servidor"] = await Db.servidor();

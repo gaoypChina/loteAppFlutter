@@ -9,6 +9,8 @@ class Ajuste {
   int imprimirNombreConsorcio;
   Tipo tipoFormatoTicket;
   String descripcionTipoFormatoTicket;
+  int cancelarTicketWhatsapp;
+  int imprimirNombreBanca;
 
   Ajuste({this.id, this.consorcio, this.imprimirNombreConsorcio, this.tipoFormatoTicket, this.descripcionTipoFormatoTicket});
 
@@ -18,7 +20,9 @@ class Ajuste {
         imprimirNombreConsorcio = snapshot['imprimirNombreConsorcio'] ?? 1,
         idTipoFormatoTicket = snapshot['idTipoFormatoTicket'] ?? null,
         tipoFormatoTicket = (snapshot['tipoFormatoTicket'] != null) ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipoFormatoTicket'])) : null,
-        descripcionTipoFormatoTicket = (snapshot['descripcionTipoFormatoTicket'] != null) ? snapshot["descripcionTipoFormatoTicket"] : ''
+        descripcionTipoFormatoTicket = (snapshot['descripcionTipoFormatoTicket'] != null) ? snapshot["descripcionTipoFormatoTicket"] : '',
+        cancelarTicketWhatsapp = snapshot['cancelarTicketWhatsapp'] ?? 1,
+        imprimirNombreBanca = snapshot['imprimirNombreBanca'] ?? 1
         // permisos = permisosToMap(snapshot['permisos']) ?? List()
         ;
 
@@ -31,7 +35,9 @@ class Ajuste {
       "imprimirNombreConsorcio": imprimirNombreConsorcio,
       "idTipoFormatoTicket": idTipoFormatoTicket,
       "tipoFormatoTicket": (tipoFormatoTicket != null) ? tipoFormatoTicket.toJson() : null,
-      "descripcionTipoFormatoTicket" : descripcionTipoFormatoTicket
+      "descripcionTipoFormatoTicket" : descripcionTipoFormatoTicket,
+      "cancelarTicketWhatsapp": cancelarTicketWhatsapp,
+      "imprimirNombreBanca": imprimirNombreBanca,
     };
   }
 }
