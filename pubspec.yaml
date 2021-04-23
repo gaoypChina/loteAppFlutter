@@ -45,6 +45,7 @@ dependencies:
   flutter_native_timezone: ^1.0.4
   unicons: ^2.0.1
   scrollable_positioned_list: ^0.1.10
+  horizontal_data_table: ^3.1.0
   flutter:
     sdk: flutter
 
