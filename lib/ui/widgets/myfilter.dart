@@ -5,7 +5,8 @@ class MyFilter extends StatefulWidget {
   final String title;
   final List<MyFilterData> data;
   final Function onDeleteAll;
-  MyFilter({Key key, @required this.title, @required this.data, @required this.onDeleteAll}) : super(key: key);
+  final EdgeInsets paddingContainer;
+  MyFilter({Key key, @required this.title, @required this.data, @required this.onDeleteAll, this.paddingContainer = const EdgeInsets.symmetric(vertical: 10, horizontal: 20)}) : super(key: key);
   @override
   _MyFilterState createState() => _MyFilterState();
 }
@@ -24,9 +25,12 @@ class _MyFilterState extends State<MyFilter> {
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text("${widget.title}", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+        Visibility(
+          visible: widget.title.isNotEmpty,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text("${widget.title}", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+          ),
         ),
         Row(
             children: [
@@ -45,6 +49,7 @@ class _MyFilterState extends State<MyFilter> {
                       children: widget.data.map((e) =>  Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: MyContainerButton(
+                          padding: widget.paddingContainer,
                           selected: false,
                           data: [e.value, e.text], 
                           icon: Icons.clear,

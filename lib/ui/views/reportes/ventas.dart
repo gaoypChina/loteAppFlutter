@@ -1376,24 +1376,6 @@ Widget _buildTableTicketsGanadores(List map){
                     ],
                   ),
                 );
-               
-                // return DropdownButtonHideUnderline(
-                //   child: ButtonTheme(
-                //     alignedDropdown: true,
-                //     child: DropdownButton(
-                //       items: (snapshot.hasData) ? listaLoteria.map((e) => DropdownMenuItem(child: Text(e.descripcion), value: e,)).toList() : []
-                //     ),
-                //   ),
-                  
-                //   );
-                // return MyDropdownButton(
-                //   isExpanded: false,
-                //   withScreenSize: false,
-                //   items: (snapshot.hasData) ? listaLoteria.map((e) => [e, e.descripcion]).toList() : [],
-                //   onChanged: (data){
-
-                //   },
-                // );
               },
             ),
             leading: BackButton(

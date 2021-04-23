@@ -29,13 +29,16 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List> _streamControllerHistorio;
-  List listaDinamicaBancas = List();
+  List listaDinamicaBancas = [];
   Map<String, dynamic> mapBancas;
   var _fechaInicial = DateTime.now();
   var _fechaFinal = DateTime.now();
   String _selectedOption = "Con ventas";
+  List<String> listaOpciones = ["Todos", "Con ventas", "Con premios", "Con tickets pendientes", "Sin ventas"];
   bool _cargando = false;
   DateFormat _dateFormat;
+  List<int> listaLimite = [20, 50, 80, 120];
+  int _limite = 20;
 
   @override
   initState(){
@@ -108,14 +111,15 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
 
   _historicoVentas() async {
     try{
-      setState(() => _cargando = true);
+      // setState(() => _cargando = true);
+      _streamControllerHistorio.add(null);
       _filtrarFecha();
-      listaDinamicaBancas = await ReporteService.historico(scaffoldKey: _scaffoldKey, fechaDesde: _fechaInicial, fechaHasta: _fechaFinal);
+      listaDinamicaBancas = await ReporteService.historico(scaffoldKey: _scaffoldKey, fechaDesde: _fechaInicial, fechaHasta: _fechaFinal, opcion: _selectedOption, limite: _limite);
       _streamControllerHistorio.add(listaDinamicaBancas);
       _filterTable();
-      setState(() => _cargando = false);
     } on Exception catch(e){
-      setState(() => _cargando = false);
+      _streamControllerHistorio.add([]);
+      
     }
   }
 
@@ -511,7 +515,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
 _getListaFiltro(){
     var mostrarFiltro = false;
     List<MyFilterData> lista = [];
-    if(_fecha == null){
+    if(_fecha == null || _limite != 20){
       
 
         
@@ -529,6 +533,21 @@ _getListaFiltro(){
             })
           );
 
+
+          if(_limite != 20)
+          lista.add(MyFilterData(
+            text: "$_limite filas", 
+            value: _limite, 
+            color: Colors.green[700],
+
+            onChanged: (data){
+              setState(() {
+                _limite = 20;
+                _historicoVentas();
+              });
+            })
+          );
+
        
     }else
       lista = [];
@@ -540,6 +559,7 @@ _getListaFiltro(){
     var fechaInicial = _fechaInicial;
     var fechaFinal = _fechaFinal;
     var fecha = _fecha;
+    var limite = _limite;
     var data = await showDialog(context: context, builder: (context){
       _back({sendData = false}){
         var map;
@@ -548,6 +568,7 @@ _getListaFiltro(){
             "fecha" : fecha,
             "fechaInicial" : fechaInicial,
             "fechaFinal" : fechaFinal,
+            "limite" : limite,
           };
 
         Navigator.pop(context, map);
@@ -647,7 +668,8 @@ _getListaFiltro(){
 
 
           return AlertDialog(
-            title: Text("Filtrar por fecha"),
+            title: Text("Filtrar"),
+            contentPadding: EdgeInsets.only(top: 8, bottom: 0, left: 24, right: 24),
             content: SingleChildScrollView(
               child: Column(
                 children: [
@@ -696,6 +718,31 @@ _getListaFiltro(){
                           onTap: _fechaFinalChanged,
                           title: Text("${_dateFormat != null ? _dateFormat.format(fechaFinal) : DateFormat('EEE, MMM d yyy').format(fechaFinal)}"),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Divider(thickness: 1,),
+                        ),
+                        ListTile(
+                          dense: true,
+                          leading: Icon(Icons.table_rows_rounded),
+                          onTap: _fechaFinalChanged,
+                          title: DropdownButtonHideUnderline(
+                            child: DropdownButton(
+                              value: limite,
+                              selectedItemBuilder: (context){
+                                return listaLimite.map((e) => Center(child: Text("$e filas a mostrar"))).toList();
+                              },
+                              items: listaLimite.map((e) => DropdownMenuItem(child: Text("$e"), value: e),).toList(),
+                              onChanged: (data){
+                                setState(() => limite = data);
+                              },
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Divider(thickness: 1,),
+                        ),
                         
                 ],
               ),
@@ -711,13 +758,14 @@ _getListaFiltro(){
     if(data == null)
       return;
 
-    if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"])
+    if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"])
       return;
 
     setState(() {
       _fechaInicial = data["fechaInicial"];
       _fechaFinal = data["fechaFinal"];
       _fecha = data["fecha"];
+      _limite = data["limite"];
 
       _historicoVentas();
     });
@@ -968,6 +1016,86 @@ _getListaFiltro(){
     );
   }
 
+    _opcionChanged(opcion){
+    setState((){
+        _selectedOption = opcion;
+        _historicoVentas();
+      });
+  }
+
+  _showBottomSheetBanca() async {
+    // if(_tienePermiso == false)
+    //   return;
+
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        _back(){
+              Navigator.pop(context);
+            }
+            opcionChanged(opcion){
+              setState(() => _selectedOption = opcion);
+              _opcionChanged(opcion);
+              _back();
+            }
+        return Container(
+              height: MediaQuery.of(context).size.height / 1.3,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: listaOpciones.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _selectedOption == listaOpciones[index],
+                          onChanged: (data){
+                            opcionChanged(listaOpciones[index]);
+                          },
+                          title: Text("${listaOpciones[index]}"),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          
+      }
+  );
+    // if(data != null)
+    //   setState((){
+    //     _loteria = data;
+    //     _filtrar();
+    //   });
+  }
+
+ _deleteAllFilter(){
+    setState(() {
+      if(_fecha == null)
+        _fecha = MyDate.hoy;
+
+      if(_limite != 20)
+        _limite = 20;
+
+      _historicoVentas();
+    });
+  }
+
+
+  
 
 
   @override
@@ -975,75 +1103,233 @@ _getListaFiltro(){
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Historico ventas", style: TextStyle(color: Colors.black),),
+        title: GestureDetector(
+        onTap: _showBottomSheetBanca,
+        child: Row(
+            children: [
+              Text("${_selectedOption != null ? _selectedOption : 'No hay opcion'}", style: TextStyle(color: Colors.black),),
+              Icon(Icons.arrow_drop_down, color: Colors.black54,)
+            ],
+          ),
+        ),
         leading: BackButton(
           color: Utils.colorPrimary,
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: Visibility(
-                    visible: _cargando,
-                    child: Theme(
-                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                      child: new CircularProgressIndicator(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, right: 40),
-            child: DropdownButton<String>(
-              value: _selectedOption,
-              items: [
-                DropdownMenuItem(value: "Todos", child: Text("Todos"),),
-                DropdownMenuItem(value: "Con ventas", child: Text("Con ventas"),),
-                DropdownMenuItem(value: "Con premios", child: Text("Con premios"),),
-                DropdownMenuItem(value: "Con tickets pendientes", child: Text("Con tickets pendientes"),),
-              ],
-              onChanged: (String data){
-                setState(()
-                  { 
-                    _selectedOption = data;
-                    _filterTable();
-                  }
-                );
-                
-              },
-            ),
-          )
+              IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
         ],
       ),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              
+        child: Column(
+          children: [
+             _getListaFiltro().length == 0
+                      ?
+                      Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+                              child: Icon(Icons.date_range, color: Colors.grey,),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: 
+                                  Row(
+                                    children: MyDate.listaFechaLarga.map((e) =>  Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: MyContainerButton(
+                                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                                        selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+                                        setState((){
+                                          print("_build fecha: ${e[1]}");
+                                          _fecha = e[0];
+                                          _historicoVentas();
+                                        });
+                                      },),
+                                    )).toList(),
+                                  )
+                                  
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      :
+                      MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter, paddingContainer: EdgeInsets.symmetric(vertical: 8, horizontal: 15),),
+            Flexible(
+              child: StreamBuilder<List>(
+                    stream: _streamControllerHistorio.stream,
+                    builder: (context, snapshot) {
+                      if(snapshot.data == null)
+                        return Center(child: CircularProgressIndicator(),);
+
+                      if(snapshot.hasData && snapshot.data.length == 0 && listaDinamicaBancas.length > 0)
+                        return Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),);
+
+                      return _getBodyWidget(snapshot.data);
+
+                      // return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
+                    }
+                  ),
             ),
-             StreamBuilder<List>(
-              stream: _streamControllerHistorio.stream,
-              builder: (context, snapshot) {
-                if(snapshot.data == null)
-                  return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
-
-                if(snapshot.hasData && snapshot.data.length == 0 && listaDinamicaBancas.length > 0)
-                  return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
-
-                return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
-              }
-            )
           ],
         )
+          
+        // CustomScrollView(
+        //   slivers: [
+        //     // SliverAppBar(
+        //     //   backgroundColor: Colors.white,
+        //     //   title: GestureDetector(
+        //     //   onTap: _showBottomSheetBanca,
+        //     //   child: Row(
+        //     //       children: [
+        //     //         Text("${_selectedOption != null ? _selectedOption : 'No hay opcion'}", style: TextStyle(color: Colors.black),),
+        //     //         Icon(Icons.arrow_drop_down, color: Colors.black54,)
+        //     //       ],
+        //     //     ),
+        //     //   ),
+        //     //   leading: BackButton(
+        //     //     color: Utils.colorPrimary,
+        //     //   ),
+        //     //   // expandedHeight: 110,
+        //     // // floating: true,
+        //     // // pinned: true, 
+            
+        //     // // FlexibleSpaceBar(
+        //     // //   // alignment: Alignment.bottomRight,
+        //     // //   background: Column(
+        //     // //     mainAxisAlignment: MainAxisAlignment.end,
+        //     // //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     // //     children: [
+        //     // //       // Padding(
+        //     // //       //   padding: const EdgeInsets.all(8.0),
+        //     // //       //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+        //     // //       // ),
+        //     // //       _getListaFiltro().length == 0
+        //     // //       ?
+        //     // //       Row(
+        //     // //           children: [
+        //     // //             Padding(
+        //     // //               padding: const EdgeInsets.all(8.0),
+        //     // //               // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+        //     // //               child: Icon(Icons.date_range, color: Colors.grey,),
+        //     // //             ),
+        //     // //             Expanded(
+        //     // //               child: Padding(
+        //     // //                 padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+        //     // //                 child: SingleChildScrollView(
+        //     // //                   scrollDirection: Axis.horizontal,
+        //     // //                   child: 
+        //     // //                   Row(
+        //     // //                     children: MyDate.listaFechaLarga.map((e) =>  Padding(
+        //     // //                       padding: const EdgeInsets.all(4.0),
+        //     // //                       child: MyContainerButton(
+        //     // //                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+        //     // //                         selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+        //     // //                         setState((){
+        //     // //                           print("_build fecha: ${e[1]}");
+        //     // //                           _fecha = e[0];
+        //     // //                           _historicoVentas();
+        //     // //                         });
+        //     // //                       },),
+        //     // //                     )).toList(),
+        //     // //                   )
+                              
+        //     // //                 ),
+        //     // //               ),
+        //     // //             ),
+        //     // //           ],
+        //     // //         )
+        //     // //       :
+        //     // //       Padding(
+        //     // //         padding: const EdgeInsets.only(bottom: 8.0),
+        //     // //         child: MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+        //     // //       ),
+                  
+                  
+        //     // //     ],
+        //     // //   ),
+            
+        //     // // ),
+            
+        //     // ),
+             
+        //      StreamBuilder<List>(
+        //       stream: _streamControllerHistorio.stream,
+        //       builder: (context, snapshot) {
+        //         if(snapshot.data == null)
+        //           return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
+
+        //         if(snapshot.hasData && snapshot.data.length == 0 && listaDinamicaBancas.length > 0)
+        //           return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
+
+        //         return SliverList(delegate: SliverChildListDelegate([
+        //           Column(
+        //         mainAxisAlignment: MainAxisAlignment.end,
+        //         crossAxisAlignment: CrossAxisAlignment.start,
+        //         children: [
+        //           // Padding(
+        //           //   padding: const EdgeInsets.all(8.0),
+        //           //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+        //           // ),
+        //           _getListaFiltro().length == 0
+        //           ?
+        //           Row(
+        //               children: [
+        //                 Padding(
+        //                   padding: const EdgeInsets.all(8.0),
+        //                   // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+        //                   child: Icon(Icons.date_range, color: Colors.grey,),
+        //                 ),
+        //                 Expanded(
+        //                   child: Padding(
+        //                     padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+        //                     child: SingleChildScrollView(
+        //                       scrollDirection: Axis.horizontal,
+        //                       child: 
+        //                       Row(
+        //                         children: MyDate.listaFechaLarga.map((e) =>  Padding(
+        //                           padding: const EdgeInsets.all(4.0),
+        //                           child: MyContainerButton(
+        //                             padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+        //                             selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+        //                             setState((){
+        //                               print("_build fecha: ${e[1]}");
+        //                               _fecha = e[0];
+        //                               _historicoVentas();
+        //                             });
+        //                           },),
+        //                         )).toList(),
+        //                       )
+                              
+        //                     ),
+        //                   ),
+        //                 ),
+        //               ],
+        //             )
+        //           :
+        //           Padding(
+        //             padding: const EdgeInsets.only(bottom: 8.0),
+        //             child: MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+        //           ),
+                  
+                  
+        //         ],
+        //       ),_getBodyWidget(snapshot.data)
+            
+        //         ]),);
+        //         return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
+        //       }
+        //     )
+          
+        //   ],
+        // )
         // Column(
         //   children: <Widget>[
         //     Wrap(

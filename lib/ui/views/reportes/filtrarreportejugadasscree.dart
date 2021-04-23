@@ -499,7 +499,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
                     ),
                      ListTile(
                       leading: Icon(Icons.stop_circle),
-                      title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_limite, "$_limite registros por sorteo"], textColor: Utils.colorPrimary, borderColor: Colors.grey, onTap: (data){_showLimites();})),
+                      title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_limite, "$_limite filas por sorteo"], textColor: Utils.colorPrimary, borderColor: Colors.grey, onTap: (data){_showLimites();})),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),

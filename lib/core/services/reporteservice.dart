@@ -58,13 +58,15 @@ class ReporteService{
   }
   
 
-  static Future<List> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta}) async {
+  static Future<List> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, int limite = 20}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
+    map["opcion"] = opcion;
+    map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
