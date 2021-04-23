@@ -90,10 +90,11 @@ class AjustesService{
 
     if(statusCode < 200 || statusCode > 400){
       print("AjustesService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor AjustesService guardar", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed['message']}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor AjustesService guardar", scaffoldKey: scaffoldKey);
+        Utils.showSnackBar(content: "${parsed['message']}", scaffoldKey: scaffoldKey);
       throw Exception("Error del servidor AjustesService guardar");
     }
 

@@ -50,6 +50,7 @@ import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class PrincipalApp extends StatefulWidget {
@@ -60,6 +61,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  var _scrollController = ItemScrollController();
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
   static int _socketNotificacionContadorErrores = 0;
@@ -980,12 +982,21 @@ _showIntentNotificationIfExists() async {
 
       List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
       String servidorActual = await Db.servidor();
-      var servidor = await Principal.seleccionarServidor(context, listaServidor, servidorActual);
+      print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
+      int indexServidor = (listaServidor.length > 0) ? listaServidor.indexWhere((element) => element.descripcion == servidorActual) : -1;
+      Servidor servidorSeleccionado = (indexServidor != -1) ? listaServidor[indexServidor] : null;
+      if(servidorSeleccionado == null)
+        return;
+
+      var servidor = await _showBottomSheetServidor(listaServidor: listaServidor, servidorSeleccionado: servidorSeleccionado);
+      // var servidor = await Principal.seleccionarServidor(context, listaServidor, servidorActual);
+        print("_cambiarServidor servidorRetornado: $servidor - $servidorActual");
       if(servidor != null && servidor != servidorActual){
         // LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor, scaffoldkey: _scaffoldKey);
         // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
         // usuario.servidor = servidor;
         // await Db.update("Users", usuario.toJson(), usuario.id);
+        print("_cambiarServidor entrooooooooooooooooo");
         await manager.clearInstance(socket);
         futureUsuario = Db.getUsuario();
         await indexPost(true);
@@ -994,6 +1005,218 @@ _showIntentNotificationIfExists() async {
     }
   }
 
+  _showBottomSheetServidor({List<Servidor> listaServidor, Servidor servidorSeleccionado}) async {
+    Servidor _servidor = servidorSeleccionado;
+    int indexServidorCargando = -1;
+    // int indexServidorToScroll = listaServidor.indexWhere((element) => element.descripcion == _servidor.descripcion);
+    // if(indexServidorToScroll != -1)
+    //   _scrollController.scrollTo(index: indexServidorToScroll, duration: Duration(seconds: 1));
+
+    return await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+            _back(){
+              Navigator.pop(context, _servidor.descripcion);
+            }
+            servidorChanged(servidor) async {
+              setState(() {
+                _servidor = servidor;
+              });
+              Usuario usuario = Usuario.fromMap(await Db.getUsuario());
+              var parsed = await LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor.descripcion, context: context);
+              print("Principal.dar drawer cambiar: ${parsed["apiKey"]}");
+              await Principal.cerrarSesion(context, false);
+              await Db.deleteDB();
+              var c = await DB.create();
+              await c.add("apiKey", parsed["apiKey"]);
+              await c.add("idUsuario", parsed["usuario"]["id"]);
+              await c.add("administrador", parsed["administrador"]);
+              await c.add("tipoUsuario", parsed["tipoUsuario"]);
+              await LoginService.guardarDatos(parsed);
+              print("Principal.dar drawer cambiar: ${await c.getValue("apiKey")}");
+            }
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+                  height: MediaQuery.of(context).size.height / 2,
+                  child: Column(
+                    children: [
+                      Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                            ),
+                      Expanded(
+                        child: ScrollablePositionedList.builder(
+                          itemScrollController: _scrollController,
+                          itemCount: listaServidor.length,
+                          itemBuilder: (context, index) {
+                            return AbsorbPointer(
+                              absorbing: _servidor == listaServidor[index],
+                              child: ListTile(
+                                trailing: SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: Visibility(
+                                    visible: indexServidorCargando == index,
+                                    child: Theme(
+                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                                      child: new CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                ),
+                                leading: Checkbox(
+                                  value: _servidor == listaServidor[index], 
+                                  onChanged: (value) async {
+                                    try {
+                                      setState(() => indexServidorCargando = index);
+                                      await servidorChanged(listaServidor[index]);
+                                      setState(() => indexServidorCargando = -1);
+                                      _back();
+                                    } on Exception catch (e) {
+                                      setState(() => indexServidorCargando = -1);
+                                      Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                                    }
+                                  }
+                                ),
+                                onTap: () async {
+                                    try {
+                                      setState(() => indexServidorCargando = index);
+                                      await servidorChanged(listaServidor[index]);
+                                      setState(() => indexServidorCargando = -1);
+                                      _back();
+                                    } on Exception catch (e) {
+                                      setState(() => indexServidorCargando = -1);
+                                      Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                                    }
+                                },
+                                title: Text("${listaServidor[index].descripcion}"),
+                              ),
+                            );
+                          
+                          },
+                        )
+                        // ListView(
+                        //   children: listaServidor.asMap().map((index, value) => MapEntry(
+                        //     index,
+                        //     AbsorbPointer(
+                        //       absorbing: _servidor == listaServidor[index],
+                        //       child: ListTile(
+                        //         trailing: SizedBox(
+                        //           width: 30,
+                        //           height: 30,
+                        //           child: Visibility(
+                        //             visible: indexServidorCargando == index,
+                        //             child: Theme(
+                        //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                        //               child: new CircularProgressIndicator(),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //         leading: Checkbox(
+                        //           value: _servidor == listaServidor[index], 
+                        //           onChanged: (value) async {
+                        //             try {
+                        //               setState(() => indexServidorCargando = index);
+                        //               await servidorChanged(listaServidor[index]);
+                        //               setState(() => indexServidorCargando = -1);
+                        //               _back();
+                        //             } on Exception catch (e) {
+                        //               setState(() => indexServidorCargando = -1);
+                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                        //             }
+                        //           }
+                        //         ),
+                        //         onTap: () async {
+                        //             try {
+                        //               setState(() => indexServidorCargando = index);
+                        //               await servidorChanged(listaServidor[index]);
+                        //               setState(() => indexServidorCargando = -1);
+                        //               _back();
+                        //             } on Exception catch (e) {
+                        //               setState(() => indexServidorCargando = -1);
+                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                        //             }
+                        //         },
+                        //         title: Text("${listaServidor[index].descripcion}"),
+                        //       ),
+                        //     )
+                          
+                        //   )).values.toList()
+                        // )
+                        // ListView.builder(
+                        //   itemCount: listaLoteria.length,
+                        //   itemBuilder: (context, index){
+                        //     print("_showBottomSheetServidor index: $index");
+                        //     return AbsorbPointer(
+                        //       absorbing: _servidor == listaServidor[index],
+                        //       child: ListTile(
+                        //         trailing: SizedBox(
+                        //           width: 30,
+                        //           height: 30,
+                        //           child: Visibility(
+                        //             visible: indexServidorCargando == index,
+                        //             child: Theme(
+                        //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                        //               child: new CircularProgressIndicator(),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //         leading: Checkbox(
+                        //           value: _servidor == listaServidor[index], 
+                        //           onChanged: (value) async {
+                        //             try {
+                        //               setState(() => indexServidorCargando = index);
+                        //               await servidorChanged(listaServidor[index]);
+                        //               setState(() => indexServidorCargando = -1);
+                        //               _back();
+                        //             } on Exception catch (e) {
+                        //               setState(() => indexServidorCargando = -1);
+                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                        //             }
+                        //           }
+                        //         ),
+                        //         onTap: () async {
+                        //             try {
+                        //               setState(() => indexServidorCargando = index);
+                        //               await servidorChanged(listaServidor[index]);
+                        //               setState(() => indexServidorCargando = -1);
+                        //               _back();
+                        //             } on Exception catch (e) {
+                        //               setState(() => indexServidorCargando = -1);
+                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                        //             }
+                        //         },
+                        //         title: Text("${listaServidor[index].descripcion}"),
+                        //       ),
+                        //     );
+                          
+                        //   },
+                        // ),
+                      ),
+                    ],
+                  ),
+                );
+          }
+        );
+        
+      
+      }
+  );
+    // if(data != null)
+    //   setState((){
+    //     _loteria = data;
+    //     _filtrar();
+    //   });
+  }
+
+  
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -2913,7 +3136,7 @@ void _getTime() {
       //   _txtMontoDisponible.text = '';
       // }
 
-      insertarJugada(jugada: jugada, loteria: _selectedLoterias[0], monto: monto);
+      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';

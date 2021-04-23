@@ -50,7 +50,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
       var parsed = await AjustesService.guardar(scaffoldKey: _scaffoldKey, ajuste: _ajuste);
       _ajuste = parsed;
       setState(() => _cargando = false);
-      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
+      // Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
+      Navigator.pop(context);
     } on Exception catch (e) {
           // TODO
       setState(() => _cargando = false);

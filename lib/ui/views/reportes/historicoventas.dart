@@ -274,11 +274,34 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
                   headingRowHeight: 36,
                   headingTextStyle: TextStyle(color: Colors.white),
                   headingRowColor: MaterialStateProperty.all(Utils.colorPrimary),
-                  columns: [DataColumn(label: Text("Banca",)), DataColumn(label: Text("Venta")), DataColumn(label: Text("Comis.")), DataColumn(label: Text("Desc.")), DataColumn(label: Text("Premios")), DataColumn(label: Text("Neto")), DataColumn(label: Text("Balance")), DataColumn(label: Text("Balance mas ventas"))],
+                  columns: [DataColumn(label: Text("Banca",)), DataColumn(label: Center(child: Text("Venta"))), DataColumn(label: Text("Comis.")), DataColumn(label: Text("Desc.")), DataColumn(label: Text("Premios")), DataColumn(label: Center(child: Text("Neto"))), DataColumn(label: Text("Balance")), DataColumn(label: Text("Balance mas ventas"))],
                   rows: map.asMap().map((idx, b)
                     => MapEntry(
                       idx,
-                      DataRow(cells: [DataCell(Text(b["descripcion"])), DataCell(Text("${Utils.toCurrency(b["ventas"])}")), DataCell(Text("${Utils.toCurrency(b["comisiones"])}")), DataCell(Text("${Utils.toCurrency(b["descuentos"])}")), DataCell(Text("${Utils.toCurrency(b["premios"])}")), DataCell(Text("${Utils.toCurrency(b["totalNeto"])}")), DataCell(Text("${Utils.toCurrency(b["balance"])}")), DataCell(Text("${Utils.toCurrency(b["balanceActual"])}"))])
+                      DataRow(cells: [DataCell(Text(b["descripcion"])), DataCell(Text("${Utils.toCurrency(b["ventas"])}")), DataCell(Text("${Utils.toCurrency(b["comisiones"])}")), DataCell(Text("${Utils.toCurrency(b["descuentos"])}")), 
+                      DataCell(Text("${Utils.toCurrency(b["premios"])}")), 
+                      DataCell(
+                        Container(
+                          // padding: EdgeInsets.only(top: 5, bottom: 5),
+                          color: (Utils.toDouble(b["totalNeto"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                          child: Center(child: Text("${Utils.toCurrency(b["totalNeto"])}", style: TextStyle(fontSize: 14)))
+                        ),
+                      ),  
+                      DataCell(
+                        Container(
+                          // padding: EdgeInsets.only(top: 5, bottom: 5),
+                          color: (Utils.toDouble(b["balance"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                          child: Center(child: Text("${Utils.toCurrency(b["balance"])}", style: TextStyle(fontSize: 14)))
+                        ),
+                      ), 
+                      DataCell(
+                        Container(
+                          padding: EdgeInsets.only(top: 5, bottom: 5),
+                          color: (Utils.toDouble(b["balanceActual"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                          child: Center(child: Text("${Utils.toCurrency(b["balanceActual"])}", style: TextStyle(fontSize: 14)))
+                        ),
+                      )
+                      ])
                     )
                   ).values.toList()
                 ),

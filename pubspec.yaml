@@ -44,6 +44,7 @@ dependencies:
   jiffy: ^3.0.1
   flutter_native_timezone: ^1.0.4
   unicons: ^2.0.1
+  scrollable_positioned_list: ^0.1.10
   flutter:
     sdk: flutter
 

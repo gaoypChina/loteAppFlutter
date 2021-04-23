@@ -863,6 +863,9 @@ Widget _buildTableTicketsGanadores(List map){
   }
 
   _showBottomSheetBanca() async {
+    if(_tienePermiso == false)
+      return;
+
     var data = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1368,8 +1371,8 @@ Widget _buildTableTicketsGanadores(List map){
                   onTap: _showBottomSheetBanca,
                   child: Row(
                     children: [
-                      Text("${_banca != null ? _banca.descripcion : 'No hay loterias'}", style: TextStyle(color: Colors.black),),
-                      Icon(Icons.arrow_drop_down, color: Colors.black54,)
+                      Text("${_banca != null ? _banca.descripcion : 'No hay banca'}", style: TextStyle(color: Colors.black),),
+                      Visibility(visible: _tienePermiso, child: Icon(Icons.arrow_drop_down, color: Colors.black54,))
                     ],
                   ),
                 );

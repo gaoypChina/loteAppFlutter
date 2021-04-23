@@ -255,12 +255,12 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     map[map.length] = _getMapNuevo(text:"Tickets perdedores: ${mapCuadre["perdedores"]}\n");
     map[map.length] = _getMapNuevo(text:"Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
     map[map.length] = _getMapNuevo(text:"Total:              ${mapCuadre["total"]}\n");
-    map[map.length] = _getMapNuevo(text:"Ventas:             ${mapCuadre["ventas"]}\n");
-    map[map.length] = _getMapNuevo(text:"Comisiones:         ${mapCuadre["comisiones"]}\n");
-    map[map.length] = _getMapNuevo(text:"descuentos:         ${mapCuadre["descuentos"]}\n");
-    map[map.length] = _getMapNuevo(text:"premios:            ${mapCuadre["premios"]}\n");
-    map[map.length] = _getMapNuevo(text:"neto:               ${mapCuadre["neto"]}\n");
-    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${mapCuadre["balanceActual"]}\n\n");
+    map[map.length] = _getMapNuevo(text:"Ventas:             ${Utils.toCurrency(mapCuadre["ventas"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"Comisiones:         ${Utils.toCurrency(mapCuadre["comisiones"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"descuentos:         ${Utils.toCurrency(mapCuadre["descuentos"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"premios:            ${Utils.toCurrency(mapCuadre["premios"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"neto:               ${Utils.toCurrency(mapCuadre["neto"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${Utils.toCurrency(mapCuadre["balanceActual"], true)}\n\n");
     print("bluetooth channel cuadure: ${map.toString()}");
     
     
