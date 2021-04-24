@@ -6,6 +6,7 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/ui/views/reportes/filtrarreportejugadasscree.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
@@ -35,9 +36,11 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   DateTime _fechaFinal;
   List<Loteria> listaLoteria = [];
   List<Draws> listaSorteo = [];
+  List<Moneda> listaMoneda = [];
   List<Jugada> listaJugada = [];
   Loteria _loteria;
   Draws _sorteo;
+  Moneda _moneda;
   MyDate _fecha = MyDate.hoy;
   String _jugada;
   int _limite = 20;
@@ -47,18 +50,23 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
 
   _init() async {
     // setState(() => _cargando = true);
-    var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, retornarLoterias: true, retornarSorteos: true);
+    var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, retornarLoterias: true, retornarSorteos: true, retornarMonedas: true);
     print("ReporteJugadasScreen _init: $parsed");
     listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((e) => Loteria.fromMap(e)).toList() : [];
     listaSorteo = (parsed["sorteos"] != null) ? parsed["sorteos"].map<Draws>((e) => Draws.fromMap(e)).toList() : [];
     listaJugada = (parsed["data"] != null) ? parsed["data"].map<Jugada>((e) => Jugada.fromMap(e)).toList() : [];
+    listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
     if(listaLoteria.length > 1)
       listaLoteria.insert(0, Loteria(id: null, descripcion: "Todas las loterias", abreviatura: "Todas"));
     if(listaSorteo.length > 1)
       listaSorteo.insert(0, Draws(null, "Todos los sorteos", 0, 0, 0, DateTime.now()));
       
-    _loteria = (listaLoteria.length > 0) ? listaLoteria[0] : null;
+    setState(() {
+      _loteria = (listaLoteria.length > 0) ? listaLoteria[0] : null;
+      _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null;
+    });
     _sorteo = (listaSorteo.length > 0) ? listaSorteo[0] : null;
+    
     _streamController.add(listaSorteo);
     _streamControllerLoteria.add(listaLoteria);
     // setState(() => _cargando = false);
@@ -121,7 +129,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
       print("_filtrar fechaFinal: ${_fechaFinal.toString()}");
       // return;
       _streamController.add(null);
-      var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, loteria: (_loteria.id != null) ? _loteria : null, sorteo: (_sorteo.id != null) ? _sorteo : null, jugada: _jugada, limite: _limite);
+      var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, loteria: (_loteria.id != null) ? _loteria : null, sorteo: (_sorteo.id != null) ? _sorteo : null, jugada: _jugada, moneda: (_moneda.id != null) ? _moneda : null, limite: _limite);
       listaJugada = (parsed["data"] != null) ? parsed["data"].map<Jugada>((e) => Jugada.fromMap(e)).toList() : [];
       _streamController.add(listaSorteo);
     } on Exception catch (e) {
@@ -139,6 +147,13 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   _loteriaChanged(loteria){
     setState((){
         _loteria = loteria;
+        _filtrar();
+      });
+  }
+
+  _monedaChanged(moneda){
+    setState((){
+        _moneda = moneda;
         _filtrar();
       });
   }
@@ -284,6 +299,64 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   }
 
 
+_showBottomSheetMoneda() async {
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        _back(){
+              Navigator.pop(context);
+            }
+            monedaChanged(moneda){
+              setState(() => _moneda = moneda);
+              _monedaChanged(moneda);
+              _back();
+            }
+        return Container(
+              height: 150,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: listaMoneda.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _moneda == listaMoneda[index],
+                          onChanged: (data){
+                            monedaChanged(listaMoneda[index]);
+                          },
+                          title: Text("${listaMoneda[index].descripcion}",),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+        
+      
+      }
+  );
+    // if(data != null)
+    //   setState((){
+    //     _loteria = data;
+    //     _filtrar();
+    //   });
+  }
+
+
   _drawsBackground(String sorteo){
     Color color = Utils.colorPrimary;
     // switch (sorteo) {
@@ -366,7 +439,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   }
 
   _filtroScreen() async {
-    var data = await Navigator.push(context, MaterialPageRoute(builder: (context) => FiltrarReporteJugadasScreen(loteriaSeleccionada: _loteria, loterias: listaLoteria, sorteoSeleccionado: _sorteo, sorteos: listaSorteo, fechaSelecionada: _fecha, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, jugada: _jugada, limiteSeleccionado: _limite,)));
+    var data = await Navigator.push(context, MaterialPageRoute(builder: (context) => FiltrarReporteJugadasScreen(loteriaSeleccionada: _loteria, loterias: listaLoteria, sorteoSeleccionado: _sorteo, sorteos: listaSorteo, monedaSeleccionada: _moneda, monedas: listaMoneda, fechaSelecionada: _fecha, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, jugada: _jugada, limiteSeleccionado: _limite,)));
     if(data == null)
       return;
 
@@ -378,6 +451,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
       _fechaFinal = data["fechaFinal"];
       _fecha = data["fecha"];
       _limite = data["limite"];
+      _moneda = data["moneda"];
 
       _filtrar();
     });
@@ -491,6 +565,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
             ),
             backgroundColor: Colors.white,
             actions: [
+              TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))),
               IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
             ],
             expandedHeight: (_getListaFiltro().length == 0) ? 150 : 238,

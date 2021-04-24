@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/main.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
@@ -39,6 +40,8 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   DateFormat _dateFormat;
   List<int> listaLimite = [20, 50, 80, 120];
   int _limite = 20;
+  List<Moneda> listaMoneda = [];
+  Moneda _moneda;
 
   @override
   initState(){
@@ -114,8 +117,15 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
       // setState(() => _cargando = true);
       _streamControllerHistorio.add(null);
       _filtrarFecha();
-      listaDinamicaBancas = await ReporteService.historico(scaffoldKey: _scaffoldKey, fechaDesde: _fechaInicial, fechaHasta: _fechaFinal, opcion: _selectedOption, limite: _limite);
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, fechaDesde: _fechaInicial, fechaHasta: _fechaFinal, opcion: _selectedOption, moneda: _moneda, limite: _limite);
+      listaDinamicaBancas = List.from(parsed["bancas"]);
+      if(listaMoneda.length == 0)
+        listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
       _streamControllerHistorio.add(listaDinamicaBancas);
+
+      if(_moneda == null)
+        setState(() => _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null);
+
       _filterTable();
     } on Exception catch(e){
       _streamControllerHistorio.add([]);
@@ -560,6 +570,7 @@ _getListaFiltro(){
     var fechaFinal = _fechaFinal;
     var fecha = _fecha;
     var limite = _limite;
+    var moneda = _moneda;
     var data = await showDialog(context: context, builder: (context){
       _back({sendData = false}){
         var map;
@@ -569,6 +580,7 @@ _getListaFiltro(){
             "fechaInicial" : fechaInicial,
             "fechaFinal" : fechaFinal,
             "limite" : limite,
+            "moneda" : moneda,
           };
 
         Navigator.pop(context, map);
@@ -723,6 +735,28 @@ _getListaFiltro(){
                           child: Divider(thickness: 1,),
                         ),
                         ListTile(
+                          leading: Icon(Icons.attach_money),
+                          // title: Text("${_moneda != null ? _moneda.descripcion : ''}"),
+                          dense: true,
+                          title: DropdownButtonHideUnderline(
+                            child: DropdownButton(
+                              value: moneda,
+                              // selectedItemBuilder: (context){
+                              //   return listaLimite.map((e) => Center(child: Text("$e filas a mostrar"))).toList();
+                              // },
+                              items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}"), value: e),).toList(),
+                              onChanged: (data){
+                                setState(() => moneda = data);
+                              },
+                            ),
+                          ),
+                          // onTap: _showMoneda,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Divider(thickness: 1,),
+                        ),
+                        ListTile(
                           dense: true,
                           leading: Icon(Icons.table_rows_rounded),
                           onTap: _fechaFinalChanged,
@@ -758,7 +792,7 @@ _getListaFiltro(){
     if(data == null)
       return;
 
-    if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"])
+    if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
       return;
 
     setState(() {
@@ -766,11 +800,76 @@ _getListaFiltro(){
       _fechaFinal = data["fechaFinal"];
       _fecha = data["fecha"];
       _limite = data["limite"];
+      _moneda = data["moneda"];
 
       _historicoVentas();
     });
   }
 
+
+_monedaChanged(moneda){
+    setState((){
+        _moneda = moneda;
+        _historicoVentas();
+      });
+  }
+
+  _showBottomSheetMoneda() async {
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        _back(){
+              Navigator.pop(context);
+            }
+            monedaChanged(moneda){
+              setState(() => _moneda = moneda);
+              _monedaChanged(moneda);
+              _back();
+            }
+        return Container(
+              height: 150,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: listaMoneda.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _moneda == listaMoneda[index],
+                          onChanged: (data){
+                            monedaChanged(listaMoneda[index]);
+                          },
+                          title: Text("${listaMoneda[index].descripcion}",),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+        
+      
+      }
+  );
+    // if(data != null)
+    //   setState((){
+    //     _loteria = data;
+    //     _filtrar();
+    //   });
+  }
 
 
 
@@ -1118,6 +1217,7 @@ _getListaFiltro(){
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: <Widget>[
+              TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))),
               IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
         ],
       ),

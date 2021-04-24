@@ -6,6 +6,7 @@ import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/main.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
 
@@ -19,7 +20,9 @@ class FiltrarReporteJugadasScreen extends StatefulWidget {
   final Draws sorteoSeleccionado;
   final String jugada;
   final int limiteSeleccionado;
-  FiltrarReporteJugadasScreen({Key key, @required this.loteriaSeleccionada, @required this.loterias, @required this.fechaSelecionada, @required this.fechaInicial, @required this.fechaFinal, @required this.sorteoSeleccionado, @required this.sorteos, @required this.jugada, this.limiteSeleccionado}) :  super(key: key);
+  final List<Moneda> monedas;
+  final Moneda monedaSeleccionada;
+  FiltrarReporteJugadasScreen({Key key, @required this.loteriaSeleccionada, @required this.loterias, @required this.monedaSeleccionada, @required this.monedas, @required this.fechaSelecionada, @required this.fechaInicial, @required this.fechaFinal, @required this.sorteoSeleccionado, @required this.sorteos, @required this.jugada, this.limiteSeleccionado}) :  super(key: key);
   @override
   _FiltrarReporteJugadasScreenState createState() => _FiltrarReporteJugadasScreenState();
 }
@@ -35,6 +38,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
   var _txtJugada = TextEditingController();
   List<int> listaLimite = [10, 20, 30, 40, 50];
   int _limite;
+  Moneda _moneda;
 
   _filtrar(){
     var map = {
@@ -45,6 +49,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
       "fechaInicial" : _fechaInicial,
       "fechaFinal" : _fechaFinal,
       "limite" : _limite,
+      "moneda" : _moneda,
     };
 
     Navigator.pop(context, map);
@@ -60,6 +65,10 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
 
   _limiteChanged(limite){
     setState(() => _limite = limite);
+  }
+  
+  _monedaChanged(moneda){
+    setState(() => _moneda = moneda);
   }
 
   _showLoteria() async {
@@ -103,6 +112,60 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
                             loteriaChanged(widget.loterias[index]);
                           },
                           title: Text("${widget.loterias[index].descripcion}"),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      }
+    );
+  }
+
+  _showMoneda() async {
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        return StatefulBuilder(
+          builder: (context, setState) {
+            _back(){
+              Navigator.pop(context);
+            }
+            monedaChanged(moneda){
+              setState(() => _moneda = moneda);
+              _monedaChanged(moneda);
+              _back();
+            }
+            return Container(
+              height: 150,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: widget.monedas.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _moneda == widget.monedas[index],
+                          onChanged: (data){
+                            monedaChanged(widget.monedas[index]);
+                          },
+                          title: Text("${widget.monedas[index].descripcion}"),
                         );
                       },
                     ),
@@ -316,6 +379,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
     _dateFormat = new DateFormat.yMMMMEEEEd(MyApp.myLocale.languageCode);
     _loteria = (widget.loteriaSeleccionada != null) ? widget.loteriaSeleccionada : widget.loterias[0];
     _sorteo = (widget.sorteoSeleccionado != null) ? widget.sorteoSeleccionado : widget.sorteos[0];
+    _moneda = (widget.monedaSeleccionada != null) ? widget.monedaSeleccionada : widget.monedas[0];
     _fecha = widget.fechaSelecionada;
     _fechaInicial = widget.fechaInicial;
     _fechaFinal = widget.fechaFinal;
@@ -474,6 +538,15 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Divider(thickness: 1,),
                     ),
+                    ListTile(
+                      leading: Icon(Icons.attach_money),
+                      title: Text("${_moneda != null ? _moneda.descripcion : ''}"),
+                      onTap: _showMoneda,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(thickness: 1,),
+                    ),
                   ListTile(
                       leading: Icon(Icons.format_list_numbered_rounded),
                       title: TextFormField(
@@ -489,6 +562,14 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Divider(thickness: 1,),
                     ),
+                    ListTile(
+                      leading: Icon(Icons.stop_circle),
+                      title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_limite, "$_limite filas por sorteo"], textColor: Utils.colorPrimary, borderColor: Colors.grey, onTap: (data){_showLimites();})),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(thickness: 1,),
+                    ),
                      ListTile(
                       leading: Icon(Icons.confirmation_number_outlined),
                       title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_sorteo, "${_sorteo != null ? _sorteo.descripcion : 'Ninguno'}"], onTap: (data){_showSorteos();})),
@@ -497,14 +578,7 @@ class _FiltrarReporteJugadasScreenState extends State<FiltrarReporteJugadasScree
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Divider(thickness: 1,),
                     ),
-                     ListTile(
-                      leading: Icon(Icons.stop_circle),
-                      title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_limite, "$_limite filas por sorteo"], textColor: Utils.colorPrimary, borderColor: Colors.grey, onTap: (data){_showLimites();})),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(thickness: 1,),
-                    ),
+                     
                 ],
               ),
             
