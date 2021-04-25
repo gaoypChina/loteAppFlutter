@@ -8,22 +8,25 @@ import 'package:loterias/core/models/draws.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/monedas.dart';
 
 
 class ReporteService{
 
-   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, int limite = 20}) async {
+   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, Moneda moneda, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, bool retornarMonedas = false, int limite = 20}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
     map["retornarLoterias"] = retornarLoterias;
     map["retornarSorteos"] = retornarSorteos;
+    map["retornarMonedas"] = retornarMonedas;
     map["fechaInicial"] = fechaInicial.toString();
     map["fechaFinal"] = fechaFinal.toString();
     map["sorteo"] = (sorteo != null) ? sorteo.toJson() : null;
     map["loteria"] = (loteria != null) ? loteria.toJson() : null;
     map["jugada"] = (jugada != null) ? jugada : null;
+    map["moneda"] = (moneda != null) ? moneda.toJson() : null;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
     map["servidor"] = await Db.servidor();
@@ -58,13 +61,14 @@ class ReporteService{
   }
   
 
-  static Future<List> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, int limite = 20}) async {
+  static Future<Map<String, dynamic>> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, Moneda moneda, int limite = 20}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
+    map["moneda"] = (moneda != null) ? moneda.toJson() : null;
     map["opcion"] = opcion;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
@@ -96,7 +100,7 @@ class ReporteService{
       throw Exception("Error ReporteService historico: ${parsed["mensaje"]}");
     }
 
-    return List.from(parsed["bancas"]);
+    return parsed;
   }
 
   static Future<Map<String, dynamic>> ventas({BuildContext context, scaffoldKey, DateTime fecha, DateTime fechaFinal, int idBanca}) async {
