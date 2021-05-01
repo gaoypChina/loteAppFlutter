@@ -2166,14 +2166,17 @@ AppBar _appBar(bool screenHeightIsSmall){
                       },
                     ),
                   ),
-                  ListTile(
-                    title: Text('Pendientes de pago'),
-                    leading: Icon(Icons.attach_money),
-                    dense: true,
-                    onTap: (){
-                      Navigator.of(context).pushNamed("/pendientesPago");
-                      _scaffoldKey.currentState.openEndDrawer();
-                    },
+                  Visibility(
+                    visible: _tienePermisoAdministrador || _tienePermisoProgramador,
+                    child: ListTile(
+                      title: Text('Pendientes de pago'),
+                      leading: Icon(Icons.attach_money),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/pendientesPago");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                   ),
                   ListTile(
                     title: Text('Duplicar'),

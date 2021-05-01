@@ -226,7 +226,7 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: Text("Balance bancas", style: TextStyle(color: Colors.black),),
+        title: Text("Pendientes pago", style: TextStyle(color: Colors.black),),
         leading: BackButton(
           color: Utils.colorPrimary,
         ),
