@@ -19,6 +19,8 @@ import androidx.core.app.ActivityCompat.requestPermissions
 import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.net.URI
 
 class Utils {
 
@@ -77,10 +79,27 @@ class Utils {
             return qrgEncoder.encodeAsBitmap();
         }
 
+        fun toUriNew(context: Context, bitmap: Bitmap, title: String?): Uri? {
+            val file = File(context.cacheDir,"CUSTOM NAME") //Get Access to a local file.
+            file.delete() // Delete the File, just in Case, that there was still another File
+            file.createNewFile()
+            val fileOutputStream = file.outputStream()
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG,100,byteArrayOutputStream)
+            val bytearray = byteArrayOutputStream.toByteArray()
+            fileOutputStream.write(bytearray)
+            fileOutputStream.flush()
+            fileOutputStream.close()
+            byteArrayOutputStream.close()
+
+//            val URI = file.toURI()
+            return Uri.parse(file.absolutePath);
+        }
+
         fun toUri(context: Context, bitmap: Bitmap, title: String?): Uri? {
             val bytes = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-            val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "Title", null)
+            val path = MediaStore.Images.Media.insertImage(context.contentResolver, bitmap, "img_" + System.currentTimeMillis(), null)
             return Uri.parse(path)
         }
 

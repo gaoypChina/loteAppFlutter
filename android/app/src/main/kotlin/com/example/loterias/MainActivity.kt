@@ -26,11 +26,8 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
 class MainActivity: FlutterActivity() {
@@ -164,21 +161,50 @@ class MainActivity: FlutterActivity() {
 
     fun HmltToBitmapAndSendSMSWhatsapp(call:MethodCall, result:MethodChannel.Result ){
         //IO, Main, Default
+//       try {
+            Utils.comprobarPermisos(this);
 
-        CoroutineScope(IO).launch{
-            //Create ticket image
-
-            val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
-            val bitmapQr = generateQr(call.argument<String>("codigoQr"));
-            val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
-            //val base64 = bitmapToBase64(bitmap!!)
-
-            SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp") as Boolean)
-            CoroutineScope(Dispatchers.Main).launch {
-                result.success("se hizo")
-                Log.e("Advertencia", "Despues de resultado")
-            }
+        val handler = CoroutineExceptionHandler { _, exception ->
+            sendErrorMessage("Error", "$exception")
+            println("CoroutineExceptionHandler got $exception")
         }
+           CoroutineScope(IO).launch(handler){
+               //Create ticket image
+
+//               try {
+                   val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
+                   val bitmapQr = generateQr(call.argument<String>("codigoQr"));
+                   val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
+                   //val base64 = bitmapToBase64(bitmap!!)
+
+                   SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp") as Boolean)
+                   CoroutineScope(Dispatchers.Main).launch {
+                       result.success("se hizo")
+                       Log.e("Advertencia", "Despues de resultado")
+                   }
+//               }catch (e:Exception){
+//                   e.message?.let { sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", it) }
+//                   result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, {});
+//               }
+           }
+//       }catch (e:Exception){
+////           sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", e.message)
+//           result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, e.message);
+//       }
+    }
+
+    fun sendErrorMessage(title: String, message: String){
+        val intent = Intent(Intent.ACTION_SEND)
+
+        intent.type = "text/html"
+
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf<String>("jccrsistemas@gmail.com"))
+
+        intent.putExtra(Intent.EXTRA_SUBJECT, title)
+
+        intent.putExtra(Intent.EXTRA_TEXT, message)
+
+        startActivity(intent)
     }
 
     fun printText(call: MethodCall, result: MethodChannel.Result){
