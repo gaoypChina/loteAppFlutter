@@ -311,6 +311,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     map2["datos"] =jwt;
 
+
     var response = await http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){
@@ -322,7 +323,7 @@ class TicketService{
     var parsed = await compute(Utils.parseDatos, response.body);
 
      if(parsed["errores"] == 1){
-      print("Principal parsedDatos: ${parsed["mensaje"]}");
+      print("Principal parsedDatos: ${parsed}");
       Utils.showSnackBar(scaffoldKey: scaffoldKey, content: (parsed["mensaje"] != null) ? parsed["mensaje"] : "Error");
       throw Exception("Error Principal parsedDatos: ${parsed["mensaje"]}");
     }
