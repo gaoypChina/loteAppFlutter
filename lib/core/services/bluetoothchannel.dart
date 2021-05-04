@@ -2,15 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/cmd.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/loterias.dart';
-import 'package:loterias/core/models/venta.dart';
 
 class BluetoothChannel{
   static const String TYPE_ORIGINAL = "ORIGINAL";

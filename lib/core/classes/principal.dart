@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -20,6 +21,8 @@ import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
+
+import 'cross_platform_database/cross_platform_db.dart';
 
 class Principal{
   static Future<bool> mockCheckForSession({BuildContext context, scaffoldKey}) async{

@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/singleton.dart';
 import 'package:http/http.dart' as http;
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -25,7 +24,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/principal/cancelarMovil", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/cancelarMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -56,7 +55,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/principal/duplicar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/duplicar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -93,7 +92,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/principal/buscarTicketAPagar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/buscarTicketAPagar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -129,7 +128,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/principal/buscarTicket", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/buscarTicket"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -164,7 +163,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/reportes/getTicketById", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/getTicketById"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -201,7 +200,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/principal/pagar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/pagar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -236,7 +235,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/reportes/monitoreoMovil", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -312,7 +311,7 @@ class TicketService{
     map2["datos"] =jwt;
 
 
-    var response = await http.post(Utils.URL +"/api/principal/guardar", body: json.encode(map2), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL +"/api/principal/guardar"), body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){
       print("Error servidor ticketService guardar: ${response.body}");
@@ -351,7 +350,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     map2["datos"] =jwt;
     print("TicketService INdexPost servidor: ${map["servidor"]} ");
-    var response = await http.post(Utils.URL +"/api/principal/indexPost", body: json.encode(map2), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL +"/api/principal/indexPost"), body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){
       print("Error servidor ticketService indexPost: ${response.body}");

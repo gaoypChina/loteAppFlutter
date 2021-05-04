@@ -17,6 +17,7 @@ import 'package:timezone/data/latest.dart' as tz;
 
 
 
+import 'core/classes/databasesingleton.dart';
 import 'locator.dart';
 
 // void main() => runApp(Prueba2());
@@ -32,8 +33,7 @@ Future<void> main() async {
 
 // await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
-  await Db.create();
-  await Db.open();
+  await Db.openConnection();
   runApp(MyApp());
 
 }

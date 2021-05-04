@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';

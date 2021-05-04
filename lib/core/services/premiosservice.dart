@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/principal.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -16,7 +15,7 @@ class PremiosService{
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
 
-    var response = await http.get(Utils.URL + "/api/premios?token=$jwt", headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/premios?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -57,7 +56,7 @@ class PremiosService{
     print("premiosservice guardar: ${mapDatos.toString()}");
     // return listaLoteria;
 
-    var response = await http.post(Utils.URL + "/api/premios/guardar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/premios/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -85,7 +84,7 @@ class PremiosService{
   static Future<List<Loteria>> borrar({BuildContext context, scaffoldKey, Loteria loteria}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-    List<Loteria> listaLoteria = List<Loteria>();
+    List<Loteria> listaLoteria = [];
     listaLoteria.add(loteria);
 
     map["idLoteria"] = loteria.id;
@@ -100,7 +99,7 @@ class PremiosService{
     print("premiosservice borrar: ${mapDatos.toString()}");
     // return listaLoteria;
 
-    var response = await http.post(Utils.URL + "/api/premios/erase", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/premios/erase"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

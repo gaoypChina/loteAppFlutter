@@ -2,7 +2,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-class Db{
+class DBSqflite{
 
   static String _path;
   static Database database;

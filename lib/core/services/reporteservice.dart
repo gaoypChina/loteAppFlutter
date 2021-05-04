@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'dart:convert';
 
@@ -36,7 +35,7 @@ class ReporteService{
     print("ReporteService historico: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/reporteJugadas", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/reporteJugadas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -79,7 +78,7 @@ class ReporteService{
     print("ReporteService historico: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/historico", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/historico"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -119,7 +118,7 @@ class ReporteService{
     print("ReporteService ventas: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/ventas", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/ventas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -155,7 +154,7 @@ class ReporteService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

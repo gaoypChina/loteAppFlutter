@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/bancas.dart';
 import 'dart:convert';
 
 class ServidorService{
@@ -13,7 +12,7 @@ class ServidorService{
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
-    var response = await http.post(Utils.URL + "/api/servidor/servidorExiste", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/servidor/servidorExiste"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

@@ -6,9 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/principal.dart';
-import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/blocksdirty.dart';
@@ -198,7 +197,7 @@ class Realtime{
     var jwt = await Utils.createJwt(map);
     map2["datos"] =jwt;
     
-    final response = await http.post(Utils.URL +"/api/realtime/todos", body: json.encode(map2), headers: header );
+    final response = await http.post(Uri.parse(Utils.URL +"/api/realtime/todos"), body: json.encode(map2), headers: header );
     int statusCode = response.statusCode;
 
     if (statusCode < 200 || statusCode > 400 || json == null) {

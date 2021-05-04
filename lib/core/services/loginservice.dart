@@ -1,14 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
-import 'package:loterias/ui/widgets/showsnackbar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -20,7 +18,7 @@ class LoginService{
     map["usuario"] = usuario;
     map["password"] = password;
     map2["datos"] = map;
-    final response = await http.post(Utils.URL + '/api/acceder', body: json.encode(map2), headers: Utils.header);
+    final response = await http.post(Uri.parse(Utils.URL + '/api/acceder'), body: json.encode(map2), headers: Utils.header);
     
     if(response.statusCode < 200 || response.statusCode > 400){
       print('parsed ${response.body}');
@@ -51,7 +49,7 @@ class LoginService{
     map["servidor"] = servidor;
     var jwt = await Utils.createJwt(map);
     map2["datos"] = jwt;
-    final response = await http.post(Utils.URL + '/api/cambiarServidorApi', body: json.encode(map2), headers: Utils.header);
+    final response = await http.post(Uri.parse(Utils.URL + '/api/cambiarServidorApi'), body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     
     if(statusCode < 200 || statusCode > 400){
@@ -85,8 +83,7 @@ class LoginService{
 
     
     await Db.deleteDB();
-    await Db.create();
-    await Db.open();
+    await Db.openConnection();
 
     await Db.insert('Users', u.toJson());
     await Db.insert('Branches', b.toJson());

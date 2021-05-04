@@ -41,31 +41,31 @@ _showSnackBar(String content){
         ));
     }
 
-    Future<Map<String, dynamic>> fetchUsuario() async{
-    var map = Map<String, dynamic>();
-    var map2 = Map<String, dynamic>();
+  //   Future<Map<String, dynamic>> fetchUsuario() async{
+  //   var map = Map<String, dynamic>();
+  //   var map2 = Map<String, dynamic>();
 
-    map["usuario"] = _txtUsuarioController.text;
-    map["password"] = _txtPasswordController.text;
-    map2["datos"] = map;
-    final response = await http.post(Utils.URL + '/api/acceder', body: json.encode(map2), headers: Utils.header);
+  //   map["usuario"] = _txtUsuarioController.text;
+  //   map["password"] = _txtPasswordController.text;
+  //   map2["datos"] = map;
+  //   final response = await http.post(Utils.URL + '/api/acceder', body: json.encode(map2), headers: Utils.header);
     
-    if(response.statusCode < 200 || response.statusCode > 400){
-      print('parsed ${response.body}');
-       throw Exception('Failed to load album');
-    }
+  //   if(response.statusCode < 200 || response.statusCode > 400){
+  //     print('parsed ${response.body}');
+  //      throw Exception('Failed to load album');
+  //   }
    
-      var parsed = Utils.parseDatos(response.body);
-      if(parsed["errores"] == 1){
-        _showSnackBar(parsed["mensaje"]);
-        throw Exception('Failed to load usuario datos incorrectos');
-      }
-      // print('parsed ${parsed['usuario']}');
-      // _usuario = Usuario.fromMap(parsed['usuario']);
-      // _banca = Banca.fromMap(parsed['bancaObject']);
-      // return parsed['usuario'].map<Usuario>((json) => Usuario.fromMap(json)).toList();
-      return parsed;
-  }
+  //     var parsed = Utils.parseDatos(response.body);
+  //     if(parsed["errores"] == 1){
+  //       _showSnackBar(parsed["mensaje"]);
+  //       throw Exception('Failed to load usuario datos incorrectos');
+  //     }
+  //     // print('parsed ${parsed['usuario']}');
+  //     // _usuario = Usuario.fromMap(parsed['usuario']);
+  //     // _banca = Banca.fromMap(parsed['bancaObject']);
+  //     // return parsed['usuario'].map<Usuario>((json) => Usuario.fromMap(json)).toList();
+  //     return parsed;
+  // }
 
   void _navigateToHome(){
     // Navigator.of(context).pushReplacement(

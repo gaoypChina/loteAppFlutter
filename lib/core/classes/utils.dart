@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:corsac_jwt/corsac_jwt.dart';
+// import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:jose/jose.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
@@ -295,52 +296,155 @@ class  Utils {
       return Colors.transparent;
   }
 
+  // static Future<String> createJwt(Map<String, dynamic> data) async {
+  //   var builder = new JWTBuilder();
+  //   var token = builder
+  //     // ..issuer = 'https://api.foobar.com'
+  //     // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+  //     ..setClaim('datosMovil', 
+  //     // {'id': 836, 'username' : "john.doe"}
+  //     data
+  //     )
+  //     ..getToken(); // returns token without signature
+
+  //   // var signer = new JWTHmacSha256Signer('culo');
+  //   var c = await DB.create();
+  //   var apiKey = await c.getValue("apiKey");
+  //   print("Before error: $apiKey");
+  //   var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+  //   var signedToken = builder.getSignedToken(signer);
+  //   //print(signedToken); // prints encoded JWT
+  //   var stringToken = signedToken.toString();
+
+  //   return stringToken;
+  // }
+  // 
   static Future<String> createJwt(Map<String, dynamic> data) async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('datosMovil', 
-      // {'id': 836, 'username' : "john.doe"}
-      data
-      )
-      ..getToken(); // returns token without signature
+    
+    
+    // create a builder
+  var builder = JsonWebSignatureBuilder();
 
-    // var signer = new JWTHmacSha256Signer('culo');
-    var c = await DB.create();
-    var apiKey = await c.getValue("apiKey");
-    print("Before error: $apiKey");
-    var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
-    var signedToken = builder.getSignedToken(signer);
-    //print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"datosMovil" : data};
 
-    return stringToken;
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  var c = await DB.create();
+  builder.addRecipient(
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': Utils.toBase64(await c.getValue("apiKey"))
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
   }
+
+  static Future<String> createJwtForSocket({@required Map<String, dynamic> data, @required key}) async {
+  
+  
+     // create a builder
+  var builder = JsonWebSignatureBuilder();
+
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"data" : data};
+
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  if(key == null){
+    var c = await DB.create();
+    key = await c.getValue("apiKey");
+  }
+
+  builder.addRecipient(
+    // JsonWebKey.fromPem(key),
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': Utils.toBase64(key)
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
+  }
+
 
   static Future<String> createJwtForTest(Map<String, dynamic> data) async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('datosMovil', 
-      // {'id': 836, 'username' : "john.doe"}
-      data
-      )
-      ..getToken(); // returns token without signature
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('datosMovil', 
+    //   // {'id': 836, 'username' : "john.doe"}
+    //   data
+    //   )
+    //   ..getToken(); // returns token without signature
 
-    // var signer = new JWTHmacSha256Signer('culo');
-    // var c = await DB.create();
-    // var apiKey = await c.getValue("apiKey");
-    // print("Before error: $apiKey");
-    // var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
-    var signer = new JWTHmacSha256Signer("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2");
-    var signedToken = builder.getSignedToken(signer);
-    //print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+    // // var signer = new JWTHmacSha256Signer('culo');
+    // // var c = await DB.create();
+    // // var apiKey = await c.getValue("apiKey");
+    // // print("Before error: $apiKey");
+    // // var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+    // var signer = new JWTHmacSha256Signer("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2");
+    // var signedToken = builder.getSignedToken(signer);
+    // //print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
-    return stringToken;
+    // return stringToken;
+    
+
+    var builder = JsonWebSignatureBuilder();
+
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"datosMovil" : data};
+
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  // var c = await DB.create();
+  builder.addRecipient(
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': Utils.toBase64("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2")
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
   }
+
+
 
   static String ordenarMenorAMayor(String jugada){
     if(jugada.length == 4){

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:http/http.dart' as http;
@@ -12,7 +12,7 @@ class BancaService{
     var map = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Utils.URL + "/api/bancas?token=$jwt", headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/bancas?token=$jwt"), headers: Utils.header);
     int statusCode =response.statusCode;
 
     

@@ -4,11 +4,9 @@ import 'dart:io';
 import 'package:adhara_socket_io/options.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:jiffy/jiffy.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
-import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -18,15 +16,12 @@ import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
-import 'package:loterias/ui/login/login.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
-import 'package:loterias/ui/views/principal/principalshimmerscreen.dart';
 
 
 // import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -393,7 +388,7 @@ Future<bool> _requestPermisionChannel() async {
       _txtMontoDisponible.text = null;
       });
 
-     http.post(Utils.URL +"/api/principal/montodisponible", body: json.encode(map2), headers: header ).then((http.Response resp){
+     http.post(Uri.parse(Utils.URL +"/api/principal/montodisponible"), body: json.encode(map2), headers: header ).then((http.Response resp){
       final int statusCode = resp.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {
         print('futuro: ${resp.body}');
@@ -603,22 +598,24 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   initSocket() async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
-      ..getToken(); // returns token without signature
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+    //   ..getToken(); // returns token without signature
 
-    var signer = new JWTHmacSha256Signer('quierocomerpopola');
-    var signedToken = builder.getSignedToken(signer);
-    print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+    // var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    // var signedToken = builder.getSignedToken(signer);
+    // print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
   // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     // manager = SocketIOManager();
+    var signedToken = Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
+    
     socket = await manager.createInstance(SocketOptions(
                     //Socket IO server URI
                       // 'http://pruebass.ml:3000',
@@ -761,22 +758,23 @@ Future<bool> _requestPermisionChannel() async {
 
   //Socket notificacion
   static initSocketNoticacion() async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
-      ..getToken(); // returns token without signature
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+    //   ..getToken(); // returns token without signature
 
-    var signer = new JWTHmacSha256Signer('quierocomerpopola');
-    var signedToken = builder.getSignedToken(signer);
-    print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+    // var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    // var signedToken = builder.getSignedToken(signer);
+    // print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
   // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     
+    var signedToken = Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
     
 
 
