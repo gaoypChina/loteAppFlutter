@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:adhara_socket_io/options.dart';
-import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
@@ -18,6 +16,8 @@ import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 
 
 // import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -56,6 +56,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  IO.Socket socket;
   var _scrollController = ItemScrollController();
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
@@ -132,9 +133,11 @@ MaterialColor colorCustom = MaterialColor(0xFF0990D0, Utils.color);
 var _colorPrimary = Utils.fromHex("#1db7bd");
 var _colorSegundary = Utils.colorInfo;
 FocusNode focusNode;
-static SocketIOManager manager;
-SocketIO socket;
-static SocketIO socketNotificaciones;
+// static SocketIOManager manager;
+static var manager;
+// SocketIO socket;
+// static SocketIO socketNotificaciones;
+static var socketNotificaciones;
 String initSocketNotificationTask = "initSocketNotificationTask";
 
 Future<bool> _requestPermisionChannel() async {
@@ -442,12 +445,14 @@ Future<bool> _requestPermisionChannel() async {
     ]);
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
-      _requestPermisionChannel();
+      if(kIsWeb == false)
+        _requestPermisionChannel();
+
       indexPost(true);
       _getPermisos();
       _getUsuarioYBanca();
       // indexPost(true);
-      manager = SocketIOManager();
+      // manager = SocketIOManager();
       initSocket();
       // // initSocketNoticacion();
       // // initSocketNoticacionInForeground();
@@ -462,11 +467,12 @@ Future<bool> _requestPermisionChannel() async {
         return;
         
         _getCurrentTimeZone();
-         _requestPermisionChannel();
+        if(kIsWeb == false)
+          _requestPermisionChannel();
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
-        manager = SocketIOManager();
+        // manager = SocketIOManager();
         initSocket();
         // initSocketNoticacion();
         // initSocketNoticacionInForeground();
@@ -496,6 +502,10 @@ Future<bool> _requestPermisionChannel() async {
     //_montoFuture = fetchMonto();
     
   // platform.setMethodCallHandler(this._saludos);
+
+  }
+
+  _initMobileFunction(){
 
   }
 
@@ -530,7 +540,8 @@ Future<bool> _requestPermisionChannel() async {
     _streamControllerLoteria.close();
     print("dispose desconectar socket");
     print("Desconectando socket desde dispose de la ventana principal");
-    await manager.clearInstance(socket);
+    // await manager.clearInstance(socket);
+    await _disconnectSocket();
     
   }
 
@@ -585,7 +596,8 @@ Future<bool> _requestPermisionChannel() async {
 
   Future _desconectarYConectarNuevamente() async {
     print("_desconectarYConectarNuevamente desconectar socket y conectar");
-    await manager.clearInstance(socket);
+    // await manager.clearInstance(socket);
+    await _disconnectSocket();
     _socketContadorErrores = 0;
     initSocket();
   }
@@ -595,6 +607,14 @@ Future<bool> _requestPermisionChannel() async {
     await manager.clearInstance(socketNotificaciones);
     _socketNotificacionContadorErrores = 0;
     initSocketNoticacion();
+  }
+
+  _disconnectSocket(){
+    if(socket == null)
+      return;
+      
+    socket.dispose();
+    socket = null;
   }
 
   initSocket() async {
@@ -614,38 +634,55 @@ Future<bool> _requestPermisionChannel() async {
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     // manager = SocketIOManager();
-    var signedToken = Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
+    var signedToken = await Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
     
-    socket = await manager.createInstance(SocketOptions(
-                    //Socket IO server URI
-                      // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
-                      // '10.0.0.11:3000',
-                      Utils.URL_SOCKET,
-                      nameSpace: "/",
-                      //Query params - can be used for authentication
-                      // query: {
-                      //   "query": 'auth_token=${signedToken}'
-                      // },
-                      query: {
-                        "auth_token": '${signedToken.toString()}',
-                        "room" : await Db.servidor()
-                      },
+    // socket = await manager.createInstance(SocketOptions(
+    //                 //Socket IO server URI
+    //                   // 'http://pruebass.ml:3000',
+    //                   // 'http://192.168.43.63:3000',
+    //                   // '10.0.0.11:3000',
+    //                   Utils.URL_SOCKET,
+    //                   nameSpace: "/",
+    //                   //Query params - can be used for authentication
+    //                   // query: {
+    //                   //   "query": 'auth_token=${signedToken}'
+    //                   // },
+    //                   query: {
+    //                     "auth_token": '${signedToken.toString()}',
+    //                     "room" : await Db.servidor()
+    //                   },
 
-                      //Enable or disable platform channel logging
-                      enableLogging: true,
-                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
-        ));       //TODO change the port  accordingly
-    socket.onConnect((data) async {
-      print("connected...");
-      print(data);
+    //                   //Enable or disable platform channel logging
+    //                   enableLogging: true,
+    //                   // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+    //     ));       //TODO change the port  accordingly
+
+    socket = IO.io(Utils.URL_SOCKET, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+      'extraHeaders': {'foo': 'bar'}, // optional
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}"
+      // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
+    });
+    socket.on('connect', (_) async {
+     print("connected...");
+      // print(data);
       socket.emit("message", ["Hello world!"]);
       await Realtime.sincronizarTodos(_scaffoldKey);
       await _getPermisos();
       _socketContadorErrores = 0;
-    // _listaMensajes.add("initSocket onConnect ${DateTime.now().hour}:${DateTime.now().minute}");
-
     });
+
+    // socket.onConnect((data) async {
+    //   print("connected...");
+    //   print(data);
+    //   socket.emit("message", ["Hello world!"]);
+    //   await Realtime.sincronizarTodos(_scaffoldKey);
+    //   await _getPermisos();
+    //   _socketContadorErrores = 0;
+    // // _listaMensajes.add("initSocket onConnect ${DateTime.now().hour}:${DateTime.now().minute}");
+
+    // });
     //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
     //   // var parsed = Utils.parseDatos(data);
     //   var parsed = data.cast<String, dynamic>();
@@ -663,33 +700,45 @@ Future<bool> _requestPermisionChannel() async {
     //     await Realtime.addStocks(parsed['stocks']);
     //   }
     // });
-
-    socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
-      // var parsed = data.cast<String, dynamic>();
-      var parsed = await compute(Utils.parseDatosDynamic, data);
-      await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("BlocksplaysgeneralsEvent: $parsed");
-      await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
-    });
+    if(kIsWeb == false){
+      socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
+        // var parsed = data.cast<String, dynamic>();
+        var parsed = await compute(Utils.parseDatosDynamic, data);
+        await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("BlocksplaysgeneralsEvent: $parsed");
+        await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      });
+      socket.on("blocksdirtygenerals:App\\Events\\BlocksdirtygeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("Principalview blocksdirtygenerals: $parsed");
+        await Realtime.addBlocksdirtygeneralsDatosNuevos(parsed['blocksdirtygenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksdirty:App\\Events\\BlocksdirtyEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("Principalview blocksdirty: $parsed");
+        await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
+      });
+    }
+    
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
       // var parsed = data.cast<String, dynamic>();
       var parsed = await compute(Utils.parseDatosDynamic, data);
@@ -702,16 +751,7 @@ Future<bool> _requestPermisionChannel() async {
       quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed);
       // print("lotteriesevent: $parsed");
     });
-    socket.on("blocksdirtygenerals:App\\Events\\BlocksdirtygeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("Principalview blocksdirtygenerals: $parsed");
-      await Realtime.addBlocksdirtygeneralsDatosNuevos(parsed['blocksdirtygenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksdirty:App\\Events\\BlocksdirtyEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("Principalview blocksdirty: $parsed");
-      await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
-    });
+    
     socket.on("settings:App\\Events\\SettingsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       Realtime.ajustes(parsed);
@@ -719,23 +759,20 @@ Future<bool> _requestPermisionChannel() async {
     });
     socket.on("error", (data){   //sample event
       print("onError: $data");
-    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
-
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
-
-      // print(data);
     });
-    socket.onConnectError((er) async {
-      _socketContadorErrores++;
-      if(_socketContadorErrores == 4)
-        await _desconectarYConectarNuevamente();
-      print("onConnectError: $er");
-    _listaMensajes.add("initSocket onConnectError ${DateTime.now().hour}:${DateTime.now().minute}");
+    socket.on('connect_error', (data) => print(data));
+    socket.on('error', (data) => print("errr: ${data}"));
+  //   socket.onConnectError((er) async {
+  //     _socketContadorErrores++;
+  //     if(_socketContadorErrores == 4)
+  //       await _desconectarYConectarNuevamente();
+  //     print("onConnectError: $er");
+  //   _listaMensajes.add("initSocket onConnectError ${DateTime.now().hour}:${DateTime.now().minute}");
 
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "onConnectError start socket");
+  // // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "onConnectError start socket");
 
-    });
-    socket.onError((e) => print(e));
+  //   });
+  //   socket.onError((e) => print(e));
     socket.connect();
 
 
@@ -781,58 +818,58 @@ Future<bool> _requestPermisionChannel() async {
 
 print("Inside socketNotificaciones");
 
-    socketNotificaciones = await manager.createInstance(SocketOptions(
-                    //Socket IO server URI
-                      // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
-                      // '10.0.0.11:3000',
-                      Utils.URL_SOCKET,
-                      nameSpace: "/",
-                      //Query params - can be used for authentication
-                      // query: {
-                      //   "query": 'auth_token=${signedToken}'
-                      // },
-                      query: {
-                        "auth_token": '${signedToken.toString()}',
-                        "room" : await Db.servidor()
-                      },
+  //   socketNotificaciones = await manager.createInstance(SocketOptions(
+  //                   //Socket IO server URI
+  //                     // 'http://pruebass.ml:3000',
+  //                     // 'http://192.168.43.63:3000',
+  //                     // '10.0.0.11:3000',
+  //                     Utils.URL_SOCKET,
+  //                     nameSpace: "/",
+  //                     //Query params - can be used for authentication
+  //                     // query: {
+  //                     //   "query": 'auth_token=${signedToken}'
+  //                     // },
+  //                     query: {
+  //                       "auth_token": '${signedToken.toString()}',
+  //                       "room" : await Db.servidor()
+  //                     },
 
-                      //Enable or disable platform channel logging
-                      enableLogging: true,
-                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
-        )); 
-    socketNotificaciones.onConnect((data) async {
-      _socketNotificacionContadorErrores = 0;
-      print("socketNotificaciones connected...");
-      print(data);
-      // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
-    });
-    socketNotificaciones.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
+  //                     //Enable or disable platform channel logging
+  //                     enableLogging: true,
+  //                     // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+  //       )); 
+  //   socketNotificaciones.onConnect((data) async {
+  //     _socketNotificacionContadorErrores = 0;
+  //     print("socketNotificaciones connected...");
+  //     print(data);
+  //     // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
+  //   });
+  //   socketNotificaciones.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
+  //     var parsed = data.cast<String, dynamic>();
       
-      if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
-        var notificacion = Notificacion.fromMap(parsed["notification"]);
-        print("Principalview NotificationEvent Mostrar notificacion: ${notificacion.toJson()}");
-        MyNotification.show(route: "/notificaciones", title: notificacion.titulo, subtitle: notificacion.subtitulo, content: notificacion.contenido);
-      }
-      print("Principalview NotificationEvent: $parsed");
-    });
-    socketNotificaciones.onConnectError((er) async {
-      _socketNotificacionContadorErrores++;
-      if(_socketNotificacionContadorErrores == 4)
-        await _desconectarYConectarNuevamenteSocketNotificacion();
-      print("onConnectError: $er");
-    });
-    socketNotificaciones.on("error", (data){   //sample event
-      print("onErrorNoti: $data");
-    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
+  //     if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
+  //       var notificacion = Notificacion.fromMap(parsed["notification"]);
+  //       print("Principalview NotificationEvent Mostrar notificacion: ${notificacion.toJson()}");
+  //       MyNotification.show(route: "/notificaciones", title: notificacion.titulo, subtitle: notificacion.subtitulo, content: notificacion.contenido);
+  //     }
+  //     print("Principalview NotificationEvent: $parsed");
+  //   });
+  //   socketNotificaciones.onConnectError((er) async {
+  //     _socketNotificacionContadorErrores++;
+  //     if(_socketNotificacionContadorErrores == 4)
+  //       await _desconectarYConectarNuevamenteSocketNotificacion();
+  //     print("onConnectError: $er");
+  //   });
+  //   socketNotificaciones.on("error", (data){   //sample event
+  //     print("onErrorNoti: $data");
+  //   // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
 
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
+  // // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
 
-      // print(data);
-    });
-    socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
-    socketNotificaciones.connect();
+  //     // print(data);
+  //   });
+  //   socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
+  //   socketNotificaciones.connect();
 
     print("inside NotificationEvent:");
   }
@@ -995,7 +1032,8 @@ _showIntentNotificationIfExists() async {
         // usuario.servidor = servidor;
         // await Db.update("Users", usuario.toJson(), usuario.id);
         print("_cambiarServidor entrooooooooooooooooo");
-        await manager.clearInstance(socket);
+        // await manager.clearInstance(socket);
+        await _disconnectSocket();
         futureUsuario = Db.getUsuario();
         await indexPost(true);
         await initSocket();

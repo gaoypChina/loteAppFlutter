@@ -48,6 +48,20 @@ class Users extends Table{
   Set<Column> get primaryKey => {id};
 }
 
+class Settings extends Table{
+  IntColumn get id => integer()();
+  TextColumn get consorcio => text()();
+  IntColumn get idTipoFormatoTicket => integer()();
+  IntColumn get imprimirNombreConsorcio => integer()();
+  TextColumn get descripcionTipoFormatoTicket => text()();
+  IntColumn get cancelarTicketWhatsapp => integer()();
+  IntColumn get imprimirNombreBanca => integer()();TextColumn get servidor => text()();
+  // BoolColumn get status => boolean().withDefault(Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class Branchs extends Table{
   IntColumn get id => integer()();
   IntColumn get idMoneda => integer()();
@@ -201,7 +215,7 @@ class Blocksdirtygenerals extends Table{
   Set<Column> get primaryKey => {id};
 }
 
-@UseMoor(tables: [Tasks, Permissions, Users, Branchs, Servers, Stocks, Blocksgenerals, Blockslotteries, Blocksplays, Blocksplaysgenerals, Draws, Blocksdirtys, Blocksdirtygenerals])
+@UseMoor(tables: [Tasks, Permissions, Users, Settings, Branchs, Servers, Stocks, Blocksgenerals, Blockslotteries, Blocksplays, Blocksplaysgenerals, Draws, Blocksdirtys, Blocksdirtygenerals])
 class AppDatabase extends _$AppDatabase{
   // AppDatabase() : super(WebDatabase('app', logStatements: true));
   AppDatabase(QueryExecutor e) : super(e);
@@ -219,6 +233,7 @@ class AppDatabase extends _$AppDatabase{
     return batch((b) => b.insertAllOnConflictUpdate(tasks, listTask));
   }
 
+  Future insertPermission(Permission permission) => into(permissions).insert(permission);
   Future<void> insertListPermission(List<Permiso> permisos) async {
     List<Permission> listPermission = permisos.map((e) => Permission(descripcion: e.descripcion, status: e.status, id: e.id, created_at: e.created_at)).toList();
     return await batch((b) => b.insertAllOnConflictUpdate(permissions, listPermission));
@@ -233,6 +248,7 @@ class AppDatabase extends _$AppDatabase{
   Future insertBranch(Branch branch) => into(branchs).insert(branch);
   Future updateBranch(Branch branch) => update(branchs).replace(branch);
   Future deleteBranch(Branch branch) => delete(branchs).delete(branch);
+  Future deleteAllBranches() => customStatement("delete from branches");
   Future<Map<String, dynamic>> getBanca() async => (await ((select(branchs)..limit(1)).getSingle())).toJson();
   Future<int> getIdBanca() async {
     Branch e = await ((select(branchs)..limit(1)).getSingle());
@@ -257,6 +273,12 @@ class AppDatabase extends _$AppDatabase{
     return (e != null) ? e.id : 0;
   }
 
+  Future insertSetting(Setting setting) => into(settings).insert(setting);
+  Future updateSetting(Setting setting) => update(settings).replace(setting);
+  Future deleteSetting(Setting setting) => delete(settings).delete(setting);
+  Future deleteAllSetting() => customStatement("delete from settings");
+  Future<Map<String, dynamic>> getSetting() async => (await ((select(settings)..limit(1)).getSingle())).toJson();
+
   Future<List<Server>> getAllServer() => select(servers).get();
   Future insertServer(Server element) => into(servers).insert(element);
   Future updateServer(Server element) => update(servers).replace(element);
@@ -269,10 +291,13 @@ class AppDatabase extends _$AppDatabase{
     User e = await ((select(users)..limit(1)).getSingle());
     return (e != null) ? e.servidor : null;
   }
+
+  
   Future<void> deleteAllTables() async {
     // return await batch((b) => b.insertAllOnConflictUpdate(servers, listServer));
     await batch((b) {
       b.customStatement("delete from users", []);
+      b.customStatement("delete from settings", []);
       b.customStatement("delete from branchs", []);
       b.customStatement("delete from permissions", []);
       b.customStatement("delete from servers", []);

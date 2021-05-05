@@ -59,7 +59,10 @@ class DBSqflite{
     );
   }
 
-  static delete(String table, id) async {
+  static delete(String table, [id]) async {
+    if(id == null)
+      return await database.delete(table);
+      
     await database.delete(
       table,
       where: "id = ?",

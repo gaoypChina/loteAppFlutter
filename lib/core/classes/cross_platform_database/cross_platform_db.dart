@@ -11,7 +11,7 @@ abstract class CrossDB {
   String getPlatform();
   Future insert(String table, Map<String, dynamic> dataToMap);
   Future update(String table, Map<String, dynamic> dataToMap, id);
-  Future delete(String table, id);
+  Future delete(String table, [id]);
   Future<List<Map<String, dynamic>>> query(String table);
   Future<int> idUsuario();
   Future<String> servidor();

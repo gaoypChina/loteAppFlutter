@@ -41,18 +41,27 @@ class WebMoor implements CrossDB{
   @override
   insert(String table, Map<String, dynamic> dataToMap) {
     // TODO: implement insert
+    var database = WebMoor();
     switch (table) {
-      case "":
-        
+      case "Users":
+        return database.db.insertUser(User.fromJson(dataToMap));
+        break;
+      case "Permissions":
+        return database.db.insertPermission(Permission.fromJson(dataToMap));
+        break;
+      case "Settings":
+        return database.db.insertSetting(Setting.fromJson(dataToMap));
         break;
       default:
+        return null;
     }
   }
 
   @override
   deleteDB() {
     // TODO: implement deleteDB
-    throw UnimplementedError("WebDatabase Uninplemented deleteDB");
+    var database = WebMoor();
+    return database.db.deleteAllTables();
   }
 
   @override
@@ -62,10 +71,25 @@ class WebMoor implements CrossDB{
   }
 
   @override
-  Future delete(String table, id) {
+  Future delete(String table, [id]) {
       // TODO: implement delete
-      throw UnimplementedError("WebDatabase Uninplemented delete");
+    var database = WebMoor();
+    switch (table) {
+      case "Users":
+        return database.db.deleteAllUser();
+        break;
+      case "Permissions":
+        return database.db.deleteAllPermission();
+        break;
+      case "Settings":
+        return database.db.deleteAllSetting();
+        break;
+      default:
+        return null;
     }
+    
+    // throw UnimplementedError("WebDatabase Uninplemented delete");
+  }
   
     @override
     Future<bool> existePermiso(String permiso) {

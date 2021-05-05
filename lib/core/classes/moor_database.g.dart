@@ -927,6 +927,552 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   }
 }
 
+class Setting extends DataClass implements Insertable<Setting> {
+  final int id;
+  final String consorcio;
+  final int idTipoFormatoTicket;
+  final int imprimirNombreConsorcio;
+  final String descripcionTipoFormatoTicket;
+  final int cancelarTicketWhatsapp;
+  final int imprimirNombreBanca;
+  final String servidor;
+  Setting(
+      {@required this.id,
+      @required this.consorcio,
+      @required this.idTipoFormatoTicket,
+      @required this.imprimirNombreConsorcio,
+      @required this.descripcionTipoFormatoTicket,
+      @required this.cancelarTicketWhatsapp,
+      @required this.imprimirNombreBanca,
+      @required this.servidor});
+  factory Setting.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    return Setting(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      consorcio: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}consorcio']),
+      idTipoFormatoTicket: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}id_tipo_formato_ticket']),
+      imprimirNombreConsorcio: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}imprimir_nombre_consorcio']),
+      descripcionTipoFormatoTicket: stringType.mapFromDatabaseResponse(
+          data['${effectivePrefix}descripcion_tipo_formato_ticket']),
+      cancelarTicketWhatsapp: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}cancelar_ticket_whatsapp']),
+      imprimirNombreBanca: intType.mapFromDatabaseResponse(
+          data['${effectivePrefix}imprimir_nombre_banca']),
+      servidor: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}servidor']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || consorcio != null) {
+      map['consorcio'] = Variable<String>(consorcio);
+    }
+    if (!nullToAbsent || idTipoFormatoTicket != null) {
+      map['id_tipo_formato_ticket'] = Variable<int>(idTipoFormatoTicket);
+    }
+    if (!nullToAbsent || imprimirNombreConsorcio != null) {
+      map['imprimir_nombre_consorcio'] = Variable<int>(imprimirNombreConsorcio);
+    }
+    if (!nullToAbsent || descripcionTipoFormatoTicket != null) {
+      map['descripcion_tipo_formato_ticket'] =
+          Variable<String>(descripcionTipoFormatoTicket);
+    }
+    if (!nullToAbsent || cancelarTicketWhatsapp != null) {
+      map['cancelar_ticket_whatsapp'] = Variable<int>(cancelarTicketWhatsapp);
+    }
+    if (!nullToAbsent || imprimirNombreBanca != null) {
+      map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca);
+    }
+    if (!nullToAbsent || servidor != null) {
+      map['servidor'] = Variable<String>(servidor);
+    }
+    return map;
+  }
+
+  SettingsCompanion toCompanion(bool nullToAbsent) {
+    return SettingsCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      consorcio: consorcio == null && nullToAbsent
+          ? const Value.absent()
+          : Value(consorcio),
+      idTipoFormatoTicket: idTipoFormatoTicket == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idTipoFormatoTicket),
+      imprimirNombreConsorcio: imprimirNombreConsorcio == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imprimirNombreConsorcio),
+      descripcionTipoFormatoTicket:
+          descripcionTipoFormatoTicket == null && nullToAbsent
+              ? const Value.absent()
+              : Value(descripcionTipoFormatoTicket),
+      cancelarTicketWhatsapp: cancelarTicketWhatsapp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cancelarTicketWhatsapp),
+      imprimirNombreBanca: imprimirNombreBanca == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imprimirNombreBanca),
+      servidor: servidor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(servidor),
+    );
+  }
+
+  factory Setting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return Setting(
+      id: serializer.fromJson<int>(json['id']),
+      consorcio: serializer.fromJson<String>(json['consorcio']),
+      idTipoFormatoTicket:
+          serializer.fromJson<int>(json['idTipoFormatoTicket']),
+      imprimirNombreConsorcio:
+          serializer.fromJson<int>(json['imprimirNombreConsorcio']),
+      descripcionTipoFormatoTicket:
+          serializer.fromJson<String>(json['descripcionTipoFormatoTicket']),
+      cancelarTicketWhatsapp:
+          serializer.fromJson<int>(json['cancelarTicketWhatsapp']),
+      imprimirNombreBanca:
+          serializer.fromJson<int>(json['imprimirNombreBanca']),
+      servidor: serializer.fromJson<String>(json['servidor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'consorcio': serializer.toJson<String>(consorcio),
+      'idTipoFormatoTicket': serializer.toJson<int>(idTipoFormatoTicket),
+      'imprimirNombreConsorcio':
+          serializer.toJson<int>(imprimirNombreConsorcio),
+      'descripcionTipoFormatoTicket':
+          serializer.toJson<String>(descripcionTipoFormatoTicket),
+      'cancelarTicketWhatsapp': serializer.toJson<int>(cancelarTicketWhatsapp),
+      'imprimirNombreBanca': serializer.toJson<int>(imprimirNombreBanca),
+      'servidor': serializer.toJson<String>(servidor),
+    };
+  }
+
+  Setting copyWith(
+          {int id,
+          String consorcio,
+          int idTipoFormatoTicket,
+          int imprimirNombreConsorcio,
+          String descripcionTipoFormatoTicket,
+          int cancelarTicketWhatsapp,
+          int imprimirNombreBanca,
+          String servidor}) =>
+      Setting(
+        id: id ?? this.id,
+        consorcio: consorcio ?? this.consorcio,
+        idTipoFormatoTicket: idTipoFormatoTicket ?? this.idTipoFormatoTicket,
+        imprimirNombreConsorcio:
+            imprimirNombreConsorcio ?? this.imprimirNombreConsorcio,
+        descripcionTipoFormatoTicket:
+            descripcionTipoFormatoTicket ?? this.descripcionTipoFormatoTicket,
+        cancelarTicketWhatsapp:
+            cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
+        imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
+        servidor: servidor ?? this.servidor,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Setting(')
+          ..write('id: $id, ')
+          ..write('consorcio: $consorcio, ')
+          ..write('idTipoFormatoTicket: $idTipoFormatoTicket, ')
+          ..write('imprimirNombreConsorcio: $imprimirNombreConsorcio, ')
+          ..write(
+              'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
+          ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
+          ..write('servidor: $servidor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(
+          consorcio.hashCode,
+          $mrjc(
+              idTipoFormatoTicket.hashCode,
+              $mrjc(
+                  imprimirNombreConsorcio.hashCode,
+                  $mrjc(
+                      descripcionTipoFormatoTicket.hashCode,
+                      $mrjc(
+                          cancelarTicketWhatsapp.hashCode,
+                          $mrjc(imprimirNombreBanca.hashCode,
+                              servidor.hashCode))))))));
+  @override
+  bool operator ==(dynamic other) =>
+      identical(this, other) ||
+      (other is Setting &&
+          other.id == this.id &&
+          other.consorcio == this.consorcio &&
+          other.idTipoFormatoTicket == this.idTipoFormatoTicket &&
+          other.imprimirNombreConsorcio == this.imprimirNombreConsorcio &&
+          other.descripcionTipoFormatoTicket ==
+              this.descripcionTipoFormatoTicket &&
+          other.cancelarTicketWhatsapp == this.cancelarTicketWhatsapp &&
+          other.imprimirNombreBanca == this.imprimirNombreBanca &&
+          other.servidor == this.servidor);
+}
+
+class SettingsCompanion extends UpdateCompanion<Setting> {
+  final Value<int> id;
+  final Value<String> consorcio;
+  final Value<int> idTipoFormatoTicket;
+  final Value<int> imprimirNombreConsorcio;
+  final Value<String> descripcionTipoFormatoTicket;
+  final Value<int> cancelarTicketWhatsapp;
+  final Value<int> imprimirNombreBanca;
+  final Value<String> servidor;
+  const SettingsCompanion({
+    this.id = const Value.absent(),
+    this.consorcio = const Value.absent(),
+    this.idTipoFormatoTicket = const Value.absent(),
+    this.imprimirNombreConsorcio = const Value.absent(),
+    this.descripcionTipoFormatoTicket = const Value.absent(),
+    this.cancelarTicketWhatsapp = const Value.absent(),
+    this.imprimirNombreBanca = const Value.absent(),
+    this.servidor = const Value.absent(),
+  });
+  SettingsCompanion.insert({
+    this.id = const Value.absent(),
+    @required String consorcio,
+    @required int idTipoFormatoTicket,
+    @required int imprimirNombreConsorcio,
+    @required String descripcionTipoFormatoTicket,
+    @required int cancelarTicketWhatsapp,
+    @required int imprimirNombreBanca,
+    @required String servidor,
+  })  : consorcio = Value(consorcio),
+        idTipoFormatoTicket = Value(idTipoFormatoTicket),
+        imprimirNombreConsorcio = Value(imprimirNombreConsorcio),
+        descripcionTipoFormatoTicket = Value(descripcionTipoFormatoTicket),
+        cancelarTicketWhatsapp = Value(cancelarTicketWhatsapp),
+        imprimirNombreBanca = Value(imprimirNombreBanca),
+        servidor = Value(servidor);
+  static Insertable<Setting> custom({
+    Expression<int> id,
+    Expression<String> consorcio,
+    Expression<int> idTipoFormatoTicket,
+    Expression<int> imprimirNombreConsorcio,
+    Expression<String> descripcionTipoFormatoTicket,
+    Expression<int> cancelarTicketWhatsapp,
+    Expression<int> imprimirNombreBanca,
+    Expression<String> servidor,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (consorcio != null) 'consorcio': consorcio,
+      if (idTipoFormatoTicket != null)
+        'id_tipo_formato_ticket': idTipoFormatoTicket,
+      if (imprimirNombreConsorcio != null)
+        'imprimir_nombre_consorcio': imprimirNombreConsorcio,
+      if (descripcionTipoFormatoTicket != null)
+        'descripcion_tipo_formato_ticket': descripcionTipoFormatoTicket,
+      if (cancelarTicketWhatsapp != null)
+        'cancelar_ticket_whatsapp': cancelarTicketWhatsapp,
+      if (imprimirNombreBanca != null)
+        'imprimir_nombre_banca': imprimirNombreBanca,
+      if (servidor != null) 'servidor': servidor,
+    });
+  }
+
+  SettingsCompanion copyWith(
+      {Value<int> id,
+      Value<String> consorcio,
+      Value<int> idTipoFormatoTicket,
+      Value<int> imprimirNombreConsorcio,
+      Value<String> descripcionTipoFormatoTicket,
+      Value<int> cancelarTicketWhatsapp,
+      Value<int> imprimirNombreBanca,
+      Value<String> servidor}) {
+    return SettingsCompanion(
+      id: id ?? this.id,
+      consorcio: consorcio ?? this.consorcio,
+      idTipoFormatoTicket: idTipoFormatoTicket ?? this.idTipoFormatoTicket,
+      imprimirNombreConsorcio:
+          imprimirNombreConsorcio ?? this.imprimirNombreConsorcio,
+      descripcionTipoFormatoTicket:
+          descripcionTipoFormatoTicket ?? this.descripcionTipoFormatoTicket,
+      cancelarTicketWhatsapp:
+          cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
+      imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
+      servidor: servidor ?? this.servidor,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (consorcio.present) {
+      map['consorcio'] = Variable<String>(consorcio.value);
+    }
+    if (idTipoFormatoTicket.present) {
+      map['id_tipo_formato_ticket'] = Variable<int>(idTipoFormatoTicket.value);
+    }
+    if (imprimirNombreConsorcio.present) {
+      map['imprimir_nombre_consorcio'] =
+          Variable<int>(imprimirNombreConsorcio.value);
+    }
+    if (descripcionTipoFormatoTicket.present) {
+      map['descripcion_tipo_formato_ticket'] =
+          Variable<String>(descripcionTipoFormatoTicket.value);
+    }
+    if (cancelarTicketWhatsapp.present) {
+      map['cancelar_ticket_whatsapp'] =
+          Variable<int>(cancelarTicketWhatsapp.value);
+    }
+    if (imprimirNombreBanca.present) {
+      map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca.value);
+    }
+    if (servidor.present) {
+      map['servidor'] = Variable<String>(servidor.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('consorcio: $consorcio, ')
+          ..write('idTipoFormatoTicket: $idTipoFormatoTicket, ')
+          ..write('imprimirNombreConsorcio: $imprimirNombreConsorcio, ')
+          ..write(
+              'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
+          ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
+          ..write('servidor: $servidor')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $SettingsTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn(
+      'id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _consorcioMeta = const VerificationMeta('consorcio');
+  GeneratedTextColumn _consorcio;
+  @override
+  GeneratedTextColumn get consorcio => _consorcio ??= _constructConsorcio();
+  GeneratedTextColumn _constructConsorcio() {
+    return GeneratedTextColumn(
+      'consorcio',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _idTipoFormatoTicketMeta =
+      const VerificationMeta('idTipoFormatoTicket');
+  GeneratedIntColumn _idTipoFormatoTicket;
+  @override
+  GeneratedIntColumn get idTipoFormatoTicket =>
+      _idTipoFormatoTicket ??= _constructIdTipoFormatoTicket();
+  GeneratedIntColumn _constructIdTipoFormatoTicket() {
+    return GeneratedIntColumn(
+      'id_tipo_formato_ticket',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _imprimirNombreConsorcioMeta =
+      const VerificationMeta('imprimirNombreConsorcio');
+  GeneratedIntColumn _imprimirNombreConsorcio;
+  @override
+  GeneratedIntColumn get imprimirNombreConsorcio =>
+      _imprimirNombreConsorcio ??= _constructImprimirNombreConsorcio();
+  GeneratedIntColumn _constructImprimirNombreConsorcio() {
+    return GeneratedIntColumn(
+      'imprimir_nombre_consorcio',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _descripcionTipoFormatoTicketMeta =
+      const VerificationMeta('descripcionTipoFormatoTicket');
+  GeneratedTextColumn _descripcionTipoFormatoTicket;
+  @override
+  GeneratedTextColumn get descripcionTipoFormatoTicket =>
+      _descripcionTipoFormatoTicket ??=
+          _constructDescripcionTipoFormatoTicket();
+  GeneratedTextColumn _constructDescripcionTipoFormatoTicket() {
+    return GeneratedTextColumn(
+      'descripcion_tipo_formato_ticket',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _cancelarTicketWhatsappMeta =
+      const VerificationMeta('cancelarTicketWhatsapp');
+  GeneratedIntColumn _cancelarTicketWhatsapp;
+  @override
+  GeneratedIntColumn get cancelarTicketWhatsapp =>
+      _cancelarTicketWhatsapp ??= _constructCancelarTicketWhatsapp();
+  GeneratedIntColumn _constructCancelarTicketWhatsapp() {
+    return GeneratedIntColumn(
+      'cancelar_ticket_whatsapp',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _imprimirNombreBancaMeta =
+      const VerificationMeta('imprimirNombreBanca');
+  GeneratedIntColumn _imprimirNombreBanca;
+  @override
+  GeneratedIntColumn get imprimirNombreBanca =>
+      _imprimirNombreBanca ??= _constructImprimirNombreBanca();
+  GeneratedIntColumn _constructImprimirNombreBanca() {
+    return GeneratedIntColumn(
+      'imprimir_nombre_banca',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _servidorMeta = const VerificationMeta('servidor');
+  GeneratedTextColumn _servidor;
+  @override
+  GeneratedTextColumn get servidor => _servidor ??= _constructServidor();
+  GeneratedTextColumn _constructServidor() {
+    return GeneratedTextColumn(
+      'servidor',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        consorcio,
+        idTipoFormatoTicket,
+        imprimirNombreConsorcio,
+        descripcionTipoFormatoTicket,
+        cancelarTicketWhatsapp,
+        imprimirNombreBanca,
+        servidor
+      ];
+  @override
+  $SettingsTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'settings';
+  @override
+  final String actualTableName = 'settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<Setting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('consorcio')) {
+      context.handle(_consorcioMeta,
+          consorcio.isAcceptableOrUnknown(data['consorcio'], _consorcioMeta));
+    } else if (isInserting) {
+      context.missing(_consorcioMeta);
+    }
+    if (data.containsKey('id_tipo_formato_ticket')) {
+      context.handle(
+          _idTipoFormatoTicketMeta,
+          idTipoFormatoTicket.isAcceptableOrUnknown(
+              data['id_tipo_formato_ticket'], _idTipoFormatoTicketMeta));
+    } else if (isInserting) {
+      context.missing(_idTipoFormatoTicketMeta);
+    }
+    if (data.containsKey('imprimir_nombre_consorcio')) {
+      context.handle(
+          _imprimirNombreConsorcioMeta,
+          imprimirNombreConsorcio.isAcceptableOrUnknown(
+              data['imprimir_nombre_consorcio'], _imprimirNombreConsorcioMeta));
+    } else if (isInserting) {
+      context.missing(_imprimirNombreConsorcioMeta);
+    }
+    if (data.containsKey('descripcion_tipo_formato_ticket')) {
+      context.handle(
+          _descripcionTipoFormatoTicketMeta,
+          descripcionTipoFormatoTicket.isAcceptableOrUnknown(
+              data['descripcion_tipo_formato_ticket'],
+              _descripcionTipoFormatoTicketMeta));
+    } else if (isInserting) {
+      context.missing(_descripcionTipoFormatoTicketMeta);
+    }
+    if (data.containsKey('cancelar_ticket_whatsapp')) {
+      context.handle(
+          _cancelarTicketWhatsappMeta,
+          cancelarTicketWhatsapp.isAcceptableOrUnknown(
+              data['cancelar_ticket_whatsapp'], _cancelarTicketWhatsappMeta));
+    } else if (isInserting) {
+      context.missing(_cancelarTicketWhatsappMeta);
+    }
+    if (data.containsKey('imprimir_nombre_banca')) {
+      context.handle(
+          _imprimirNombreBancaMeta,
+          imprimirNombreBanca.isAcceptableOrUnknown(
+              data['imprimir_nombre_banca'], _imprimirNombreBancaMeta));
+    } else if (isInserting) {
+      context.missing(_imprimirNombreBancaMeta);
+    }
+    if (data.containsKey('servidor')) {
+      context.handle(_servidorMeta,
+          servidor.isAcceptableOrUnknown(data['servidor'], _servidorMeta));
+    } else if (isInserting) {
+      context.missing(_servidorMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Setting map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return Setting.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  $SettingsTable createAlias(String alias) {
+    return $SettingsTable(_db, alias);
+  }
+}
+
 class Branch extends DataClass implements Insertable<Branch> {
   final int id;
   final int idMoneda;
@@ -6273,6 +6819,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $PermissionsTable get permissions => _permissions ??= $PermissionsTable(this);
   $UsersTable _users;
   $UsersTable get users => _users ??= $UsersTable(this);
+  $SettingsTable _settings;
+  $SettingsTable get settings => _settings ??= $SettingsTable(this);
   $BranchsTable _branchs;
   $BranchsTable get branchs => _branchs ??= $BranchsTable(this);
   $ServersTable _servers;
@@ -6305,6 +6853,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         tasks,
         permissions,
         users,
+        settings,
         branchs,
         servers,
         stocks,

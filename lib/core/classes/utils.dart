@@ -13,14 +13,14 @@ import 'package:loterias/core/models/jugadas.dart';
 
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000';
-  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL_SOCKET = 'http://148.255.160.175:3000';
   // static final String URL = 'https://pruebass.ml';
-  // static final String URL = 'http://127.0.0.1:8000';
+  static final String URL = 'http://127.0.0.1:8000';
 
-  static final String URL = 'https://loteriasdo.gq';
-  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  // static final String URL = 'https://loteriasdo.gq';
+  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -352,6 +352,11 @@ class  Utils {
   return jws.toCompactSerialization();
   }
 
+ static String base64Urlencode(String secret) {
+    var stringToBase64Url = utf8.fuse(base64Url);
+    return stringToBase64Url.encode(secret);
+  }
+
   static Future<String> createJwtForSocket({@required Map<String, dynamic> data, @required key}) async {
   
   
@@ -370,12 +375,13 @@ class  Utils {
     var c = await DB.create();
     key = await c.getValue("apiKey");
   }
+  
 
   builder.addRecipient(
     // JsonWebKey.fromPem(key),
       JsonWebKey.fromJson({
         'kty': 'oct',
-        'k': Utils.toBase64(key)
+        'k': base64Urlencode('$key')
       }),
       algorithm: 'HS256');
 

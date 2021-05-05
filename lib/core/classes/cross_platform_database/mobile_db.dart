@@ -51,7 +51,10 @@ class MobileDB implements CrossDB{
   }
 
   @override
-  Future delete(String table, id) {
+  Future delete(String table, [id]) {
+    if(id == null)
+      return DBSqflite.database.delete(table);
+      
     return DBSqflite.delete(table, id);
   }
   

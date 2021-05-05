@@ -431,8 +431,8 @@ class Realtime{
     else if(usuario["status"] != 1)
       await Principal.cerrarSesion(context);
     else{
-      await Db.database.delete("Permissions");
-      await Db.database.delete("Users");
+      await Db.delete("Permissions");
+      await Db.delete("Users");
 
       List<Permiso> permisos = usuario['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
       Usuario u = Usuario.fromMap(usuario);
