@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.content.Context
 import android.content.Intent
@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import java.net.URI
 
 class SendTicket{
     companion object{

@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

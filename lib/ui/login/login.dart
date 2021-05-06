@@ -1,20 +1,11 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/bancas.dart';
-import 'package:loterias/core/models/permiso.dart';
-import 'package:loterias/core/models/usuario.dart';
-import 'package:http/http.dart' as http;
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
-import 'dart:convert';
 
-import 'package:loterias/ui/views/principal/principal.dart';
-import 'package:loterias/ui/views/principal/prueba2.dart';
 
 class LoginScreen extends StatefulWidget {
   @override

@@ -17,6 +17,8 @@ import 'package:loterias/core/services/ticketservice.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 
 
@@ -46,7 +48,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/timezone.dart';
 
 class PrincipalApp extends StatefulWidget {
   final bool callThisScreenFromLogin;
@@ -2316,16 +2318,16 @@ void _getTime() {
   }
 
   DateTime _convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone(Loteria loteria) {
-    var santoDomingo = tz.getLocation('America/Santo_Domingo');
-    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.now(santoDomingo);
     var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
-    // var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+    // var fechaFinalRd = TZDateTime.now(santoDomingo);
 
     
-    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
-    // var currentTimeZoneFechaActual = tz.TZDateTime.now(currentTimeZoneLocation);
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+    // var currentTimeZoneFechaActual = TZDateTime.now(currentTimeZoneLocation);
     // var fechaLoteriaCurrentTimeZone = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre}");
-    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
+    var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
     print("_convertirHoraCierreLoteria currentTImeZone: $currentTimeZone");
     print("hora actual currentTimeZone: ${fechaLoteriaCurrentTimeZone.toString()} santoDomingo: ${fechaLoteriaRD.toString()}");
 
@@ -2333,8 +2335,10 @@ void _getTime() {
   }
 
   DateTime _horaCierreLoteriaToCurrentTimeZone(Loteria loteria) {
-    var santoDomingo = tz.getLocation('America/Santo_Domingo');
-    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    if(currentTimeZone == null)
+      return DateTime.now();
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.now(santoDomingo);
     var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
     
     int horasASumar = (fechaLoteriaRD.hour - fechaActualRd.hour);
@@ -2345,8 +2349,8 @@ void _getTime() {
     fechaLoteriaConvertidaAFormatoRD = fechaActualRd.add(Duration(hours: horasASumar, minutes: minutosASumar));
     fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
 
-    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
-    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaConvertidaAFormatoRD, currentTimeZoneLocation);
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+    var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaConvertidaAFormatoRD, currentTimeZoneLocation);
 
     return fechaLoteriaCurrentTimeZone;
   }
@@ -4506,10 +4510,10 @@ Future quitarLoteriasCerradasViejo()
   try {
       listaLoteria.forEach((l) {
       // print("quitarloteriasCerradas: ${l.descripcion}");
-      var santoDomingo = tz.getLocation('America/Santo_Domingo');
-      var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+      var santoDomingo = getLocation('America/Santo_Domingo');
+      var fechaActualRd = TZDateTime.now(santoDomingo);
       var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
-      var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+      var fechaFinalRd = TZDateTime.now(santoDomingo);
       // print("principalview quitarLoteriasCerradas ${fechaFinalRd.hour} : ${fechaFinalRd.minute}");
       if(fechaFinalRd.isAfter(fechaLoteria)){
         if(!_tienePermisoJugarFueraDeHorario){

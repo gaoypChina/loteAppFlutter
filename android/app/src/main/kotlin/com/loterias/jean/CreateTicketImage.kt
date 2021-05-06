@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 class CreateTicketImage {
     companion object{

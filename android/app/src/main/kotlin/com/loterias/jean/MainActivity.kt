@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,7 +8,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
-import android.os.Handler
 import android.util.Base64
 import android.util.Log
 import androidmads.library.qrgenearator.QRGContents
@@ -19,7 +18,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
-import com.loterias.jean2.creta.MyService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -270,11 +268,11 @@ class MainActivity: FlutterActivity() {
                 val name = getString(R.string.channel_name)
                 val descriptionText = getString(R.string.channel_description)
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel("com.example.loterias", name, importance).apply {
+                val channel = NotificationChannel("com.loterias.jean", name, importance).apply {
                     description = descriptionText
                 }
 
-                val channelForeground = NotificationChannel("com.example.loterias.foreground", name, importance).apply {
+                val channelForeground = NotificationChannel("com.loterias.jean.foreground", name, importance).apply {
                     description = descriptionText
                 }
                 channelForeground.setSound(null, null)
@@ -313,7 +311,7 @@ class MainActivity: FlutterActivity() {
 //            intent.putExtra("route", route)
             Log.e("showNotification", "route: " + route);
             val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
-            var builder = NotificationCompat.Builder(this, "com.example.loterias")
+            var builder = NotificationCompat.Builder(this, "com.loterias.jean")
                     .setSmallIcon(R.drawable.ic_loteria)
                     .setContentTitle(title)
                     .setContentText(content)
@@ -349,7 +347,7 @@ class MainActivity: FlutterActivity() {
                 intent.putExtra("notificacion", notificacion)
 //            intent.putExtra("route", route)
                 val pendingIntent: PendingIntent = PendingIntent.getActivity(mContext, 0, intent, 0)
-                var builder = NotificationCompat.Builder(mContext, "com.example.loterias")
+                var builder = NotificationCompat.Builder(mContext, "com.loterias.jean")
                         .setSmallIcon(R.drawable.ic_loteria)
                         .setContentTitle(title)
                         .setContentText(content)

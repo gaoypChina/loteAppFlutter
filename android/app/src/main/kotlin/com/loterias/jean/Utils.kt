@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.Manifest
 import android.app.Activity
@@ -20,7 +20,6 @@ import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.URI
 
 class Utils {
 

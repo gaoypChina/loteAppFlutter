@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter

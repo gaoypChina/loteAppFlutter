@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 class ESCCMD {
     var ESC_ALT = byteArrayOf(27, 64)

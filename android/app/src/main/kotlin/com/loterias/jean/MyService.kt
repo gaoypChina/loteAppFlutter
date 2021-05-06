@@ -1,13 +1,10 @@
-package com.loterias.jean2.creta
+package com.loterias.jean
 
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.loterias.MainActivity
-import com.example.loterias.MySocket
-import com.example.loterias.R
 
 class MyService : Service() {
 
@@ -36,7 +33,7 @@ class MyService : Service() {
 
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-        val builder = NotificationCompat.Builder(this, "com.example.loterias.foreground")
+        val builder = NotificationCompat.Builder(this, "com.loterias.jean.foreground")
                 .setSmallIcon(R.drawable.ic_loteria)
                 .setContentTitle("Procesos internos")
                 .setContentText("Procesos internos del sistema")

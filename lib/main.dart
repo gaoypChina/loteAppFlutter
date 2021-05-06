@@ -2,23 +2,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/mynotification.dart';
-import 'package:loterias/core/classes/singleton.dart';
+// import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/stocks.dart';
-import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/router.dart';
-import 'package:path_provider/path_provider.dart';
 // import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:sembast/sembast_io.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 
 
 import 'core/classes/databasesingleton.dart';
-import 'locator.dart';
 
 // void main() => runApp(Prueba2());
 
@@ -27,7 +19,7 @@ Future<void> main() async {
   tz.initializeTimeZones();
   // setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
-  await MyNotification.init();
+  // await MyNotification.init();
   
 // final appDocumentDirectory = await getApplicationDocumentsDirectory();
 

@@ -1,4 +1,4 @@
-package com.example.loterias
+package com.loterias.jean
 
 import android.util.Log
 import com.github.nkzawa.engineio.client.transports.WebSocket
@@ -47,7 +47,7 @@ class MySocket {
                         }
             }catch (e:Exception){
                 Log.e("MySocket", "Error: " + e.toString())
-                MySocket.connect(url, room)
+                connect(url, room)
             }
         }
 
