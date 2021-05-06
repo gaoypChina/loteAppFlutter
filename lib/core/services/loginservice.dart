@@ -100,6 +100,7 @@ class LoginService{
         "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
         "imprimirNombreBanca" : a.imprimirNombreBanca,
         "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
+        "pagarTicketEnCualquierBanca" : a.pagarTicketEnCualquierBanca,
       });
     
     for(Permiso p in permisos){
