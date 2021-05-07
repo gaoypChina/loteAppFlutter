@@ -409,6 +409,7 @@ class Principal{
 
 
   static showDialogPagar({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+    
     return await showDialog(
       context: context,
       builder: (context){
@@ -416,6 +417,7 @@ class Principal{
         List<Jugada> _jugadas = mapVenta['jugadas'].map<Jugada>((json) => Jugada.fromMap(json)).toList();
         bool tieneJugadasPendientes = (_jugadas.indexWhere((j) => j.status == 0) != -1);
         bool _cargando = false;
+        bool _showListo = false;
 
         _getJugadasPertenecientesALoteria(int idLoteria, List<Jugada> jugadas){
           return jugadas.where((element) => element.idLoteria == idLoteria && element.sorteo != "Super pale").toList();
@@ -440,8 +442,7 @@ class Principal{
                   ),
                 ],
               ),
-              content: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100),
+              content: SingleChildScrollView(
                 child: Column(
                   children: <Widget>[
                     Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500])),
@@ -471,11 +472,7 @@ class Principal{
                         )
                       ],
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: ListView(
-                        children: <Widget>[
-                          Center(
+                    Center(
                             child: Padding(
                               padding: const EdgeInsets.all(2),
                               child: RichText(
@@ -559,20 +556,114 @@ class Principal{
                             );}
                             ).toList(),
                           )
-                          // _buildTable(_jugadas)
-                        ],
-                      ),
-                    )
+                          
+                    // Flexible(
+                    //   flex: 1,
+                    //   child: ListView(
+                    //     children: <Widget>[
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Monto:"),
+                    //                 TextSpan(text: ' ${Utils.toCurrency(mapVenta["total"])}', style: TextStyle(color: Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Pendiente de pago:"),
+                    //                 TextSpan(text: ' ${Utils.toCurrency(mapVenta["montoAPagar"])}', style: TextStyle(color: (Utils.toDouble(mapVenta["montoAPagar"].toString()) > 0) ? Colors.pink : Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Center(
+                    //         child: Padding(
+                    //           padding: const EdgeInsets.all(2),
+                    //           child: RichText(
+                    //             text: TextSpan(
+                    //               style: TextStyle(fontSize: 18, color: Colors.grey[500]),
+                    //               children: [
+                    //                 TextSpan(text: "Premio total:"),
+                    //                 TextSpan(text: ' ${Utils.toCurrency(mapVenta["premio"])}', style: TextStyle(color: Utils.colorInfo))
+                    //               ]
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10,),
+                    //       Column(
+                    //         children: _loterias.map<Widget>((l) { 
+                    //           var jugadas = _getJugadasPertenecientesALoteria(l.id, _jugadas);
+                              
+                    //           return Column(
+                    //           mainAxisAlignment: MainAxisAlignment.center,
+                    //           children: <Widget>[
+                    //             (jugadas.length > 0)
+                    //             ?
+                    //             Column(children: [
+                    //               Padding(
+                    //                 padding: const EdgeInsets.all(8.0),
+                    //                 child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    //               ),
+                    //               _buildTable(jugadas)
+                    //             ],)
+                    //             :
+                    //             SizedBox()
+                    //             ,
+                    //             Column(
+                    //               children: l.loteriaSuperpale.map<Widget>((element) { 
+                    //                 var jugadas = _getJugadasSuperpalePertenecientesALoteria(l.id, element.id, _jugadas);
+                    //               if(jugadas.length > 0 )
+                    //                 return Column(children:[
+                    //                   Padding(
+                    //                     padding: const EdgeInsets.all(8.0),
+                    //                     child: Text("SP (${l.descripcion}/${element.descripcion})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    //                   ),
+                    //                   _buildTable(jugadas)
+                    //                 ]);
+
+                    //                 return SizedBox();
+                                  
+                    //               }
+                    //               ).toList(),
+                    //             ),
+                                
+                    //           ],
+                    //         );}
+                    //         ).toList(),
+                    //       )
+                    //       // _buildTable(_jugadas)
+                    //     ],
+                    //   ),
+                    // )
                     
                   ],
 
                 ),
               ),
               actions: <Widget>[
+                Container(
+                  
+                ),
                 FlatButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop(List());
                 },),
-                FlatButton(child: Text("Pagar"), onPressed: () async {
+                
+                AnimatedCrossFade(
+                  firstChild: FlatButton(child: Text("Pagar"), onPressed: () async {
                     if(tieneJugadasPendientes){
                         if(await Utils.exiseImpresora() == false){
                           Utils.showAlertDialog(title: "Alerta", content: "Debe registrar una impresora", context: context);
@@ -592,14 +683,33 @@ class Principal{
                             BluetoothChannel.printTicket(datos["venta"], BluetoothChannel.TYPE_PAGADO);
                           }
                         }
-                        setState(() => _cargando = false);
+                        setState((){_cargando = false;  _showListo = true; });
+                        await Future.delayed(Duration(milliseconds: 1300));
                         Navigator.pop(context);
                       } on Exception catch(e){
                         setState(() => _cargando = false);
                       }
 
-                  },
+                      },
+                    )
+                  , 
+                  secondChild: InkWell(
+                    onTap: (){
+
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                      decoration: BoxDecoration(
+                        color: Colors.green[100],
+                        borderRadius: BorderRadius.circular(10)
+                      ),
+                      child: Text("Listo", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),),
+                    ),
+                  ), 
+                  crossFadeState: (!_showListo) ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
+                  duration: Duration(milliseconds: 200)
                 )
+                
               ],
             );
           },

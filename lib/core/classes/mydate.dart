@@ -126,4 +126,27 @@ class MyDate {
     return fechaString;
   }
 
+  static datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){
+    String fechaString = "fecha";
+    var now = DateTime.now();
+    print("MyDate.datesToString i: ${fechaInicial.toString()}");
+    if((fechaInicial.month == now.month) && (fechaInicial.year == now.year)){
+      String dia = (fechaInicial.day == now.day) ? "" : "${fechaInicial.day}";
+      String ano = mostrarAno ? " ${fechaInicial.year}" : '';
+
+      if(dia.isEmpty)
+        fechaString = "${DateFormat('hh:mm:ss a')}$ano" ;
+      else
+        fechaString = "$dia ${DateFormat.Md(MyApp.myLocale.languageCode).format(fechaInicial)}$ano" ;
+    }
+    else if((fechaInicial.month != now.month) && (fechaInicial.year == now.year)){
+      String ano = mostrarAno ? " ${fechaInicial.year}" : '';
+      fechaString = "${DateFormat.Md(MyApp.myLocale.languageCode).format(fechaInicial)}$ano" ;
+    }
+    else if((fechaInicial.month != now.month) && (fechaInicial.year != now.year)){
+      fechaString = "${DateFormat.yMd(MyApp.myLocale.languageCode).format(fechaInicial)}" ;
+    }
+    return fechaString;
+  }
+
 }

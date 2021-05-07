@@ -38,6 +38,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _imprimirNombreConsorcio = (_ajuste != null) ? _ajuste.imprimirNombreConsorcio == 1 : true; 
     _imprimirNombreBanca = (_ajuste != null) ? _ajuste.imprimirNombreBanca == 1 : true; 
     _cancelarTicketWhatsapp = (_ajuste != null) ? _ajuste.cancelarTicketWhatsapp == 1 : true; 
+    _pagarTicketEnCualquierBanca = (_ajuste != null) ? _ajuste.pagarTicketEnCualquierBanca == 1 : false; 
   }
 
   _guardar() async {
