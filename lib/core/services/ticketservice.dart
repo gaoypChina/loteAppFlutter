@@ -257,6 +257,8 @@ class TicketService{
       throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
     }
 
+    print("ticketservice monitoreo: $parsed");
+
     return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
   }
 

@@ -237,9 +237,9 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
         background = Utils.colorRosa;
         icon = Icons.money_off;
     }
-    CircleAvatar(
+    return CircleAvatar(
       backgroundColor: background ,
-      child: Icon(icon),
+      child: Icon(icon, color: Colors.white,),
     );
   }
  
@@ -396,37 +396,32 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                 stream: _streamControllerMonitoreo.stream,
                 builder: (context, snapshot){
                   // print("${snapshot.hasData}");
-                  var lista = _listaVenta.where((v) => v.status != 0 && v.status != 5).toList();
                   if(snapshot.hasData){
-                    return ListView.builder(
-                      itemCount: lista.length,
-                      itemBuilder: (context, index){
-                        return ListTile(
-                      leading: _getAvatar(lista[index]),
+                  var lista = _listaVenta.where((v) => v.status != 0 && v.status != 5).toList();
+                    return Column(
+                      children: lista.map((e) => ListTile(
+                      leading: _getAvatar(e),
                       trailing: 
-                      // (lista[index].premios <= 0)
-                      // ?
-                      Text(Utils.toCurrency(lista[index].total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                      // :
-                      // Column(
-                      //   children: [
-                      //     Text(Utils.toCurrency(lista[index].total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                      //     Text(Utils.toCurrency(lista[index].premios), style: TextStyle(color: Colors.pink, fontSize: 16),),
-                      //   ],
-                      // ),
-                      title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && _bancas != null) ? _bancas[_indexBanca].descripcion : _banca.descripcion, lista[index].idTicket)}", style: TextStyle(fontWeight: FontWeight.w700),),
+                      (e.premios <= 0)
+                      ?
+                      Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
+                      :
+                      Column(
+                        children: [
+                          Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
+                          Text(Utils.toCurrency(e.premios), style: TextStyle(color: Colors.pink, fontSize: 16),),
+                        ],
+                      ),
+                      title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && _bancas != null) ? _bancas[_indexBanca].descripcion : _banca.descripcion, e.idTicket, false)}", style: TextStyle(fontWeight: FontWeight.w700),),
                       subtitle: RichText(text: TextSpan(
                         style: TextStyle(color: Colors.grey),
                         children: [
                           // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-                          TextSpan(text: "${MyDate.datetimeToHour(lista[index].created_at)}"),
-                          TextSpan(text: "${lista[index].premios > 0 ? '  |  ' : ''}"),
-                          TextSpan(text: "${lista[index].premios > 0 ? lista[index].premios : ''}", style: TextStyle(color: Colors.pink)),
-                          TextSpan(text: "${lista[index].premios > 0 ? ' en premios' : ''}"),
+                          TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
                         ]
                       )),
-                    );
-                      },
+                    )
+                      ).toList(),
                     );
                     return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermisoMonitoreo && _bancas != null) ? _bancas[_indexBanca] : _banca);
                   }

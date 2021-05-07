@@ -135,7 +135,7 @@ class MyDate {
       String ano = mostrarAno ? " ${fechaInicial.year}" : '';
 
       if(dia.isEmpty)
-        fechaString = "${DateFormat('hh:mm:ss a')}$ano" ;
+        fechaString = "${DateFormat('hh:mm a').format(fechaInicial)}$ano" ;
       else
         fechaString = "$dia ${DateFormat.Md(MyApp.myLocale.languageCode).format(fechaInicial)}$ano" ;
     }
