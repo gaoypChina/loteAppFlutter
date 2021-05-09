@@ -39,6 +39,6 @@ class BancaService{
 
     print("Dentro bancas service all: ${parsed["bancas"]}");
 
-    return (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : List<Banca>();
+    return (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
   }
 }

@@ -431,6 +431,13 @@ class  Utils {
     return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
   }
 
+  static toPrintCurrency(var number, [quitarSignoDolar = true]){
+    final formatCurrency = new NumberFormat.simpleCurrency();
+    number = Utils.toDouble(number.toString());
+    var data = formatCurrency.format(number).replaceFirst(".00", "");
+    return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
+  }
+
   static tieneDecimales(var number){
     return (number.toString().indexOf(".") != -1) ? true : false;
   }

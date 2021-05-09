@@ -782,7 +782,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
             // espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
             String sorteo = Utils.sorteoToDosLetras(jugada["sorteo"]);
             String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true);
-            String monto = "${Utils.toCurrency(jugada["monto"], true)}";
+            String monto = "${Utils.toPrintCurrency(jugada["monto"])}";
             // contentJugadas += "$sorteo$jugadaString";
             // print("ContentJugadasSay: ${contentJugadas.length}");
             // contentJugadas += quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])) + monto + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length) + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto);
@@ -869,7 +869,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
               
                   String sorteo = Utils.sorteoToDosLetras(jugada["sorteo"]);
                   String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true);
-                  String monto = "${Utils.toCurrency(jugada["monto"], true)}";
+                  String monto = "${Utils.toPrintCurrency(jugada["monto"])}";
                   map[map.length] = _getMapNuevo(text: sorteo, cmd: CMD.h1);
                   map[map.length] = _getMapNuevo(text: jugadaString, cmd: CMD.h1);
                   map[map.length] = _getMapNuevo(text: quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true)) + monto + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto) + "\n", cmd: CMD.h1);

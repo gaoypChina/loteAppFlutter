@@ -225,13 +225,14 @@ class TicketService{
     return parsed;
   }
 
-  static Future<List<Venta>> monitoreo({String fecha = "", int idBanca, BuildContext context, scaffoldKey}) async {
+  static Future<List<Venta>> monitoreo({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
-    map["fecha"] = fecha;
+    map["fecha"] = (fecha != null) ? fecha.toString() : DateTime.now().toString();
+    map["fechaFinal"] = (fechaFinal != null) ? fechaFinal.toString() : DateTime.now().toString();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
