@@ -37,6 +37,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   List<Venta> _listaVenta = [];
   List<Venta> _tmpListaVenta;
   Banca _banca;
+  List<List<dynamic>> listaTipoTicket = [[-1, "Todos los tickets"], [1, "Pendientes"], [2, "Ganadores"], [3, "Perdedores"], [0, "Cancelados"]];
+  List<dynamic> _tipoTicket;
 
   _getDefaultDateRange(){
     return DateTimeRange(
@@ -50,6 +52,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     // TODO: implement initState
     initializeDateFormatting();
   _streamControllerMonitoreo = BehaviorSubject();
+  _tipoTicket = listaTipoTicket[0];
 
     _date = _getDefaultDateRange();
 
@@ -85,6 +88,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
    try{
     //  setState(() => _cargando = true);
     _streamControllerMonitoreo.add(null);
+    print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
+    print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
     _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
@@ -253,10 +258,14 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     else if(venta.status == 2){
       background = Utils.colorPrimary;
       icon = Icons.attach_money;
-    }else{
+    }else if(venta.status == 3){
         background = Colors.pink;
         icon = Icons.money_off;
+    }else{
+        background = Colors.red[700];
+        icon = Icons.auto_delete;
     }
+
     return CircleAvatar(
       backgroundColor: background ,
       child: Icon(icon, color: Colors.white,),
@@ -272,17 +281,22 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _showFiltrarScreen() async {
-    var date = await showDateRangePicker(
-      context: context, 
-      initialDateRange: _date,
-      firstDate: DateTime(DateTime.now().year - 5), 
-      lastDate: DateTime(DateTime.now().year + 5),
+    // var date = await showDateRangePicker(
+    //   context: context, 
+    //   initialDateRange: _date,
+    //   firstDate: DateTime(DateTime.now().year - 5), 
+    //   lastDate: DateTime(DateTime.now().year + 5),
       
-    );
+    // );
+
+    var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
 
     if(date != null)
       setState(() {
-        _date = date;
+        _date = DateTimeRange(
+          start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+          end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+        );
         _getMonitoreo();
       });
   }
@@ -519,7 +533,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                   onTap: _showBottomSheetBanca,
                   child: Row(
                     children: [
-                      Text("${_bancas.length > 0 ? _bancas[_indexBanca].descripcion : 'No hay bancas'}", style: TextStyle(color: Colors.black),),
+                      Text("${_bancas.length > 0 ? _bancas[_indexBanca].descripcion : 'No hay bancas'}", softWrap: true, style: TextStyle(color: Colors.black),),
                       Icon(Icons.arrow_drop_down, color: Colors.black54,)
                     ],
                   ),
@@ -594,9 +608,74 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
                           value: _indexBanca == index,
                           onChanged: (data){
-                            bancaChanged(_bancas[index]);
+                            bancaChanged(index);
                           },
                           title: Text("${_bancas[index].descripcion}"),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+        
+        
+      }
+  );
+    // if(data != null)
+    //   setState((){
+    //     _loteria = data;
+    //     _filtrar();
+    //   });
+  }
+ 
+ _tipoTicketChanged(tipoTicket){
+    setState((){
+        _tipoTicket = tipoTicket;
+      
+        _streamControllerMonitoreo.add(_tipoTicket[0] != -1 ? _tmpListaVenta.where((element) => element.status == _tipoTicket[0]).toList() : _tmpListaVenta.where((element) => element.status != 0).toList());
+      });
+  }
+ 
+  _showBottomSheetTicket() async {
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        _back(){
+              Navigator.pop(context);
+            }
+            tipoTicketChanged(tipoTicket){
+              setState(() => _tipoTicket = tipoTicket);
+              _tipoTicketChanged(tipoTicket);
+              _back();
+            }
+        return Container(
+              height: 300,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: listaTipoTicket.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _tipoTicket == listaTipoTicket[index],
+                          onChanged: (data){
+                            tipoTicketChanged(listaTipoTicket[index]);
+                          },
+                          title: Text("${listaTipoTicket[index][1]}"),
                         );
                       },
                     ),
@@ -668,13 +747,15 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                 flexibleSpace: Align(
                   alignment: Alignment.bottomCenter,
                   child: MyFilter(
+                    showListNormalCortaLarga: 2,
                     value: _date,
                     onChanged: _dateChanged,
                     onDeleteAll: _onDeleteAll,
                   ),
                 ),
                 actions: [
-                  IconButton(icon: Icon(Icons.date_range, color: Utils.colorPrimary), onPressed: _showFiltrarScreen)
+                  IconButton(icon: Icon(Icons.date_range, color: Utils.colorPrimary), onPressed: _showFiltrarScreen),
+                  IconButton(icon: Icon(Icons.filter_alt, color: Utils.colorPrimary), onPressed: _showBottomSheetTicket),
                 ],
               ),
               StreamBuilder<List<Venta>>(
@@ -718,13 +799,33 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                             ],
                           ),
                           title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && _bancas != null) ? _bancas[_indexBanca].descripcion : _banca.descripcion, e.idTicket, false)}", style: TextStyle(fontWeight: FontWeight.w700),),
-                          subtitle: RichText(text: TextSpan(
+                          subtitle: 
+                          e.status != 0
+                          ?
+                          RichText(text: TextSpan(
                             style: TextStyle(color: Colors.grey),
                             children: [
                               // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
                               TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
                             ]
-                          )),
+                          ))
+                          :
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RichText(text: TextSpan(
+                                text: "${MyDate.datetimeToHour(e.created_at)}",
+                                style: TextStyle(color: Colors.grey),
+                              )),
+                              RichText(text: TextSpan(
+                                style: TextStyle(color: Colors.red[700]),
+                                children: [
+                                  TextSpan(text: "Cancelado por ${e.usuarioCancelacion}"),
+                                  TextSpan(text: "  •  ${MyDate.datetimeToHour(e.fechaCancelacion)}"),
+                                ]
+                              ))
+                            ],
+                          )
                         )
                           ).toList(),
                         )

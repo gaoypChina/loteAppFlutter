@@ -13,14 +13,14 @@ class MyFilterData {
 }
 
 class MyFilter extends StatefulWidget {
-  final showListaFechaLarga;
+  final int showListNormalCortaLarga;
   final DateTimeRange value;
   final ValueChanged<DateTimeRange> onChanged;
   final EdgeInsets paddingContainer;
   final String filterTitle;
   final List<MyFilterData> data;
   final Function onDeleteAll;
-  MyFilter({Key key, @required this.value, @required this.onChanged, this.showListaFechaLarga = false, this.paddingContainer = const EdgeInsets.symmetric(vertical: 10, horizontal: 20), this.filterTitle = "Filtro", this.data = const [], this.onDeleteAll}) : super(key: key);
+  MyFilter({Key key, @required this.value, @required this.onChanged, this.showListNormalCortaLarga = 1, this.paddingContainer = const EdgeInsets.symmetric(vertical: 10, horizontal: 20), this.filterTitle = "Filtro", this.data = const [], this.onDeleteAll}) : super(key: key);
   @override
   _MyFilterState createState() => _MyFilterState();
 }
@@ -66,6 +66,11 @@ class _MyFilterState extends State<MyFilter> {
         fechaInicial = fechas[0];
         fechaFinal = fechas[1];
         break;
+      case MyDate.anteayer:
+        var fechas = MyDate.getAnteAyer();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
       case MyDate.ultimos2Dias:
         var fechas = MyDate.getUltimos2Dias();
         fechaInicial = fechas[0];
@@ -97,6 +102,8 @@ class _MyFilterState extends State<MyFilter> {
       myDate = MyDate.hoy;
     else if(MyDate.isAyer(_fecha.start, _fecha.end))
       myDate = MyDate.ayer;
+    else if(MyDate.isAnteAyer(_fecha.start, _fecha.end))
+      myDate = MyDate.anteayer;
     else if(MyDate.isEstaSemana(_fecha.start, _fecha.end))
       myDate = MyDate.estaSemana;
     else if(MyDate.isSemanaPasada(_fecha.start, _fecha.end))
@@ -113,7 +120,18 @@ class _MyFilterState extends State<MyFilter> {
   }
 
   _getRowOfDates(){
-    var listaFecha = widget.showListaFechaLarga ? MyDate.listaFechaLarga : MyDate.listaFecha;
+    var listaFecha = [];
+    switch (widget.showListNormalCortaLarga) {
+      case 1:
+        listaFecha = MyDate.listaFecha;
+        break;
+      case 2:
+        listaFecha = MyDate.listaFechaCorta;
+        break;
+      default:
+        listaFecha = MyDate.listaFechaLarga;
+        break;
+    }
 
     return Row(
       children: listaFecha.map((e) =>  Padding(

@@ -535,7 +535,7 @@ _showBottomSheetMoneda() async {
                   onTap: _showBottomSheetLoteria,
                   child: Row(
                     children: [
-                      Text("${_loteria != null ? _loteria.descripcion : 'No hay loterias'}", style: TextStyle(color: Colors.black),),
+                      Flexible(child: Text("${_loteria != null ? _loteria.descripcion : 'No hay loterias'}", softWrap: true, style: TextStyle(color: Colors.black),)),
                       Icon(Icons.arrow_drop_down, color: Colors.black54,)
                     ],
                   ),

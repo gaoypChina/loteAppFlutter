@@ -431,11 +431,20 @@ class  Utils {
     return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
   }
 
-  static toPrintCurrency(var number, [quitarSignoDolar = true]){
+  static toPrintCurrency(var number, [quitarSignoDolar = true, quitarDosCeros = true]){
     final formatCurrency = new NumberFormat.simpleCurrency();
     number = Utils.toDouble(number.toString());
-    var data = formatCurrency.format(number).replaceFirst(".00", "");
-    return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
+    var data = formatCurrency.format(number);
+    data = (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
+
+    if(quitarDosCeros){
+      // if(data.length == 6)
+      //   data = data.replaceFirst(".00", ".0");
+      // else if(data.length > 6)
+        data = data.replaceFirst(".00", "");
+    }
+    // var data = formatCurrency.format(number);
+    return data;
   }
 
   static tieneDecimales(var number){

@@ -9,6 +9,8 @@ class Venta {
   int status;
   String codigoBarra;
   DateTime created_at;
+  String usuarioCancelacion;
+  DateTime fechaCancelacion;
 
 
   Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra});
@@ -20,7 +22,9 @@ class Venta {
         premios = Utils.toDouble(snapshot['premios'].toString()) ?? 0,
         status = snapshot['status'] ?? 1,
         codigoBarra = snapshot['codigoBarra'] ?? 1,
-        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
+        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
+        usuarioCancelacion = (snapshot['usuarioCancelacion'] != null) ? snapshot['usuarioCancelacion'] : null,
+        fechaCancelacion = (snapshot['fechaCancelacion'] != null) ? DateTime.parse(snapshot['fechaCancelacion']) : null
         ;
 
   toJson() {
@@ -32,6 +36,8 @@ class Venta {
       "codigoBarra": codigoBarra,
       "premios": premios,
       "created_at": (created_at != null) ? created_at.toString() : null,
+      "fechaCancelacion": (fechaCancelacion != null) ? fechaCancelacion.toString() : null,
+      "usuarioCancelacion": usuarioCancelacion,
     };
   }
 }

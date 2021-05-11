@@ -15,14 +15,16 @@ class MyDate {
   static const MyDate laSemanaPasada = MyDate._(3);
   static const MyDate ultimos2Dias = MyDate._(4);
   static const MyDate esteMes = MyDate._(5);
+  static const MyDate anteayer = MyDate._(6);
 
   /// A list of all the date names.
   static const List<MyDate> values = <MyDate>[
-    hoy, ayer, estaSemana, laSemanaPasada, ultimos2Dias, esteMes
+    hoy, ayer, estaSemana, laSemanaPasada, ultimos2Dias, esteMes, anteayer
   ];
 
   static List<dynamic> listaFecha = [[hoy, "Hoy"], [ayer, "Ayer"], [estaSemana, "Esta semana"], [laSemanaPasada, "La semana pasada"]];
   static List<dynamic> listaFechaLarga = [[hoy, "Hoy"], [ayer, "Ayer"], [ultimos2Dias, "Ultimos 2 días"], [estaSemana, "Esta semana"], [laSemanaPasada, "La Semana pasada"], [esteMes, "Este mes"],];
+  static List<dynamic> listaFechaCorta = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"],];
 
   static List<DateTime> getHoy(){
     var fechaActual = DateTime.now();
@@ -33,6 +35,13 @@ class MyDate {
 
   static List<DateTime> getAyer(){
     var fechaActual = DateTime.now().subtract(Duration(days: 1));
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getAnteAyer(){
+    var fechaActual = DateTime.now().subtract(Duration(days: 2));
     var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
     var fechaFinal = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 23:59:59");
     return [fechaInicial, fechaFinal];
@@ -83,6 +92,11 @@ class MyDate {
 
   static isAyer(DateTime fechaInicial, DateTime fechaFinal){
     var fechasHoy = MyDate.getAyer();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isAnteAyer(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getAnteAyer();
     return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
   }
 
