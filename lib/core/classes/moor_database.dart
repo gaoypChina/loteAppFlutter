@@ -55,7 +55,7 @@ class Settings extends Table{
   IntColumn get imprimirNombreConsorcio => integer()();
   TextColumn get descripcionTipoFormatoTicket => text()();
   IntColumn get cancelarTicketWhatsapp => integer()();
-  IntColumn get imprimirNombreBanca => integer()();TextColumn get servidor => text()();
+  IntColumn get imprimirNombreBanca => integer()();
   // BoolColumn get status => boolean().withDefault(Constant(false))();
 
   @override

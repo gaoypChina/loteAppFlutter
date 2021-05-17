@@ -17,6 +17,8 @@ static var _dbPath;
 static Database _db;
 static StoreRef _store;
 // get the application documents directory
+static final MobileSembas _singleton = MobileSembas._internal();
+
 
 
 //  static final DB _singleton = DB._internal();
@@ -26,7 +28,7 @@ static StoreRef _store;
 
   factory MobileSembas() {
   
-    return _instance;
+    return _singleton;
   }
 
  
@@ -43,8 +45,8 @@ static StoreRef _store;
   Future create() async {
     // print("create() (public factory)");
  
-    if(_instance == null){
-      _instance = MobileSembas._internal();
+    if(_singleton == null){
+      // _instance = MobileSembas._internal();
         _dir = await getApplicationDocumentsDirectory();
       // make sure it exists
       await _dir.create(recursive: true);

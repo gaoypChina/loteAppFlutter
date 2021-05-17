@@ -935,7 +935,6 @@ class Setting extends DataClass implements Insertable<Setting> {
   final String descripcionTipoFormatoTicket;
   final int cancelarTicketWhatsapp;
   final int imprimirNombreBanca;
-  final String servidor;
   Setting(
       {@required this.id,
       @required this.consorcio,
@@ -943,8 +942,7 @@ class Setting extends DataClass implements Insertable<Setting> {
       @required this.imprimirNombreConsorcio,
       @required this.descripcionTipoFormatoTicket,
       @required this.cancelarTicketWhatsapp,
-      @required this.imprimirNombreBanca,
-      @required this.servidor});
+      @required this.imprimirNombreBanca});
   factory Setting.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -964,8 +962,6 @@ class Setting extends DataClass implements Insertable<Setting> {
           data['${effectivePrefix}cancelar_ticket_whatsapp']),
       imprimirNombreBanca: intType.mapFromDatabaseResponse(
           data['${effectivePrefix}imprimir_nombre_banca']),
-      servidor: stringType
-          .mapFromDatabaseResponse(data['${effectivePrefix}servidor']),
     );
   }
   @override
@@ -993,9 +989,6 @@ class Setting extends DataClass implements Insertable<Setting> {
     if (!nullToAbsent || imprimirNombreBanca != null) {
       map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca);
     }
-    if (!nullToAbsent || servidor != null) {
-      map['servidor'] = Variable<String>(servidor);
-    }
     return map;
   }
 
@@ -1021,9 +1014,6 @@ class Setting extends DataClass implements Insertable<Setting> {
       imprimirNombreBanca: imprimirNombreBanca == null && nullToAbsent
           ? const Value.absent()
           : Value(imprimirNombreBanca),
-      servidor: servidor == null && nullToAbsent
-          ? const Value.absent()
-          : Value(servidor),
     );
   }
 
@@ -1043,7 +1033,6 @@ class Setting extends DataClass implements Insertable<Setting> {
           serializer.fromJson<int>(json['cancelarTicketWhatsapp']),
       imprimirNombreBanca:
           serializer.fromJson<int>(json['imprimirNombreBanca']),
-      servidor: serializer.fromJson<String>(json['servidor']),
     );
   }
   @override
@@ -1059,7 +1048,6 @@ class Setting extends DataClass implements Insertable<Setting> {
           serializer.toJson<String>(descripcionTipoFormatoTicket),
       'cancelarTicketWhatsapp': serializer.toJson<int>(cancelarTicketWhatsapp),
       'imprimirNombreBanca': serializer.toJson<int>(imprimirNombreBanca),
-      'servidor': serializer.toJson<String>(servidor),
     };
   }
 
@@ -1070,8 +1058,7 @@ class Setting extends DataClass implements Insertable<Setting> {
           int imprimirNombreConsorcio,
           String descripcionTipoFormatoTicket,
           int cancelarTicketWhatsapp,
-          int imprimirNombreBanca,
-          String servidor}) =>
+          int imprimirNombreBanca}) =>
       Setting(
         id: id ?? this.id,
         consorcio: consorcio ?? this.consorcio,
@@ -1083,7 +1070,6 @@ class Setting extends DataClass implements Insertable<Setting> {
         cancelarTicketWhatsapp:
             cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
         imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
-        servidor: servidor ?? this.servidor,
       );
   @override
   String toString() {
@@ -1095,8 +1081,7 @@ class Setting extends DataClass implements Insertable<Setting> {
           ..write(
               'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
           ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
-          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
-          ..write('servidor: $servidor')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca')
           ..write(')'))
         .toString();
   }
@@ -1112,10 +1097,8 @@ class Setting extends DataClass implements Insertable<Setting> {
                   imprimirNombreConsorcio.hashCode,
                   $mrjc(
                       descripcionTipoFormatoTicket.hashCode,
-                      $mrjc(
-                          cancelarTicketWhatsapp.hashCode,
-                          $mrjc(imprimirNombreBanca.hashCode,
-                              servidor.hashCode))))))));
+                      $mrjc(cancelarTicketWhatsapp.hashCode,
+                          imprimirNombreBanca.hashCode)))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -1127,8 +1110,7 @@ class Setting extends DataClass implements Insertable<Setting> {
           other.descripcionTipoFormatoTicket ==
               this.descripcionTipoFormatoTicket &&
           other.cancelarTicketWhatsapp == this.cancelarTicketWhatsapp &&
-          other.imprimirNombreBanca == this.imprimirNombreBanca &&
-          other.servidor == this.servidor);
+          other.imprimirNombreBanca == this.imprimirNombreBanca);
 }
 
 class SettingsCompanion extends UpdateCompanion<Setting> {
@@ -1139,7 +1121,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
   final Value<String> descripcionTipoFormatoTicket;
   final Value<int> cancelarTicketWhatsapp;
   final Value<int> imprimirNombreBanca;
-  final Value<String> servidor;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.consorcio = const Value.absent(),
@@ -1148,7 +1129,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     this.descripcionTipoFormatoTicket = const Value.absent(),
     this.cancelarTicketWhatsapp = const Value.absent(),
     this.imprimirNombreBanca = const Value.absent(),
-    this.servidor = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -1158,14 +1138,12 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     @required String descripcionTipoFormatoTicket,
     @required int cancelarTicketWhatsapp,
     @required int imprimirNombreBanca,
-    @required String servidor,
   })  : consorcio = Value(consorcio),
         idTipoFormatoTicket = Value(idTipoFormatoTicket),
         imprimirNombreConsorcio = Value(imprimirNombreConsorcio),
         descripcionTipoFormatoTicket = Value(descripcionTipoFormatoTicket),
         cancelarTicketWhatsapp = Value(cancelarTicketWhatsapp),
-        imprimirNombreBanca = Value(imprimirNombreBanca),
-        servidor = Value(servidor);
+        imprimirNombreBanca = Value(imprimirNombreBanca);
   static Insertable<Setting> custom({
     Expression<int> id,
     Expression<String> consorcio,
@@ -1174,7 +1152,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     Expression<String> descripcionTipoFormatoTicket,
     Expression<int> cancelarTicketWhatsapp,
     Expression<int> imprimirNombreBanca,
-    Expression<String> servidor,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1189,7 +1166,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
         'cancelar_ticket_whatsapp': cancelarTicketWhatsapp,
       if (imprimirNombreBanca != null)
         'imprimir_nombre_banca': imprimirNombreBanca,
-      if (servidor != null) 'servidor': servidor,
     });
   }
 
@@ -1200,8 +1176,7 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       Value<int> imprimirNombreConsorcio,
       Value<String> descripcionTipoFormatoTicket,
       Value<int> cancelarTicketWhatsapp,
-      Value<int> imprimirNombreBanca,
-      Value<String> servidor}) {
+      Value<int> imprimirNombreBanca}) {
     return SettingsCompanion(
       id: id ?? this.id,
       consorcio: consorcio ?? this.consorcio,
@@ -1213,7 +1188,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       cancelarTicketWhatsapp:
           cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
       imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
-      servidor: servidor ?? this.servidor,
     );
   }
 
@@ -1244,9 +1218,6 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     if (imprimirNombreBanca.present) {
       map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca.value);
     }
-    if (servidor.present) {
-      map['servidor'] = Variable<String>(servidor.value);
-    }
     return map;
   }
 
@@ -1260,8 +1231,7 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
           ..write(
               'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
           ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
-          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
-          ..write('servidor: $servidor')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca')
           ..write(')'))
         .toString();
   }
@@ -1366,18 +1336,6 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
     );
   }
 
-  final VerificationMeta _servidorMeta = const VerificationMeta('servidor');
-  GeneratedTextColumn _servidor;
-  @override
-  GeneratedTextColumn get servidor => _servidor ??= _constructServidor();
-  GeneratedTextColumn _constructServidor() {
-    return GeneratedTextColumn(
-      'servidor',
-      $tableName,
-      false,
-    );
-  }
-
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1386,8 +1344,7 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
         imprimirNombreConsorcio,
         descripcionTipoFormatoTicket,
         cancelarTicketWhatsapp,
-        imprimirNombreBanca,
-        servidor
+        imprimirNombreBanca
       ];
   @override
   $SettingsTable get asDslTable => this;
@@ -1449,12 +1406,6 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
               data['imprimir_nombre_banca'], _imprimirNombreBancaMeta));
     } else if (isInserting) {
       context.missing(_imprimirNombreBancaMeta);
-    }
-    if (data.containsKey('servidor')) {
-      context.handle(_servidorMeta,
-          servidor.isAcceptableOrUnknown(data['servidor'], _servidorMeta));
-    } else if (isInserting) {
-      context.missing(_servidorMeta);
     }
     return context;
   }

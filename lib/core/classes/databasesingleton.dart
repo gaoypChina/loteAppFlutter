@@ -15,5 +15,6 @@ class DatabaseSingleton {
   // Db._internal();
   DatabaseSingleton._internal(){
     db = CrossDB();
+    print("DatabaseSIngleton null: ${db == null}");
   }
 }

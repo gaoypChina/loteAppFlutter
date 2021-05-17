@@ -330,6 +330,9 @@ class Realtime{
         }
   }
   static sincronizarTodosDataBatch(_scaffoldKey, var parsed) async {
+    if(kIsWeb)
+      return;
+      
     Batch batch = Db.database.batch();
     if(parsed["version"] != null){
         await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);

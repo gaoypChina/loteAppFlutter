@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
+// import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
@@ -436,7 +437,8 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _getCurrentTimeZone() async {
-    currentTimeZone = await FlutterNativeTimezone.getLocalTimezone();
+    var crossPlatform = CrossTimezone();
+    currentTimeZone = await crossPlatform.getCurrentTimezone();
   }
 
   @override

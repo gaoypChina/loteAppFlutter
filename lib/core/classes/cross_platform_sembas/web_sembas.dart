@@ -11,12 +11,13 @@ import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_semba
 
 
 class SembasWeb implements CrossSembas{
-static SembasWeb _instance;
+// static SembasWeb _instance;
 static var _dir;
 static var _dbPath;
 static Database _db;
 static StoreRef _store;
 // get the application documents directory
+static final SembasWeb _singleton = SembasWeb._internal();
 
 
 //  static final DB _singleton = DB._internal();
@@ -26,14 +27,14 @@ static StoreRef _store;
 
   factory SembasWeb() {
   
-    return _instance;
+    return _singleton;
   }
 
  
 
   SembasWeb._create(){
-    // if(_instance == null){
-    //   _instance = DB._internal();
+    // if(_singleton == null){
+    //   _singleton = SembasWeb._internal();
     // }
    _store = StoreRef.main();
     
@@ -41,6 +42,7 @@ static StoreRef _store;
 
   @override
   Future create() async {
+    // SembasWeb();
     // print("create() (public factory)");
 
     // if(_instance == null){
@@ -70,6 +72,8 @@ static StoreRef _store;
 
     // Return the fully initialized object
     return component;
+
+  // print("Web_sembas.dart klkllll");
   }
 
   

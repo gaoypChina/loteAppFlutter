@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
+import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
+
 // import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/router.dart';
@@ -26,6 +30,11 @@ Future<void> main() async {
 // await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
   await Db.openConnection();
+  //await DB.create();
+  var crossPlatform = CrossTimezone();
+   var currentTimeZone = await crossPlatform.getCurrentTimezone();
+
+  
   runApp(MyApp());
 
 }

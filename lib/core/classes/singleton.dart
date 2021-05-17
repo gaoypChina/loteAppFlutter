@@ -186,7 +186,7 @@ var DB = (new SembasSingleton()).db;
 
 class SembasSingleton {
   static final SembasSingleton _singleton = SembasSingleton._internal();
-  dynamic db;
+  CrossSembas db;
 
   factory SembasSingleton() {
     return _singleton;
@@ -194,6 +194,8 @@ class SembasSingleton {
 
   // Db._internal();
   SembasSingleton._internal(){
+    print("SembasSingleton _internal");
     db = CrossSembas();
+    print("SembasSingleton _internal null: ${db == null}");
   }
 }

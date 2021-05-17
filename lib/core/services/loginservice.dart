@@ -91,17 +91,22 @@ class LoginService{
     if(a != null)
       await Db.insert("Settings", {
         "id" : a.id, 
-        "consorcio" : a.consorcio,
+        "consorcio" : (a.consorcio != null) ? a.consorcio : '',
         "idTipoFormatoTicket" : a.tipoFormatoTicket.id,
         "imprimirNombreConsorcio" : a.imprimirNombreConsorcio,
         "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
         "imprimirNombreBanca" : a.imprimirNombreBanca,
         "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
       });
+
+      print("LoginService guardarDatos after settings been saved");
     
     for(Permiso p in permisos){
       await Db.insert('Permissions', p.toJson());
     }
+
+      print("LoginService guardarDatos after Permissions been saved");
+
 
     for(Servidor s in servidores){
       await Db.insert('Servers', s.toJson());
