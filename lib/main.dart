@@ -55,6 +55,7 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          applyElevationOverlayColor: true,
           // backgroundColor: Colors.white,
           primarySwatch: Utils.colorMaterialCustom,
           accentColor: Colors.pink,
