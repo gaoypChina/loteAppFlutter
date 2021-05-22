@@ -9,6 +9,7 @@ import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_tim
 // import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/router.dart';
+import 'package:loterias/ui/widgets/mycolor.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -30,9 +31,9 @@ Future<void> main() async {
 // await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
   await Db.openConnection();
-  //await DB.create();
-  var crossPlatform = CrossTimezone();
-   var currentTimeZone = await crossPlatform.getCurrentTimezone();
+  // //await DB.create();
+  // var crossPlatform = CrossTimezone();
+  //  var currentTimeZone = await crossPlatform.getCurrentTimezone();
 
   
   runApp(MyApp());
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           applyElevationOverlayColor: true,
           // backgroundColor: Colors.white,
-          primarySwatch: Utils.colorMaterialCustom,
+          primarySwatch: MyColors.lightBlue,
           accentColor: Colors.pink,
           // accentColor: Utils.fromHex("#F0807F")
         ),

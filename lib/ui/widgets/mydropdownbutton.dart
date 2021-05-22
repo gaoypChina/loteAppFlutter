@@ -50,9 +50,7 @@ class MyDropdownButton extends StatefulWidget {
   final MyDropdownType type;
   final String nullHint;
   final bool addNingunoToFirstElement;
-  final bool withScreenSize;
-  final bool isExpanded;
-  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false, this.isExpanded = true, this.withScreenSize = true}) : super(key: key);
+  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false}) : super(key: key);
   @override
   _MyDropdownButtonState createState() => _MyDropdownButtonState();
 }
@@ -106,7 +104,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
             if(widget.items.length == 1 && widget.items.first[0] == "Ninguno")
               _value = "Ninguno";
             else
-            _value = (widget.items.length > 0) ? _value : "Ninguno";
+            _value = (widget.items.length > 0) ? (_value != null) ? _value : "Ninguno" : "Ninguno";
           }
         }
         else{
@@ -118,6 +116,16 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           _value = "Ninguno";
         }
       }
+    }else{
+      if(widget.items.length == 0)
+        _value = widget.nullHint;
+      // else{
+      //   if(widget.initialValue == null && _value == null)
+      //     _value = widget.items[0];
+      // }
+
+      print("MyDropdownButton _addNingunoToFirstElement ultimooo: ${widget.initialValue} : ${_value}");
+
     }
   }
 
@@ -330,23 +338,25 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
   _dropdownNormal(double width){
     print("_dropdownNormal _index > items: ${(_index > _items.length)}");
-    return DropdownButton(
-      disabledHint: Text("${(_items.length > 0) ? (_index < _items.length) ? _items[_index][1] : _items[0][1] : ''}"),
-      // isExpanded: widget.isExpanded, 
-      isDense: true,
-      
-      
-      items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
-      onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
-        widget.onChanged(data != "Ninguno" ? data : null);
-        // int idx = widget.elements.indexWhere((element) => element == data);
-        // setState(() => _value = data);
-        int idx = _items.indexWhere((element) => element[0] == data);
-        setState(() => _value = data);
-          
-      }, 
-      // value: _items.length == 0 ? widget.nullHint : (_index > _items.length) ? _items[_items.length][0] : _items[_index][0],
-      value: _value,
+    return Container(
+      width: getWidth(width) - (widget.padding.left + widget.padding.right),
+      child: 
+      DropdownButton(
+        disabledHint: Text("${(_items.length > 0) ? (_index < _items.length) ? _items[_index][1] : _items[0][1] : ''}"),
+        isExpanded: true, 
+        
+        items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
+        onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
+          widget.onChanged(data != "Ninguno" ? data : null);
+          // int idx = widget.elements.indexWhere((element) => element == data);
+          // setState(() => _value = data);
+          int idx = _items.indexWhere((element) => element[0] == data);
+          setState(() => _value = data);
+            
+        }, 
+        // value: _items.length == 0 ? widget.nullHint : (_index > _items.length) ? _items[_items.length][0] : _items[_index][0],
+        value: _value,
+      )
     );
   }
 

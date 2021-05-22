@@ -879,6 +879,9 @@ print("Inside socketNotificaciones");
   }
 
 _showIntentNotificationIfExists() async {
+  if(kIsWeb)
+    return;
+    
   var notificacion = await MyNotification.getIntentDataNotification();
   
   if(notificacion != null){
@@ -2110,6 +2113,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                       _cambiarServidor();
                       _scaffoldKey.currentState.openEndDrawer();
 
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Grupos'),
+                    leading: Icon(Icons.dashboard),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/grupos");
+                      _scaffoldKey.currentState.openEndDrawer();
                     },
                   ),
                   Visibility(

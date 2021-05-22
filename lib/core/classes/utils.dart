@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jose/jose.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
@@ -558,6 +559,10 @@ class  Utils {
 
   static diasDelMes(DateTime fecha){
     return DateTime(fecha.year, fecha.month + 1, 0).day;
+  }
+
+  static bool isSmallOrMedium(double size){
+    return (ScreenSize.isMedium(size) || ScreenSize.isSmall(size));
   }
   
 }

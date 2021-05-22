@@ -550,14 +550,14 @@ _showBottomSheetMoneda() async {
                   ),
                   
                   );
-                return MyDropdownButton(
-                  isExpanded: false,
-                  withScreenSize: false,
-                  items: (snapshot.hasData) ? listaLoteria.map((e) => [e, e.descripcion]).toList() : [],
-                  onChanged: (data){
+                // return MyDropdownButton(
+                //   isExpanded: false,
+                //   withScreenSize: false,
+                //   items: (snapshot.hasData) ? listaLoteria.map((e) => [e, e.descripcion]).toList() : [],
+                //   onChanged: (data){
 
-                  },
-                );
+                //   },
+                // );
               },
             ),
             leading: BackButton(
