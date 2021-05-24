@@ -17,17 +17,17 @@ class MyColors{
       900: Color(0xFF0D47A1),
     },
   );
-
-  static const int _lightBluePrimaryValue = 0xFF38B6FF;
+// 0xFF0990D0
+  static const int _lightBluePrimaryValue = 0xFF0990D0;
   static const MaterialColor lightBlue = MaterialColor(
-    _greyPrimaryValue,
+    _lightBluePrimaryValue,
     <int, Color>{
        50: Color(0xFFA2D7F6),
       100: Color(0xFF8DD0F6),
       200: Color(0xFF75C9FA),
       300: Color(0xFF5CC2FD),
       400: Color(0xFF4BBBFB),
-      500: Color(_lightBluePrimaryValue),
+      500: Color(0xFF38B6FF),
       600: Color(0xFF25ABF8),
       700: Color(0xFF18A8FB),
       800: Color(0xFF0CA4FB),

@@ -492,12 +492,19 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
           // Text("Prestamo", style: TextStyle(color: Colors.black),),
           Padding(
                 padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 0, left: 10.0),
-                child: Container(
-                  // color: Colors.red,
-                  // width: 150,
-                  height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 45,
-                  child:  Container(
-                    child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  // BorderRadius.only(
+                  //   topRight: Radius.circular(32),
+                  //   bottomRight: Radius.circular(32),
+                  // ),
+                  child: Container(
+                    // color: Colors.red,
+                    // width: 150,
+                    height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 45,
+                    child:  Container(
+                      child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                    ),
                   ),
                 ),
               ),

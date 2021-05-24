@@ -19,16 +19,20 @@ class MyType {
   /// Light
   static const MyType rounded = MyType._(2);
 
+  static const MyType noBorder = MyType._(2);
+
   /// A list of all the font weights.
   static const List<MyType> values = <MyType>[
-    normal, border, rounded
+    normal, border, rounded, noBorder
   ];
 }
 
 
 class MyTextFormField extends StatefulWidget {
   final ValueChanged<String> onChanged;
+  final Widget leading;
   final String title;
+  final double fontSize;
   final String helperText;
   final String sideTitle;
   final String labelText;
@@ -54,7 +58,7 @@ class MyTextFormField extends StatefulWidget {
   final EdgeInsets padding;
 
   final bool isRequired;
-  MyTextFormField({Key key, this.title = "", this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false}) : super(key: key);
+  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -158,7 +162,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
   }
 
   _textFormField(){
-    return TextFormField(
+    var txt = TextFormField(
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
@@ -202,6 +206,98 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
           
         },
       );
+
+      if(widget.leading != null)
+        return ListTile(
+          leading: widget.leading,
+          title: txt,
+        );
+
+      return txt;
+  }
+
+  _textFormFieldNoBorder(){
+    var txt = TextFormField(
+      enabled: widget.enabled,
+      controller: widget.controller,
+      maxLines: widget.maxLines,
+      style: TextStyle(color: widget.isDanger ? Colors.red : null, fontSize: widget.fontSize),
+        decoration: InputDecoration(
+          prefixText: _getPrefixText(),
+          hintText: widget.hint,
+          // contentPadding: EdgeInsets.only(left: 2, right: 2, top: 20, bottom: 20),
+          isDense: true,
+          border: InputBorder.none,
+          // contentPadding: EdgeInsets.all(0),
+          alignLabelWithHint: true,
+          // border: InputBorder.none,
+          fillColor: Colors.transparent,
+          // filled: true,
+          // hintStyle: TextStyle(fontWeight: FontWeight.bold),
+          // focusedBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // errorBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // focusedErrorBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // enabledBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // border: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          // ),
+        ),
+        obscureText: widget.isPassword,
+        keyboardType: _getkeyboardType(),
+        inputFormatters: _getInputFormatters(),
+        //  [
+        //   // WhitelistingTextInputFormatter.digitsOnly
+        //   FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+
+        // ],
+        validator: (widget.validator != null)
+        ?
+        widget.validator
+        :
+        (data){
+          if(data.isEmpty && widget.isRequired)
+            return "Campo requerido";
+          return null;
+        },
+        onChanged: (data){
+    // print("_converToMoneyFormat2 $data");
+
+          
+
+          if(widget.isMoneyFormat){
+            _converToMoneyFormat(data);
+          }
+
+          if(widget.onChanged != null)
+            widget.onChanged(data);
+          
+        },
+      );
+  
+      if(widget.leading != null)
+        return ListTile(
+          leading: widget.leading,
+          title: txt,
+        );
+
+      return txt;
   }
 
   Color _textColor(){
@@ -414,6 +510,9 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       case MyType.normal:
         return _textFormField();
         break;
+      case MyType.noBorder:
+        return _textFormFieldNoBorder();
+        break;
       case MyType.rounded:
         return _textFormFieldRounded();
         break;
@@ -570,11 +669,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
     return LayoutBuilder(
       builder: (context, boxconstraints) {
         // print("mytextformfield boxconstrants: ${boxconstraints.maxWidth}");
-        return Padding(
-          padding: widget.padding,
-          child: 
-          _screen(boxconstraints.maxWidth)
-        );
+        return _screen(boxconstraints.maxWidth);
       }
     );
   }

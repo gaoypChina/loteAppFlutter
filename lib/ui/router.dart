@@ -8,6 +8,7 @@ import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
+import 'package:loterias/ui/views/grupos/gruposaddscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposscreen.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/notificacion/notificacion.dart';
@@ -117,6 +118,10 @@ class MyRouter {
         case '/grupos' :
           return MaterialPageRoute(
             builder: (_)=> GrupoScreen()
+          ) ;
+        case '/grupos/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> GruposAddScreen(grupo: settings.arguments,)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

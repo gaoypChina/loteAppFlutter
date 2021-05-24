@@ -154,22 +154,22 @@ class _MyDropdownState extends State<MyDropdown> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColorDark : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: Theme.of(context).primaryColorDark, fontWeight: FontWeight.w700)))
+          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)))
         ),
         // Icon(Icons.arrow_drop_down, color: Utils.fromHex("#1967d2")),
-        Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColorDark),
+        Icon(Icons.arrow_drop_down, color: Theme.of(context).primaryColor),
       ],
     ) 
     : 
     Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? Theme.of(context).primaryColorDark : Colors.grey,),
+        (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey,),
         Expanded(
-          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColorDark : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColorDark : Colors.grey, fontWeight: FontWeight.w700)))
+          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey, fontWeight: FontWeight.w700)))
         ),
         // Icon(Icons.arrow_drop_down, color: widget.enabled ? Utils.fromHex("#1967d2") : Colors.grey),
-        Icon(Icons.arrow_drop_down, color: widget.enabled ? Theme.of(context).primaryColorDark : Colors.grey),
+        Icon(Icons.arrow_drop_down, color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey),
       ],
     );
   }

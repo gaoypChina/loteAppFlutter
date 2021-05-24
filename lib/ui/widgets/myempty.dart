@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/ui/widgets/mydescripcion.dart';
-
 import 'mycolor.dart';
+import 'mydescripcion.dart';
 
 class MyEmpty extends StatelessWidget {
   final IconData icon;
@@ -28,8 +26,8 @@ class MyEmpty extends StatelessWidget {
         customButtom
         :
         Padding(
-          padding: const EdgeInsets.only(top: 1.0),
-          child: TextButton(onPressed: onTap, child: Text(titleButton, style: TextStyle(color: Utils.colorPrimary, fontFamily: "GoogleSans", letterSpacing: 0.4),)),
+          padding: const EdgeInsets.only(top: 15.0),
+          child: TextButton(onPressed: onTap, child: Text(titleButton, style: TextStyle(color: Theme.of(context).primaryColorDark, fontFamily: "GoogleSans", letterSpacing: 0.4),)),
         )
       ],
     );

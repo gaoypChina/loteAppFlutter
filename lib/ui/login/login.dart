@@ -115,6 +115,7 @@ _showSnackBar(String content){
           // For iOS.
           // Use [dark] for white status bar and [light] for black status bar.
           statusBarBrightness: Brightness.light,
+          // statusBarColor: Colors.transparent
           statusBarColor: Colors.transparent
         ),
         child: Scaffold(

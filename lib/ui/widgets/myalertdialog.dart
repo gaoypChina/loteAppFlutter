@@ -237,6 +237,7 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                         child: AbsorbPointer(
                                           absorbing: widget.cargando,
                                           child: MyButton(
+                                            type: MyButtonType.noResponsive,
                                             title: widget.okDescription,
                                             function: widget.okFunction,
                                             color: (widget.cargando) ? Colors.grey[300] : null,

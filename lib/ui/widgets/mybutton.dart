@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 
 
@@ -35,6 +36,7 @@ class MyButton extends StatefulWidget {
   final double large;
   final double xlarge;
   final EdgeInsets padding;
+  final EdgeInsets paddingSmallScreen;
 
   final Function function;
   final Color color;
@@ -46,7 +48,7 @@ class MyButton extends StatefulWidget {
   final ValueNotifier<bool> cargandoNotify;
   final fontSize;
 
-  MyButton({Key key, this.title = "", this.function, this.enabled = true, this.fontSize = 14, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 23, left: 23.0), this.color, this.textColor, this.type = MyButtonType.normal, this.leading, this.letterSpacing = 0.4, this.cargando = false, this.cargandoNotify}) : super(key: key);
+  MyButton({Key key, this.title = "", this.function, this.enabled = true, this.fontSize = 14, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 23, left: 23.0), this.paddingSmallScreen = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 18, left: 18.0), this.color, this.textColor, this.type = MyButtonType.normal, this.leading, this.letterSpacing = 0.4, this.cargando = false, this.cargandoNotify}) : super(key: key);
 
   @override
   _MyButtonState createState() => _MyButtonState();
@@ -74,7 +76,7 @@ class _MyButtonState extends State<MyButton> {
       default:
       if(widget.color == null){
         // return (widget.enabled) ? Utils.colorPrimaryBlue : Colors.grey[300];
-        return (widget.enabled) ? null : Colors.grey[300];
+        return (widget.enabled) ? Theme.of(context).primaryColor : Colors.grey[300];
       }else{
         return (widget.enabled) ? widget.color : Colors.grey[300];
       }
@@ -137,7 +139,7 @@ class _MyButtonState extends State<MyButton> {
     onTap: widget.function,
     child: AnimatedContainer(
       duration: Duration(milliseconds: 200),
-      padding: widget.padding,
+      padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
       decoration: BoxDecoration(
         color: _color(),
         borderRadius: BorderRadius.circular(5)

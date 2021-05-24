@@ -16,7 +16,7 @@ version: 2.5.0+37
 # version: 2.5.0+41
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
   provider: ^5.0.0
@@ -96,7 +96,40 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
+  fonts:
+    - family: GoogleSans
+      fonts:
+        - asset: assets/fonts/ProductSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/ProductSans-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/ProductSans-Black.ttf
+          weight: 800
+        - asset: assets/fonts/ProductSans-BlackItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/ProductSans-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ProductSans-Light.ttf
+          weight: 300
+        - asset: assets/fonts/ProductSans-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ProductSans-Thin.ttf
+          weight: 200
+        - asset: assets/fonts/ProductSans-ThinItalic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ProductSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ProductSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ProductSans-MediumItalic.ttf
+          weight: 500
+          style: italic
+   
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf

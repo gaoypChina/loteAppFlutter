@@ -54,6 +54,12 @@ class _GrupoScreenState extends State<GrupoScreen> {
     }
   }
 
+  _showTest(){
+    showDialog(context: context, builder: (context){
+      return MyAlertDialog(title: "Jean", content: Text("Klk"), okFunction: (){});
+    });
+  }
+
   _removeDataFromList(Grupo data){
     if(data != null){
       int idx = listaData.indexWhere((element) => element.id == data.id);
@@ -65,7 +71,9 @@ class _GrupoScreenState extends State<GrupoScreen> {
     }
   }
 
-  _showDialogGuardar({Grupo data}){
+  _showDialogGuardar({Grupo data}) async {
+    var data2 = await Navigator.pushNamed(context, "/grupos/agregar", arguments: data);
+    return;
     if(data == null)
       data = Grupo();
 
@@ -102,8 +110,8 @@ class _GrupoScreenState extends State<GrupoScreen> {
                     ),
                     MyDropdown(
                       title: "Estado",
+                      medium: 1,
                       hint: "${data.status == 1 ? 'Activado' : 'Desactivado'}",
-                      isFlat: true,
                       elements: [["Activado", "Activado"], ["Desactivado", "Desactivado"]],
                       onTap: (data){
                         setState(() => data.status = (data == 'Activado') ? 1 : 0);
@@ -112,6 +120,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
                   ],
                 ),
               ), 
+              
               okFunction: () async {
                 try {
                   if(!_formKey.currentState.validate())
@@ -216,6 +225,8 @@ class _GrupoScreenState extends State<GrupoScreen> {
       context: context,
       cargando: false,
       isSliverAppBar: true,
+      cargandoNotify: null,
+      inicio: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Grupos",

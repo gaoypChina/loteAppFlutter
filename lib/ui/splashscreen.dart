@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
@@ -84,33 +85,45 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: _colorPrimary,
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: EdgeInsets.only(left: 10, right: 10),
-                child: Center(child: Image(image: AssetImage('assets/images/loterias_dominicanas.png'), width: MediaQuery.of(context).size.width / 1.5,))
-              )
-            ),
-            // Expanded(flex: 4, child: Image(image: AssetImage('assets/images/oterias_dominicanas.png'),)),
-            Container(
-              margin: EdgeInsets.only(bottom: 10),
-              child: SizedBox(
-                  width: 35,
-                  height: 35,
-                  child: Theme(
-                    data: Theme.of(context).copyWith(accentColor: Colors.white),
-                    child: new CircularProgressIndicator(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+        // For Android.
+        // Use [light] for white status bar and [dark] for black status bar.
+        statusBarIconBrightness: Brightness.light,
+        // For iOS.
+        // Use [dark] for white status bar and [light] for black status bar.
+        statusBarBrightness: Brightness.light,
+        // statusBarColor: Colors.transparent
+        statusBarColor: Colors.transparent
+      ),
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: _colorPrimary,
+        body: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10),
+                  child: Center(child: Image(image: AssetImage('assets/images/loterias_dominicanas.png'), width: MediaQuery.of(context).size.width / 1.5,))
+                )
+              ),
+              // Expanded(flex: 4, child: Image(image: AssetImage('assets/images/oterias_dominicanas.png'),)),
+              Container(
+                margin: EdgeInsets.only(bottom: 10),
+                child: SizedBox(
+                    width: 35,
+                    height: 35,
+                    child: Theme(
+                      data: Theme.of(context).copyWith(accentColor: Colors.white),
+                      child: new CircularProgressIndicator(),
+                    ),
                   ),
-                ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

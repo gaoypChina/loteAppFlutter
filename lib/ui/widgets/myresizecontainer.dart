@@ -12,7 +12,7 @@ class MyResizedContainer extends StatefulWidget {
   final double testWidth;
 
   final bool isRequired;
-  MyResizedContainer({Key key, this.child, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(0), this.isRequired = false, this.color = Colors.transparent, this.testWidth}) : super(key: key);
+  MyResizedContainer({Key key, this.child, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(0), this.isRequired = false, this.color = Colors.transparent, this.testWidth,}) : super(key: key);
   @override
   _MyResizedContainerState createState() => _MyResizedContainerState();
 }
@@ -53,6 +53,21 @@ class _MyResizedContainerState extends State<MyResizedContainer> {
 
   @override
   Widget build(BuildContext context) {
+    // return Padding(
+    //       padding: widget.padding,
+    //       child: Container(
+    //             color: widget.color,
+    //             // decoration: BoxDecoration(
+    //             //   borderRadius: BorderRadius.circular(10),
+    //             //   border: Border.all(color: Colors.black, width: 1, style: BorderStyle.solid)
+    //             // ),
+    //             // constraints: BoxConstraints(maxWidth: getWidth(boxconstraints.maxWidth) - (widget.padding * 2)),
+    //             width: getWidth(MediaQuery.of(context).size.width) - (widget.padding.left * 2), //El padding se multiplica por dos ya que el padding dado es el mismo para la izquiera y derecha
+    //             // width: 100, //El padding se multiplica por dos ya que el padding dado es el mismo para la izquiera y derecha
+    //             // height: 50,
+    //             child: widget.child
+    //           )
+    //     );
     return LayoutBuilder(
       builder: (context, boxconstraints) {
         // print("myrezisedContainer boxconstrants: ${getWidth(boxconstraints.maxWidth) - (widget.padding * 2)}");

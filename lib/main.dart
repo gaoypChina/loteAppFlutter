@@ -57,11 +57,26 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           applyElevationOverlayColor: true,
+          fontFamily: 'GoogleSans',
+
+          // Define the default TextTheme. Use this to specify the default
+          // text styling for headlines, titles, bodies of text, and more.
+          textTheme: TextTheme(
+            headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+            headline6: TextStyle(fontSize: 36.0),
+            bodyText2: TextStyle(fontSize: 14.0),
+          ),
           // backgroundColor: Colors.white,
           primarySwatch: MyColors.lightBlue,
           accentColor: Colors.pink,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.white,
+            iconTheme: IconThemeData(color: Colors.black),
+            actionsIconTheme: IconThemeData(color: Theme.of(context).primaryColor)
+          ),
           // accentColor: Utils.fromHex("#F0807F")
         ),
+        
         localeResolutionCallback: (deviceLocale, supportedLocales){
           myLocale = deviceLocale;
           print("myLanguaCode: ${myLocale.languageCode}");

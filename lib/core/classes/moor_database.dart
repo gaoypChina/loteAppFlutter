@@ -240,7 +240,7 @@ class AppDatabase extends _$AppDatabase{
   }
   Future deleteAllPermission() => customStatement("delete from permissions");
   Future<bool> existePermiso(String permiso) async {
-    var p = await ((select(permissions)..where((p) => p.descripcion.equals(permiso))).getSingle());
+    var p = await ((select(permissions)..where((p) => p.descripcion.equals(permiso))).getSingleOrNull());
     // print("moor_Database existePermiso: ${p.toJson()}");
     return p != null;
   }
@@ -249,13 +249,16 @@ class AppDatabase extends _$AppDatabase{
   Future updateBranch(Branch branch) => update(branchs).replace(branch);
   Future deleteBranch(Branch branch) => delete(branchs).delete(branch);
   Future deleteAllBranches() => customStatement("delete from branches");
-  Future<Map<String, dynamic>> getBanca() async => (await ((select(branchs)..limit(1)).getSingle())).toJson();
+  Future<Map<String, dynamic>> getBanca() async {
+    var map = (await ((select(branchs)..limit(1)).getSingleOrNull()));
+    return map != null ? map.toJson() : null;
+  }
   Future<int> getIdBanca() async {
-    Branch e = await ((select(branchs)..limit(1)).getSingle());
+    Branch e = await ((select(branchs)..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
   }
   Future<int> idBanca() async {
-    Branch e = await ((select(branchs)..limit(1)).getSingle());
+    Branch e = await ((select(branchs)..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
   }
 
@@ -263,13 +266,16 @@ class AppDatabase extends _$AppDatabase{
   Future updateUser(User user) => update(users).replace(user);
   Future deleteUser(User user) => delete(users).delete(user);
   Future deleteAllUser() => customStatement("delete from users");
-  Future<Map<String, dynamic>> getUsuario() async => (await ((select(users)..limit(1)).getSingle())).toJson();
+  Future<Map<String, dynamic>> getUsuario() async {
+    var map = (await ((select(users)..limit(1)).getSingleOrNull()));
+    return map != null ? map.toJson() : null;
+  }
   Future<int> getIdUsuario() async {
-    User e = await ((select(users)..limit(1)).getSingle());
+    User e = await ((select(users)..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
   }
   Future<int> idUsuario() async {
-    User e = await ((select(users)..limit(1)).getSingle());
+    User e = await ((select(users)..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
   }
 
@@ -277,7 +283,10 @@ class AppDatabase extends _$AppDatabase{
   Future updateSetting(Setting setting) => update(settings).replace(setting);
   Future deleteSetting(Setting setting) => delete(settings).delete(setting);
   Future deleteAllSetting() => customStatement("delete from settings");
-  Future<Map<String, dynamic>> getSetting() async => (await ((select(settings)..limit(1)).getSingle())).toJson();
+  Future<Map<String, dynamic>> getSetting() async {
+    var map = (await ((select(settings)..limit(1)).getSingleOrNull()));
+    return map != null ? map.toJson() : null;
+  }
 
   Future<List<Server>> getAllServer() => select(servers).get();
   Future insertServer(Server element) => into(servers).insert(element);
@@ -288,7 +297,7 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(servers, listServer));
   }
   Future<String> servidor() async {
-    User e = await ((select(users)..limit(1)).getSingle());
+    User e = await ((select(users)..limit(1)).getSingleOrNull());
     return (e != null) ? e.servidor : null;
   }
 
@@ -400,13 +409,13 @@ class AppDatabase extends _$AppDatabase{
     if(idLoteriaSuperpale != null)
       query += " and idLoteriaSuperpale = $idLoteriaSuperpale";
 
-    QueryRow data = await customSelect("select monto from stocks where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and esGeneral = $esGeneral and idMoneda = $idMoneda $query order by id desc limit 1", readsFrom: {stocks}).getSingle();
+    QueryRow data = await customSelect("select monto from stocks where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and esGeneral = $esGeneral and idMoneda = $idMoneda $query order by id desc limit 1", readsFrom: {stocks}).getSingleOrNull();
     return (data == null) ? null : data.readDouble("monto");
     // Stock e = await ((select(stocks)..where((e) => e.idBanca.equals(idBanca) & e.idLoteria.equals(idLoteria) & e.idSorteo.equals(idSorteo) & e.jugada.equals(jugada) & e.esGeneral.equals(esGeneral) & e.idMoneda.equals(idMoneda))
     //   ..orderBy([
     //     (t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)
     //   ])
-    // ).getSingle());
+    // ).getSingleOrNull());
     // return (e != null) ? e.monto : null;
   }
   Future<Map<String, dynamic>> getStockMontoAndIgnorarDemasBloqueos({int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int esGeneral, @required int idMoneda, int ignorarDemasBloqueos, int idLoteriaSuperpale}) async {
@@ -418,14 +427,14 @@ class AppDatabase extends _$AppDatabase{
     if(idLoteriaSuperpale != null)
       query += " and idLoteriaSuperpale = $idLoteriaSuperpale";
 
-    QueryRow data = await customSelect("select monto, ignorarDemasBloqueos from stocks where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and esGeneral = $esGeneral and idMoneda = $idMoneda $query order by id desc limit 1", readsFrom: {stocks}).getSingle();
+    QueryRow data = await customSelect("select monto, ignorarDemasBloqueos from stocks where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and esGeneral = $esGeneral and idMoneda = $idMoneda $query order by id desc limit 1", readsFrom: {stocks}).getSingleOrNull();
     return (data == null) ? null : {
       "monto" : data.readDouble("monto"),
       "ignorarDemasBloqueos" : data.readInt("ignorarDemasBloqueos"),
     };
   }
   // Future<int> idDraw(String descripcion) async {
-  //   Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingle());
+  //   Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingleOrNull());
   //   return (e != null) ? e.id : 0;
   // }
 
@@ -437,7 +446,7 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(blocksgenerals, listElement));
   }
   Future<double> getBlocksgeneralMonto({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda}) async {
-    QueryRow data = await customSelect("select monto from blocksgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and idDia = $idDia and idMoneda = $idMoneda order by id desc limit 1", readsFrom: {blocksgenerals}).getSingle();
+    QueryRow data = await customSelect("select monto from blocksgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and idDia = $idDia and idMoneda = $idMoneda order by id desc limit 1", readsFrom: {blocksgenerals}).getSingleOrNull();
     return (data == null) ? null : data.readDouble("monto");
   }
 
@@ -449,7 +458,7 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(blockslotteries, listElement));
   }
   Future<double> getBlockslotterieMonto({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda}) async {
-    QueryRow data = await customSelect("select monto from blockslotteries where idBanca = $idBanca and idLoteria = $idLoteria and idSorteo = $idSorteo and idDia = $idDia and idMoneda = $idMoneda order by id desc limit 1", readsFrom: {blockslotteries}).getSingle();
+    QueryRow data = await customSelect("select monto from blockslotteries where idBanca = $idBanca and idLoteria = $idLoteria and idSorteo = $idSorteo and idDia = $idDia and idMoneda = $idMoneda order by id desc limit 1", readsFrom: {blockslotteries}).getSingleOrNull();
     return (data == null) ? null : data.readDouble("monto");
   }
 
@@ -461,7 +470,7 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(blocksplays, listElement));
   }
   Future<double> getBlocksplayMonto({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int status = 1}) async {
-    QueryRow data = await customSelect("select monto from blocksplays where idBanca = $idBanca and idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplays}).getSingle();
+    QueryRow data = await customSelect("select monto from blocksplays where idBanca = $idBanca and idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplays}).getSingleOrNull();
     return (data == null) ? null : data.readDouble("monto");
   }
 
@@ -473,14 +482,14 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(blocksplaysgenerals, listElement));
   }
   Future<Map<String, dynamic>> getBlockplaysgeneralMontoAndIgnorarDemasBloqueos({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int status = 1}) async {
-    QueryRow data = await customSelect("select monto, ignorarDemasBloqueos from blocksplaysgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplaysgenerals}).getSingle();
+    QueryRow data = await customSelect("select monto, ignorarDemasBloqueos from blocksplaysgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplaysgenerals}).getSingleOrNull();
     return (data == null) ? null : {
       "monto" : data.readDouble("monto"),
       "ignorarDemasBloqueos" : data.readInt("ignorarDemasBloqueos"),
     };
   }
   Future<double> getBlockplaysgeneralMonto({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int status = 1}) async {
-    QueryRow data = await customSelect("select monto from blocksplaysgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplaysgenerals}).getSingle();
+    QueryRow data = await customSelect("select monto from blocksplaysgenerals where idLoteria = $idLoteria and idSorteo = $idSorteo and jugada = $jugada and idMoneda = $idMoneda and status = $status order by id desc limit 1", readsFrom: {blocksplaysgenerals}).getSingleOrNull();
     return (data == null) ? null : data.readDouble("monto");
   }
 
@@ -492,15 +501,15 @@ class AppDatabase extends _$AppDatabase{
     return await batch((b) => b.insertAllOnConflictUpdate(draws, listElement));
   }
   Future<int> idDraw(String descripcion) async {
-    Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingle());
+    Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
   }
   Future<Map<String, dynamic>> draw(String descripcion) async {
-    Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingle());
+    Draw e = await ((select(draws)..where((e) => e.descripcion.equals(descripcion))..limit(1)).getSingleOrNull());
     return (e != null) ? e.toJson() : null;
   }
   Future<Map<String, dynamic>> drawById(int id) async {
-    Draw e = await ((select(draws)..where((e) => e.id.equals(id))..limit(1)).getSingle());
+    Draw e = await ((select(draws)..where((e) => e.id.equals(id))..limit(1)).getSingleOrNull());
     return (e != null) ? e.toJson() : null;
   }
 
@@ -516,7 +525,7 @@ class AppDatabase extends _$AppDatabase{
       ..orderBy([
         (t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)
       ])
-    ).getSingle());
+    ).getSingleOrNull());
     return (e != null) ? e.cantidad : null;
   }
 
@@ -532,7 +541,7 @@ class AppDatabase extends _$AppDatabase{
       ..orderBy([
         (t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)
       ])
-    ).getSingle());
+    ).getSingleOrNull());
     return (e != null) ? e.cantidad : null;
   }
 

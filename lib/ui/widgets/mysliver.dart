@@ -96,6 +96,7 @@ class _MySliverButtonState extends State<MySliverButton> {
           child: Padding(
          padding: EdgeInsets.only(left: 5, right: 15.0),
          child: MyButton(
+           type: MyButtonType.noResponsive,
            title: (widget.title is Widget) ? "" : widget.title,
            function: widget.onTap,
          )
@@ -194,8 +195,9 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
     );
   }
   Widget _titleSmallScreen(isSmallOrMedium){
-    if(isSmallOrMedium)
-      return Text("${widget.title}", style: TextStyle(fontSize: 20, color: Utils.fromHex("#202124"), fontFamily: 'GoogleSans', fontWeight: FontWeight.w600, letterSpacing: 0.2),);
+    if(isSmallOrMedium){
+      return widget.title is Widget ? widget.title : Text("${widget.title}", style: TextStyle(fontSize: 20, color: Utils.fromHex("#202124"), fontFamily: 'GoogleSans', fontWeight: FontWeight.w600, letterSpacing: 0.2),);
+    }
     else
       return LayoutBuilder(
         builder: (context, boxconstraint) {
@@ -279,7 +281,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           pinned: true,
           titleSpacing: 0.0,
           title: _titleSmallScreen(isSmallOrMedium),
-          // actions: _actionsScreen(isSmallOrMedium),
+          actions: _actionsScreen(isSmallOrMedium),
           // leading: Container(
           //   padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10),
           //   decoration: BoxDecoration(
