@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/services/gruposservice.dart';
@@ -74,6 +75,11 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
 
   _showDialogGuardar({Loteria data}) async {
     var data2 = await Navigator.pushNamed(context, "/loterias/agregar", arguments: data);
+    if(data2 == null)
+      return;
+
+    _addDataToList(data2);
+
     return;
     if(data == null)
       data = Loteria();
@@ -147,6 +153,20 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
     );
   }
 
+  _sorteosString(List<Draws> sorteos){
+    if(sorteos == null)
+      return '';
+
+    if(sorteos.length == 0)
+      return '';
+
+    if(sorteos.length == 8)
+      return 'Todos los sorteos';
+
+    else
+      return sorteos.map((e) => e.descripcion.length > 8 ? e.descripcion.substring(0, 6) : e.descripcion).join(' • ');
+  }
+
   _dataScreen(AsyncSnapshot<List<Loteria>> snapshot, bool isSmallOrMedium){
     if(isSmallOrMedium){
       return SingleChildScrollView(
@@ -154,7 +174,14 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
           children: snapshot.data.map((e) => ListTile(
             leading: _avatarScreen(e.descripcion),
             title: Text("${e.descripcion}"),
-            subtitle: Text("${e.abreviatura}"),
+            isThreeLine: true,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("${e.abreviatura}"),
+                Text("${_sorteosString(e.sorteos)}"),
+              ],
+            ),
             onTap: (){_showDialogGuardar(data: e);},
             trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )).toList(),

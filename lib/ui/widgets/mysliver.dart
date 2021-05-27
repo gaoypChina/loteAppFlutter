@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 
 import 'mydivider.dart';
 
@@ -208,7 +209,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
       child: AnimatedDefaultTextStyle(
       duration: Duration(milliseconds: 300), 
       style: TextStyle(fontSize: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? boxconstraint.biggest.height < 57 && widget.subtitle != null ? widget.titleMinFontSizeForSmallScreen : 20 : boxconstraint.biggest.height < 57 && widget.subtitle != '' ? widget.titleMinFontSizeForLargeScreen : 32, color: Utils.fromHex("#202124"), fontFamily: 'GoogleSans', fontWeight: FontWeight.w500, letterSpacing: 0.2),
-      child: Text(widget.title, )
+      child: widget.title is Widget ? widget.title : Text(widget.title, )
       ),
     );
   }
@@ -225,17 +226,20 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
       );
   }
 
-  _subtitle(){
-    if(widget.subtitle is Widget)
+  _subtitle(bool isSmallOrMedium){
+    if(widget.subtitle is MyCollapseChanged)
       return widget.subtitle;
+
+    if(widget.subtitle is Widget)
+      return MyCollapseChanged(child: widget.subtitle, actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,);
     
     return Visibility(
       visible: widget.subtitle != "",
-      child: Text(widget.subtitle, style: TextStyle(color: Utils.fromHex("#5f6368"), fontFamily: "GoogleSans", fontSize: 14, letterSpacing: 0.4),),
+      child:  MyCollapseChanged(child: Text(widget.subtitle, style: TextStyle(color: Utils.fromHex("#5f6368"), fontFamily: "GoogleSans", fontSize: 14, letterSpacing: 0.4),), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,)
     );
   }
   
-  _flexibleSpace(){
+  _flexibleSpace(bool isSmallOrMedium){
     return LayoutBuilder(
         builder: (context, boxconstraint) {
           print("Pruebasliver: ${boxconstraint.biggest.height}");
@@ -246,14 +250,14 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
               // (ScreenSize.isMedium(MediaQuery.of(context).size.width) || ScreenSize.isSmall(MediaQuery.of(context).size.width))
               // ?
               Padding(
-                padding: EdgeInsets.only( left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
+                padding: EdgeInsets.only( bottom: isSmallOrMedium ? 10 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // _actionsScreen(isSmallOrMedium)
                     // SizedBox(height: boxconstraint.biggest.height < 57 ? 20 : 10,),
-                    _subtitle(),
+                    _subtitle(isSmallOrMedium),
                     // Padding(
                     //   padding: const EdgeInsets.only(right: 25.0, top: 20),
                     //   child: Divider(color: Colors.grey.shade300, thickness: 0.9, height: 1,),
@@ -297,9 +301,16 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // automaticallyImplyLeading: false,
           // backgroundColor: Colors.white,
           pinned: true,
+          // floating: true,
+          // bottom: PreferredSize(
+          //   preferredSize: const Size.fromHeight(0),
+          //   child: _flexibleSpace(),
+          // ),
           titleSpacing: 0.0,
-          title: _titleSmallScreen(isSmallOrMedium),
+          // title: _titleSmallScreen(isSmallOrMedium),
           actions: _actionsScreen(isSmallOrMedium),
+          title: widget.title is MyCollapseChanged ? widget.title : MyCollapseChanged(child: _titleSmallScreen(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.hide : MyCollapseAction.nothing,),
+          // title: _titleSmallScreen(isSmallOrMedium),
           // leading: Container(
           //   padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10),
           //   decoration: BoxDecoration(
@@ -342,10 +353,13 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // actions: widget.actions,
           // expandedHeight: (widget.subtitle != "") ? (widget.backRouteName != null) ? widget.expandedHeight + 12 : widget.expandedHeight : (widget.backRouteName != null) ? 80 : null,
           expandedHeight: (widget.subtitle != "") ?  widget.expandedHeight : null,
-          flexibleSpace: _flexibleSpace()
+          // flexibleSpace: MyColapseChanged(child: _flexibleSpace(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,)
+          flexibleSpace: _flexibleSpace(isSmallOrMedium)
           
           
         );
       
   }
 }
+
+
