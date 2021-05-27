@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/moor_database.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/services/gruposservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
@@ -29,6 +30,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
   var _txtDescripcion = TextEditingController();
   var _txtCodigo = TextEditingController();
   var _txtSearch = TextEditingController();
+  List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
 
   List<Grupo> listaData = [];
   _init() async {
@@ -205,6 +207,70 @@ class _GrupoScreenState extends State<GrupoScreen> {
       }
   }
 
+  _avatarScreen(String data){
+
+    return CircleAvatar(
+      backgroundColor: listaColor[Utils.generateNumber(0, 5)],
+      child: data != null ? Text(data.substring(0, 1).toUpperCase()) : null,
+    );
+  }
+
+  _dataScreen(AsyncSnapshot<List<Grupo>> snapshot, bool isSmallOrMedium){
+    if(isSmallOrMedium){
+      return SingleChildScrollView(
+        child: Column(
+          children: snapshot.data.map((e) => ListTile(
+            leading: _avatarScreen(e.descripcion),
+            title: Text("${e.descripcion}"),
+            subtitle: Text("${e.codigo}"),
+            onTap: (){_showDialogGuardar(data: e);},
+            trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
+          )).toList(),
+        ),
+      );
+    }
+    return MyTable(
+      columns: ["Grupo", "Codigo", "Activo"], 
+      rows: snapshot.data.map((e) => [e, "${e.descripcion}", "${e.codigo}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
+      isScrolled: false,
+      onTap: (data){
+        _showDialogGuardar(data: data);
+      },
+      delete: (data){
+        _showDialogEliminar(data: data);
+      },
+    );
+  }
+
+  _mydropdown(){
+    return MyDropdown(
+      title: "Filtrar por",
+      hint: "Todos",
+      elements: [
+        ["Todos", "Todos"],
+        ["Activos", "Activos"],
+        ["Desactivados", "Desactivados"],
+      ],
+      onTap: _filtrar,
+      showOnlyOnLarge: true,
+    );
+  }
+
+  Widget _mysearch(){
+    return MySearchField(controller: _txtSearch, onChanged: _search, hint: "", xlarge: 2.6, padding: EdgeInsets.all(0),);
+  }
+
+  _subtitle(bool isSmallOrMedium){
+         return isSmallOrMedium 
+           ?
+           Padding(
+             padding: const EdgeInsets.symmetric(horizontal: 20),
+             child: _mysearch(),
+           )
+           :
+           "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.";
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -221,20 +287,23 @@ class _GrupoScreenState extends State<GrupoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return myScaffold(
       context: context,
       cargando: false,
       isSliverAppBar: true,
       cargandoNotify: null,
       inicio: true,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _showDialogGuardar,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
+          expandedHeight: isSmallOrMedium ? 105 : 85,
           title: "Grupos",
-          subtitle: "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.",
-          actions: [
-            MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar),
+          subtitle: _subtitle(isSmallOrMedium),
+          // actions: [
+          //   MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar),
 
-          ],
+          // ],
         ),
         sliver: StreamBuilder<List<Grupo>>(
           stream: _streamController.stream,
@@ -254,39 +323,20 @@ class _GrupoScreenState extends State<GrupoScreen> {
               );
 
             return SliverList(delegate: SliverChildListDelegate([
-              MySubtitle(title: "${snapshot.data.length} Grupos"),
+              MySubtitle(title: "${snapshot.data.length} Grupos", showOnlyOnLarge: true,),
               Stack(
                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  MyDropdown(
-                    title: "Filtrar por",
-                    hint: "Todos",
-                    elements: [
-                      ["Todos", "Todos"],
-                      ["Activos", "Activos"],
-                      ["Desactivados", "Desactivados"],
-                    ],
-                    onTap: _filtrar,
-                  ),
+                  _mydropdown(),
                   Align(
                     alignment: Alignment.topRight,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 15.0, top: 18.0),
-                      child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar loteria...", xlarge: 2.6,),
+                      child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar loteria...", xlarge: 2.6, showOnlyOnLarge: true,),
                     ))
                 ],
               ),
-              MyTable(
-              columns: ["Grupo", "Codigo", "Activo"], 
-              rows: snapshot.data.map((e) => [e, "${e.descripcion}", "${e.codigo}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
-              isScrolled: false,
-              onTap: (data){
-                _showDialogGuardar(data: data);
-              },
-              delete: (data){
-                _showDialogEliminar(data: data);
-              },
-            )
+              _dataScreen(snapshot, isSmallOrMedium)
             ]));
           }
         ), 

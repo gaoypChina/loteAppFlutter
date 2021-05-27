@@ -7,6 +7,7 @@ import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/mytringle.dart';
@@ -48,11 +49,9 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
         _cargandoNotify.value = true;
         var parsed = await GrupoService.guardar(context: context, grupo: grupo);
         print("_showDialogGuardar parsed: $parsed");
-        _back(parsed);
         
         _cargandoNotify.value = false;
-        Navigator.pop(context);
-
+        _back(parsed);
       } on Exception catch (e) {
         print("_showDialogGuardar _erroor: $e");
         _cargandoNotify.value = false;
@@ -65,6 +64,16 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
         grupo = Grupo.fromMap(parsed["grupo"]);
 
       Navigator.pop(context, grupo);
+    }
+
+    _statusScreen(isSmallOrMedium){
+      if(isSmallOrMedium)
+        return MySwitch(leading: Icon(Icons.check_box),title: "Activo", value: _status, onChanged: _statusChanged);
+      
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: MyDropdown(title: "Estado", isSideTitle: true, xlarge: 1.6, elements: [[true, "Activo"], [false, "Desactivado"]], onTap: _statusChanged,),
+      );
     }
 
     _statusChanged(data){
@@ -89,13 +98,14 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
       cargando: false,
       cargandoNotify: _cargandoNotify,
       isSliverAppBar: true,
+      bottomTap: isSmallOrMedium ? null : _guardar,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: 
           isSmallOrMedium ? 
           SizedBox.shrink() 
           : "Agregar grupo",
-          
+          subtitle: isSmallOrMedium ? '' : "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.",
           actions: [
             MySliverButton(title: "Guardar", onTap: _guardar)
           ],
@@ -107,30 +117,41 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
                 key: _formKey,
                 child: Wrap(
                   children: [
-                    MyTextFormField(
-                      leading: isSmallOrMedium ? SizedBox.shrink() : null,
-                      isSideTitle: isSmallOrMedium ? false : true,
-                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                      fontSize: 28,
-                      controller: _txtDescripcion,
-                      hint: "Agregar grupo",
-                      medium: 1,
-                      isRequired: true,
-                      
+                    MySubtitle(title: "Datos", showOnlyOnLarge: true,),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? SizedBox.shrink() : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        fontSize: isSmallOrMedium ? 28 : null,
+                        controller: _txtDescripcion,
+                        title: !isSmallOrMedium ? "Grupo" : "",
+                        hint: "Agregar grupo",
+                        medium: 1,
+                        xlarge: 1.6,
+                        isRequired: true,
+                        
+                      ),
                     ),
                     MyDivider(showOnlyOnSmall: true,),
-                    MyTextFormField(
-                      leading: isSmallOrMedium ? Icon(Icons.code, color: Colors.black.withOpacity(0.7),) : null,
-                      isSideTitle: isSmallOrMedium ? false : true,
-                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                      controller: _txtCodigo,
-                      hint: "Codigo",
-                      medium: 1,
-                      isRequired: true,
-                      
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Icon(Icons.code, color: Colors.black.withOpacity(0.7),) : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtCodigo,
+                        title: !isSmallOrMedium ? "Codigo" : "",
+                        hint: "Codigo",
+                        medium: 1,
+                        xlarge: 1.6,
+                        isRequired: true,
+                        
+                      ),
                     ),
                     MyDivider(showOnlyOnSmall: true,),
-                    MySwitch(leading: Icon(Icons.check_box),title: "Activo", value: _status, onChanged: _statusChanged),
+                    _statusScreen(isSmallOrMedium)
                     // MyDropdown(
                     //   title: "Estado",
                     //   medium: 1,

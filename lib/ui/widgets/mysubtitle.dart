@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 
 class MySubtitle extends StatefulWidget {
   final String title;
@@ -6,14 +7,25 @@ class MySubtitle extends StatefulWidget {
   final EdgeInsets padding;
   final FontWeight fontWeight;
   final double letterSpacing;
-  MySubtitle({Key key, @required this.title, this.fontSize = 20, this.fontWeight = FontWeight.w500, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.letterSpacing = 0.3}) : super(key: key);
+  final bool showOnlyOnSmall;
+  final bool showOnlyOnLarge;
+  MySubtitle({Key key, @required this.title, this.fontSize = 20, this.fontWeight = FontWeight.w500, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.letterSpacing = 0.3, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
   @override
   _MySubtitleState createState() => _MySubtitleState();
 }
 
 class _MySubtitleState extends State<MySubtitle> {
-  @override
-  Widget build(BuildContext context) {
+  _screen(context){
+    if(widget.showOnlyOnSmall){
+      if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
+    if(widget.showOnlyOnLarge){
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
     return Row(
       children: [
         Padding(
@@ -22,5 +34,10 @@ class _MySubtitleState extends State<MySubtitle> {
         ),
       ],
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _screen(context);
   }
 }

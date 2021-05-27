@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
 // import 'package:corsac_jwt/corsac_jwt.dart';
@@ -564,5 +565,60 @@ class  Utils {
   static bool isSmallOrMedium(double size){
     return (ScreenSize.isMedium(size) || ScreenSize.isSmall(size));
   }
+
+  static int generateNumber(int min, int max){
+    final _random = Random();
+    return min + _random.nextInt(max - min);
+  }
+
+  static Container getWidgetUploadFoto(dynamic sucursal, {size: 130.0, radius: 10.0}) {
+    if(sucursal.foto != null ){
+      return Container(
+          // color: Colors.blue,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              // color: Colors.blue,
+              child: Image.memory(sucursal.foto)
+            ),
+          ),
+        );
+      //  return Image.memory(await Utils.blobfileToUint(cliente.foto));
+    }else if(sucursal.nombreFoto != null){
+      return Container(
+          // color: Colors.red,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              child: FadeInImage(
+                image: NetworkImage(
+                    '${Utils.URL}/assets/perfil/${sucursal.nombreFoto}'),
+                placeholder: AssetImage('assets/images/profile2.jpg'),
+              )
+            ),
+          ),
+        );
+    }else{
+      return Container(
+          // color: Colors.red,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              child: Image(image: AssetImage('assets/images/profile2.jpg'), )
+            ),
+          ),
+        );
+    }
+
+    
+    // return  Image(image: AssetImage('images/profile2.jpg'), );
+  }
+
   
 }

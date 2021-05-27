@@ -51,6 +51,7 @@ dependencies:
   moor: ^4.2.1
   moor_flutter: ^4.0.0
   socket_io_client: ^1.0.0
+  file_picker: ^3.0.0
   flutter:
     sdk: flutter
 

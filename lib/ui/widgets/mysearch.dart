@@ -27,7 +27,10 @@ class MySearchField extends StatefulWidget {
   final borderRadius;
 
   final bool isRequired;
-  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false}) : super(key: key);
+  final EdgeInsets contentPadding;
+  final bool showOnlyOnSmall;
+  final bool showOnlyOnLarge;
+  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.contentPadding = const EdgeInsets.only(top: 15, bottom: 15), this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
   @override
   _MySearchFieldState createState() => _MySearchFieldState();
 }
@@ -98,8 +101,17 @@ class _MySearchFieldState extends State<MySearchField> {
       return widget.xlarge;
   }
 
-  @override
-  Widget build(BuildContext context) {
+  _screen(){
+    if(widget.showOnlyOnSmall){
+      if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
+    if(widget.showOnlyOnLarge){
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
     return MyResizedContainer(
       small: widget.small,
       medium: widget.medium,
@@ -159,7 +171,7 @@ class _MySearchFieldState extends State<MySearchField> {
                                   decoration: InputDecoration(
                                     hintText: widget.hint,
                                     hintStyle: TextStyle(color: Utils.fromHex("#72777c"), fontWeight: FontWeight.w500),
-                                    contentPadding: EdgeInsets.only(top: 15, bottom: 15),
+                                    contentPadding: widget.contentPadding,
                                     isDense: true,
                                     border: InputBorder.none,
                                     focusedBorder: InputBorder.none,
@@ -281,5 +293,12 @@ class _MySearchFieldState extends State<MySearchField> {
           )
        
     );
+  
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return _screen();
   }
 }

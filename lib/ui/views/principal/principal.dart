@@ -2135,6 +2135,24 @@ AppBar _appBar(bool screenHeightIsSmall){
                       },
                     ),
                     ListTile(
+                      title: Text('Loterias'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/loterias");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                    ListTile(
+                      title: Text('Usuarios'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/usuarios");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                    ListTile(
                       title: Text('Grupos'),
                       leading: Icon(Icons.dashboard),
                       dense: true,

@@ -135,9 +135,27 @@ class WebMoor implements CrossDB{
     }
   
     @override
-    Future<List<Map<String, dynamic>>> query(String table) {
+    Future<List<Map<String, dynamic>>> query(String table) async {
       // TODO: implement query
-      throw UnimplementedError("WebDatabase Uninplemented query");
+      // throw UnimplementedError("WebDatabase Uninplemented query");
+    var database = WebMoor();
+
+      switch (table) {
+      // case "Users":
+      //   return database.db.insertUser(User.fromJson(dataToMap));
+      //   break;
+      // case "Permissions":
+      //   return database.db.insertPermission(Permission(id: dataToMap["id"], descripcion: dataToMap["descripcion"], status: dataToMap["status"], created_at: DateTime.parse(dataToMap["created_at"])));
+      //   break;
+      // case "Settings":
+      //   return database.db.insertSetting(Setting.fromJson(dataToMap));
+      //   break;
+      case "Servers":
+        return (await database.db.getAllServer()).map<Map<String, dynamic>>((e) => {"descripcion" : e.descripcion, "id" : e.id, "pordefecto" : e.pordefecto}).toList();
+        break;
+      default:
+        return null;
+    }
     }
   
     @override

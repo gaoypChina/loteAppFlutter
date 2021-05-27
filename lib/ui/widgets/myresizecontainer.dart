@@ -10,9 +10,9 @@ class MyResizedContainer extends StatefulWidget {
   final EdgeInsets padding;
   final Color color;
   final double testWidth;
-
   final bool isRequired;
-  MyResizedContainer({Key key, this.child, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(0), this.isRequired = false, this.color = Colors.transparent, this.testWidth,}) : super(key: key);
+  final Widget Function(BuildContext context, double width) builder;
+  MyResizedContainer({Key key, this.child, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(0), this.isRequired = false, this.color = Colors.transparent, this.testWidth, this.builder}) : super(key: key);
   @override
   _MyResizedContainerState createState() => _MyResizedContainerState();
 }
@@ -68,7 +68,10 @@ class _MyResizedContainerState extends State<MyResizedContainer> {
     //             child: widget.child
     //           )
     //     );
-    return LayoutBuilder(
+    return
+    widget.builder == null
+    ?
+    LayoutBuilder(
       builder: (context, boxconstraints) {
         // print("myrezisedContainer boxconstrants: ${getWidth(boxconstraints.maxWidth) - (widget.padding * 2)}");
         return Padding(
@@ -85,6 +88,16 @@ class _MyResizedContainerState extends State<MyResizedContainer> {
                 // height: 50,
                 child: widget.child
               )
+        );
+      }
+    )
+    :
+    LayoutBuilder(
+      builder: (context, boxconstraints) {
+        // print("myrezisedContainer boxconstrants: ${getWidth(boxconstraints.maxWidth) - (widget.padding * 2)}");
+        return Padding(
+          padding: widget.padding,
+          child: widget.builder(context, getWidth(boxconstraints.maxWidth) - (widget.padding.left * 2))
         );
       }
     );

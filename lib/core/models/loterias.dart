@@ -28,15 +28,17 @@ class Loteria {
         pick3 = snapshot['pick3'] ?? '',
         pick4 = snapshot['pick4'] ?? '',
         status = snapshot['status'] ?? 1,
-        sorteos = sorteosToMap(snapshot['sorteos']) ?? List(),
-        loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? List(),
+        sorteos = sorteosToMap(snapshot['sorteos']) ?? [],
+        loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
         horaCierre= snapshot['horaCierre'] ?? '',
         minutosExtras = snapshot['minutosExtras'] ?? 0
         ;
 
 List sorteosToJson() {
-
-    List jsonList = List();
+    if(sorteos == null)
+      return [];
+      
+    List jsonList = [];
     sorteos.map((u)=>
       jsonList.add(u.toJson())
     ).toList();
@@ -47,14 +49,28 @@ List sorteosToJson() {
     if(sorteos != null)
       return sorteos.map((data) => Draws.fromMap(data)).toList();
     else
-      return List<Draws>();
+      return [];
   }
 
   static List<Loteria> loteriaSuperpaleToMap(List<dynamic> loterias){
     if(loterias != null)
       return loterias.map((data) => Loteria.fromMap(data)).toList();
     else
-      return List<Loteria>();
+      return [];
+  }
+
+  List loteriaSuperpaleToJson() {
+
+    List jsonList = [];
+    if(loteriaSuperpale == null)
+      return [];
+
+    loteriaSuperpale.map((u){
+      //el servidor solo guarda las loterias seleccionadas que tiene el parametro 'seleccionado == true',
+      //asi que agregamos este parametro para que el servidor lo guarde
+      return jsonList.add({"id" : u.id, 'descripcion' : u.descripcion, 'seleccionado' : true});
+    }).toList();
+    return jsonList;
   }
 
   toJson() {
@@ -70,6 +86,8 @@ List sorteosToJson() {
       "pick4": pick4,
       "horaCierre": horaCierre,
       "minutosExtras": minutosExtras,
+      "sorteos" : sorteosToJson(),
+      "loterias" : loteriaSuperpaleToJson()
     };
   }
 }

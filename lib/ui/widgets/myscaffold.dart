@@ -6,7 +6,7 @@ import 'myappbar.dart';
 import 'mybutton.dart';
 
 
-myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool inicio = false, bool clientes = false, bool rutas = false, bool gastos = false, bool cajas = false, bool bancos = false, bool prestamos = false, bool configuracionPrestamo = false, bool configuracionEmpresa = false, bool configuracionRecibo = false, bool configuracionOtro = false, bool cuentas = false, bool roles = false, bool garantias = false, bool pagos = false, bool sucursales = false, bool usuarios = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false}){
+myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool inicio = false, bool clientes = false, bool rutas = false, bool gastos = false, bool cajas = false, bool bancos = false, bool prestamos = false, bool configuracionPrestamo = false, bool configuracionEmpresa = false, bool configuracionRecibo = false, bool configuracionOtro = false, bool cuentas = false, bool roles = false, bool garantias = false, bool pagos = false, bool sucursales = false, bool usuarios = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton}){
   Widget widget = SizedBox();
   var _valueNotifyDrawer = ValueNotifier(true);
   // if(myNestedScrollBar != null)
@@ -85,7 +85,8 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       // appBar: (isSliverAppBar == true && (ScreenSize.isMedium(MediaQuery.of(context).size.width) || ScreenSize.isSmall(MediaQuery.of(context).size.width))) ? null : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
       appBar: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? null : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
       body: (myNestedScrollBar != null) ? myNestedScrollBar : widget,
-      bottomNavigationBar:  myBottomWidget(context: context, onTap: bottomTap, text: textBottom, cargando: cargandoNotify)
+      bottomNavigationBar:  myBottomWidget(context: context, onTap: bottomTap, text: textBottom, cargando: cargandoNotify),
+      floatingActionButton: floatingActionButton,
       // body: MyNestedScrollBar(
       //   headerSliverBuilder: [SliverToBoxAdapter(child: Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.blue),), SliverToBoxAdapter(child: Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.red),)],
       //   body: Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height, color: Colors.yellow),

@@ -2,67 +2,69 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/moor_database.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/grupo.dart';
+import 'package:loterias/core/models/usuario.dart';
 import 'dart:convert';
 
-class GrupoService{
+
+class UsuarioService{
   static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
+    map["idUsuario"] = await Db.idUsuario();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Uri.parse(Utils.URL + "/api/grupos?token=$jwt"), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/usuarios?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
-      print("GrupoService index: ${response.body}");
+      print("UsuarioService index: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
         Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor GrupoService index: ${parsed["message"]}");
+        Utils.showSnackBar(content: "Error del servidor UsuarioService index", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor UsuarioService index");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
-      print("GrupoService index parsed: ${parsed}");
+      print("UsuarioService index parsed: ${parsed}");
 
     if(parsed["errores"] == 1){
       if(context != null)
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
       else
         Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
-      throw Exception("Error GrupoService index: ${parsed["mensaje"]}");
+      throw Exception("Error UsuarioService index: ${parsed["mensaje"]}");
     }
 
     return parsed;
   }
  
-  static Future<Map<String, dynamic>> guardar({@required BuildContext context, scaffoldKey, @required Grupo grupo}) async {
+  static Future<Map<String, dynamic>> guardar({@required BuildContext context, scaffoldKey, @required Usuario usuario}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
+    map = usuario.toJsonLarge();
+
     map["idUsuario"] = await Db.idUsuario();
-    map["grupo"] = grupo.toJson();
+    // map["usuario"] = usuario.toJson();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
-    // mapDatos["datos"] = jwt;
-    mapDatos = {
-      "datos" : jwt
-    };
+    mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/grupos/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/usuarios/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
-      print("GrupoService guardar: ${response.body}");
+      print("UsuarioService guardar: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
         Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor GrupoService guardar ${parsed["message"]}");
+        Utils.showSnackBar(content: "Error del servidor UsuarioService guardar", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor UsuarioService guardar");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -71,34 +73,34 @@ class GrupoService{
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
       else
         Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
-      throw Exception("Error GrupoService guardar: ${parsed["mensaje"]}");
+      throw Exception("Error UsuarioService guardar: ${parsed["mensaje"]}");
     }
 
     return parsed;
   }
 
 
-  static Future<Map<String, dynamic>> eliminar({@required BuildContext context, scaffoldKey, int idUsuario, @required Grupo grupo}) async {
+  static Future<Map<String, dynamic>> eliminar({@required BuildContext context, scaffoldKey, @required Usuario usuario}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-
-    map["idUsuario"] = idUsuario;
-    map["grupo"] = grupo.toJson();
+    map = usuario.toJson();
+    map["idUsuario"] = await Db.idUsuario();
+    // map["usuario"] = usuario.toJson();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/grupos/eliminar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/usuarios/eliminar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
-      print("GrupoService guardar: ${response.body}");
+      print("UsuarioService guardar: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["mensaje"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor GrupoService guardar ${parsed["message"]}", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor GrupoService guardar: ${parsed["message"]}");
+        Utils.showSnackBar(content: "${parsed["mensaje"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor UsuarioService guardar");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -107,7 +109,7 @@ class GrupoService{
         Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
       else
         Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
-      throw Exception("Error GrupoService guardar: ${parsed["mensaje"]}");
+      throw Exception("Error UsuarioService guardar: ${parsed["mensaje"]}");
     }
 
     return parsed;

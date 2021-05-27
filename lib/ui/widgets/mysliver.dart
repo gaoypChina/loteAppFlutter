@@ -66,7 +66,9 @@ class MySliverButton extends StatefulWidget {
   final EdgeInsets padding;
   final double fontSize;
   final Color color;
-  MySliverButton({Key key, @required this.title, this.iconWhenSmallScreen, @required this.onTap, this.isFlatButton = false, this.visibleOnlyWhenSmall = false, this.padding = const EdgeInsets.symmetric(horizontal: 10), this.fontSize = 14, this.color}) : super(key: key);
+  final bool showOnlyOnSmall;
+  final bool showOnlyOnLarge;
+  MySliverButton({Key key, @required this.title, this.iconWhenSmallScreen, @required this.onTap, this.isFlatButton = false, this.visibleOnlyWhenSmall = false, this.padding = const EdgeInsets.symmetric(horizontal: 10), this.fontSize = 14, this.color, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
 
   @override
   _MySliverButtonState createState() => _MySliverButtonState();
@@ -75,12 +77,27 @@ class MySliverButton extends StatefulWidget {
 class _MySliverButtonState extends State<MySliverButton> {
 
   _iconScreen(){
+    if(widget.showOnlyOnLarge){
+    if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+      return SizedBox.shrink();
+    }
+
     return (widget.iconWhenSmallScreen is IconData) ? IconButton(icon: Icon(widget.iconWhenSmallScreen), onPressed: widget.onTap) : widget.iconWhenSmallScreen;
   }
 
   _buttonScreen(){
+    if(widget.showOnlyOnSmall){
+      if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
+    if(widget.showOnlyOnLarge){
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+
     if(widget.visibleOnlyWhenSmall)
-      return SizedBox();
+      return SizedBox.shrink();
 
     if(widget.title is Widget)
       return widget.title;
@@ -99,6 +116,7 @@ class _MySliverButtonState extends State<MySliverButton> {
            type: MyButtonType.noResponsive,
            title: (widget.title is Widget) ? "" : widget.title,
            function: widget.onTap,
+           color: widget.color,
          )
         //  myButton(
         //     text: (widget.title is Widget) ? "" : widget.title,

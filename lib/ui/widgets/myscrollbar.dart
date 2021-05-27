@@ -5,7 +5,8 @@ import 'package:loterias/core/classes/utils.dart';
 class MyScrollbar extends StatefulWidget {
   final Widget child;
   final double height;
-  MyScrollbar({Key key, this.child, this.height}) : super(key: key);
+  final Axis direction;
+  MyScrollbar({Key key, this.child, this.height, this.direction = Axis.vertical}) : super(key: key);
 
   @override
   _MyScrollbarState createState() => _MyScrollbarState();
@@ -120,6 +121,9 @@ class _MyScrollbarState extends State<MyScrollbar> {
           isAlwaysShown: true,
           thickness: 5,
           child: SingleChildScrollView(
+            controller: _controller,
+            scrollDirection: widget.direction,
+            padding: EdgeInsets.only(bottom: 20),
             child: widget.child
           )
         )
