@@ -1,5 +1,6 @@
 
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/usuario.dart';
 
 class Banca {
   int id;
@@ -17,6 +18,9 @@ class Banca {
   String piepagina2;
   String piepagina3;
   String piepagina4;
+
+  String ip;
+  Usuario usuario;
 
 
   Banca({this.id, this.descripcion, this.codigo, this.status, this.idMoneda, this.moneda, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.imprimirCodigoQr});
@@ -41,6 +45,26 @@ class Banca {
         ;
 
   toJson() {
+    return {
+      "id": id,
+      "descripcion": descripcion,
+      "codigo": codigo,
+      "status": status,
+      "idMoneda": idMoneda,
+      "moneda": moneda,
+      "monedaAbreviatura": monedaAbreviatura,
+      "monedaColor": monedaColor,
+      "descontar": descontar,
+      "deCada": deCada,
+      // "imprimirCodigoQr": imprimirCodigoQr,
+      "piepagina1": piepagina1,
+      "piepagina2": piepagina2,
+      "piepagina3": piepagina3,
+      "piepagina4": piepagina4,
+    };
+  }
+
+  toJsonSave() {
     return {
       "id": id,
       "descripcion": descripcion,
