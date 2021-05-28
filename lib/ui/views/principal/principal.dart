@@ -2135,6 +2135,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                       },
                     ),
                     ListTile(
+                      title: Text('Bancas'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/bancas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                    ListTile(
                       title: Text('Loterias'),
                       leading: Icon(Icons.dashboard),
                       dense: true,

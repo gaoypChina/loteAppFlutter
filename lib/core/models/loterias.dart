@@ -37,7 +37,7 @@ class Loteria {
 List sorteosToJson() {
     if(sorteos == null)
       return [];
-      
+
     List jsonList = [];
     sorteos.map((u)=>
       jsonList.add(u.toJson())
@@ -70,6 +70,17 @@ List sorteosToJson() {
       //asi que agregamos este parametro para que el servidor lo guarde
       return jsonList.add({"id" : u.id, 'descripcion' : u.descripcion, 'seleccionado' : true});
     }).toList();
+    return jsonList;
+  }
+
+  static List loteriasToJson(List<Loteria> lista) {
+    List jsonList = [];
+    if(lista == null)
+      return jsonList;
+      
+    lista.map((u)=>
+      jsonList.add(u.toJson())
+    ).toList();
     return jsonList;
   }
 
