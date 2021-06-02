@@ -123,7 +123,7 @@ class _MyScrollbarState extends State<MyScrollbar> {
           child: SingleChildScrollView(
             controller: _controller,
             scrollDirection: widget.direction,
-            padding: EdgeInsets.only(bottom: 20),
+            padding: EdgeInsets.only(bottom: 15),
             child: widget.child
           )
         )

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/ajustesservice.dart';
 import 'package:loterias/core/services/bancaservice.dart';
@@ -8,8 +9,15 @@ import 'package:loterias/core/services/bancaservice.dart';
 void main() {
   group("Bancas test", (){
     test("Testing index", () async {
-      var parsed = await BancaService.index(context: null);
-      print("data: $parsed");
+      var parsed = await BancaService.indexTest(context: null);
+      // print("parsed: $parsed");
+      var _data = parsed["data"] != null ? Banca.fromMap(parsed["data"]) : null;
+      _data.loterias.forEach((element) {
+        print("Loteria: ${element.descripcion}");
+        element.sorteos.forEach((e) {
+          print("sorteo: ${e.descripcion}");
+        });
+      });
       expect(parsed == null, false);
     });
 

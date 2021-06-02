@@ -514,7 +514,7 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
                   // color: Colors.red,
                   // width: 150,
                   // height: 45,
-                  child:  Text("Prestamo", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+                  child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
                 ),
               ),
               Expanded(
@@ -523,7 +523,7 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 60.0, top: 8),
+                        padding: const EdgeInsets.only(left: 90.0, top: 8),
                         child: MySearchField(
                           padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
                           borderRadius: BorderRadius.circular(8),

@@ -44,16 +44,12 @@ class _MySliverState extends State<MySliver> {
   // }
   @override
   Widget build(BuildContext context) {
-    return PrimaryScrollController(
-          controller: _controller,
-          child: CupertinoScrollbar(
-            controller: _controller,
-            isAlwaysShown: true,
-            child: CustomScrollView(
-              slivers: _slivers()
-            ),
-          ),
-        );
+    return Padding(
+      padding: EdgeInsets.only(left: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 0 : 30.0),
+      child: CustomScrollView(
+        slivers: _slivers()
+      ),
+    );
       
   }
 }
@@ -266,7 +262,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
                     ?
                     SizedBox.shrink()
                     :
-                    MyDivider(padding: EdgeInsets.only(right: 25, top: 15),)
+                    MyDivider(padding: EdgeInsets.only(right: 25, top: 20),)
                   ],
                 ),
               )
@@ -352,7 +348,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // ),
           // actions: widget.actions,
           // expandedHeight: (widget.subtitle != "") ? (widget.backRouteName != null) ? widget.expandedHeight + 12 : widget.expandedHeight : (widget.backRouteName != null) ? 80 : null,
-          expandedHeight: (widget.subtitle != "") ?  widget.expandedHeight : null,
+          expandedHeight: (widget.subtitle != "") ? isSmallOrMedium ? widget.expandedHeight : widget.expandedHeight + 8 : null,
           // flexibleSpace: MyColapseChanged(child: _flexibleSpace(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,)
           flexibleSpace: _flexibleSpace(isSmallOrMedium)
           

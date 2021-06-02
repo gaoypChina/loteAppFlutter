@@ -169,6 +169,9 @@ class _MyTableState extends State<MyTable> {
     //  )
     DataTable(
       showCheckboxColumn: false,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide.none, bottom: BorderSide.none) 
+      ),
       columns: _initColumn(),
       rows: _init(),
     )

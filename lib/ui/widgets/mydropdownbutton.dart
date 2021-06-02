@@ -19,10 +19,11 @@ class MyDropdownType {
 
   /// blueNoBorder
   static const MyDropdownType blueNoBorder = MyDropdownType._(3);
+  static const MyDropdownType noBorder = MyDropdownType._(4);
 
   /// A list of all the font weights.
   static const List<MyDropdownType> values = <MyDropdownType>[
-    normal, border, blueNoBorder
+    normal, border, blueNoBorder, noBorder
   ];
 }
 
@@ -43,6 +44,11 @@ class MyDropdownButton extends StatefulWidget {
   final double large;
   final double xlarge;
 
+   final double smallSide;
+  final double mediumSide;
+  final double largeSide;
+  final double xlargeSide;
+
   final List<List<dynamic>> items;
   final EdgeInsets padding;
   final EdgeInsets paddingBlue;
@@ -50,7 +56,13 @@ class MyDropdownButton extends StatefulWidget {
   final MyDropdownType type;
   final String nullHint;
   final bool addNingunoToFirstElement;
-  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false}) : super(key: key);
+  final String helperText;
+  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
+    // this.flexOfSideText = 3, 
+    this.flexOfSideText = 3.05, 
+    // this.flexOfSideField = 1.5, 
+    this.flexOfSideField = 1.523, 
+    this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false, this.helperText}) : super(key: key);
   @override
   _MyDropdownButtonState createState() => _MyDropdownButtonState();
 }
@@ -144,28 +156,53 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
   getWidth(double screenSize){
     double width = 0;
-    if(ScreenSize.isSmall(screenSize))
-      width = (widget.small != null) ? screenSize / widget.small : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isMedium(screenSize))
-      width = (widget.medium != null) ? screenSize / widget.medium : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isLarge(screenSize))
-      width = (widget.large != null) ? screenSize / widget.large : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isXLarge(screenSize))
-      width = (widget.xlarge != null) ? screenSize / widget.xlarge : screenSize / getNotNullScreenSize();
+    if(widget.isSideTitle){
+      if(ScreenSize.isSmall(screenSize))
+        width = (widget.smallSide != null) ? screenSize / widget.smallSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isMedium(screenSize))
+        width = (widget.mediumSide != null) ? screenSize / widget.mediumSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isLarge(screenSize))
+        width = (widget.largeSide != null) ? screenSize / widget.largeSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isXLarge(screenSize))
+        width = (widget.xlargeSide != null) ? screenSize / widget.xlargeSide : screenSize / getNotNullScreenSize();
+    }else{
+      if(ScreenSize.isSmall(screenSize))
+        width = (widget.small != null) ? screenSize / widget.small : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isMedium(screenSize))
+        width = (widget.medium != null) ? screenSize / widget.medium : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isLarge(screenSize))
+        width = (widget.large != null) ? screenSize / widget.large : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isXLarge(screenSize))
+        width = (widget.xlarge != null) ? screenSize / widget.xlarge : screenSize / getNotNullScreenSize();
+    }
+    
     return width;
     
   }
+  
   getNotNullScreenSize(){
     
-    if(widget.small != null)
-      return widget.small;
-    else if(widget.medium != null)
-      return widget.medium;
-    else if(widget.large != null)
-      return widget.large;
-    else
-      return widget.xlarge;
+    if(widget.isSideTitle){
+      if(widget.smallSide != null)
+        return widget.smallSide;
+      else if(widget.mediumSide != null)
+        return widget.mediumSide;
+      else if(widget.largeSide != null)
+        return widget.largeSide;
+      else
+        return widget.xlargeSide;
+    }else{
+      if(widget.small != null)
+        return widget.small;
+      else if(widget.medium != null)
+        return widget.medium;
+      else if(widget.large != null)
+        return widget.large;
+      else
+        return widget.xlarge;
+    }
   }
+
 
   _dropdownFormFieldWithBorder(double width){
     print("_dropdownFormFieldWIthBOrder: ${_items.length}");
@@ -177,12 +214,13 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           
           // contentPadding: EdgeInsetsGeometry.lerp(a, b, t),
           // contentPadding: EdgeInsets.all(10),
-          border: OutlineInputBorder(borderSide: BorderSide(width: 1)),
+          border: OutlineInputBorder(borderSide: BorderSide(width: 0.2, color: Colors.black)),
           contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+          helperText: widget.helperText
         ),
         disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
         isExpanded: true, 
-        
+        hint: Text(widget.hint),
         items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1]), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
         onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
           widget.onChanged(data != "Ninguno" ? data : null);
@@ -219,6 +257,43 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
       value: _value,
     );
                   
+  }
+
+  _dropdownFormFieldWithNoBorder(double width){
+    print("_dropdownFormFieldWIthBOrder: ${widget.leading != null }");
+    var dropdown = Container(
+      width: getWidth(width) - (widget.padding.left + widget.padding.right),
+      child: 
+        DropdownButtonFormField(
+          decoration: InputDecoration(
+          
+          // contentPadding: EdgeInsetsGeometry.lerp(a, b, t),
+          // contentPadding: EdgeInsets.all(10),
+          // border: OutlineInputBorder(borderSide: BorderSide(width: 1)),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+          helperText: widget.helperText
+        ),
+        hint: Text(widget.hint),
+        disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
+        isExpanded: true, 
+        
+        items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1]), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
+        onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
+          widget.onChanged(data != "Ninguno" ? data : null);
+          // int idx = widget.elements.indexWhere((element) => element == data);
+          // setState(() => _value = data);
+          int idx = _items.indexWhere((element) => element[0] == data);
+          setState(() => _value = data);
+            
+        }, 
+        value: _value,
+      )
+    );
+   if(widget.leading != null)
+    return ListTile(leading: widget.leading, title: dropdown,);
+
+    return dropdown;             
   }
 
   // _dropdowHideUnderline(){
@@ -276,8 +351,11 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
                   // border: OutlineInputBorder(borderSide: BorderSide(width: 1)),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                  helperText: widget.helperText
+
                 ),
                 disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
+                hint: Text(widget.hint),
 
                 // style: TextStyle(color: Utils.fromHex("#1967d2")),
                 // underline: SizedBox(),
@@ -314,6 +392,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           child: DropdownButton(
             iconEnabledColor: Utils.fromHex("#1967d2"),
             disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
+            hint: Text(widget.hint),
 
             // style: TextStyle(color: Utils.fromHex("#1967d2")),
             // underline: SizedBox(),
@@ -344,6 +423,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
       DropdownButton(
         disabledHint: Text("${(_items.length > 0) ? (_index < _items.length) ? _items[_index][1] : _items[0][1] : ''}"),
         isExpanded: true, 
+        hint: Text(widget.hint),
         
         items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
         onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
@@ -397,7 +477,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
     //   )
     // );
 
-    double widthOfTheWidget = getWidth(width) - (widget.padding.left + widget.padding.right);
+    double widthOfTheWidget = getWidth(width);
     return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -558,6 +638,9 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
         break;
       case MyDropdownType.border:
         dropdownType = _dropdownFormFieldWithBorder(width);
+        break;
+      case MyDropdownType.noBorder:
+        dropdownType = _dropdownFormFieldWithNoBorder(width);
         break;
       default:
         dropdownType = _dropdownNormal(width);

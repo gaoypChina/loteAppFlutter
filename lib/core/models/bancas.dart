@@ -1,6 +1,9 @@
 
+import 'dart:convert';
+
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/comision.dart';
+import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/gastos.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
@@ -31,9 +34,10 @@ class Banca {
   List<Comision> comisiones;
   List<Pagoscombinacion> pagosCombinaciones;
   List<Gasto> gastos;
+  List<Dia> dias;
 
 
-  Banca({this.id, this.descripcion, this.codigo, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.imprimirCodigoQr, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos});
+  Banca({this.id, this.descripcion, this.codigo, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.imprimirCodigoQr, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos, this.dias});
 
   Banca.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -55,38 +59,44 @@ class Banca {
         piepagina4 = snapshot['piepagina4'] ?? '',
 
         ip = snapshot['ip'] ?? '',
-        loterias = (snapshot["loterias"] != null) ? loteriasToMap(snapshot["loterias"]) : [],
-        comisiones = (snapshot["comisiones"] != null) ? comisionesToMap(snapshot["comisiones"]) : [],
-        pagosCombinaciones = (snapshot["pagosCombinaciones"] != null) ? pagosCombinacionesToMap(snapshot["pagosCombinaciones"]) : [],
-        gastos = (snapshot["gastos"] != null) ? gastosToMap(snapshot["gastos"]) : []
-        
-
+        loterias = (snapshot["loterias"] != null) ? loteriasToMap(Utils.parsedToJsonOrNot(snapshot["loterias"])) : [],
+        comisiones = (snapshot["comisiones"] != null) ? comisionesToMap(Utils.parsedToJsonOrNot(snapshot["comisiones"])) : [],
+        pagosCombinaciones = (snapshot["pagosCombinaciones"] != null) ? pagosCombinacionesToMap(Utils.parsedToJsonOrNot(snapshot["pagosCombinaciones"])) : [],
+        gastos = (snapshot["gastos"] != null) ? gastosToMap(Utils.parsedToJsonOrNot(snapshot["gastos"])) : [],
+        dias = (snapshot["dias"] != null) ? diasToMap(Utils.parsedToJsonOrNot(snapshot["dias"])) : []
         ;
 
-        static List<Loteria> loteriasToMap(List<dynamic> loterias){
+        static List<Loteria> loteriasToMap(loterias){
           if(loterias != null && loterias.length > 0)
-            return loterias.map((data) => Loteria.fromMap(Utils.parsedToJsonOrNot(data))).toList();
+            return loterias.map<Loteria>((data) => Loteria.fromMap(data)).toList();
           else
             return [];
         }
 
         static List<Comision> comisionesToMap(List<dynamic> comisiones){
           if(comisiones != null && comisiones.length > 0)
-            return comisiones.map((data) => Comision.fromMap(Utils.parsedToJsonOrNot(data))).toList();
+            return comisiones.map((data) => Comision.fromMap(data)).toList();
           else
             return [];
         }
 
         static List<Pagoscombinacion> pagosCombinacionesToMap(List<dynamic> pagosCombinaciones){
           if(pagosCombinaciones != null && pagosCombinaciones.length > 0)
-            return pagosCombinaciones.map((data) => Pagoscombinacion.fromMap(Utils.parsedToJsonOrNot(data))).toList();
+            return pagosCombinaciones.map((data) => Pagoscombinacion.fromMap(data)).toList();
           else
             return [];
         }
 
         static List<Pagoscombinacion> gastosToMap(List<dynamic> gastos){
           if(gastos != null && gastos.length > 0)
-            return gastos.map((data) => Pagoscombinacion.fromMap(Utils.parsedToJsonOrNot(data))).toList();
+            return gastos.map((data) => Pagoscombinacion.fromMap(data)).toList();
+          else
+            return [];
+        }
+
+        static List<Dia> diasToMap(List<dynamic> dias){
+          if(dias != null && dias.length > 0)
+            return dias.map((data) => Dia.fromMap(data)).toList();
           else
             return [];
         }
@@ -132,7 +142,8 @@ class Banca {
       "loterias" : Loteria.loteriasToJson(loterias),
       "comisiones" : Comision.comisionesToJson(comisiones),
       "pagosCombinaciones" : Pagoscombinacion.pagosCombinacionesToJson(pagosCombinaciones),
-      "gastos" : Gasto.gastosToJson(gastos)
+      "gastos" : Gasto.gastosToJson(gastos),
+      "dias" : Dia.diasToJson(dias),
     };
   }
 }

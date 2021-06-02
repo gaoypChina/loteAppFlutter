@@ -6,6 +6,7 @@ import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
+import 'package:loterias/ui/views/bancas/bancasaddscreen.dart';
 import 'package:loterias/ui/views/bancas/bancasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
@@ -142,6 +143,10 @@ class MyRouter {
            case '/bancas' :
           return MaterialPageRoute(
             builder: (_)=> BancasScreen()
+          ) ;
+        case '/bancas/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> BancasAddScreen(data: settings.arguments,)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

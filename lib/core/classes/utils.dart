@@ -122,9 +122,11 @@ class  Utils {
     // return parsed.map<Banca>((json) => Banca.fromMap(json)).toList();
     // return true;
   }
+  
 
-  static Map<String, dynamic> parsedToJsonOrNot(dynamic responseBody) {
-    return (responseBody is String) ? json.decode(responseBody).cast<String, dynamic>() : responseBody;
+  static parsedToJsonOrNot(dynamic responseBody) {
+    // return (responseBody is String) ? json.decode(responseBody).cast<String, dynamic>() : responseBody;
+    return (responseBody is String) ? jsonDecode(responseBody) : responseBody;
   }
 
   static Map<String, dynamic> parseDatosDynamic(dynamic responseBodyDynamic) {
@@ -618,6 +620,10 @@ class  Utils {
 
     
     // return  Image(image: AssetImage('images/profile2.jpg'), );
+  }
+
+  static String dateTimeToDate(DateTime date, String hour){
+    return (date == null) ? "" : "${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())}${hour != null ? ' ' + hour : ''}";
   }
 
   

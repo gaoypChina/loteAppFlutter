@@ -56,9 +56,14 @@ class MyTextFormField extends StatefulWidget {
   final double large;
   final double xlarge;
   final EdgeInsets padding;
+  
+  final double smallSide;
+  final double mediumSide;
+  final double largeSide;
+  final double xlargeSide;
 
   final bool isRequired;
-  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize}) : super(key: key);
+  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -80,27 +85,51 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   getWidth(double screenSize){
     double width = 0;
-    if(ScreenSize.isSmall(screenSize))
-      width = (widget.small != null) ? screenSize / widget.small : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isMedium(screenSize))
-      width = (widget.medium != null) ? screenSize / widget.medium : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isLarge(screenSize))
-      width = (widget.large != null) ? screenSize / widget.large : screenSize / getNotNullScreenSize();
-    else if(ScreenSize.isXLarge(screenSize))
-      width = (widget.xlarge != null) ? screenSize / widget.xlarge : screenSize / getNotNullScreenSize();
+    if(widget.isSideTitle){
+      if(ScreenSize.isSmall(screenSize))
+        width = (widget.smallSide != null) ? screenSize / widget.smallSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isMedium(screenSize))
+        width = (widget.mediumSide != null) ? screenSize / widget.mediumSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isLarge(screenSize))
+        width = (widget.largeSide != null) ? screenSize / widget.largeSide : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isXLarge(screenSize))
+        width = (widget.xlargeSide != null) ? screenSize / widget.xlargeSide : screenSize / getNotNullScreenSize();
+    }else{
+      if(ScreenSize.isSmall(screenSize))
+        width = (widget.small != null) ? screenSize / widget.small : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isMedium(screenSize))
+        width = (widget.medium != null) ? screenSize / widget.medium : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isLarge(screenSize))
+        width = (widget.large != null) ? screenSize / widget.large : screenSize / getNotNullScreenSize();
+      else if(ScreenSize.isXLarge(screenSize))
+        width = (widget.xlarge != null) ? screenSize / widget.xlarge : screenSize / getNotNullScreenSize();
+    }
+    
     return width;
     
   }
+
   getNotNullScreenSize(){
     
-    if(widget.small != null)
-      return widget.small;
-    else if(widget.medium != null)
-      return widget.medium;
-    else if(widget.large != null)
-      return widget.large;
-    else
-      return widget.xlarge;
+    if(widget.isSideTitle){
+      if(widget.smallSide != null)
+        return widget.smallSide;
+      else if(widget.mediumSide != null)
+        return widget.mediumSide;
+      else if(widget.largeSide != null)
+        return widget.largeSide;
+      else
+        return widget.xlargeSide;
+    }else{
+      if(widget.small != null)
+        return widget.small;
+      else if(widget.medium != null)
+        return widget.medium;
+      else if(widget.large != null)
+        return widget.large;
+      else
+        return widget.xlarge;
+    }
   }
 
   _getkeyboardType(){
@@ -170,7 +199,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
           hintText: widget.hint,
-          labelText: widget.title,
+          labelText: widget.isSideTitle ? null : widget.title,
           // contentPadding: EdgeInsets.all(10),
           isDense: true,
           
@@ -575,7 +604,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
           padding: const EdgeInsets.only(top: 10.0),
           child: Container(
             width: widthOfTheWidget / widget.flexOfSideText,
-            child: Visibility(visible: widget.title != "" && widget.type == MyType.border,child: Text(widget.title, textAlign: TextAlign.start, style: TextStyle(color: widget.isSideTitle ? Utils.fromHex("#3c4043") : Colors.black, fontSize: 14, fontFamily: "GoogleSans",  letterSpacing: 0.4),)),
+            child: Visibility(visible: widget.title != "",child: Text(widget.title, textAlign: TextAlign.start, style: TextStyle(color: widget.isSideTitle ? Utils.fromHex("#3c4043") : Colors.black, fontSize: 14, fontFamily: "GoogleSans",  letterSpacing: 0.4),)),
           ),
         ),
         Container(

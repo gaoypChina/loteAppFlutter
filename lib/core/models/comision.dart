@@ -18,7 +18,7 @@ class Comision{
    double pick4Box;
    DateTime created_at;
 
-  Comision(this.id, this.idBanca, this.idLoteria, this.loteria, this.directo, this.pale, this.tripleta, this.superPale, this.pick3Straight, this.pick3Box, this.pick4Straight, this.pick4Box, this.created_at,);
+  Comision({this.id, this.idBanca, this.idLoteria, this.loteria, this.directo, this.pale, this.tripleta, this.superPale, this.pick3Straight, this.pick3Box, this.pick4Straight, this.pick4Box, this.created_at,});
 
 Comision.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -33,7 +33,7 @@ Comision.fromMap(Map snapshot) :
         pick3Box = double.tryParse(snapshot['pick3Box'].toString()) ?? 0,
         pick4Straight = double.tryParse(snapshot['pick4Straight'].toString()) ?? 0,
         pick4Box = double.tryParse(snapshot['pick4Box'].toString()) ?? 0,
-        created_at = DateTime.parse(snapshot['created_at']) ?? null
+        created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : null
         ;
 
   toJson() {

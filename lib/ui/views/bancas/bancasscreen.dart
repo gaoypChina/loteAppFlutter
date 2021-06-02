@@ -73,7 +73,7 @@ class _BancasScreenState extends State<BancasScreen> {
   }
 
   _showDialogGuardar({Banca data}) async {
-    var data2 = await Navigator.pushNamed(context, "/loterias/agregar", arguments: data);
+    var data2 = await Navigator.pushNamed(context, "/bancas/agregar", arguments: data);
     if(data2 == null)
       return;
 

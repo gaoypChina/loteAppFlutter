@@ -28,8 +28,8 @@ class Pagoscombinacion{
 
    DateTime created_at;
 
-  Pagoscombinacion(this.id, this.idBanca, this.idLoteria, this.loteria, this.primera, this.segunda, this.tercera, this.primeraSegunda, this.primeraTercera, 
-  this.segundaTercera, this.tresNumeros, this.dosNumeros, this.primerPago, this.pick3TodosEnSecuencia, this.pick36Way, this.pick4TodosEnSecuencia, this.pick44Way, this.pick46Way, this.pick412Way, this.pick424Way, this.created_at);
+  Pagoscombinacion({this.id, this.idBanca, this.idLoteria, this.loteria, this.primera, this.segunda, this.tercera, this.primeraSegunda, this.primeraTercera, 
+  this.segundaTercera, this.tresNumeros, this.dosNumeros, this.primerPago, this.pick3TodosEnSecuencia, this.pick36Way, this.pick4TodosEnSecuencia, this.pick44Way, this.pick46Way, this.pick412Way, this.pick424Way, this.created_at});
 
 Pagoscombinacion.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -52,7 +52,7 @@ Pagoscombinacion.fromMap(Map snapshot) :
         pick46Way = double.tryParse(snapshot['pick46Way'].toString()) ?? 0,
         pick412Way = double.tryParse(snapshot['pick412Way'].toString()) ?? 0,
         pick424Way = double.tryParse(snapshot['pick424Way'].toString()) ?? 0,
-        created_at = DateTime.parse(snapshot['created_at']) ?? null
+        created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : null
         ;
 
   toJson() {

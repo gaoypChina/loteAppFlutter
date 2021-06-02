@@ -1,4 +1,5 @@
 
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
 
 class Loteria {
@@ -28,7 +29,7 @@ class Loteria {
         pick3 = snapshot['pick3'] ?? '',
         pick4 = snapshot['pick4'] ?? '',
         status = snapshot['status'] ?? 1,
-        sorteos = sorteosToMap(snapshot['sorteos']) ?? [],
+        sorteos = sorteosToMap(Utils.parsedToJsonOrNot(snapshot['sorteos'])) ?? [],
         loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
         horaCierre= snapshot['horaCierre'] ?? '',
         minutosExtras = snapshot['minutosExtras'] ?? 0

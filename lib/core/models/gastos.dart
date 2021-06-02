@@ -13,7 +13,7 @@ class Gasto{
    double descripcion;
    DateTime created_at;
 
-  Gasto(this.id, this.idBanca, this.idFrecuenca, this.loteria, this.idDia, this.monto, this.descripcion, this.created_at,);
+  Gasto({this.id, this.idBanca, this.idFrecuenca, this.loteria, this.idDia, this.monto, this.descripcion, this.created_at,});
 
 Gasto.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,

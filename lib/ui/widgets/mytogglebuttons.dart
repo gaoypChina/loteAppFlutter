@@ -65,13 +65,15 @@ class _MyToggleButtonsState extends State<MyToggleButtons> {
     return MyScrollbar(
       direction: Axis.horizontal,
       child: ToggleButtons(
-        borderColor: Colors.black,
+        borderColor: Colors.grey,
         
         // fillColor: Colors.grey,
         // borderWidth: 2,
         // selectedBorderColor: Colors.black,
         // selectedColor: Colors.white,
         borderWidth: 0.5,
+        
+        
         // selectedColor: Colors.pink,
         // selectedBorderColor: Colors.black,
         fillColor: Colors.grey[300],
@@ -80,7 +82,7 @@ class _MyToggleButtonsState extends State<MyToggleButtons> {
         children: 
         widget.items.map((e) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18.0),
-          child: e.child is Widget ? e.child : Text(e.child, style: TextStyle(fontWeight: FontWeight.w600),),
+          child: e.child is Widget ? e.child : Text(e.child,),
         )).toList(),
         // listaLoteria.map((e) => Padding(
         //   padding: const EdgeInsets.symmetric(horizontal: 18.0),

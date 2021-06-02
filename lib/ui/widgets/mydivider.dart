@@ -7,11 +7,16 @@ class MyDivider extends StatelessWidget {
   final double thickness;
   final double height;
   final bool showOnlyOnSmall;
-  MyDivider({Key key, this.padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 10.0), this.color, this.thickness = 0.9, this.height = 1, this.showOnlyOnSmall = false}) : super(key: key);
+  final bool showOnlyOnLarge;
+  MyDivider({Key key, this.padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 10.0), this.color, this.thickness = 0.9, this.height = 1, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
 
   _screen(context){
     if(showOnlyOnSmall){
       if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+        return SizedBox.shrink();
+    }
+    if(showOnlyOnLarge){
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
         return SizedBox.shrink();
     }
 
