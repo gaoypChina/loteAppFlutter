@@ -10,8 +10,9 @@ class MySliver extends StatefulWidget {
   final MySliverAppBar sliverAppBar;
   final Widget sliver;
   final Widget sliverFillRemaining;
+  final Widget tabbarview;
 
-  MySliver({Key key, @required this.sliverAppBar, @required this.sliver, this.sliverFillRemaining}) : super(key: key);
+  MySliver({Key key, @required this.sliverAppBar, @required this.sliver, this.sliverFillRemaining, this.tabbarview}) : super(key: key);
 
   @override
   _MySliverState createState() => _MySliverState();
@@ -28,6 +29,15 @@ class _MySliverState extends State<MySliver> {
           // SliverFillRemaining(),
           // SliverList(delegate: SliverChildListDelegate(widget.elements))
         ];
+    // List<Widget> slivers = [
+    //       widget.sliverAppBar,
+    //     ];
+
+    // if(widget.sliverFillRemaining == null)
+    //   slivers.add(widget.sliver);
+    // else
+    //   slivers.add(SliverFillRemaining(child: widget.tabbarview,));
+
     if(widget.sliverFillRemaining != null)
       slivers.add(widget.sliverFillRemaining);
 
@@ -46,8 +56,17 @@ class _MySliverState extends State<MySliver> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(left: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 0 : 30.0),
-      child: CustomScrollView(
-        slivers: _slivers()
+      child: PrimaryScrollController(
+        controller: _controller,
+        child: CupertinoScrollbar(
+          isAlwaysShown: true,
+          controller: _controller,
+          child: 
+         
+          CustomScrollView(
+            slivers: _slivers()
+          ),
+        ),
       ),
     );
       
@@ -160,7 +179,8 @@ class MySliverAppBar extends StatefulWidget {
   final double titleMinFontSizeForSmallScreen;
   final EdgeInsets titlePadding;
   final String backRouteName;
-  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName}) : super(key: key);
+  final Widget bottom;
+  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom}) : super(key: key);
 
   @override
   _MySliverAppBarState createState() => _MySliverAppBarState();
@@ -350,7 +370,8 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // expandedHeight: (widget.subtitle != "") ? (widget.backRouteName != null) ? widget.expandedHeight + 12 : widget.expandedHeight : (widget.backRouteName != null) ? 80 : null,
           expandedHeight: (widget.subtitle != "") ? isSmallOrMedium ? widget.expandedHeight : widget.expandedHeight + 8 : null,
           // flexibleSpace: MyColapseChanged(child: _flexibleSpace(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,)
-          flexibleSpace: _flexibleSpace(isSmallOrMedium)
+          flexibleSpace: _flexibleSpace(isSmallOrMedium),
+          bottom: widget.bottom,
           
           
         );

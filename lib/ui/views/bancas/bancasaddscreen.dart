@@ -1,20 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/comision.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/frecuencia.dart';
+import 'package:loterias/core/models/gastos.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/models/pagoscombinacion.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bancaservice.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -26,6 +32,7 @@ import 'package:loterias/ui/widgets/mytabbar.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/mytogglebuttons.dart';
+import 'package:rxdart/rxdart.dart';
 
 
 class BancasAddScreen extends StatefulWidget {
@@ -37,7 +44,9 @@ class BancasAddScreen extends StatefulWidget {
 
 class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderStateMixin{
   var _cargandoNotify = ValueNotifier<bool>(false);
+  StreamController<List<Gasto>> _streamControllerGastos;
   var _formKey = GlobalKey<FormState>();
+  var _formKeyGasto = GlobalKey<FormState>();
   Future _future;
   var _txtDescripcion = TextEditingController();
   var _txtCodigo = TextEditingController();
@@ -67,12 +76,36 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   var _txtSegunda = TextEditingController();
   var _txtTercera = TextEditingController();
 
+  var _txtPrimeraSegunda = TextEditingController();
+  var _txtPrimeraTercera = TextEditingController();
+  var _txtSegundaTercera = TextEditingController();
+
+  var _txtTresNumeros = TextEditingController();
+  var _txtDosNumeros = TextEditingController();
+
+  var _txtPrimerPago = TextEditingController();
+
+  var _txtPick3TodosEnSecuencia = TextEditingController();
+  var _txtPick33Way = TextEditingController();
+  var _txtPick36Way = TextEditingController();
+
+  var _txtPick4TodosEnSecuencia = TextEditingController();
+  var _txtPick44Way = TextEditingController();
+  var _txtPick46Way = TextEditingController();
+  var _txtPick412Way = TextEditingController();
+  var _txtPick424Way = TextEditingController();
+
+  var _txtDescripcionGasto = TextEditingController();
+  var _txtMontoGasto = TextEditingController();
+
+
   bool _status = true;
   bool _qr = true;
   Banca _data;
   List<Loteria> _loterias;
   List<Loteria> _loteriasComisiones;
   List<Loteria> _loteriasPagosCombinaciones;
+  List<Gasto> _gastos;
   List<Comision> _comisiones;
   List<Pagoscombinacion> _pagosCombinaciones;
   List<Loteria> listaLoteria;
@@ -117,6 +150,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _setsLoterias();
     _setsComisiones();
     _setsPagosCombinaciones();  
+    _gastos = _data != null ? _data.gastos != null ? _data.gastos : [] : [];
 
 
     if(_data == null)
@@ -174,7 +208,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       for (var item in _loterias) {
         _loteriasPagosCombinaciones.add(item);
       }
-      selectedLoteriaPagosCombinacion = _loteriasPagosCombinaciones[1];
+      selectedLoteriaPagosCombinacion = _loteriasPagosCombinaciones[0];
       // _loteriasComisiones.insert(0, Loteria(id: 0, descripcion: "Copiar a todas"));
     }
 
@@ -749,170 +783,179 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         child: Wrap(
           children: [
             MyToggleButtons(
-              onTap: (data){
-                var d = _loteriasComisiones.firstWhere((element) => element.id == data, orElse: () => null);
-                setState(() {
-                  selectedLoteriaComision = d;
-                  print("hola comi: ${selectedLoteriaComision.descripcion}");
-                  var comision = selectedLoteriaComision.id != 0 ? _comisiones.firstWhere((element) => element.idLoteria == selectedLoteriaComision.id) : Comision();
-                  _txtDirecto.text = comision.directo != null ? "${comision.directo}" : '';
-                  _txtPale.text = comision.pale != null ? "${comision.pale}" : '';
-                  _txtTripleta.text = comision.tripleta != null ? "${comision.tripleta}" : '';
-                  _txtSuperpale.text = comision.superPale != null ? "${comision.superPale}" : '';
-                  _txtPick3Box.text = comision.pick3Box != null ? "${comision.pick3Box}" : '';
-                  _txtPick3Straight.text = comision.pick3Straight != null ? "${comision.pick3Straight}" : '';
-                  _txtPick4Box.text = comision.pick4Box != null ? "${comision.pick4Box}" : '';
-                  _txtPick4Straight.text = comision.pick4Straight != null ? "${comision.pick4Straight}" : '';
-                });
-              },
-              // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
-              items: _loteriasComisiones.map<MyToggleData>((e) => MyToggleData(value: e.id, child: e.descripcion)).toList(),
-              selectedItems: selectedLoteriaComision != null ? [MyToggleData(value: selectedLoteriaComision.id, child: "${selectedLoteriaComision.descripcion}")] : [],
-            ),
-            Visibility(
-              visible: selectedLoteriaComision != null ? selectedLoteriaComision.id == 0 : false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
+                onTap: (data){
+                  var d = _loteriasComisiones.firstWhere((element) => element.id == data, orElse: () => null);
+                  setState(() {
+                    selectedLoteriaComision = d;
+                    print("hola comi: ${selectedLoteriaComision.descripcion}");
+                    var comision = selectedLoteriaComision.id != 0 ? _comisiones.firstWhere((element) => element.idLoteria == selectedLoteriaComision.id) : Comision();
+                    _txtDirecto.text = comision.directo != null ? "${comision.directo}" : '';
+                    _txtPale.text = comision.pale != null ? "${comision.pale}" : '';
+                    _txtTripleta.text = comision.tripleta != null ? "${comision.tripleta}" : '';
+                    _txtSuperpale.text = comision.superPale != null ? "${comision.superPale}" : '';
+                    _txtPick3Box.text = comision.pick3Box != null ? "${comision.pick3Box}" : '';
+                    _txtPick3Straight.text = comision.pick3Straight != null ? "${comision.pick3Straight}" : '';
+                    _txtPick4Box.text = comision.pick4Box != null ? "${comision.pick4Box}" : '';
+                    _txtPick4Straight.text = comision.pick4Straight != null ? "${comision.pick4Straight}" : '';
+                  });
+                },
+                // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
+                items: _loteriasComisiones.map<MyToggleData>((e) => MyToggleData(value: e.id, child: e.descripcion)).toList(),
+                selectedItems: selectedLoteriaComision != null ? [MyToggleData(value: selectedLoteriaComision.id, child: "${selectedLoteriaComision.descripcion}")] : [],
               ),
-            ),
-            Visibility(
-              visible: _existeSorteoComision("directo"),
-              child: Wrap(
-                children: [
-                  MyDivider(showOnlyOnSmall: true,),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                    child: MyTextFormField(
-                      leading: isSmallOrMedium ? Text("QN") : null,
-                      isSideTitle: isSmallOrMedium ? false : true,
-                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                      controller: _txtDirecto,
-                      title: !isSmallOrMedium ? "Quiniela" : "",
-                      hint: "Quiniela",
-                      medium: 1,
-                      isRequired: true,
-                      onChanged: _comisionQuinielaChanged,
+              
+            Expanded(
+              child: MyScrollbar(
+                child: Column(
+                  children: [
+                    Visibility(
+                      visible: selectedLoteriaComision != null ? selectedLoteriaComision.id == 0 : false,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: _existeSorteoComision("pale"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("PL") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtPale,
-                  title: !isSmallOrMedium ? "Pale" : "",
-                  hint: "Pale",
-                  medium: 1,
-                  onChanged: _comisionPaleChanged,
+                    Visibility(
+                      visible: _existeSorteoComision("directo"),
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("QN") : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtDirecto,
+                              title: !isSmallOrMedium ? "Quiniela" : "",
+                              hint: "Quiniela",
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _comisionQuinielaChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: _existeSorteoComision("pale"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("PL") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtPale,
+                          title: !isSmallOrMedium ? "Pale" : "",
+                          hint: "Pale",
+                          medium: 1,
+                          onChanged: _comisionPaleChanged,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: _existeSorteoComision("tripleta"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("TP") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtTripleta,
+                          title: !isSmallOrMedium ? "Tripleta *" : "",
+                          hint: "Tripleta",
+                          medium: 1,
+                          onChanged: _comisionTripletaChanged,
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: _existeSorteoComision("super pale"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("SP") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtSuperpale,
+                          title: !isSmallOrMedium ? "Super pale" : "",
+                          hint: "Super pale",
+                          onChanged: _comisionSuperpaleChanged,
+                          medium: 1,
+                        ),
+                      ),
+                    ),
+                    MyDivider(showOnlyOnSmall: true,),
+                    Visibility(
+                      visible: _existeSorteoComision("pick 3 box"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("P3B") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtPick3Box,
+                          title: !isSmallOrMedium ? "Pick 3 box" : "",
+                          hint: "Pick 3 box",
+                          medium: 1,
+                          onChanged: _comisionPick3BoxChanged,
+                        ),
+                      ),
+                    ),
+                     
+                    Visibility(
+                      visible: _existeSorteoComision("pick 3 straight"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("P3S") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtPick3Straight,
+                          title: !isSmallOrMedium ? "Pick 3 straight" : "",
+                          hint: "Pick 3 straight",
+                          medium: 1,
+                          onChanged: _comisionPick3StraightChanged,
+                        ),
+                      ),
+                    ),
+                     Visibility(
+                      visible: _existeSorteoComision("pick 4 box"),
+                       child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("P3B") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtPick4Box,
+                          title: !isSmallOrMedium ? "Pick 4 box" : "",
+                          hint: "Pick 4 box",
+                          medium: 1,
+                          onChanged: _comisionPick4BoxChanged,
+                        ),
+                    ),
+                     ),
+                    Visibility(
+                      visible: _existeSorteoComision("pick 4 straight"),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        child: MyTextFormField(
+                          leading: isSmallOrMedium ? Text("P4S") : null,
+                          isSideTitle: isSmallOrMedium ? false : true,
+                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                          controller: _txtPick4Straight,
+                          title: !isSmallOrMedium ? "Pick 4 straight" : "",
+                          hint: "Pick 4 straight",
+                          medium: 1,
+                          onChanged: _comisionPick4StraightChanged,
+                        ),
+                      ),
+                    ),
+                     
+                  ],
                 ),
               ),
             ),
-            Visibility(
-              visible: _existeSorteoComision("tripleta"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("TP") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtTripleta,
-                  title: !isSmallOrMedium ? "Tripleta *" : "",
-                  hint: "Tripleta",
-                  medium: 1,
-                  onChanged: _comisionTripletaChanged,
-                ),
-              ),
-            ),
-            Visibility(
-              visible: _existeSorteoComision("super pale"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("SP") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtSuperpale,
-                  title: !isSmallOrMedium ? "Super pale" : "",
-                  hint: "Super pale",
-                  onChanged: _comisionSuperpaleChanged,
-                  medium: 1,
-                ),
-              ),
-            ),
-            MyDivider(showOnlyOnSmall: true,),
-            Visibility(
-              visible: _existeSorteoComision("pick 3 box"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("P3B") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtPick3Box,
-                  title: !isSmallOrMedium ? "Pick 3 box" : "",
-                  hint: "Pick 3 box",
-                  medium: 1,
-                  onChanged: _comisionPick3BoxChanged,
-                ),
-              ),
-            ),
-             
-            Visibility(
-              visible: _existeSorteoComision("pick 3 straight"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("P3S") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtPick3Straight,
-                  title: !isSmallOrMedium ? "Pick 3 straight" : "",
-                  hint: "Pick 3 straight",
-                  medium: 1,
-                  onChanged: _comisionPick3StraightChanged,
-                ),
-              ),
-            ),
-             Visibility(
-              visible: _existeSorteoComision("pick 4 box"),
-               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("P3B") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtPick4Box,
-                  title: !isSmallOrMedium ? "Pick 4 box" : "",
-                  hint: "Pick 4 box",
-                  medium: 1,
-                  onChanged: _comisionPick4BoxChanged,
-                ),
-            ),
-             ),
-            Visibility(
-              visible: _existeSorteoComision("pick 4 straight"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                child: MyTextFormField(
-                  leading: isSmallOrMedium ? Text("P4S") : null,
-                  isSideTitle: isSmallOrMedium ? false : true,
-                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                  controller: _txtPick4Straight,
-                  title: !isSmallOrMedium ? "Pick 4 straight" : "",
-                  hint: "Pick 4 straight",
-                  medium: 1,
-                  onChanged: _comisionPick4StraightChanged,
-                ),
-              ),
-            ),
-             
           ],
         ),
       );
@@ -922,7 +965,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       if(selectedLoteriaPagosCombinacion == null)
         return;
 
-      if(selectedLoteriaComision.id != 0){
+      if(selectedLoteriaPagosCombinacion.id != 0){
         var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
 
         if(index == -1)
@@ -938,7 +981,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       if(selectedLoteriaPagosCombinacion == null)
         return;
 
-      if(selectedLoteriaComision.id != 0){
+      if(selectedLoteriaPagosCombinacion.id != 0){
         var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
 
         if(index == -1)
@@ -954,7 +997,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       if(selectedLoteriaPagosCombinacion == null)
         return;
 
-      if(selectedLoteriaComision.id != 0){
+      if(selectedLoteriaPagosCombinacion.id != 0){
         var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
 
         if(index == -1)
@@ -966,113 +1009,790 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       }
     }
 
+    _pagosCombinacionPrimeraSegundaChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].primeraSegunda = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.primeraSegunda = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPrimeraTerceraChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].primeraTercera = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.primeraTercera = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionSegundaTerceraChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].segundaTercera = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.segundaTercera = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionTresNumerosChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].tresNumeros = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.tresNumeros = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionDosNumerosChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].dosNumeros = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.dosNumeros = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPrimerPagoChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].primerPago = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.primerPago = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick3TodosEnSecuenciaChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick3TodosEnSecuencia = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick3TodosEnSecuencia = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick33WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick33Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick33Way = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick36WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick36Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick36Way = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick4TodosEnSecuenciaChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick4TodosEnSecuencia = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick4TodosEnSecuencia = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick44WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick44Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick44Way = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick46WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick46Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick46Way = double.tryParse(data);});
+      }
+
+    }
+    _pagosCombinacionPick412WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick412Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick412Way = double.tryParse(data);});
+      }
+    }
+
+    _pagosCombinacionPick424WayChanged(data){
+      if(selectedLoteriaPagosCombinacion == null)
+        return;
+
+      if(selectedLoteriaPagosCombinacion.id != 0){
+        var index = _pagosCombinaciones.indexWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id);
+
+        if(index == -1)
+          return;
+
+        _pagosCombinaciones[index].pick424Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+      }else{
+        _pagosCombinaciones.forEach((element) {element.pick424Way = double.tryParse(data);});
+      }
+    }
+
     _existeSorteoPagosCombinacion(String sorteo){
-      if(selectedLoteriaComision == null)
+      if(selectedLoteriaPagosCombinacion == null)
         return false;
-      if(selectedLoteriaComision.id == 0)
+      if(selectedLoteriaPagosCombinacion.id == 0)
         return true;
 
-        print("_existeSorteoPagosCombinacion: ${selectedLoteriaComision.descripcion} - ${selectedLoteriaComision.sorteos.length}");
+        print("_existeSorteoPagosCombinacion: ${selectedLoteriaPagosCombinacion.descripcion} - ${selectedLoteriaPagosCombinacion.sorteos.length}");
 
-      return selectedLoteriaComision.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
+      return selectedLoteriaPagosCombinacion.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
     }
 
     _pagosCombinacionesScreen(bool isSmallOrMedium){
       return MyScrollbar(
-        child: Wrap(
-          children: [
-            MyToggleButtons(
-              onTap: (data){
-                var d = _loteriasComisiones.firstWhere((element) => element.id == data, orElse: () => null);
-                setState(() {
-                  selectedLoteriaComision = d;
-                  print("hola comi: ${selectedLoteriaComision.descripcion}");
-                  var comision = selectedLoteriaComision.id != 0 ? _comisiones.firstWhere((element) => element.idLoteria == selectedLoteriaComision.id) : Comision();
-                  _txtDirecto.text = comision.directo != null ? "${comision.directo}" : '';
-                  _txtPale.text = comision.pale != null ? "${comision.pale}" : '';
-                  _txtTripleta.text = comision.tripleta != null ? "${comision.tripleta}" : '';
-                  _txtSuperpale.text = comision.superPale != null ? "${comision.superPale}" : '';
-                  _txtPick3Box.text = comision.pick3Box != null ? "${comision.pick3Box}" : '';
-                  _txtPick3Straight.text = comision.pick3Straight != null ? "${comision.pick3Straight}" : '';
-                  _txtPick4Box.text = comision.pick4Box != null ? "${comision.pick4Box}" : '';
-                  _txtPick4Straight.text = comision.pick4Straight != null ? "${comision.pick4Straight}" : '';
-                });
-              },
-              // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
-              items: _loteriasComisiones.map<MyToggleData>((e) => MyToggleData(value: e.id, child: e.descripcion)).toList(),
-              selectedItems: selectedLoteriaComision != null ? [MyToggleData(value: selectedLoteriaComision.id, child: "${selectedLoteriaComision.descripcion}")] : [],
-            ),
-            Visibility(
-              visible: selectedLoteriaComision != null ? selectedLoteriaComision.id == 0 : false,
-              child: MyResizedContainer(
-                xlarge: 1,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
+        child: MyResizedContainer(
+          xlarge: 1.2,
+          child: Center(
+            child: Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              children: [
+                MyToggleButtons(
+                  onTap: (data){
+                    var d = _loteriasPagosCombinaciones.firstWhere((element) => element.id == data, orElse: () => null);
+                    setState(() {
+                      selectedLoteriaPagosCombinacion = d;
+                      print("hola pago: ${selectedLoteriaPagosCombinacion.descripcion}");
+                      var pago = selectedLoteriaPagosCombinacion.id != 0 ? _pagosCombinaciones.firstWhere((element) => element.idLoteria == selectedLoteriaPagosCombinacion.id) : Pagoscombinacion();
+                      _txtPrimera.text = pago.primera != null ? "${pago.primera}" : '';
+                      _txtSegunda.text = pago.segunda != null ? "${pago.segunda}" : '';
+                      _txtTercera.text = pago.tercera != null ? "${pago.tercera}" : '';
+                      _txtPrimerPago.text = pago.primerPago != null ? "${pago.primerPago}" : '';
+                      _txtPrimeraSegunda.text = pago.primeraSegunda != null ? "${pago.primeraSegunda}" : '';
+                      _txtPrimeraTercera.text = pago.primeraTercera != null ? "${pago.primeraTercera}" : '';
+                      _txtSegundaTercera.text = pago.segundaTercera != null ? "${pago.segundaTercera}" : '';
+                      _txtTresNumeros.text = pago.tresNumeros != null ? "${pago.tresNumeros}" : '';
+                      _txtDosNumeros.text = pago.dosNumeros != null ? "${pago.dosNumeros}" : '';
+                      _txtPrimerPago.text = pago.primerPago != null ? "${pago.primerPago}" : '';
+                      _txtPick3TodosEnSecuencia.text = pago.pick3TodosEnSecuencia != null ? "${pago.pick3TodosEnSecuencia}" : '';
+                      _txtPick33Way.text = pago.pick33Way != null ? "${pago.pick33Way}" : '';
+                      _txtPick36Way.text = pago.pick36Way != null ? "${pago.pick36Way}" : '';
+                      _txtPick4TodosEnSecuencia.text = pago.pick4TodosEnSecuencia != null ? "${pago.pick4TodosEnSecuencia}" : '';
+                      _txtPick44Way.text = pago.pick44Way != null ? "${pago.pick44Way}" : '';
+                      _txtPick46Way.text = pago.pick46Way != null ? "${pago.pick46Way}" : '';
+                      _txtPick412Way.text = pago.pick412Way != null ? "${pago.pick412Way}" : '';
+                      _txtPick424Way.text = pago.pick424Way != null ? "${pago.pick424Way}" : '';
+                    
+                    });
+                  },
+                  // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
+                  items: _loteriasPagosCombinaciones.map<MyToggleData>((e) => MyToggleData(value: e.id, child: e.descripcion)).toList(),
+                  selectedItems: selectedLoteriaPagosCombinacion != null ? [MyToggleData(value: selectedLoteriaPagosCombinacion.id, child: "${selectedLoteriaPagosCombinacion.descripcion}")] : [],
                 ),
-              ),
-            ),
-            Visibility(
-              visible: _existeSorteoPagosCombinacion("directo"),
-              child: MyResizedContainer(
-                xlarge: 5,
-                child: Wrap(
-                  children: [
-                    MyDivider(showOnlyOnSmall: true,),
-                    MySubtitle(title: "Quiniela", padding: EdgeInsets.symmetric(vertical: 5),),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                      child: MyTextFormField(
-                        leading: isSmallOrMedium ? Text("1ra") : null,
-                        isSideTitle: isSmallOrMedium ? false : true,
-                        type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
-                        controller: _txtPrimera,
-                        title: !isSmallOrMedium ? "Primera" : "",
-                        // hint: "Primera",
-                        xlargeSide: 6.5,
-                        isRequired: true,
-                        onChanged: _pagosCombinacionPrimeraChanged,
-                      ),
+                Visibility(
+                  visible: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id == 0 : false,
+                  child: MyResizedContainer(
+                    xlarge: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                      child: MyTextFormField(
-                        leading: isSmallOrMedium ? Text("2da") : null,
-                        isSideTitle: isSmallOrMedium ? false : true,
-                        type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
-                        controller: _txtSegunda,
-                        title: !isSmallOrMedium ? "Segunda" : "",
-                        hint: "Segunda",
-                        medium: 1,
-                        xlargeSide: 6.5,
-                        isRequired: true,
-                        onChanged: _pagosCombinacionSegundaChanged,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                      child: MyTextFormField(
-                        leading: isSmallOrMedium ? Text("3ra") : null,
-                        isSideTitle: isSmallOrMedium ? false : true,
-                        type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
-                        controller: _txtTercera,
-                        title: !isSmallOrMedium ? "Tercera" : "",
-                        hint: "Tercera",
-                        medium: 1,
-                        xlargeSide: 6.5,
-                        isRequired: true,
-                        onChanged: _pagosCombinacionTerceraChanged,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("directo"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Quiniela", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("1ra") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPrimera,
+                              title: !isSmallOrMedium ? "Primera" : "",
+                              hint:  isSmallOrMedium ? "Primera" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPrimeraChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("2da") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtSegunda,
+                              title: !isSmallOrMedium ? "Segunda" : "",
+                              hint: isSmallOrMedium ? "Segunda" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionSegundaChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("3ra") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtTercera,
+                              title: !isSmallOrMedium ? "Tercera" : "",
+                              hint:  isSmallOrMedium ? "Tercera" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionTerceraChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+               
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("pale"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Pale", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("1-2") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPrimeraSegunda,
+                              title: !isSmallOrMedium ? "1ra y 2da" : "",
+                              hint:  isSmallOrMedium ? "1ra y 2da" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPrimeraSegundaChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("1-3") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPrimeraTercera,
+                              title: !isSmallOrMedium ? "1ra y 3ra" : "",
+                              hint: isSmallOrMedium ? "1ra y 3ra" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPrimeraTerceraChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("2-3") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtSegundaTercera,
+                              title: !isSmallOrMedium ? "2da y 3ra" : "",
+                              hint:  isSmallOrMedium ? "2da y 3ra" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionSegundaTerceraChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+               
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("tripleta"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Tripleta", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("3#") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtTresNumeros,
+                              title: !isSmallOrMedium ? "3 numeros" : "",
+                              hint:  isSmallOrMedium ? "3 numeros" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionTresNumerosChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("2#") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtDosNumeros,
+                              title: !isSmallOrMedium ? "2 numeros" : "",
+                              hint: isSmallOrMedium ? "2 numeros" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionDosNumerosChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+               
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("super pale"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Super pale", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("1er") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPrimerPago,
+                              title: !isSmallOrMedium ? "Primer pago" : "",
+                              hint:  isSmallOrMedium ? "Primer pago" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPrimerPagoChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+               
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("pick 3 straight"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Pick 3 Straight", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("to") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick3TodosEnSecuencia,
+                              title: !isSmallOrMedium ? "Todos en secuencia" : "",
+                              hint:  isSmallOrMedium ? "Todos en secuencia" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick3TodosEnSecuenciaChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("pick 3 box"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Pick 3 Box", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("3w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick33Way,
+                              title: !isSmallOrMedium ? "3-way: 2 identicos" : "",
+                              hint:  isSmallOrMedium ? "3-way: 2 identicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick33WayChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("6w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick36Way,
+                              title: !isSmallOrMedium ? "6-way: 3 unicos" : "",
+                              hint:  isSmallOrMedium ? "6-way: 3 unicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick36WayChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+
+                 Visibility(
+                  visible: _existeSorteoPagosCombinacion("pick 4 straight"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Pick 4 Straight", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("to") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick4TodosEnSecuencia,
+                              title: !isSmallOrMedium ? "Todos en secuencia" : "",
+                              hint:  isSmallOrMedium ? "Todos en secuencia" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick4TodosEnSecuenciaChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Visibility(
+                  visible: _existeSorteoPagosCombinacion("pick 4 box"),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 12.0, vertical: isSmallOrMedium ? 0 : 5.0),
+                    child: MyResizedContainer(
+                      xlarge: 4,
+                      medium: 1,
+                      child: Wrap(
+                        children: [
+                          MyDivider(showOnlyOnSmall: true,),
+                          MySubtitle(title: "Pick 4 Box", padding: EdgeInsets.symmetric(vertical: 5),),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("4w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick44Way,
+                              title: !isSmallOrMedium ? "4-way: 3 identicos" : "",
+                              hint:  isSmallOrMedium ? "4-way: 3 identicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick44WayChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("6w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick46Way,
+                              title: !isSmallOrMedium ? "6-way: 2 identicos" : "",
+                              hint:  isSmallOrMedium ? "6-way: 2 identicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick46WayChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("12w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick412Way,
+                              title: !isSmallOrMedium ? "12-way: 2 identicos" : "",
+                              hint:  isSmallOrMedium ? "12-way: 2 identicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick412WayChanged,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
+                            child: MyTextFormField(
+                              leading: isSmallOrMedium ? Text("24w") : null,
+                              isMoneyFormat: true,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.normal,
+                              controller: _txtPick424Way,
+                              title: !isSmallOrMedium ? "24-way: 2 identicos" : "",
+                              hint:  isSmallOrMedium ? "24-way: 2 identicos" : "",
+                              xlargeSide: 6.5,
+                              medium: 1,
+                              isRequired: true,
+                              onChanged: _pagosCombinacionPick424WayChanged,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+               
+               
+                 
+              ],
             ),
-           
-           
-             
-          ],
+          ),
         ),
+      );
+    }
+
+
+    _showDialogGasto({Gasto gasto}){
+      Frecuencia _frecuencia = gasto != null ? listaFrecuencia.firstWhere((element) => element.id == gasto.frecuencia.id, orElse: () => null) : null;
+      Dia _dia = gasto != null ? listaDia.firstWhere((element) => element.id == gasto.dia.id, orElse: () => null) : null;
+      if(gasto == null)
+        gasto = Gasto();
+
+      showDialog(
+        context: context, 
+        builder: (context){
+          return StatefulBuilder(
+            builder: (context, setState) {
+              guardar(){
+                if(_formKeyGasto.currentState.validate() == false)
+                  return;
+
+                  gasto.descripcion = _txtDescripcionGasto.text;
+                  gasto.monto = double.tryParse(_txtMontoGasto.text);
+                  gasto.frecuencia = _frecuencia;
+                  gasto.dia = _dia;
+                  var data = _gastos.firstWhere((element) => element == gasto, orElse: () => null);
+                  if(data == null)
+                    _gastos.add(data);
+
+                  _streamControllerGastos.add(_gastos);
+                  Navigator.pop(context);
+              }
+
+              return MyAlertDialog(
+                title: "", 
+                xlarge: 3,
+                content: Form(
+                  key: _formKeyGasto,
+                  child: Wrap(
+                    children: [
+                      MyToggleButtons(
+                        items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
+                        selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
+                        onTap: (data){
+                          setState(() => _frecuencia = data);
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: MyTextFormField(
+                          type: MyType.border,
+                          controller: _txtDescripcionGasto,
+                          title: "Descripcion *",
+                          isRequired: true,
+                          medium: 1,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: MyTextFormField(
+                          type: MyType.border,
+                          controller: _txtMontoGasto,
+                          title: "Monto *",
+                          isRequired: true,
+                          medium: 1,
+                        ),
+                      ),
+                      MyDropdownButton(
+                        title: "Dias *",
+                        type: MyDropdownType.border,
+                        padding: EdgeInsets.zero,
+                        medium: 1,
+                        value: _dia,
+                        items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
+                        onChanged: (data){
+                          setState(() => _dia = data);
+                        },
+                      ),
+                    ],
+                  ),
+                ), 
+                okFunction: guardar
+              );
+            }
+          );
+        }
       );
     }
 
@@ -1083,7 +1803,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   @override
   void initState() {
     // TODO: implement initState
-    _tabController = TabController(length: 6, vsync: this);
+    _streamControllerGastos = BehaviorSubject();
+    _tabController = TabController(length: 7, vsync: this);
     _future = _init();
     super.initState();
   }
@@ -1117,7 +1838,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
 
             return SliverList(delegate: SliverChildListDelegate([
-              MyTabBar(controller: _tabController, tabs: ["Datos", "Config.", "Horarios", "Comisiones", "Premios", "Loterias"], ),
+              MyTabBar(controller: _tabController, tabs: ["Datos", "Config.", "Horarios", "Comisiones", "Premios", "Loterias", "Gastos"], ),
                   
                 ]));
           }
@@ -1481,7 +2202,24 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                   _comisionesScreen(isSmallOrMedium),
                   // Center(child: Text("Comisiones")),
                   _pagosCombinacionesScreen(isSmallOrMedium),
-                  _loteriasScreen()
+                  _loteriasScreen(),
+
+                  StreamBuilder<List<Gasto>>(
+                    stream: _streamControllerGastos.stream,
+                    builder: (context, snapshot) {
+                      if(snapshot.data == null)
+                        return Align(alignment: Alignment.center ,child: MyEmpty(title: "No hay gastos", icon: Icons.money_off, titleButton: "Agregar gasto", onTap: _showDialogGasto,));
+
+                      return 
+                      Wrap(
+                        children: [
+                          MyTable(columns: ["#", "Descripcion", "Monto", "Plazo", "Creado"], 
+                            rows: _gastos.asMap().map((key, value) => MapEntry(key, [value, "${key + 1}", "${value.descripcion}", "${value.monto}", "${value.frecuencia != null ? value.frecuencia.descripcion : ''}",  "${Utils.formatDateTime(value.created_at)}"])).values.toList()
+                          ),
+                        ],
+                      );
+                    }
+                  )
                ]),
              );
            }

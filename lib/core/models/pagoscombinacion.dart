@@ -19,6 +19,7 @@ class Pagoscombinacion{
 
    double primerPago;
    double pick3TodosEnSecuencia;
+   double pick33Way;
    double pick36Way;
    double pick4TodosEnSecuencia;
    double pick44Way;
@@ -29,7 +30,7 @@ class Pagoscombinacion{
    DateTime created_at;
 
   Pagoscombinacion({this.id, this.idBanca, this.idLoteria, this.loteria, this.primera, this.segunda, this.tercera, this.primeraSegunda, this.primeraTercera, 
-  this.segundaTercera, this.tresNumeros, this.dosNumeros, this.primerPago, this.pick3TodosEnSecuencia, this.pick36Way, this.pick4TodosEnSecuencia, this.pick44Way, this.pick46Way, this.pick412Way, this.pick424Way, this.created_at});
+  this.segundaTercera, this.tresNumeros, this.dosNumeros, this.primerPago, this.pick3TodosEnSecuencia, this.pick33Way, this.pick36Way, this.pick4TodosEnSecuencia, this.pick44Way, this.pick46Way, this.pick412Way, this.pick424Way, this.created_at});
 
 Pagoscombinacion.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -46,6 +47,7 @@ Pagoscombinacion.fromMap(Map snapshot) :
         dosNumeros = double.tryParse(snapshot['dosNumeros'].toString()) ?? 0,
         primerPago = double.tryParse(snapshot['primerPago'].toString()) ?? 0,
         pick3TodosEnSecuencia = double.tryParse(snapshot['pick3TodosEnSecuencia'].toString()) ?? 0,
+        pick33Way = double.tryParse(snapshot['pick33Way'].toString()) ?? 0,
         pick36Way = double.tryParse(snapshot['pick36Way'].toString()) ?? 0,
         pick4TodosEnSecuencia = double.tryParse(snapshot['pick4TodosEnSecuencia'].toString()) ?? 0,
         pick44Way = double.tryParse(snapshot['pick44Way'].toString()) ?? 0,
@@ -71,6 +73,7 @@ Pagoscombinacion.fromMap(Map snapshot) :
       "dosNumeros": dosNumeros,
       "primerPago" : primerPago,
       "pick3TodosEnSecuencia" : pick3TodosEnSecuencia,
+      "pick33Way" : pick33Way,
       "pick36Way" : pick36Way,
       "pick4TodosEnSecuencia" : pick4TodosEnSecuencia,
       "pick44Way" : pick44Way,

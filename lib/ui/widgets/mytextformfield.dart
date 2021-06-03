@@ -19,11 +19,12 @@ class MyType {
   /// Light
   static const MyType rounded = MyType._(2);
 
-  static const MyType noBorder = MyType._(2);
+  static const MyType noBorder = MyType._(3);
+  static const MyType floatingLabelWithBorder = MyType._(4);
 
   /// A list of all the font weights.
   static const List<MyType> values = <MyType>[
-    normal, border, rounded, noBorder
+    normal, border, rounded, floatingLabelWithBorder
   ];
 }
 
@@ -198,6 +199,63 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
+          // border: OutlineInputBorder(),
+          hintText: widget.hint,
+          labelText: widget.isSideTitle ? null : widget.title,
+          // contentPadding: EdgeInsets.all(10),
+          isDense: true,
+          
+        ),
+        obscureText: widget.isPassword,
+        keyboardType: _getkeyboardType(),
+        inputFormatters: _getInputFormatters(),
+        //  [
+        //   // WhitelistingTextInputFormatter.digitsOnly
+        //   FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+
+        // ],
+        validator: (widget.validator != null)
+        ?
+        widget.validator
+        :
+        (data){
+          if(data.isEmpty && widget.isRequired)
+            return "Campo requerido";
+          return null;
+        },
+        onChanged: (data){
+    // print("_converToMoneyFormat2 $data");
+
+          
+
+          if(widget.isMoneyFormat){
+            _converToMoneyFormat(data);
+          }
+
+          if(widget.onChanged != null)
+            widget.onChanged(data);
+          
+        },
+      );
+
+      if(widget.leading != null)
+        return ListTile(
+          leading: widget.leading,
+          title: txt,
+        );
+
+      return txt;
+  }
+
+  _textFormFieldFloatingLabelWithBorder(){
+    var txt = TextFormField(
+      enabled: widget.enabled,
+      controller: widget.controller,
+      maxLines: widget.maxLines,
+      style: TextStyle(fontSize: 15),
+        decoration: InputDecoration(
+          prefixText: _getPrefixText(),
+          border: OutlineInputBorder(),
           hintText: widget.hint,
           labelText: widget.isSideTitle ? null : widget.title,
           // contentPadding: EdgeInsets.all(10),
@@ -544,6 +602,9 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
         break;
       case MyType.rounded:
         return _textFormFieldRounded();
+        break;
+      case MyType.floatingLabelWithBorder:
+        return _textFormFieldFloatingLabelWithBorder();
         break;
       default:
         return _textFormFieldWithoutLabel();

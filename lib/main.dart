@@ -10,6 +10,9 @@ import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_tim
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/router.dart';
 import 'package:loterias/ui/widgets/mycolor.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mytabbar.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -89,3 +92,5 @@ class MyApp extends StatelessWidget {
     // );
   }
 }
+
+

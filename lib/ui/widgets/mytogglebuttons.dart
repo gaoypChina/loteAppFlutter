@@ -74,9 +74,9 @@ class _MyToggleButtonsState extends State<MyToggleButtons> {
         borderWidth: 0.5,
         
         
-        // selectedColor: Colors.pink,
+        selectedColor: Colors.white,
         // selectedBorderColor: Colors.black,
-        fillColor: Colors.grey[300],
+        fillColor: Theme.of(context).primaryColor.withOpacity(0.8),
         borderRadius: BorderRadius.circular(10),
         constraints: BoxConstraints(minHeight: 34, minWidth: 48),
         children: 
