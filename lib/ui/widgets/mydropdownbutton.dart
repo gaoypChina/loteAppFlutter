@@ -57,7 +57,7 @@ class MyDropdownButton extends StatefulWidget {
   final String nullHint;
   final bool addNingunoToFirstElement;
   final String helperText;
-  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint = "", this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
+  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
     // this.flexOfSideText = 3, 
     this.flexOfSideText = 3.05, 
     // this.flexOfSideField = 1.5, 
@@ -88,15 +88,18 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
   _initialValue(){
       print("MyDropdownButton initialValue: ${widget.initialValue}");
-    if(widget.initialValue != null){
-      _value = widget.initialValue;
-      // if(_items.length > 0){
-      //   var idx = _items.indexWhere((element) => element[0] == widget.initialValue);
-      //   if(idx != -1){
-      //     _index = idx;
-      //     _value = _items.indexWhere((element) => element[0] == widget.initialValue);
-      //   }
-      // }
+    // if(widget.initialValue != null){
+    //   _value = widget.initialValue;
+    //   // if(_items.length > 0){
+    //   //   var idx = _items.indexWhere((element) => element[0] == widget.initialValue);
+    //   //   if(idx != -1){
+    //   //     _index = idx;
+    //   //     _value = _items.indexWhere((element) => element[0] == widget.initialValue);
+    //   //   }
+    //   // }
+    // }
+    if(widget.value != null && widget.value != _value){
+      _value = widget.value;
     }
   }
 
@@ -207,7 +210,8 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
   _dropdownFormFieldWithBorder(double width){
     print("_dropdownFormFieldWIthBOrder: ${_items.length}");
     return Container(
-      width: getWidth(width) - (widget.padding.left + widget.padding.right),
+      // color: Colors.red,
+      width: getWidth(width),
       child: 
         DropdownButtonFormField(
           decoration: InputDecoration(
@@ -215,12 +219,12 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           // contentPadding: EdgeInsetsGeometry.lerp(a, b, t),
           // contentPadding: EdgeInsets.all(10),
           border: OutlineInputBorder(borderSide: BorderSide(width: 0.2, color: Colors.black)),
-          contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0.0),
           helperText: widget.helperText
         ),
         disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
         isExpanded: true, 
-        hint: Text(widget.hint),
+        hint: widget.hint != null ? Text(widget.hint) : null,
         items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1]), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
         onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
           widget.onChanged(data != "Ninguno" ? data : null);
@@ -262,7 +266,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
   _dropdownFormFieldWithNoBorder(double width){
     print("_dropdownFormFieldWIthBOrder: ${widget.leading != null }");
     var dropdown = Container(
-      width: getWidth(width) - (widget.padding.left + widget.padding.right),
+      width: getWidth(width),
       child: 
         DropdownButtonFormField(
           decoration: InputDecoration(
@@ -274,7 +278,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
           helperText: widget.helperText
         ),
-        hint: Text(widget.hint),
+        hint: widget.hint != null ? Text(widget.hint) : null,
         disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
         isExpanded: true, 
         
@@ -328,7 +332,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
   _dropdownBlue(double width){
     return Container(
-      width: getWidth(width) - (widget.paddingBlue.left + widget.paddingBlue.right),
+      width: getWidth(width),
       decoration: BoxDecoration(
         color: Colors.blue.withOpacity(0.15),
         borderRadius: BorderRadius.circular(5)
@@ -355,7 +359,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
                 ),
                 disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
-                hint: Text(widget.hint),
+                hint: widget.hint != null ? Text(widget.hint) : null,
 
                 // style: TextStyle(color: Utils.fromHex("#1967d2")),
                 // underline: SizedBox(),
@@ -381,7 +385,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
   }
   _dropdownBlueNoBorder(double width){
     return Container(
-      width: getWidth(width) - (widget.paddingBlue.left + widget.paddingBlue.right),
+      width: getWidth(width),
       // decoration: BoxDecoration(
       //   color: Colors.blue.withOpacity(0.15),
       //   borderRadius: BorderRadius.circular(5)
@@ -392,7 +396,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           child: DropdownButton(
             iconEnabledColor: Utils.fromHex("#1967d2"),
             disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
-            hint: Text(widget.hint),
+            hint: widget.hint != null ? Text(widget.hint) : null,
 
             // style: TextStyle(color: Utils.fromHex("#1967d2")),
             // underline: SizedBox(),
@@ -418,12 +422,12 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
   _dropdownNormal(double width){
     print("_dropdownNormal _index > items: ${(_index > _items.length)}");
     return Container(
-      width: getWidth(width) - (widget.padding.left + widget.padding.right),
+      width: getWidth(width),
       child: 
       DropdownButton(
         disabledHint: Text("${(_items.length > 0) ? (_index < _items.length) ? _items[_index][1] : _items[0][1] : ''}"),
         isExpanded: true, 
-        hint: Text(widget.hint),
+        hint: widget.hint != null ? Text(widget.hint) : null,
         
         items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
         onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
@@ -547,84 +551,84 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
 
   _screenWithNormalTitle(double width){
     return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Visibility(
-                visible: widget.title != "",
-                child: Text(widget.title, textAlign: TextAlign.start, style: TextStyle(fontSize: 15, fontFamily: "GoogleSans"),)
-              ),
-              // (widget.isBlue == false)
-              // ?
-              // Container(
-              //     width: getWidth(width) - (widget.padding.left + widget.padding.right),
-              //     child: 
-              //     (widget.isAllBorder)
-              //     ?
-              //     _dropdownFormField()
-              //     :
-              //     DropdownButton(
-              //       disabledHint: Text("${_items[_index][1]}"),
-              //       isExpanded: true, 
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Visibility(
+            visible: widget.title != "",
+            child: Text(widget.title, textAlign: TextAlign.start, style: TextStyle(fontSize: 15, fontFamily: "GoogleSans"),)
+          ),
+          // (widget.isBlue == false)
+          // ?
+          // Container(
+          //     width: getWidth(width) - (widget.padding.left + widget.padding.right),
+          //     child: 
+          //     (widget.isAllBorder)
+          //     ?
+          //     _dropdownFormField()
+          //     :
+          //     DropdownButton(
+          //       disabledHint: Text("${_items[_index][1]}"),
+          //       isExpanded: true, 
+                
+          //       items: _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList(),
+          //       onChanged: (!widget.enabled) ? null : (data){
+          //         widget.onChanged(data != "Ninguno" ? data : null);
+          //         // int idx = widget.elements.indexWhere((element) => element == data);
+          //         // setState(() => _value = data);
+          //         int idx = _items.indexWhere((element) => element[0] == data);
+          //         setState(() => _value = data);
                     
-              //       items: _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList(),
-              //       onChanged: (!widget.enabled) ? null : (data){
-              //         widget.onChanged(data != "Ninguno" ? data : null);
-              //         // int idx = widget.elements.indexWhere((element) => element == data);
-              //         // setState(() => _value = data);
-              //         int idx = _items.indexWhere((element) => element[0] == data);
-              //         setState(() => _value = data);
-                        
-              //       }, 
-              //       value: _value,
-              //     )
-              //   )
-              //   :
-              // Container(
-              //     width: getWidth(width) - (widget.paddingBlue.left + widget.paddingBlue.right),
-              //     decoration: BoxDecoration(
-              //       color: Colors.blue.withOpacity(0.15),
-              //       borderRadius: BorderRadius.circular(5)
-              //     ),
-              //     child: Row(
-              //       children: [
-              //         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : 
-              //         Padding(
-              //           padding: const EdgeInsets.only(left: 8.0),
-              //           child: Icon(Icons.calendar_today_outlined, color: Utils.fromHex("#1967d2"),),
-              //         ),
-              //         Expanded(
-              //           child: Padding(
-              //             padding: const EdgeInsets.only(right: 8.0),
-              //             child: DropdownButtonHideUnderline(
-              //               child: DropdownButton(
-                              
-              //                 disabledHint: Text("${_items[_index][1]}"),
+          //       }, 
+          //       value: _value,
+          //     )
+          //   )
+          //   :
+          // Container(
+          //     width: getWidth(width) - (widget.paddingBlue.left + widget.paddingBlue.right),
+          //     decoration: BoxDecoration(
+          //       color: Colors.blue.withOpacity(0.15),
+          //       borderRadius: BorderRadius.circular(5)
+          //     ),
+          //     child: Row(
+          //       children: [
+          //         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : 
+          //         Padding(
+          //           padding: const EdgeInsets.only(left: 8.0),
+          //           child: Icon(Icons.calendar_today_outlined, color: Utils.fromHex("#1967d2"),),
+          //         ),
+          //         Expanded(
+          //           child: Padding(
+          //             padding: const EdgeInsets.only(right: 8.0),
+          //             child: DropdownButtonHideUnderline(
+          //               child: DropdownButton(
+                          
+          //                 disabledHint: Text("${_items[_index][1]}"),
 
-              //                 // style: TextStyle(color: Utils.fromHex("#1967d2")),
-              //                 // underline: SizedBox(),
-              //                 selectedItemBuilder: (context){
-              //                   return _items.map((e) => Align(alignment: Alignment.center, child: Text("${e[1]}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontFamily: "GoogleSans", color: Utils.fromHex("#1967d2"), fontWeight: FontWeight.w700)))).toList();
-              //                 },
-              //                 isExpanded: true, 
-              //                 items: _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList(),
-              //                 onChanged: (!widget.enabled) ? null : (data){
-              //                   widget.onChanged(data != "Ninguno" ? data : null);
-              //                     int idx = _items.indexWhere((element) => element[0] == data);
-              //                     setState(() => _value = data);
-              //                     // int idx = widget.elements.indexWhere((element) => element == data);
-              //                     // setState(() => _value = data);
-              //                 }, 
-              //                 value: _value,
-              //               ),
-              //             ),
-              //           )
-              //         )
-              //       ],
-              //     )
-              // )
-              _screenDropdownType(width)
-            ],
-          );
+          //                 // style: TextStyle(color: Utils.fromHex("#1967d2")),
+          //                 // underline: SizedBox(),
+          //                 selectedItemBuilder: (context){
+          //                   return _items.map((e) => Align(alignment: Alignment.center, child: Text("${e[1]}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, fontFamily: "GoogleSans", color: Utils.fromHex("#1967d2"), fontWeight: FontWeight.w700)))).toList();
+          //                 },
+          //                 isExpanded: true, 
+          //                 items: _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1], style: TextStyle(fontFamily: "GoogleSans")), value: e[0], )).toList(),
+          //                 onChanged: (!widget.enabled) ? null : (data){
+          //                   widget.onChanged(data != "Ninguno" ? data : null);
+          //                     int idx = _items.indexWhere((element) => element[0] == data);
+          //                     setState(() => _value = data);
+          //                     // int idx = widget.elements.indexWhere((element) => element == data);
+          //                     // setState(() => _value = data);
+          //                 }, 
+          //                 value: _value,
+          //               ),
+          //             ),
+          //           )
+          //         )
+          //       ],
+          //     )
+          // )
+          _screenDropdownType(width)
+        ],
+      );
   }
 
   _screenDropdownType(double width){
@@ -658,10 +662,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, boxconstraints) {
-        return Padding(
-          padding: widget.padding,
-          child: _screen(boxconstraints.maxWidth)
-        );
+        return _screen(boxconstraints.maxWidth);
       }
     );
   }

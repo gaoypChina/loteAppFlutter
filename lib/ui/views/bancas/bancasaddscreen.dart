@@ -23,6 +23,7 @@ import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/myrich.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
@@ -100,7 +101,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
 
   bool _status = true;
-  bool _qr = true;
+  bool _imprimirCodigoQr = true;
   Banca _data;
   List<Loteria> _loterias;
   List<Loteria> _loteriasComisiones;
@@ -131,7 +132,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
     listaFrecuencia = (parsed["frecuencias"] != null) ? parsed["frecuencias"].map<Frecuencia>((json) => Frecuencia.fromMap(json)).toList() : [];
     listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
-    print("_init loterias: ${parsed['data']['loterias']}");
+    for (var item in listaUsuario) {
+      print("id: ${item.id} usuario: ${item.usuario}");
+    }
     _setsAllFields(parsed);
 
 
@@ -139,13 +142,26 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   }
 
   _setsAllFields(parsed){
-    print("_setsAllFields 1: ${_data == null}");
     _data = parsed["data"] != null ? Banca.fromMap(parsed["data"]) : null;
-    print("_setsAllFields 2: ${_data == null}");
     _txtDescripcion.text = (_data != null) ? _data.descripcion : '';
     _txtCodigo.text = (_data != null) ? _data.codigo : '';
+    _txtDueno.text = (_data != null) ? _data.dueno : '';
+    _txtLocalidad.text = (_data != null) ? _data.localidad : '';
     _status = (_data != null) ? _data.status == 1 ? true : false : true;
-    print("_setsAllFields 3: ${_data == null}");
+    _usuario = (_data != null) ? listaUsuario.firstWhere((element) => element.id == _data.usuario.id) : null;
+    _moneda = (_data != null) ? listaMoneda.firstWhere((element) => element.id == _data.monedaObject.id) : null;
+    _grupo = _data != null ? _data.grupo != null ? listaGrupo.firstWhere((element) => element.id == _data.grupo.id, orElse: () => null) : null : null;
+
+    _txtLimiteVentasPorDia.text = (_data != null) ? _data.limiteVenta != null ? _data.limiteVenta.toString() : '' : '';
+    _txtBalance.text = (_data != null) ? _data.balanceDesactivacion != null ? _data.balanceDesactivacion.toString() : '' : '';
+    _txtDescontar.text = (_data != null) ? _data.descontar != null ? _data.descontar.toString() : '' : '';
+    _txtDeCada.text = (_data != null) ? _data.deCada != null ? _data.deCada.toString() : '' : '';
+    _txtMinutosParaCancelarTicket.text = (_data != null) ? _data.minutosCancelarTicket != null ? _data.minutosCancelarTicket.toString() : '' : '';
+    _imprimirCodigoQr = (_data != null) ? _data.imprimirCodigoQr == 1 ? true : false : true;
+    _txtPiePagina1.text = (_data != null) ? _data.piepagina1 : '';
+    _txtPiePagina2.text = (_data != null) ? _data.piepagina2 : '';
+    _txtPiePagina3.text = (_data != null) ? _data.piepagina3 : '';
+    _txtPiePagina4.text = (_data != null) ? _data.piepagina4 : '';
 
     _setsLoterias();
     _setsComisiones();
@@ -173,6 +189,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
   _setsComisiones(){
     _setsLoteriasComision();
+    _comisiones = [];
     if(_data == null){
       for (var item in listaLoteria) {
         _comisiones.add(Comision(idLoteria: item.id));
@@ -183,10 +200,14 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   }
 
   _setsLoteriasComision(){
-      if(_loterias == null)
-        return [];
-      if(_loterias.length == 0)
-        return [];
+      if(_loterias == null){
+        _loteriasComisiones = [];
+        return;
+      }
+      if(_loterias.length == 0){
+         _loteriasComisiones = [];
+        return;
+      }
 
       _loteriasComisiones = [];
       _loteriasComisiones.add(Loteria(id: 0, descripcion: "Copiar a todas"));
@@ -198,10 +219,14 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
 
   _setsLoteriasPagosCombinacion(){
-      if(_loterias == null)
-        return [];
-      if(_loterias.length == 0)
-        return [];
+      if(_loterias == null){
+        _loteriasPagosCombinaciones = [];
+        return;
+      }
+      if(_loterias.length == 0){
+        _loteriasPagosCombinaciones = [];
+        return;
+      }
 
       _loteriasPagosCombinaciones = [];
       _loteriasPagosCombinaciones.add(Loteria(id: 0, descripcion: "Copiar a todas"));
@@ -214,6 +239,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
   _setsPagosCombinaciones(){
     _setsLoteriasPagosCombinacion();
+    _pagosCombinaciones = [];
     if(_data == null){
       for (var item in listaLoteria) {
         _pagosCombinaciones.add(Pagoscombinacion(idLoteria: item.id));
@@ -226,19 +252,17 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   _setsLoterias(){
     _loterias = [];
     if(_data == null){
-      setState(() => _loterias = List.from(listaLoteria));
+      _loterias = List.from(listaLoteria);
       return;
     }
 
-
-
     if(_data.loterias == null){
-      setState(() => _loterias = List.from(listaLoteria));
+      _loterias = List.from(listaLoteria);
       return;
     }
 
     if(_data.loterias.length == 0){
-      setState(() => _loterias = List.from(listaLoteria));
+      _loterias = List.from(listaLoteria);
       return;
     }
 
@@ -257,10 +281,42 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(!_formKey.currentState.validate())
           return;
 
+        if(_usuario == null){
+          Utils.showAlertDialog(title: "Error", content: "Debe seleccionar un usuario", context: context);
+          return;
+        }
+
+        if(_moneda == null){
+          Utils.showAlertDialog(title: "Error", content: "Debe seleccionar una moneda", context: context);
+          return;
+        }
+
         _data.descripcion = _txtDescripcion.text;
         _data.codigo = _txtCodigo.text;
+        _data.dueno = _txtDueno.text;
+        _data.localidad = _txtLocalidad.text;
         _data.status = _status ? 1 : 0;
+        _data.usuario = _usuario;
+        _data.monedaObject = _moneda;
+        _data.grupo = _grupo;
+
+        _data.limiteVenta = Utils.toDouble(_txtLimiteVentasPorDia.text);
+        _data.balanceDesactivacion = Utils.toDouble(_txtBalance.text);
+        _data.descontar = Utils.toDouble(_txtDescontar.text);
+        _data.deCada = Utils.toDouble(_txtDeCada.text);
+        _data.minutosCancelarTicket = Utils.toInt(_txtMinutosParaCancelarTicket.text);
+        _data.imprimirCodigoQr = _imprimirCodigoQr ? 1 : 0;
+        _data.piepagina1 = _txtPiePagina1.text;
+        _data.piepagina2 = _txtPiePagina2.text;
+        _data.piepagina3 = _txtPiePagina3.text;
+        _data.piepagina4 = _txtPiePagina4.text;
+
+        _data.dias = listaDia;
+        _data.comisiones = _comisiones;
+        _data.pagosCombinaciones = _pagosCombinaciones;
         _data.loterias = _loterias;
+        _data.gastos = _gastos;
+
         _cargandoNotify.value = true;
         var parsed = await BancaService.guardar(context: context, data: _data);
         print("_showDialogGuardar parsed: $parsed");
@@ -297,7 +353,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: MyDropdown(color: Colors.green[100], textColor: Colors.green, title: "Mostrar codigo QR", hint: "${_qr ? 'Si' : 'No'}", isSideTitle: true, xlarge: 1.35, elements: [[true, "Si"], [false, "No"]], onTap: _qrChanged,),
+        child: MyDropdown(color: Colors.green[100], textColor: Colors.green, title: "Mostrar codigo QR", hint: "${_imprimirCodigoQr ? 'Si' : 'No'}", isSideTitle: true, xlarge: 1.35, elements: [[true, "Si"], [false, "No"]], onTap: _qrChanged,),
       );
     }
 
@@ -306,7 +362,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
 
     _qrChanged(data){
-      setState(() => _qr = data);
+      setState(() => _imprimirCodigoQr = data);
     }
 
     // _sorteosScreen(bool isSmallOrMedium){
@@ -462,12 +518,18 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _horaAperturaChanged(Dia dia) async {
      TimeOfDay t = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(dia.horaApertura));
       final now = new DateTime.now();
+      if(t == null)
+        return;
+
      setState(() => dia.horaApertura = new DateTime(now.year, now.month, now.day, t.hour, t.minute));
      print("_horaAperturaChanged: ${t.format(context)}");
     }
 
     _horaCierreChanged(Dia dia) async {
      TimeOfDay t = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(dia.horaCierre));
+      if(t == null)
+        return;
+
       final now = new DateTime.now();
      setState(() => dia.horaCierre = new DateTime(now.year, now.month, now.day, t.hour, t.minute));
      print("_horaCierreChanged: ${t.format(context)}");
@@ -475,6 +537,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
     _horaAperturaTodosChanged() async {
       TimeOfDay t = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(DateTime.parse(Utils.dateTimeToDate(DateTime.now(), "01:00"))));
+      if(t == null)
+        return;
       final now = new DateTime.now();
       listaDia.forEach((element) {
         setState(() => element.horaApertura = new DateTime(now.year, now.month, now.day, t.hour, t.minute));
@@ -483,6 +547,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
     _horaCierreTodosChanged() async {
       TimeOfDay t = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(DateTime.parse(Utils.dateTimeToDate(DateTime.now(), "23:00"))));
+      if(t == null)
+        return;
       final now = new DateTime.now();
       listaDia.forEach((element) {
         setState(() => element.horaCierre = new DateTime(now.year, now.month, now.day, t.hour, t.minute));
@@ -588,10 +654,23 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       // );
     }
 
+    // _showDialogCopiarComisionYPagosALoteria(Loteria loteria){
+    //   showDialog(
+    //     context: context, 
+    //     builder: (context){
+    //       return MyAlertDialog(
+    //         title: "Copiar comisiones",
+    //       );
+    //     }
+    //   );
+    // }
+
     _ckbLoteriasChanged(bool value, Loteria loteria){
       if(value){
         if(_loterias.indexWhere((element) => element.id == loteria.id) != -1)
           return;
+
+        
 
         setState((){
           _loterias.add(loteria);
@@ -1712,47 +1791,162 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       );
     }
 
+    
 
     _showDialogGasto({Gasto gasto}){
-      Frecuencia _frecuencia = gasto != null ? listaFrecuencia.firstWhere((element) => element.id == gasto.frecuencia.id, orElse: () => null) : null;
-      Dia _dia = gasto != null ? listaDia.firstWhere((element) => element.id == gasto.dia.id, orElse: () => null) : null;
+      Frecuencia _frecuencia = gasto != null ? listaFrecuencia.firstWhere((element) => element.id == gasto.frecuencia.id, orElse: () => null) : listaFrecuencia.firstWhere((element) => element.descripcion == "Semanal", orElse: () => null);
+      Dia _dia = gasto != null ? listaDia.firstWhere((element) => element.id == gasto.dia.id, orElse: () => null) : listaDia[0];
+      String title = "${gasto != null ? 'Editar' : 'Agregar'} gasto";
+      _txtDescripcionGasto.text = gasto != null ? gasto.descripcion : '';
+      _txtMontoGasto.text = gasto != null ? gasto.monto.toString() : '';
+
+      guardar(){
+      if(_formKeyGasto.currentState.validate() == false)
+        return;
+
+        gasto.descripcion = _txtDescripcionGasto.text;
+        gasto.monto = Utils.toDouble(_txtMontoGasto.text);
+        gasto.frecuencia = _frecuencia;
+        gasto.dia = _dia;
+        var data = _gastos.firstWhere((element) => element == gasto, orElse: () => null);
+        if(data == null)
+          _gastos.add(gasto);
+
+        _streamControllerGastos.add(_gastos);
+        Navigator.pop(context);
+    }
+
+
       if(gasto == null)
         gasto = Gasto();
 
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
+        showModalBottomSheet(
+          
+          context: context, 
+          isScrollControlled: true,
+          builder: (context){
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return Container(
+                  color: Colors.white,
+                  child: MySliver(
+                    sliverAppBar: MySliverAppBar(
+                      actions: [
+                        MySliverButton(title: "Guardar", onTap: guardar, color: Colors.pink,)
+                      ],
+                    ),
+                    sliver: SliverList(delegate: SliverChildListDelegate([
+                      Form(
+                        key: _formKeyGasto,
+                        child: Wrap(
+                          children: [
+                            Center(
+                              child: MyToggleButtons(
+                                items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
+                                selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
+                                onTap: (data){
+                                  setState(() => _frecuencia = data);
+                                },
+                              ),
+                            ),
+                            Visibility(
+                              visible: _frecuencia != null,
+                              child: Center(child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("${_frecuencia != null ? _frecuencia.observacion : ''}", style: TextStyle(fontSize: 12.5)),
+                              )),
+                            ),
+                            MyTextFormField(
+                              type: MyType.noBorder,
+                              leading: Icon(Icons.description),
+                              controller: _txtDescripcionGasto,
+                              hint: "Descripcion *",
+                              isRequired: true,
+                              autofocus: true,
+                              medium: 1,
+                            ),
+                            MyDivider(showOnlyOnSmall: true,),
+                            MyTextFormField(
+                              type: MyType.noBorder,
+                              leading: Icon(Icons.attach_money),
+                              controller: _txtMontoGasto,
+                              hint: "Monto *",
+                              isRequired: true,
+                              isMoneyFormat: true,
+                              medium: 1,
+                            ),
+                            MyDivider(showOnlyOnSmall: true,),
+                            AnimatedSwitcher(
+                              duration: Duration(microseconds: 300),
+                              child: 
+                              (_frecuencia != null ? _frecuencia.descripcion == "Semanal" : false) == false
+                              ?
+                              SizedBox.shrink()
+                              :
+                              Column(
+                                children: [
+                                  MyDropdownButton(
+                                    hint: "Dias *",
+                                    type: MyDropdownType.noBorder,
+                                    leading: Icon(Icons.timer),
+
+                                    padding: EdgeInsets.zero,
+                                    medium: 1,
+                                    initialValue: _dia,
+                                    value: _dia,
+                                    items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
+                                    onChanged: (data){
+                                      setState(() => _dia = data);
+                                    },
+                                  ),
+                                  MyDivider(showOnlyOnSmall: true,),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ), 
+                     
+                    ])),
+                  ),
+                );
+              }
+            );
+          }
+        );
+      }
+      else
       showDialog(
         context: context, 
         builder: (context){
           return StatefulBuilder(
             builder: (context, setState) {
-              guardar(){
-                if(_formKeyGasto.currentState.validate() == false)
-                  return;
-
-                  gasto.descripcion = _txtDescripcionGasto.text;
-                  gasto.monto = double.tryParse(_txtMontoGasto.text);
-                  gasto.frecuencia = _frecuencia;
-                  gasto.dia = _dia;
-                  var data = _gastos.firstWhere((element) => element == gasto, orElse: () => null);
-                  if(data == null)
-                    _gastos.add(data);
-
-                  _streamControllerGastos.add(_gastos);
-                  Navigator.pop(context);
-              }
+              
 
               return MyAlertDialog(
-                title: "", 
+                title: "$title", 
+                description: "Los gastos automaticos se descontaran cada vez que se cumpla el plazo seleccionado.",
                 xlarge: 3,
                 content: Form(
                   key: _formKeyGasto,
                   child: Wrap(
                     children: [
-                      MyToggleButtons(
-                        items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
-                        selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
-                        onTap: (data){
-                          setState(() => _frecuencia = data);
-                        },
+                      Center(
+                        child: MyToggleButtons(
+                          items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
+                          selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
+                          onTap: (data){
+                            setState(() => _frecuencia = data);
+                          },
+                        ),
+                      ),
+                      Visibility(
+                        visible: _frecuencia != null,
+                        child: Center(child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("${_frecuencia != null ? _frecuencia.observacion : ''}", style: TextStyle(fontSize: 12.5)),
+                        )),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -1761,6 +1955,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                           controller: _txtDescripcionGasto,
                           title: "Descripcion *",
                           isRequired: true,
+                          autofocus: true,
                           medium: 1,
                         ),
                       ),
@@ -1771,19 +1966,29 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                           controller: _txtMontoGasto,
                           title: "Monto *",
                           isRequired: true,
+                          isMoneyFormat: true,
                           medium: 1,
                         ),
                       ),
-                      MyDropdownButton(
-                        title: "Dias *",
-                        type: MyDropdownType.border,
-                        padding: EdgeInsets.zero,
-                        medium: 1,
-                        value: _dia,
-                        items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
-                        onChanged: (data){
-                          setState(() => _dia = data);
-                        },
+                      AnimatedSwitcher(
+                        duration: Duration(microseconds: 300),
+                        child: 
+                        (_frecuencia != null ? _frecuencia.descripcion == "Semanal" : false) == false
+                        ?
+                        SizedBox.shrink()
+                        :
+                        MyDropdownButton(
+                          title: "Dias *",
+                          type: MyDropdownType.border,
+                          padding: EdgeInsets.only(right: 12.0),
+                          medium: 1,
+                          initialValue: _dia,
+                          value: _dia,
+                          items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
+                          onChanged: (data){
+                            setState(() => _dia = data);
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -1796,7 +2001,25 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       );
     }
 
+    _showDialogEliminarGasto(Gasto gasto){
+      showDialog(
+        context: context, 
+        builder: (context){
+          eliminar(){
+            _gastos.removeWhere((element) => element == gasto);
+            _streamControllerGastos.add(_gastos);
+            Navigator.pop(context);
+          }
 
+          return MyAlertDialog(
+            title: "Eliminar gasto", 
+            content: MyRichText(text: "Seguro desea eliminar el gasto", boldText: "${gasto.descripcion} ?"), 
+            isDeleteDialog: true,
+            okFunction: eliminar
+          );
+        }
+      );
+    }
 
 
 
@@ -1821,6 +2044,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       isSliverAppBar: true,
       bottomTap: isSmallOrMedium ? null : _guardar,
       sliverBody: MySliver(
+        withScroll: false,
         sliverAppBar: MySliverAppBar(
           title: 
           isSmallOrMedium ? 
@@ -1855,354 +2079,394 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                child: TabBarView(
                  controller: _tabController,
                  children: [
-                   MyScrollbar(
-                     child: Wrap(
-                       children: [
-                         MySubtitle(title: "Datos basicos", showOnlyOnLarge: true,),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? SizedBox.shrink() : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             fontSize: isSmallOrMedium ? 28 : null,
-                             controller: _txtDescripcion,
-                             title: !isSmallOrMedium ? "Nombre de la banca *" : "",
-                             hint: "Nombre banca",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
-                           ),
+                   Align(
+                     alignment: Alignment.topLeft,
+                     child: MyResizedContainer(
+                       xlarge: 1.02,
+                       large: 1.02,
+                       medium: 1,
+                       child: MyScrollbar(
+                         child: Wrap(
+                           children: [
+                             MySubtitle(title: "Datos basicos", showOnlyOnLarge: true,),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 autofocus: true,
+                                 leading: isSmallOrMedium ? SizedBox.shrink() : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 fontSize: isSmallOrMedium ? 28 : null,
+                                 controller: _txtDescripcion,
+                                 title: !isSmallOrMedium ? "Nombre de la banca *" : "",
+                                 hint: "Nombre banca",
+                                 medium: 1,
+                                 isRequired: true,
+                                 helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
+                               ),
+                             ),
+                             MyDivider(showOnlyOnSmall: true,),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtCodigo,
+                                 title: !isSmallOrMedium ? "Codigo de la banca *" : "",
+                                 hint: "Codigo",
+                                 medium: 1,
+                                 isRequired: true,
+                                 helperText: "Codigo unico que le permitira filtrar esta banca",
+                               ),
+                             ),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtDueno,
+                                 title: !isSmallOrMedium ? "Dueño" : "",
+                                 medium: 1,
+                                 hint: "Dueño",
+                               ),
+                             ),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtLocalidad,
+                                 title: !isSmallOrMedium ? "Localidad" : "",
+                                 medium: 1,
+                                 hint: "Localidad",
+                               ),
+                             ),
+                             _statusScreen(isSmallOrMedium),
+                             MyDivider(showOnlyOnSmall: true,),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyDropdownButton(
+                                 padding: EdgeInsets.all(0),
+                                 leading: isSmallOrMedium ? Icon(Icons.person, color: Colors.black,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
+                                 title: !isSmallOrMedium ? "Usuario al que pertenece *" : "",
+                                 hint: "Usuario al que pertenece",
+                                 value: _usuario,
+                                 helperText: "Todos las ventas que este usuario realice se reflerejaran en esta banca.",
+                                 items: listaUsuario.map((e) => [e, "${e.usuario}"]).toList(),
+                                 onChanged: (data){
+                                   setState(() => _usuario = data);
+                                 },
+                               ),
+                             ),
+                             MyDivider(showOnlyOnSmall: true,),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyDropdownButton(
+                                 padding: EdgeInsets.all(0),
+                                 leading: isSmallOrMedium ? Icon(Icons.attach_money, color: Colors.black,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
+                                 title: !isSmallOrMedium ? "Moneda" : "",
+                                 hint: "moneda",
+                                 value: _moneda,
+                                 helperText: "Ayudara a separar y agrupar sus bancas por moneda",
+                                 items: listaMoneda.map((e) => [e, "${e.descripcion}"]).toList(),
+                                 onChanged: (data){
+                                   setState(() => _moneda = data);
+                                 },
+                               ),
+                             ),
+                             MyDivider(showOnlyOnSmall: true,),
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyDropdownButton(
+                                 padding: EdgeInsets.all(0),
+                                 leading: isSmallOrMedium ? Icon(Icons.group, color: Colors.black,) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
+                                 title: !isSmallOrMedium ? "Grupo al que pertenece" : "",
+                                 hint: "Grupo al que pertenece",
+                                 helperText: "Le permitira ordenar sus bancas",
+                                 medium: 1,
+                                 value: _grupo,
+                                 items: listaGrupo.map((e) => [e, "${e.descripcion}"]).toList(),
+                                 onChanged: (data){
+                                   setState(() => _grupo = data);
+                                 },
+                               ),
+                             ),
+                            //  MyDivider(showOnlyOnSmall: true,),
+                            //  _statusScreen(isSmallOrMedium),
+                            //  MyDivider(showOnlyOnSmall: true,),
+                            //  Padding(
+                            //    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                            //    child: MyTextFormField(
+                            //      leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                            //      isSideTitle: isSmallOrMedium ? false : true,
+                            //      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            //      controller: _txtDueno,
+                            //      title: !isSmallOrMedium ? "Dueño" : "",
+                            //      hint: "Dueño",
+                            //      isRequired: true,
+                            //    ),
+                            //  ),
+                            //  MyDivider(showOnlyOnSmall: true,),
+                            //  Padding(
+                            //    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                            //    child: MyTextFormField(
+                            //      leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                            //      isSideTitle: isSmallOrMedium ? false : true,
+                            //      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            //      controller: _txtLocalidad,
+                            //      title: !isSmallOrMedium ? "Localidad" : "",
+                            //      hint: "Localidad",
+                            //      isRequired: true,
+                            //    ),
+                            //  ),
+                             // MyDivider(showOnlyOnSmall: true,),
+                             // _sorteosScreen(isSmallOrMedium),
+                             MyDivider(showOnlyOnSmall: true,),
+                             _loteriasButtonsScreen(isSmallOrMedium),
+                             MyDivider(showOnlyOnSmall: true,),
+                             // MyDropdown(
+                             //   title: "Estado",
+                             //   medium: 1,
+                             //   hint: "${_status == 1 ? 'Activado' : 'Desactivado'}",
+                             //   elements: [["Activado", "Activado"], ["Desactivado", "Desactivado"]],
+                             //   onTap: (data){
+                             //     setState(() => _status = (data == 'Activado') ? 1 : 0);
+                             //   },
+                             // )
+                           ],
                          ),
-                         MyDivider(showOnlyOnSmall: true,),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtCodigo,
-                             title: !isSmallOrMedium ? "Codigo de la banca *" : "",
-                             hint: "Codigo",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Codigo unico que le permitira filtrar esta banca",
-                           ),
-                         ),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtDueno,
-                             title: !isSmallOrMedium ? "Dueño" : "",
-                             medium: 1,
-                             hint: "Dueño",
-                             isRequired: true,
-                           ),
-                         ),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtLocalidad,
-                             title: !isSmallOrMedium ? "Localidad" : "",
-                             medium: 1,
-                             hint: "Localidad",
-                             isRequired: true,
-                           ),
-                         ),
-                         _statusScreen(isSmallOrMedium),
-                         MyDivider(showOnlyOnSmall: true,),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyDropdownButton(
-                             padding: EdgeInsets.all(0),
-                             leading: isSmallOrMedium ? Icon(Icons.person, color: Colors.black,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                             title: !isSmallOrMedium ? "Usuario al que pertenece *" : "",
-                             hint: "Usuario al que pertenece",
-                             value: _usuario,
-                             helperText: "Todos las ventas que este usuario realice se reflerejaran en esta banca.",
-                             items: listaUsuario.map((e) => [e, "${e.usuario}"]).toList(),
-                             onChanged: (data){
-                               setState(() => _usuario = data);
-                             },
-                           ),
-                         ),
-                         MyDivider(showOnlyOnSmall: true,),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyDropdownButton(
-                             padding: EdgeInsets.all(0),
-                             leading: isSmallOrMedium ? Icon(Icons.attach_money, color: Colors.black,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                             title: !isSmallOrMedium ? "Moneda" : "",
-                             hint: "moneda",
-                             value: _moneda,
-                             helperText: "Ayudara a separar y agrupar sus bancas por moneda",
-                             items: listaMoneda.map((e) => [e, "${e.descripcion}"]).toList(),
-                             onChanged: (data){
-                               setState(() => _moneda = data);
-                             },
-                           ),
-                         ),
-                         MyDivider(showOnlyOnSmall: true,),
-                         Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyDropdownButton(
-                             padding: EdgeInsets.all(0),
-                             leading: isSmallOrMedium ? Icon(Icons.group, color: Colors.black,) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                             title: !isSmallOrMedium ? "Grupo al que pertenece" : "",
-                             hint: "Grupo al que pertenece",
-                             helperText: "Le permitira ordenar sus bancas",
-                             medium: 1,
-                             value: _grupo,
-                             items: listaGrupo.map((e) => [e, "${e.descripcion}"]).toList(),
-                             onChanged: (data){
-                               setState(() => _grupo = data);
-                             },
-                           ),
-                         ),
-                        //  MyDivider(showOnlyOnSmall: true,),
-                        //  _statusScreen(isSmallOrMedium),
-                        //  MyDivider(showOnlyOnSmall: true,),
-                        //  Padding(
-                        //    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        //    child: MyTextFormField(
-                        //      leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                        //      isSideTitle: isSmallOrMedium ? false : true,
-                        //      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                        //      controller: _txtDueno,
-                        //      title: !isSmallOrMedium ? "Dueño" : "",
-                        //      hint: "Dueño",
-                        //      isRequired: true,
-                        //    ),
-                        //  ),
-                        //  MyDivider(showOnlyOnSmall: true,),
-                        //  Padding(
-                        //    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        //    child: MyTextFormField(
-                        //      leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                        //      isSideTitle: isSmallOrMedium ? false : true,
-                        //      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                        //      controller: _txtLocalidad,
-                        //      title: !isSmallOrMedium ? "Localidad" : "",
-                        //      hint: "Localidad",
-                        //      isRequired: true,
-                        //    ),
-                        //  ),
-                         // MyDivider(showOnlyOnSmall: true,),
-                         // _sorteosScreen(isSmallOrMedium),
-                         MyDivider(showOnlyOnSmall: true,),
-                         _loteriasButtonsScreen(isSmallOrMedium),
-                         MyDivider(showOnlyOnSmall: true,),
-                         // MyDropdown(
-                         //   title: "Estado",
-                         //   medium: 1,
-                         //   hint: "${_status == 1 ? 'Activado' : 'Desactivado'}",
-                         //   elements: [["Activado", "Activado"], ["Desactivado", "Desactivado"]],
-                         //   onTap: (data){
-                         //     setState(() => _status = (data == 'Activado') ? 1 : 0);
-                         //   },
-                         // )
-                       ],
+                       ),
                      ),
                    ), 
-                  MyScrollbar(
-                    child: Wrap(
-                      children: [
-                        MySubtitle(title: "Datos configuracion", showOnlyOnLarge: true,),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.strikethrough_s_sharp) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtLimiteVentasPorDia,
-                             isMoneyFormat: true,
-                             title: !isSmallOrMedium ? "Limite de ventas por dia *" : "",
-                             hint: "Limite de ventas por dia",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando la banca alcance este limite el sistema no permitira que se realicen mas ventas.",
-                           ),
-                         ),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.subtitles_off_sharp) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtBalance,
-                             isMoneyFormat: true,
-                             title: !isSmallOrMedium ? "Balance desactivacion *" : "",
-                             hint: "Balance desactivacion",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando la banca alcance este balance el sistema no permitira que se realicen mas ventas.",
-                           ),
-                         ),
-                         MyDivider(showOnlyOnSmall: true,),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.download_rounded) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtDescontar,
-                             isMoneyFormat: true,
-                             title: !isSmallOrMedium ? "Descontar *" : "",
-                             hint: "Descontar",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Este es el monto que se va a descontar cuando un ticket iguale o supere el valor del campo DE CADA.",
-                           ),
-                         ),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.money) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtDeCada,
-                             isMoneyFormat: true,
-                             title: !isSmallOrMedium ? "De cada" : "",
-                             hint: "De cada",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                         MyDivider(showOnlyOnSmall: true,),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? Icon(Icons.timer) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtMinutosParaCancelarTicket,
-                             isDigitOnly: true,
-                             title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
-                             hint: "Minutos para cancelar ticket",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                          MyDivider(showOnlyOnSmall: true,),
-                         _qrScreen(isSmallOrMedium),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? 
-                             Wrap(
-                               children: [
-                                 Icon(Icons.textsms,),
-                                 Padding(
-                                   padding: const EdgeInsets.only(top: 8.0),
-                                   child: Text("1", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
-                                 )
-                               ],
-                             ) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtPiePagina1,
-                             isDigitOnly: true,
-                             title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
-                             hint: "Minutos para cancelar ticket",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? 
-                             Wrap(
-                               children: [
-                                 Icon(Icons.textsms,),
-                                 Padding(
-                                   padding: const EdgeInsets.only(top: 8.0),
-                                   child: Text("2", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
-                                 )
-                               ],
-                             ) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtPiePagina2,
-                             isDigitOnly: true,
-                             title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
-                             hint: "Minutos para cancelar ticket",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? 
-                             Wrap(
-                               children: [
-                                 Icon(Icons.textsms,),
-                                 Padding(
-                                   padding: const EdgeInsets.only(top: 8.0),
-                                   child: Text("3", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
-                                 )
-                               ],
-                             ) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtPiePagina3,
-                             isDigitOnly: true,
-                             title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
-                             hint: "Minutos para cancelar ticket",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                        Padding(
-                           padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                           child: MyTextFormField(
-                             leading: isSmallOrMedium ? 
-                             Wrap(
-                               children: [
-                                 Icon(Icons.textsms,),
-                                 Padding(
-                                   padding: const EdgeInsets.only(top: 8.0),
-                                   child: Text("4", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
-                                 )
-                               ],
-                             ) : null,
-                             isSideTitle: isSmallOrMedium ? false : true,
-                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                             controller: _txtPiePagina4,
-                             isDigitOnly: true,
-                             title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
-                             hint: "Minutos para cancelar ticket",
-                             medium: 1,
-                             isRequired: true,
-                             helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
-                           ),
-                         ),
-                      ],
-                    )
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: MyResizedContainer(
+                       xlarge: 1.02,
+                       large: 1.02,
+                       medium: 1,
+                      child: MyScrollbar(
+                        child: Wrap(
+                          children: [
+                            MySubtitle(title: "Datos configuracion", showOnlyOnLarge: true,),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 autofocus: true,
+                                 leading: isSmallOrMedium ? Icon(Icons.strikethrough_s_sharp) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtLimiteVentasPorDia,
+                                 isMoneyFormat: true,
+                                 title: !isSmallOrMedium ? "Limite de ventas por dia *" : "",
+                                 hint: "Limite de ventas por dia",
+                                 medium: 1,
+                                 isRequired: true,
+                                 helperText: "Cuando la banca alcance este limite el sistema no permitira que se realicen mas ventas.",
+                               ),
+                             ),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.subtitles_off_sharp) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtBalance,
+                                 isMoneyFormat: true,
+                                 title: !isSmallOrMedium ? "Balance desactivacion *" : "",
+                                 hint: "Balance desactivacion",
+                                 medium: 1,
+                                 isRequired: true,
+                                 helperText: "Cuando la banca alcance este balance el sistema no permitira que se realicen mas ventas.",
+                               ),
+                             ),
+                             MyDivider(showOnlyOnSmall: true,),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.download_rounded) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtDescontar,
+                                 isMoneyFormat: true,
+                                 title: !isSmallOrMedium ? "Descontar *" : "",
+                                 hint: "Descontar",
+                                 medium: 1,
+                                 helperText: "Este es el monto que se va a descontar cuando un ticket iguale o supere el valor del campo DE CADA.",
+                               ),
+                             ),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.money) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtDeCada,
+                                 isMoneyFormat: true,
+                                 title: !isSmallOrMedium ? "De cada" : "",
+                                 hint: "De cada",
+                                 medium: 1,
+                                 helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
+                               ),
+                             ),
+                             MyDivider(showOnlyOnSmall: true,),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.timer) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtMinutosParaCancelarTicket,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Minutos para cancelar ticket" : "",
+                                 hint: "Minutos para cancelar ticket",
+                                 medium: 1,
+                                 isRequired: true,
+                                 helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
+                               ),
+                             ),
+                              MyDivider(showOnlyOnSmall: true,),
+                             _qrScreen(isSmallOrMedium),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? 
+                                 Wrap(
+                                   children: [
+                                     Icon(Icons.textsms,),
+                                     Padding(
+                                       padding: const EdgeInsets.only(top: 8.0),
+                                       child: Text("1", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
+                                     )
+                                   ],
+                                 ) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtPiePagina1,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Pie de pagina 1" : "",
+                                 hint: "Pie de pagina 1",
+                                 medium: 1,
+                                 helperText: "Este valor aparecera al final del ticket",
+                               ),
+                             ),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? 
+                                 Wrap(
+                                   children: [
+                                     Icon(Icons.textsms,),
+                                     Padding(
+                                       padding: const EdgeInsets.only(top: 8.0),
+                                       child: Text("2", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
+                                     )
+                                   ],
+                                 ) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtPiePagina2,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Pie de pagina 2" : "",
+                                 hint: "Pie de pagina 2",
+                                 medium: 1,
+                               ),
+                             ),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? 
+                                 Wrap(
+                                   children: [
+                                     Icon(Icons.textsms,),
+                                     Padding(
+                                       padding: const EdgeInsets.only(top: 8.0),
+                                       child: Text("3", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
+                                     )
+                                   ],
+                                 ) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtPiePagina3,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Pie de pagina 3" : "",
+                                 hint: "Pie de pagina 3",
+                                 medium: 1,
+                               ),
+                             ),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? 
+                                 Wrap(
+                                   children: [
+                                     Icon(Icons.textsms,),
+                                     Padding(
+                                       padding: const EdgeInsets.only(top: 8.0),
+                                       child: Text("4", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),),
+                                     )
+                                   ],
+                                 ) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtPiePagina4,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Pie de pagina 4" : "",
+                                 hint: "Pie de pagina 4",
+                                 medium: 1,
+                               ),
+                             ),
+                          ],
+                        )
+                      ),
+                    ),
                   ), 
-                  _horariosScreen(),
-                  _comisionesScreen(isSmallOrMedium),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: MyResizedContainer(
+                      xlarge: 1.02,
+                      large: 1.02,
+                      medium: 1,
+                      child: _horariosScreen()
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: MyResizedContainer(
+                      xlarge: 1.02,
+                      large: 1.02,
+                      medium: 1,
+                      child: _comisionesScreen(isSmallOrMedium)
+                    ),
+                  ),
                   // Center(child: Text("Comisiones")),
-                  _pagosCombinacionesScreen(isSmallOrMedium),
-                  _loteriasScreen(),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: MyResizedContainer(
+                      xlarge: 1.02,
+                      large: 1.02,
+                      medium: 1,
+                      child: _pagosCombinacionesScreen(isSmallOrMedium)
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: MyResizedContainer(
+                      xlarge: 1.02,
+                      large: 1.02,
+                      medium: 1,
+                      child: _loteriasScreen(),
+                    ),
+                  ),
+                  
 
                   StreamBuilder<List<Gasto>>(
                     stream: _streamControllerGastos.stream,
@@ -2213,8 +2477,19 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                       return 
                       Wrap(
                         children: [
-                          MyTable(columns: ["#", "Descripcion", "Monto", "Plazo", "Creado"], 
-                            rows: _gastos.asMap().map((key, value) => MapEntry(key, [value, "${key + 1}", "${value.descripcion}", "${value.monto}", "${value.frecuencia != null ? value.frecuencia.descripcion : ''}",  "${Utils.formatDateTime(value.created_at)}"])).values.toList()
+                          Align(alignment: Alignment.topRight, child: TextButton(child: Text("Agregar gasto"), onPressed: _showDialogGasto,)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: MyTable(
+                                  isScrolled: false,
+                                  columns: ["#", "Descripcion", "Monto", "Plazo", "Creado"], 
+                                  onTap: (data){_showDialogGasto(gasto: data);},
+                                  delete: (data){_showDialogEliminarGasto(data);},
+                                  rows: _gastos.asMap().map((key, value) => MapEntry(key, [value, "${key + 1}", "${value.descripcion}", "${value.monto}", "${value.frecuencia != null ? value.frecuencia.descripcion : ''}",  "${value.created_at != null ? Utils.formatDateTime(value.created_at) : '-'}"])).values.toList()
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       );

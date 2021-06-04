@@ -58,7 +58,7 @@ class BancaService{
       "retornarDias" : retornarDias,
       "retornarGrupos" : retornarGrupos,
       "servidor" : await Db.servidor(),
-      "data" : data != null ? data.toJson() : null,
+      "data" : data != null ? data.toJsonSave() : null,
     };
     var jwt = await Utils.createJwt(map);
     
@@ -140,8 +140,8 @@ class BancaService{
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
-    map = data.toJson();
-    map["usuario"] = await Db.getUsuario();
+    map = data.toJsonSave();
+    map["usuarioData"] = await Db.getUsuario();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     // mapDatos["datos"] = jwt;
@@ -149,7 +149,7 @@ class BancaService{
       "datos" : jwt
     };
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/v2/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

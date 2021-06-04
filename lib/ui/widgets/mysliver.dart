@@ -11,8 +11,8 @@ class MySliver extends StatefulWidget {
   final Widget sliver;
   final Widget sliverFillRemaining;
   final Widget tabbarview;
-
-  MySliver({Key key, @required this.sliverAppBar, @required this.sliver, this.sliverFillRemaining, this.tabbarview}) : super(key: key);
+  final bool withScroll;
+  MySliver({Key key, @required this.sliverAppBar, @required this.sliver, this.sliverFillRemaining, this.tabbarview, this.withScroll = true}) : super(key: key);
 
   @override
   _MySliverState createState() => _MySliverState();
@@ -54,16 +54,17 @@ class _MySliverState extends State<MySliver> {
   // }
   @override
   Widget build(BuildContext context) {
+    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return Padding(
-      padding: EdgeInsets.only(left: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 0 : 30.0),
-      child: PrimaryScrollController(
+      padding: EdgeInsets.only(left: isSmallOrMedium ? 0 : 30.0),
+      child: 
+      PrimaryScrollController(
         controller: _controller,
-        child: CupertinoScrollbar(
-          isAlwaysShown: true,
+        child: Scrollbar(
+          thickness: 7,
+          isAlwaysShown: !isSmallOrMedium,
           controller: _controller,
-          child: 
-         
-          CustomScrollView(
+          child: CustomScrollView(
             slivers: _slivers()
           ),
         ),
@@ -317,7 +318,6 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // automaticallyImplyLeading: false,
           // backgroundColor: Colors.white,
           pinned: true,
-          // floating: true,
           // bottom: PreferredSize(
           //   preferredSize: const Size.fromHeight(0),
           //   child: _flexibleSpace(),

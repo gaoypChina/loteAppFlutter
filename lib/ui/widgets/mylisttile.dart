@@ -63,7 +63,7 @@ class _MyListTileState extends State<MyListTile> {
             child: ListTile(
               onTap: widget.onTap,
               selected: widget.selected,
-              selectedTileColor: Colors.blue[50],
+              selectedTileColor: Colors.blue[100],
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                   topRight: Radius.circular(32),

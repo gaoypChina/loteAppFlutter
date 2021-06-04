@@ -74,7 +74,7 @@ class  Utils {
 
   static toDouble(String caracter){
     try {
-       return double.parse(caracter);
+       return double.parse(caracter.replaceAll(",", ''));
     } catch (e) {
       return 0.0;
     }

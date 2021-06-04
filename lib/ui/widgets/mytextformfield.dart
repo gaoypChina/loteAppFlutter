@@ -64,7 +64,8 @@ class MyTextFormField extends StatefulWidget {
   final double xlargeSide;
 
   final bool isRequired;
-  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize}) : super(key: key);
+  final bool autofocus;
+  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -196,6 +197,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
+      autofocus: widget.autofocus,
       style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
@@ -252,6 +254,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
+      autofocus: widget.autofocus,
       style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
@@ -308,6 +311,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
+      autofocus: widget.autofocus,
       style: TextStyle(color: widget.isDanger ? Colors.red : null, fontSize: widget.fontSize),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
@@ -414,6 +418,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
+      autofocus: widget.autofocus,
       style: TextStyle(color: widget.isDanger ? Colors.red : null),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
@@ -489,6 +494,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
+      autofocus: widget.autofocus,
       style: _formTextStyle(),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
@@ -508,7 +514,8 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
           // ),
           focusedBorder: new OutlineInputBorder(
             // borderRadius: new BorderRadius.circular(25.0),
-            borderSide: new BorderSide(width: 1.5, color: Colors.blue[900]),
+            // borderSide: new BorderSide(width: 1.5, color: Colors.blue[900]),
+            borderSide: new BorderSide(width: 1.5,),
             borderRadius: BorderRadius.all(Radius.circular(4))
           ),
           errorBorder: new OutlineInputBorder(
@@ -575,6 +582,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
                     controller: widget.controller,
                     maxLines: widget.maxLines,
                     keyboardType: (widget.maxLines != 1) ? TextInputType.multiline : null,
+      autofocus: widget.autofocus,
                     style: TextStyle(fontSize: 15),
                       decoration: InputDecoration(
                         labelText: widget.labelText,
@@ -730,7 +738,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
                 //   borderRadius: BorderRadius.circular(10),
                 //   border: Border.all(color: Colors.black, width: 1, style: BorderStyle.solid)
                 // ),
-                width: getWidth(width) - (widget.padding.left + widget.padding.right), //El padding se multiplica por dos ya que el padding dado es el mismo para la izquiera y derecha
+                width: getWidth(width), //El padding se multiplica por dos ya que el padding dado es el mismo para la izquiera y derecha
                 // height: 50,
                 child:_typeOfTextFormField(),
                 // Column(

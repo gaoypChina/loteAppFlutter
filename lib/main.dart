@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
             bodyText2: TextStyle(fontSize: 14.0),
           ),
           // backgroundColor: Colors.white,
-          primarySwatch: MyColors.lightBlue,
+          // primarySwatch: MyColors.lightBlue,
           accentColor: Colors.pink,
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,

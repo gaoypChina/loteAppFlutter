@@ -116,10 +116,10 @@ class _MyScrollbarState extends State<MyScrollbar> {
   Widget build(BuildContext context) {
     return PrimaryScrollController(
         controller: _controller,
-        child: CupertinoScrollbar(
+        child: Scrollbar(
         controller: _controller,
-          isAlwaysShown: true,
-          thickness: 5,
+          isAlwaysShown: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width),
+          thickness: 7,
           child: SingleChildScrollView(
             controller: _controller,
             scrollDirection: widget.direction,
