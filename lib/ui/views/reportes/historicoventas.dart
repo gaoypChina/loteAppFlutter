@@ -7,12 +7,23 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/historico.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/main.dart';
+import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
+import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysearch.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
 class HistoricoVentasScreen extends StatefulWidget {
@@ -27,10 +38,11 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   int sortType = sortName;
 
   MyDate _fecha = MyDate.hoy;
+  DateTimeRange _date;
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  StreamController<List> _streamControllerHistorio;
-  List listaDinamicaBancas = [];
+  StreamController<List<Historico>> _streamControllerHistorio;
+  List<Historico> listaData = [];
   Map<String, dynamic> mapBancas;
   var _fechaInicial = DateTime.now();
   var _fechaFinal = DateTime.now();
@@ -38,10 +50,11 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   List<String> listaOpciones = ["Todos", "Con ventas", "Con premios", "Con tickets pendientes", "Sin ventas"];
   bool _cargando = false;
   DateFormat _dateFormat;
-  List<int> listaLimite = [20, 50, 80, 120];
-  int _limite = 20;
+  List<int> listaLimite = [70, 120, 180, 240];
+  int _limite = 70;
   List<Moneda> listaMoneda = [];
   Moneda _moneda;
+  var _txtSearch = TextEditingController();
 
   @override
   initState(){
@@ -49,12 +62,13 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
     initializeDateFormatting();
     // _dateFormat = new DateFormat.yMMMMd(MyApp.myLocale.languageCode);
     _dateFormat = new DateFormat.yMMMMEEEEd(MyApp.myLocale.languageCode);
+    _date = MyDate.getTodayDateRange();
     super.initState();
     SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeRight,
         DeviceOrientation.landscapeLeft,
     ]);
-    _historicoVentas();
+    _historicoVentas(true);
   }
 
   @override
@@ -112,16 +126,19 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
 
 
 
-  _historicoVentas() async {
+  _historicoVentas([bool callFromInit = false]) async {
     try{
       // setState(() => _cargando = true);
-      _streamControllerHistorio.add(null);
+      if(!callFromInit)
+        _streamControllerHistorio.add(null);
+
       _filtrarFecha();
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, fechaDesde: _fechaInicial, fechaHasta: _fechaFinal, opcion: _selectedOption, moneda: _moneda, limite: _limite);
-      listaDinamicaBancas = List.from(parsed["bancas"]);
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, moneda: _moneda, limite: _limite);
+      listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
+      // listaData = List.from(parsed["bancas"]);
       if(listaMoneda.length == 0)
         listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
-      _streamControllerHistorio.add(listaDinamicaBancas);
+      _streamControllerHistorio.add(listaData);
 
       if(_moneda == null)
         setState(() => _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null);
@@ -136,16 +153,16 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   _filterTable(){
     switch(_selectedOption){
       case "Con ventas":
-        _streamControllerHistorio.add(listaDinamicaBancas.where((b) => Utils.toDouble(b["ventas"].toString()) > 0).toList());
+        _streamControllerHistorio.add(listaData.where((b) => b.ventas > 0).toList());
         break;
       case "Con premios":
-        _streamControllerHistorio.add(listaDinamicaBancas.where((b) => Utils.toDouble(b["premios"].toString()) > 0).toList());
+        _streamControllerHistorio.add(listaData.where((b) => b.premios > 0).toList());
         break;
       case "Con tickets pendientes":
-        _streamControllerHistorio.add(listaDinamicaBancas.where((b) => Utils.toDouble(b["pendientes"].toString()) > 0).toList());
+        _streamControllerHistorio.add(listaData.where((b) => b.pendientes > 0).toList());
         break;
       default:
-        _streamControllerHistorio.add(listaDinamicaBancas);
+        _streamControllerHistorio.add(listaData);
         break;
     }
   }
@@ -496,7 +513,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   
  }
 
- Map<String, dynamic> _calcularTotal(List lista){
+ Map<String, dynamic> _calcularTotal(List<Historico> lista){
   double ventas = 0;
   double comisiones = 0;
   double descuentos = 0;
@@ -505,18 +522,38 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   double balance = 0;
   double balanceActual = 0;
 
-  lista.forEach((b){
-    ventas += Utils.toDouble(b["ventas"].toString());
-    comisiones += Utils.toDouble(b["comisiones"].toString());
-    descuentos += Utils.toDouble(b["descuentos"].toString());
-    premios += Utils.toDouble(b["premios"].toString());
-    totalNeto += Utils.toDouble(b["totalNeto"].toString());
-    balance += Utils.toDouble(b["balance"].toString());
-    balanceActual += Utils.toDouble(b["balanceActual"].toString());
-  });
+  int pendientes = 0;
+  int ganadores = 0;
+  int perdedores = 0;
+  int tickets = 0;
+
+  for (var b in lista) {
+    ventas += b.ventas;
+    comisiones += b.comisiones;
+    descuentos += b.descuentos;
+    premios += b.premios;
+    totalNeto += b.totalNeto;
+    balance += b.balance;
+    balanceActual += b.balanceActual;
+    pendientes += b.pendientes;
+    ganadores += b.ganadores;
+    perdedores += b.perdedores;
+    tickets += b.tickets;
+  }
+
+  // lista.forEach((b){
+  //   ventas += b.ventas;
+  //   comisiones += b.comisiones;
+  //   descuentos += b.descuentos;
+  //   premios += b.premios;
+  //   totalNeto += b.totalNeto;
+  //   balance += b.balance;
+  //   balanceActual += b.balanceActual;
+  // });
 
   Map<String, dynamic> map = {"ventas" : ventas, "comisiones" : comisiones, "descuentos" : descuentos, 
-  "premios" : premios, "totalNeto" : totalNeto, "balance" : balance, "balanceActual" :  balanceActual};
+  "premios" : premios, "totalNeto" : totalNeto, "balance" : balance, "balanceActual" :  balanceActual, 
+  "pendientes" :  pendientes, "ganadores" :  ganadores, "perdedores" :  perdedores, "tickets" :  tickets, };
 
   return map;
  }
@@ -566,9 +603,10 @@ _getListaFiltro(){
   }
 
   _filtroScreen() async {
-    var fechaInicial = _fechaInicial;
-    var fechaFinal = _fechaFinal;
     var fecha = _fecha;
+    var fechaInicial = _date.start;
+    var fechaFinal = _date.end;
+    var dateRange = _date;
     var limite = _limite;
     var moneda = _moneda;
     var data = await showDialog(context: context, builder: (context){
@@ -577,8 +615,7 @@ _getListaFiltro(){
         if(sendData)
           map = {
             "fecha" : fecha,
-            "fechaInicial" : fechaInicial,
-            "fechaFinal" : fechaFinal,
+            "date" : dateRange,
             "limite" : limite,
             "moneda" : moneda,
           };
@@ -588,41 +625,50 @@ _getListaFiltro(){
   
       return StatefulBuilder(
         builder: (context, setState) {
+          dateChanged(date){
+            setState((){
+              dateRange = date;
+              fecha = MyDate.dateRangeToMyDate(date);
+            });
+          }
+
+
+ 
           _fechaChanged(MyDate tmpFecha){
-    var tmpFechaInicial;
-    var tmpFechaFinal;
-    switch (tmpFecha) {
-      case MyDate.hoy:
-        var fechas = MyDate.getHoy();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-        break;
-      case MyDate.ayer:
-        var fechas = MyDate.getAyer();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-        break;
-      case MyDate.estaSemana:
-        var fechas = MyDate.getEstaSemana();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-        break;
-       case MyDate.ultimos2Dias:
-        var fechas = MyDate.getUltimos2Dias();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-        break;
-      case MyDate.esteMes:
-        var fechas = MyDate.getEsteMes();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-        break;
-      default:
-        var fechas = MyDate.getSemanaPasada();
-        tmpFechaInicial = fechas[0];
-        tmpFechaFinal = fechas[1];
-     
-    }
+            var tmpFechaInicial;
+            var tmpFechaFinal;
+            switch (tmpFecha) {
+              case MyDate.hoy:
+                var fechas = MyDate.getHoy();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+                break;
+              case MyDate.ayer:
+                var fechas = MyDate.getAyer();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+                break;
+              case MyDate.estaSemana:
+                var fechas = MyDate.getEstaSemana();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+                break;
+              case MyDate.ultimos2Dias:
+                var fechas = MyDate.getUltimos2Dias();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+                break;
+              case MyDate.esteMes:
+                var fechas = MyDate.getEsteMes();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+                break;
+              default:
+                var fechas = MyDate.getSemanaPasada();
+                tmpFechaInicial = fechas[0];
+                tmpFechaFinal = fechas[1];
+            
+          }
 
     setState(() {
       fecha = tmpFecha;
@@ -651,28 +697,28 @@ _getListaFiltro(){
             }
 
           _fechaInicialChanged() async {
-            DateTime fecha = await showDatePicker(context: context, initialDate: fechaInicial, firstDate: DateTime(2000), lastDate: DateTime(2100));
+            DateTime fecha = await showDatePicker(context: context, initialDate: dateRange.start, firstDate: DateTime(2000), lastDate: DateTime(2100));
             if(fecha == null)
               return;
             
-            if(fechaInicial != fecha)
+            if(dateRange.start != fecha)
               setState(() {
-                fechaInicial = (fecha != null) ? fecha : fechaInicial;
-                _seleccionarFechaSencillaSiPertenece();
+                dateRange = (fecha != null) ? DateTimeRange(start: DateTime.parse("${fecha.year}-${Utils.toDosDigitos(fecha.month.toString())}-${Utils.toDosDigitos(fecha.day.toString())} 00:00"), end: dateRange.end) : fechaInicial;
+                // _seleccionarFechaSencillaSiPertenece();
               });
 
           }
 
           _fechaFinalChanged() async {
             
-            DateTime fecha = await showDatePicker(context: context, initialDate: fechaFinal, firstDate: DateTime(2000), lastDate: DateTime(2100));
+            DateTime fecha = await showDatePicker(context: context, initialDate: dateRange.end, firstDate: DateTime(2000), lastDate: DateTime(2100));
             if(fecha == null)
               return;
             
             if(fechaFinal != fecha)
               setState(() {
-                fechaFinal = (fecha != null) ? DateTime.parse("${fecha.year}-${Utils.toDosDigitos(fecha.month.toString())}-${Utils.toDosDigitos(fecha.day.toString())} 23:59:59") : fechaFinal;
-                _seleccionarFechaSencillaSiPertenece();
+                dateRange = (fecha != null) ? DateTimeRange(start: dateRange.start, end: DateTime.parse("${fecha.year}-${Utils.toDosDigitos(fecha.month.toString())}-${Utils.toDosDigitos(fecha.day.toString())} 23:59:59")) : fechaFinal;
+                // _seleccionarFechaSencillaSiPertenece();
               });
 
           }
@@ -689,46 +735,53 @@ _getListaFiltro(){
                   //       padding: const EdgeInsets.all(8.0),
                   //       child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
                   //     ),
-                      Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(Icons.date_range, size: 24, color: Colors.grey,),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: 
-                                  Row(
-                                    children: MyDate.listaFechaLarga.map((e) =>  Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: MyContainerButton(
-                                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                                        selected: e[0] == fecha, data: [e[0], e[1]], onTap: (data){
-                                          print("_filtroScreen fecha: ${e[1]}");
-                                          _fechaChanged(e[0]);
-                                      },),
-                                    )).toList(),
-                                  ),
+                      // Row(
+                      //     children: [
+                      //       Padding(
+                      //         padding: const EdgeInsets.all(8.0),
+                      //         child: Icon(Icons.date_range, size: 24, color: Colors.grey,),
+                      //       ),
+                      //       Expanded(
+                      //         child: Padding(
+                      //           padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      //           child: SingleChildScrollView(
+                      //             scrollDirection: Axis.horizontal,
+                      //             child: 
+                      //             Row(
+                      //               children: MyDate.listaFechaLarga.map((e) =>  Padding(
+                      //                 padding: const EdgeInsets.all(4.0),
+                      //                 child: MyContainerButton(
+                      //                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      //                   selected: e[0] == fecha, data: [e[0], e[1]], onTap: (data){
+                      //                     print("_filtroScreen fecha: ${e[1]}");
+                      //                     _fechaChanged(e[0]);
+                      //                 },),
+                      //               )).toList(),
+                      //             ),
                                   
-                                ),
-                              ),
-                            ),
-                          ],
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                        MyFilter(
+                          value: dateRange,
+                          showListNormalCortaLarga: 3,
+                          showDateFilterOnly: true,
+                          paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+                          onChanged: dateChanged,
                         ),
                         ListTile(
                           dense: true,
                           leading: SizedBox(),
                           onTap: _fechaInicialChanged,
-                          title: Text("${_dateFormat != null ? _dateFormat.format(fechaInicial) : DateFormat('EEE, MMM d yyy').format(fechaFinal)}"),
+                          title: Text("${_dateFormat != null ? _dateFormat.format(dateRange.start) : DateFormat('EEE, MMM d yyy').format(dateRange.start)}"),
                         ),
                         ListTile(
                           dense: true,
                           leading: SizedBox(),
                           onTap: _fechaFinalChanged,
-                          title: Text("${_dateFormat != null ? _dateFormat.format(fechaFinal) : DateFormat('EEE, MMM d yyy').format(fechaFinal)}"),
+                          title: Text("${_dateFormat != null ? _dateFormat.format(dateRange.end) : DateFormat('EEE, MMM d yyy').format(dateRange.end)}"),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
@@ -792,13 +845,15 @@ _getListaFiltro(){
     if(data == null)
       return;
 
-    if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
+    // if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
+    if(_date == data["date"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
       return;
 
     setState(() {
-      _fechaInicial = data["fechaInicial"];
-      _fechaFinal = data["fechaFinal"];
+      // _fechaInicial = data["fechaInicial"];
+      // _fechaFinal = data["fechaFinal"];
       _fecha = data["fecha"];
+      _date = data["date"];
       _limite = data["limite"];
       _moneda = data["moneda"];
 
@@ -872,50 +927,73 @@ _monedaChanged(moneda){
   }
 
 
-
-  Widget _getBodyWidget(List data) {
-    return Container(
-      child: HorizontalDataTable(
-        leftHandSideColumnWidth: 120,
-        rightHandSideColumnWidth: 820,
-        isFixedHeader: true,
-        headerWidgets: _getTitleWidget(),
-        leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
-        rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data),
-        itemCount: data.length + 1,
-        rowSeparatorWidget: const Divider(
-          color: Colors.transparent,
-          height: 0,
-          thickness: 0.0,
-        ),
-        leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
-        rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
-        verticalScrollbarStyle: const ScrollbarStyle(
-          isAlwaysShown: true,
-          thickness: 4.0,
-          radius: Radius.circular(5.0),
-        ),
-        horizontalScrollbarStyle: const ScrollbarStyle(
-          isAlwaysShown: true,
-          thickness: 4.0,
-          radius: Radius.circular(5.0),
-        ),
-        enablePullToRefresh: false,
-        refreshIndicator: const WaterDropHeader(),
-        refreshIndicatorHeight: 60,
-        // onRefresh: () async {
-        //   //Do sth
-        //   await Future.delayed(const Duration(milliseconds: 500));
-        //   _hdtRefreshController.refreshCompleted();
-        // },
-        // htdRefreshController: _hdtRefreshController,
-      ),
-      height: MediaQuery.of(context).size.height,
-    );
+   _search(String data){
+    print("SucursalesSCreen _search: $data");
+    if(data.isEmpty)
+      _streamControllerHistorio.add(listaData);
+    else
+      {
+        var element = listaData.where((element) => element.descripcion.toLowerCase().indexOf(data) != -1).toList();
+        print("RolesScreen _serach length: ${element.length}");
+        _streamControllerHistorio.add(listaData.where((element) => element.descripcion.toLowerCase().indexOf(data) != -1).toList());
+      }
   }
 
-  List<Widget> _getTitleWidget() {
-    return [
+  Widget _getBodyWidget(List<Historico> data, bool isSmallOrMedium) {
+    if(data == null)
+      return Padding(
+        padding: const EdgeInsets.only(top: 28.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    if(data.length == 0)
+      return Padding(
+        padding: const EdgeInsets.only(top: 28.0),
+        child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",)),
+      );
+    
+    return Container(
+          child: HorizontalDataTable(
+            leftHandSideColumnWidth: 120,
+            rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
+            isFixedHeader: true,
+            headerWidgets: _getTitleWidget(isSmallOrMedium),
+            leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
+            rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data, isSmallOrMedium),
+            itemCount: data.length + 1,
+            rowSeparatorWidget: const Divider(
+              color: Colors.transparent,
+              height: 0,
+              thickness: 0.0,
+            ),
+            leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
+            rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
+            verticalScrollbarStyle: const ScrollbarStyle(
+              isAlwaysShown: true,
+              thickness: 4.0,
+              radius: Radius.circular(5.0),
+            ),
+            horizontalScrollbarStyle: const ScrollbarStyle(
+              isAlwaysShown: true,
+              thickness: 4.0,
+              radius: Radius.circular(5.0),
+            ),
+            enablePullToRefresh: false,
+            refreshIndicator: const WaterDropHeader(),
+            refreshIndicatorHeight: 60,
+            // onRefresh: () async {
+            //   //Do sth
+            //   await Future.delayed(const Duration(milliseconds: 500));
+            //   _hdtRefreshController.refreshCompleted();
+            // },
+            // htdRefreshController: _hdtRefreshController,
+          ),
+          height: MediaQuery.of(context).size.height,
+        );
+      
+  }
+
+  List<Widget> _getTitleWidget([bool isSmallOrMedium = false]) {
+    // return [
       // TextButton(
       //   style: TextButton.styleFrom(
       //     padding: EdgeInsets.zero,
@@ -945,7 +1023,27 @@ _monedaChanged(moneda){
       //     // setState(() {});
       //   },
       // ),
+    // ]
+    return 
+    isSmallOrMedium
+    ?
+    [
       _getTitleItemWidget('Banca', 120),
+      _getTitleItemWidget('Ventas.', 120),
+      _getTitleItemWidget('Comis.', 120),
+      _getTitleItemWidget('Desc.', 100),
+      _getTitleItemWidget('Premios', 120),
+      _getTitleItemWidget('Neto', 120),
+      _getTitleItemWidget('Balance', 120),
+      _getTitleItemWidget('Balance mas ventas', 120),
+    ]
+    :
+    [
+      _getTitleItemWidget('Banca', 120),
+      _getTitleItemWidget('Pendientes', 120),
+      _getTitleItemWidget('Ganadores', 120),
+      _getTitleItemWidget('Perded.', 100),
+      _getTitleItemWidget('Tickets', 110),
       _getTitleItemWidget('Ventas.', 120),
       _getTitleItemWidget('Comis.', 120),
       _getTitleItemWidget('Desc.', 100),
@@ -967,10 +1065,10 @@ _monedaChanged(moneda){
     );
   }
 
-  Widget _generateFirstColumnRow(BuildContext context, int index, int length, List data) {
+  Widget _generateFirstColumnRow(BuildContext context, int index, int length, List<Historico> data) {
     if(index != length)
       return Container(
-        child: Center(child: Text(data[index]["descripcion"], style: TextStyle(fontWeight: FontWeight.bold)),),
+        child: Center(child: Text(data[index].descripcion, style: TextStyle(fontWeight: FontWeight.bold)),),
         width: 120,
         height: 30,
         padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -988,12 +1086,12 @@ _monedaChanged(moneda){
     );
   }
 
-  Widget _generateRightHandSideColumnRow(BuildContext context, int index, int length, List data) {
-    if(index != length)
-    return Row(
+  Widget _generateRightHandSideColumnRow(BuildContext context, int index, int length, List<Historico> data, bool isSmallOrMedium) {
+    if(index != length){
+      Row row = Row(
       children: <Widget>[
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["ventas"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].ventas)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -1001,7 +1099,7 @@ _monedaChanged(moneda){
           color: Utils.colorGreyFromPairIndex(idx: index),
         ),
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["comisiones"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].comisiones)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -1009,7 +1107,7 @@ _monedaChanged(moneda){
           color: Utils.colorGreyFromPairIndex(idx: index),
         ),
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["descuentos"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].descuentos)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 100,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -1017,7 +1115,7 @@ _monedaChanged(moneda){
           color: Utils.colorGreyFromPairIndex(idx: index),
         ),
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["premios"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].premios)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -1025,34 +1123,68 @@ _monedaChanged(moneda){
           color: Utils.colorGreyFromPairIndex(idx: index),
         ),
         Container(
-          color: (Utils.toDouble(data[index]["totalNeto"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
-          child: Center(child: Text("${Utils.toCurrency(data[index]["totalNeto"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          color: (Utils.toDouble(data[index].totalNeto.toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
+          child: Center(child: Text("${Utils.toCurrency(data[index].totalNeto)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
         ),
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["balance"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].balance)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
-          color: (Utils.toDouble(data[index]["balance"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
+          color: (Utils.toDouble(data[index].balance.toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
         ),
         Container(
-          child: Center(child: Text("${Utils.toCurrency(data[index]["balanceActual"])}", style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Center(child: Text("${Utils.toCurrency(data[index].balanceActual)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
-          color: (Utils.toDouble(data[index]["balanceActual"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+          color: (Utils.toDouble(data[index].balanceActual.toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
         ),
       ],
     );
+    
+      if(isSmallOrMedium == false){
+        row.children.insert(1, Container(
+          child: Center(child: Text("${Utils.toCurrency(data[index].pendientes)}", style: TextStyle(fontWeight: FontWeight.w600))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+        ));
+        row.children.insert(2, Container(
+          child: Center(child: Text("${Utils.toCurrency(data[index].ganadores)}", style: TextStyle(fontWeight: FontWeight.w600))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+        ));
+        row.children.insert(3, Container(
+          child: Center(child: Text("${Utils.toCurrency(data[index].perdedores)}", style: TextStyle(fontWeight: FontWeight.w600))),
+          width: 100,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+        ));
+        row.children.insert(4, Container(
+          child: Center(child: Text("${Utils.toCurrency(data[index].tickets)}", style: TextStyle(fontWeight: FontWeight.w600))),
+          width: 110,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+        ));
+      }
+
+      return row;
+    }
 
     var totales = _calcularTotal(data);
-    return Row(
+    Row row = Row(
       children: <Widget>[
         
         Container(
@@ -1065,7 +1197,7 @@ _monedaChanged(moneda){
         ),
         Container(
           child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["comisiones"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
-          width: 100,
+          width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
@@ -1073,7 +1205,7 @@ _monedaChanged(moneda){
         ),
         Container(
           child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["descuentos"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
-          width: 120,
+          width: 100,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
@@ -1088,7 +1220,7 @@ _monedaChanged(moneda){
           color: Utils.colorGreyFromPairIndex(idx: index),
         ),
         Container(
-          // color: (Utils.toDouble(listaDinamicaBancas[index]["totalNeto"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
+          // color: (Utils.toDouble(listaData[index]["totalNeto"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
           child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["totalNeto"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
           width: 120,
           height: 30,
@@ -1101,7 +1233,7 @@ _monedaChanged(moneda){
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
-          // color: (Utils.toDouble(listaDinamicaBancas[index]["balance"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
+          // color: (Utils.toDouble(listaData[index]["balance"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa,
         ),
         Container(
           child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["balanceActual"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
@@ -1109,10 +1241,45 @@ _monedaChanged(moneda){
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
           alignment: Alignment.centerLeft,
-          // color: (Utils.toDouble(listaDinamicaBancas[index]["balanceActual"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+          // color: (Utils.toDouble(listaData[index]["balanceActual"].toString()) >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
         ),
       ],
     );
+    if(isSmallOrMedium == false){
+      row.children.insert(1, Container(
+          child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["pendientes"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),);
+      row.children.insert(2, Container(
+          child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["ganadores"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),);
+      row.children.insert(2, Container(
+          child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["perdedores"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
+          width: 100,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),);
+      row.children.insert(2, Container(
+          child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["tickets"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
+          width: 110,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),);
+    }
+    return row;
   }
 
     _opcionChanged(opcion){
@@ -1194,11 +1361,239 @@ _monedaChanged(moneda){
   }
 
 
-  
+
+  _titleScreen(bool isSmallOrMedium){
+    return
+    isSmallOrMedium
+    ?
+    MyCollapseChanged(
+      actionWhenCollapse: MyCollapseAction.nothing,
+      child: Row(
+        children: [
+          Text("${_selectedOption != null ? _selectedOption : 'No hay opcion'}", style: TextStyle(color: Colors.black),),
+          Icon(Icons.arrow_drop_down, color: Colors.black54,)
+        ],
+      ),
+    )
+    :
+    "Historico ventas";
+  }
+
+  _dateChanged(date){
+    setState((){
+      _date = date;
+      _fecha = MyDate.dateRangeToMyDate(date);
+      _historicoVentas();
+    });
+  }
+
+
+  _subtitle(bool isSmallOrMedium){
+    return 
+    isSmallOrMedium == false
+    ?
+    "Maneje todas sus ventas y filtrelas por fecha"
+    :
+    MyCollapseChanged(
+      child: MyFilter(
+        filterTitle: "",
+        value: _date,
+        showListNormalCortaLarga: 3,
+        paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+        onChanged: _dateChanged,
+        onDeleteAll: (){
+          setState(() {
+            _limite = listaLimite[0];
+            _date = MyDate.getTodayDateRange();
+            _historicoVentas();
+          });
+        },
+        data: [
+          MyFilterData(text: "$_limite filas", defaultValue: 70, value: _limite, color: Colors.green, onChanged: (value){setState((){
+            _limite = listaLimite[0];
+            _historicoVentas();
+          });}),
+        ],
+      ),
+    );
+    // MyFilter(
+    //   showListNormalCortaLarga: 3,
+    //   leading: null,
+    //   paddingContainer: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+    //   contentPadding: EdgeInsets.symmetric(vertical: 2,),
+    //   value: _date,
+    //   onChanged: (value){
+    //     setState(() => _date = value);
+    //   },
+    //   onDeleteAll: (){},
+    // );
+    
+  }
+
+  _coinButton(bool isSmallOrMedium){
+    return
+    isSmallOrMedium
+    ?
+     MySliverButton(
+      title: TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))), 
+      onTap: _showBottomSheetMoneda
+    )
+    :
+    MySliverButton(
+      title: DropdownButtonHideUnderline(
+        child: DropdownButton(
+          isDense: true,
+          value: _moneda,
+          items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}", style: TextStyle(color: Utils.fromHex(e.color), fontWeight: FontWeight.w600),), value: e)).toList(),
+          onChanged: _monedaChanged,
+        ),
+      ),
+      onTap: (){}
+    );
+  }
+
+  _limiteButton(bool isSmallOrMedium){
+    return
+    MySliverButton(
+      title: DropdownButtonHideUnderline(
+        child: DropdownButton(
+          isDense: true,
+          value: _limite,
+          items: listaLimite.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
+          onChanged: (value){
+            setState(() {
+              _limite = value;
+              _historicoVentas();
+            });
+          },
+        ),
+      ),
+      showOnlyOnLarge: true,
+      onTap: (){}
+    );
+  }
+
+  _myWebFilterScreen(bool isSmallOrMedium){
+    return 
+    isSmallOrMedium
+    ?
+    SizedBox.shrink()
+    :
+    Padding(
+      padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 20),
+      child: Stack(
+        children: [
+          // _mydropdown(),
+          MyDropdown(
+            title: "Filtrar",
+            hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+            elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+            onTap: (value){
+              _opcionChanged(value);
+            },
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+              child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+            ))
+        ],
+      ),
+    );
+  }
+
+ 
 
 
   @override
   Widget build(BuildContext context) {
+    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: _titleScreen(isSmallOrMedium),
+          subtitle: _subtitle(isSmallOrMedium),
+          expandedHeight: isSmallOrMedium ? 110 : 85,
+          actions: [
+           _limiteButton(isSmallOrMedium),
+           _coinButton(isSmallOrMedium),
+           MySliverButton(title: "filtro", iconWhenSmallScreen: Icons.filter_alt_rounded, onTap: _filtroScreen, showOnlyOnSmall: true,),
+            // IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return MyDropdown(title: null, 
+                      hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                      onTap: (){
+                        showMyOverlayEntry(
+                          context: context,
+                          builder: (context, overlay){
+                            _cancel(){
+                              overlay.remove();
+                            }
+                            return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                          }
+                        );
+                      },
+                    );
+                  }
+                ),
+              ), 
+              onTap: (){}
+              ),
+            
+          ],
+        ),
+        sliver:  StreamBuilder<List<Historico>>(
+          stream: _streamControllerHistorio.stream,
+          builder: (context, snapshot) {
+            print("StreamBuilder<List<Historico>> connectionstate: ${snapshot.connectionState.toString()}");
+            if(snapshot.data == null && ( isSmallOrMedium || snapshot.connectionState == ConnectionState.waiting))
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
+
+            // if(snapshot.data == null && isSmallOrMedium == false && snapshot.connectionState == ConnectionState.active)
+            //   return SliverFillRemaining(child: Column(
+            //     children: [
+            //       _myWebFilterScreen(isSmallOrMedium),
+            //       Expanded(child: Center(child: CircularProgressIndicator(),)),
+            //     ],
+            //   ));
+
+            // if(snapshot.data.length == 0 && isSmallOrMedium == false && snapshot.connectionState == ConnectionState.active)
+            //   return SliverFillRemaining(child: Column(
+            //     children: [
+            //       _myWebFilterScreen(isSmallOrMedium),
+            //       Expanded(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),)),
+            //     ],
+            //   ));
+
+            if(snapshot.hasData && snapshot.data.length == 0 && isSmallOrMedium)
+              return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
+
+            return SliverList(delegate: SliverChildListDelegate([
+              MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
+              _myWebFilterScreen(isSmallOrMedium),
+              _getBodyWidget(snapshot.data, isSmallOrMedium)
+              // :
+              // MyTable(
+              //   columns: ["Banca", "Pendientes", "Ganadores", "Perdedores", "Tickets", "Ventas", "Comis.", "Desc.", "Premios", "Neto", "Balalance", "Balance + ventas"], 
+              //   rows: rows
+              // )
+            ]));
+
+            // return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
+          }
+        ),
+      )
+    );
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -1261,7 +1656,8 @@ _monedaChanged(moneda){
                           ],
                         )
                       :
-                      MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter, paddingContainer: EdgeInsets.symmetric(vertical: 8, horizontal: 15),),
+                      Text("Hola"),
+                      // MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter, paddingContainer: EdgeInsets.symmetric(vertical: 8, horizontal: 15),),
             Flexible(
               child: StreamBuilder<List>(
                     stream: _streamControllerHistorio.stream,
@@ -1269,10 +1665,10 @@ _monedaChanged(moneda){
                       if(snapshot.data == null)
                         return Center(child: CircularProgressIndicator(),);
 
-                      if(snapshot.hasData && snapshot.data.length == 0 && listaDinamicaBancas.length > 0)
+                      if(snapshot.hasData && snapshot.data.length == 0 && listaData.length > 0)
                         return Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),);
 
-                      return _getBodyWidget(snapshot.data);
+                      return _getBodyWidget(snapshot.data, false);
 
                       // return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
                     }
@@ -1366,7 +1762,7 @@ _monedaChanged(moneda){
         //         if(snapshot.data == null)
         //           return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
 
-        //         if(snapshot.hasData && snapshot.data.length == 0 && listaDinamicaBancas.length > 0)
+        //         if(snapshot.hasData && snapshot.data.length == 0 && listaData.length > 0)
         //           return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
 
         //         return SliverList(delegate: SliverChildListDelegate([

@@ -29,8 +29,8 @@ class Pagoscombinacion{
 
    DateTime created_at;
 
-  Pagoscombinacion({this.id, this.idBanca, this.idLoteria, this.loteria, this.primera, this.segunda, this.tercera, this.primeraSegunda, this.primeraTercera, 
-  this.segundaTercera, this.tresNumeros, this.dosNumeros, this.primerPago, this.pick3TodosEnSecuencia, this.pick33Way, this.pick36Way, this.pick4TodosEnSecuencia, this.pick44Way, this.pick46Way, this.pick412Way, this.pick424Way, this.created_at});
+  Pagoscombinacion({this.id, this.idBanca, this.idLoteria, this.loteria, this.primera = 0, this.segunda = 0, this.tercera = 0, this.primeraSegunda = 0, this.primeraTercera = 0, 
+  this.segundaTercera = 0, this.tresNumeros = 0, this.dosNumeros = 0, this.primerPago = 0, this.pick3TodosEnSecuencia = 0, this.pick33Way = 0, this.pick36Way = 0, this.pick4TodosEnSecuencia = 0, this.pick44Way = 0, this.pick46Way = 0, this.pick412Way = 0, this.pick424Way = 0, this.created_at});
 
 Pagoscombinacion.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,

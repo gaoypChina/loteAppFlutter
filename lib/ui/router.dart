@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'package:loterias/ui/login/login.dart';
+import 'package:loterias/ui/screensizetest.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
@@ -140,13 +141,17 @@ class MyRouter {
           return MaterialPageRoute(
             builder: (_)=> LoteriasAddScreen(loteria: settings.arguments,)
           ) ;
-           case '/bancas' :
+        case '/bancas' :
           return MaterialPageRoute(
             builder: (_)=> BancasScreen()
           ) ;
         case '/bancas/agregar' :
           return MaterialPageRoute(
             builder: (_)=> BancasAddScreen(data: settings.arguments,)
+          ) ;
+           case '/screensizetest' :
+          return MaterialPageRoute(
+            builder: (_)=> ScreenSizeTest()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

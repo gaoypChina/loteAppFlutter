@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/comision.dart';
@@ -33,6 +31,7 @@ import 'package:loterias/ui/widgets/mytabbar.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/mytogglebuttons.dart';
+import 'package:loterias/ui/views/bancas/gastosscreen.dart';
 import 'package:rxdart/rxdart.dart';
 
 
@@ -116,7 +115,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   List<Frecuencia> listaFrecuencia;
   List<Dia> listaDia;
   List<Dia> dias;
-  var _tabController;
+  TabController _tabController;
   Usuario _usuario;
   Moneda _moneda;
   Grupo _grupo;
@@ -277,6 +276,45 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
   }
 
+  _pagosCombinacionesFieldsAreEmpty(){
+    for (var pago in _pagosCombinaciones) {
+      if(_existeSorteoPagosCombinacion("directo", pago.idLoteria)){
+        if((pago.primera > 0 && pago.segunda > 0 && pago.tercera > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("pale", pago.idLoteria)){
+        if((pago.primeraSegunda > 0 && pago.primeraTercera > 0 && pago.segundaTercera > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("tripleta", pago.idLoteria)){
+        if((pago.tresNumeros > 0 && pago.dosNumeros > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("super pale", pago.idLoteria)){
+        if((pago.primerPago > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("pick 3 box", pago.idLoteria)){
+        if((pago.pick33Way > 0 && pago.pick36Way > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("pick 3 straight", pago.idLoteria)){
+        if((pago.pick3TodosEnSecuencia > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("pick 4 box", pago.idLoteria)){
+        if((pago.pick44Way > 0 && pago.pick46Way > 0 && pago.pick412Way > 0 && pago.pick424Way > 0) == false)
+          return true;
+      }
+      if(_existeSorteoPagosCombinacion("pick 4 straight", pago.idLoteria)){
+        if((pago.pick4TodosEnSecuencia > 0) == false)
+          return true;
+      }
+    }
+
+    return false;
+  }
+
   _guardar() async {
       try {
         if(!_formKey.currentState.validate())
@@ -292,6 +330,26 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
           return;
         }
 
+        if(_txtLimiteVentasPorDia.text.isEmpty || _txtBalance.text.isEmpty || _txtMinutosParaCancelarTicket.text.isEmpty){
+          if(_tabController.index != 1)
+            setState(() {
+              _tabController.index = 1;
+
+              //I use a future.delayed with 0.5 seconds to wait until the tabbarview change and load the tab and after that time I validate the form again
+              Future.delayed(Duration(milliseconds: 500), ()  {
+                _formKey.currentState.validate();
+                print('Large latte');
+
+              });
+            });
+          return;
+        }
+
+        if(_pagosCombinacionesFieldsAreEmpty()){
+          Utils.showAlertDialog(title: "Error", content: "Hay campos vacios en la venta premios", context: context);
+          return;
+        }
+
         _data.descripcion = _txtDescripcion.text;
         _data.codigo = _txtCodigo.text;
         _data.dueno = _txtDueno.text;
@@ -300,6 +358,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _data.usuario = _usuario;
         _data.monedaObject = _moneda;
         _data.grupo = _grupo;
+
 
         _data.limiteVenta = Utils.toDouble(_txtLimiteVentasPorDia.text);
         _data.balanceDesactivacion = Utils.toDouble(_txtBalance.text);
@@ -331,9 +390,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
 
     _back(Map<String, dynamic> parsed){
-      Loteria data;
+      Banca data;
       if(parsed["data"] != null)
-        data = Loteria.fromMap(parsed["data"]);
+        data = Banca.fromMap(parsed["data"]);
 
       Navigator.pop(context, data);
     }
@@ -910,7 +969,6 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               title: !isSmallOrMedium ? "Quiniela" : "",
                               hint: "Quiniela",
                               medium: 1,
-                              isRequired: true,
                               onChanged: _comisionQuinielaChanged,
                             ),
                           ),
@@ -1313,15 +1371,25 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       }
     }
 
-    _existeSorteoPagosCombinacion(String sorteo){
-      if(selectedLoteriaPagosCombinacion == null)
-        return false;
-      if(selectedLoteriaPagosCombinacion.id == 0)
-        return true;
+    _existeSorteoPagosCombinacion(String sorteo,[int idLoteria]){
+      if(idLoteria == null){
+        if(selectedLoteriaPagosCombinacion == null)
+          return false;
+        if(selectedLoteriaPagosCombinacion.id == 0)
+          return true;
 
-        print("_existeSorteoPagosCombinacion: ${selectedLoteriaPagosCombinacion.descripcion} - ${selectedLoteriaPagosCombinacion.sorteos.length}");
+          print("_existeSorteoPagosCombinacion: ${selectedLoteriaPagosCombinacion.descripcion} - ${selectedLoteriaPagosCombinacion.sorteos.length}");
 
-      return selectedLoteriaPagosCombinacion.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
+        return selectedLoteriaPagosCombinacion.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
+      }else{
+        var loteria = _loteriasPagosCombinaciones.firstWhere((element) => element.id == idLoteria);
+        if(loteria.id == 0)
+          return false;
+
+          print("_existeSorteoPagosCombinacion idLoteria != null: ${loteria.descripcion} - ${loteria.sorteos.length}");
+
+        return loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
+      }
     }
 
     _pagosCombinacionesScreen(bool isSmallOrMedium){
@@ -1794,212 +1862,135 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
     
 
-    _showDialogGasto({Gasto gasto}){
-      Frecuencia _frecuencia = gasto != null ? listaFrecuencia.firstWhere((element) => element.id == gasto.frecuencia.id, orElse: () => null) : listaFrecuencia.firstWhere((element) => element.descripcion == "Semanal", orElse: () => null);
+    _showDialogGasto({Gasto gasto}) async {
+     
+
+      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
+        var gastoReturned = await Navigator.push(context, MaterialPageRoute(builder: (context) => GastosScreen(listaDia: listaDia, listaFrecuencia: listaFrecuencia, gasto: gasto,)));
+        if(gastoReturned == null)
+          return;
+
+          var data = _gastos.firstWhere((element) => element == gastoReturned, orElse: () => null);
+          if(data == null)
+            _gastos.add(gastoReturned);
+
+          //   if(idx == -1)
+          //   _gastos.add(gastoReturned);
+          // else
+          //   _gastos[idx] = gastoReturned;
+
+        _streamControllerGastos.add(_gastos);
+      }
+      else{
+         Frecuencia _frecuencia = gasto != null ? listaFrecuencia.firstWhere((element) => element.id == gasto.frecuencia.id, orElse: () => null) : listaFrecuencia.firstWhere((element) => element.descripcion == "Semanal", orElse: () => null);
       Dia _dia = gasto != null ? listaDia.firstWhere((element) => element.id == gasto.dia.id, orElse: () => null) : listaDia[0];
       String title = "${gasto != null ? 'Editar' : 'Agregar'} gasto";
       _txtDescripcionGasto.text = gasto != null ? gasto.descripcion : '';
       _txtMontoGasto.text = gasto != null ? gasto.monto.toString() : '';
 
-      guardar(){
-      if(_formKeyGasto.currentState.validate() == false)
-        return;
-
-        gasto.descripcion = _txtDescripcionGasto.text;
-        gasto.monto = Utils.toDouble(_txtMontoGasto.text);
-        gasto.frecuencia = _frecuencia;
-        gasto.dia = _dia;
-        var data = _gastos.firstWhere((element) => element == gasto, orElse: () => null);
-        if(data == null)
-          _gastos.add(gasto);
-
-        _streamControllerGastos.add(_gastos);
-        Navigator.pop(context);
-    }
-
 
       if(gasto == null)
         gasto = Gasto();
 
-      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
-        showModalBottomSheet(
-          
+        showDialog(
           context: context, 
-          isScrollControlled: true,
           builder: (context){
             return StatefulBuilder(
               builder: (context, setState) {
-                return Container(
-                  color: Colors.white,
-                  child: MySliver(
-                    sliverAppBar: MySliverAppBar(
-                      actions: [
-                        MySliverButton(title: "Guardar", onTap: guardar, color: Colors.pink,)
+                
+                
+                guardar(){
+                  if(_formKeyGasto.currentState.validate() == false)
+                    return;
+
+                    gasto.descripcion = _txtDescripcionGasto.text;
+                    gasto.monto = Utils.toDouble(_txtMontoGasto.text);
+                    gasto.frecuencia = _frecuencia;
+                    gasto.dia = _dia;
+                    var data = _gastos.firstWhere((element) => element == gasto, orElse: () => null);
+                    if(data == null)
+                      _gastos.add(gasto);
+
+                    _streamControllerGastos.add(_gastos);
+                    Navigator.pop(context);
+                }
+
+                return MyAlertDialog(
+                  title: "$title", 
+                  description: "Los gastos automaticos se descontaran cada vez que se cumpla el plazo seleccionado.",
+                  xlarge: 3,
+                  content: Form(
+                    key: _formKeyGasto,
+                    child: Wrap(
+                      children: [
+                        Center(
+                          child: MyToggleButtons(
+                            items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
+                            selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
+                            onTap: (data){
+                              setState(() => _frecuencia = data);
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: _frecuencia != null,
+                          child: Center(child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("${_frecuencia != null ? _frecuencia.observacion : ''}", style: TextStyle(fontSize: 12.5)),
+                          )),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: MyTextFormField(
+                            type: MyType.border,
+                            controller: _txtDescripcionGasto,
+                            title: "Descripcion *",
+                            isRequired: true,
+                            autofocus: true,
+                            medium: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: MyTextFormField(
+                            type: MyType.border,
+                            controller: _txtMontoGasto,
+                            title: "Monto *",
+                            isRequired: true,
+                            isMoneyFormat: true,
+                            medium: 1,
+                          ),
+                        ),
+                        AnimatedSwitcher(
+                          duration: Duration(microseconds: 300),
+                          child: 
+                          (_frecuencia != null ? _frecuencia.descripcion == "Semanal" : false) == false
+                          ?
+                          SizedBox.shrink()
+                          :
+                          MyDropdownButton(
+                            title: "Dias *",
+                            type: MyDropdownType.border,
+                            padding: EdgeInsets.only(right: 12.0),
+                            medium: 1,
+                            initialValue: _dia,
+                            value: _dia,
+                            items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
+                            onChanged: (data){
+                              setState(() => _dia = data);
+                            },
+                          ),
+                        ),
                       ],
                     ),
-                    sliver: SliverList(delegate: SliverChildListDelegate([
-                      Form(
-                        key: _formKeyGasto,
-                        child: Wrap(
-                          children: [
-                            Center(
-                              child: MyToggleButtons(
-                                items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
-                                selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
-                                onTap: (data){
-                                  setState(() => _frecuencia = data);
-                                },
-                              ),
-                            ),
-                            Visibility(
-                              visible: _frecuencia != null,
-                              child: Center(child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text("${_frecuencia != null ? _frecuencia.observacion : ''}", style: TextStyle(fontSize: 12.5)),
-                              )),
-                            ),
-                            MyTextFormField(
-                              type: MyType.noBorder,
-                              leading: Icon(Icons.description),
-                              controller: _txtDescripcionGasto,
-                              hint: "Descripcion *",
-                              isRequired: true,
-                              autofocus: true,
-                              medium: 1,
-                            ),
-                            MyDivider(showOnlyOnSmall: true,),
-                            MyTextFormField(
-                              type: MyType.noBorder,
-                              leading: Icon(Icons.attach_money),
-                              controller: _txtMontoGasto,
-                              hint: "Monto *",
-                              isRequired: true,
-                              isMoneyFormat: true,
-                              medium: 1,
-                            ),
-                            MyDivider(showOnlyOnSmall: true,),
-                            AnimatedSwitcher(
-                              duration: Duration(microseconds: 300),
-                              child: 
-                              (_frecuencia != null ? _frecuencia.descripcion == "Semanal" : false) == false
-                              ?
-                              SizedBox.shrink()
-                              :
-                              Column(
-                                children: [
-                                  MyDropdownButton(
-                                    hint: "Dias *",
-                                    type: MyDropdownType.noBorder,
-                                    leading: Icon(Icons.timer),
-
-                                    padding: EdgeInsets.zero,
-                                    medium: 1,
-                                    initialValue: _dia,
-                                    value: _dia,
-                                    items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
-                                    onChanged: (data){
-                                      setState(() => _dia = data);
-                                    },
-                                  ),
-                                  MyDivider(showOnlyOnSmall: true,),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ), 
-                     
-                    ])),
-                  ),
+                  ), 
+                  okFunction: guardar
                 );
               }
             );
           }
         );
       }
-      else
-      showDialog(
-        context: context, 
-        builder: (context){
-          return StatefulBuilder(
-            builder: (context, setState) {
-              
-
-              return MyAlertDialog(
-                title: "$title", 
-                description: "Los gastos automaticos se descontaran cada vez que se cumpla el plazo seleccionado.",
-                xlarge: 3,
-                content: Form(
-                  key: _formKeyGasto,
-                  child: Wrap(
-                    children: [
-                      Center(
-                        child: MyToggleButtons(
-                          items: listaFrecuencia.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
-                          selectedItems: _frecuencia != null ? [MyToggleData(value: _frecuencia, child:"${_frecuencia.descripcion}" )] : [],
-                          onTap: (data){
-                            setState(() => _frecuencia = data);
-                          },
-                        ),
-                      ),
-                      Visibility(
-                        visible: _frecuencia != null,
-                        child: Center(child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text("${_frecuencia != null ? _frecuencia.observacion : ''}", style: TextStyle(fontSize: 12.5)),
-                        )),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: MyTextFormField(
-                          type: MyType.border,
-                          controller: _txtDescripcionGasto,
-                          title: "Descripcion *",
-                          isRequired: true,
-                          autofocus: true,
-                          medium: 1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: MyTextFormField(
-                          type: MyType.border,
-                          controller: _txtMontoGasto,
-                          title: "Monto *",
-                          isRequired: true,
-                          isMoneyFormat: true,
-                          medium: 1,
-                        ),
-                      ),
-                      AnimatedSwitcher(
-                        duration: Duration(microseconds: 300),
-                        child: 
-                        (_frecuencia != null ? _frecuencia.descripcion == "Semanal" : false) == false
-                        ?
-                        SizedBox.shrink()
-                        :
-                        MyDropdownButton(
-                          title: "Dias *",
-                          type: MyDropdownType.border,
-                          padding: EdgeInsets.only(right: 12.0),
-                          medium: 1,
-                          initialValue: _dia,
-                          value: _dia,
-                          items: listaDia.map((e) => [e, "${e.descripcion}"]).toList(),
-                          onChanged: (data){
-                            setState(() => _dia = data);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ), 
-                okFunction: guardar
-              );
-            }
-          );
-        }
-      );
     }
 
     _showDialogEliminarGasto(Gasto gasto){

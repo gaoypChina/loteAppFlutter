@@ -100,9 +100,9 @@ class Banca {
             return [];
         }
 
-        static List<Pagoscombinacion> gastosToMap(List<dynamic> gastos){
+        static List<Gasto> gastosToMap(List<dynamic> gastos){
           if(gastos != null && gastos.length > 0)
-            return gastos.map((data) => Pagoscombinacion.fromMap(data)).toList();
+            return gastos.map((data) => Gasto.fromMap(data)).toList();
           else
             return [];
         }
@@ -157,6 +157,7 @@ class Banca {
       "piepagina4": piepagina4,
       "monedaObject": monedaObject != null ? monedaObject.toJson() : null,
       "usuario": usuario != null ? usuario.toJson() : null,
+      "grupo": grupo != null ? grupo.toJson() : null,
       "loterias" : Loteria.loteriasToJson(loterias),
       "comisiones" : Comision.comisionesToJson(comisiones),
       "pagosCombinaciones" : Pagoscombinacion.pagosCombinacionesToJson(pagosCombinaciones),

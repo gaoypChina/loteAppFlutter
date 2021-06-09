@@ -13,9 +13,18 @@ import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/main.dart';
+import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
+import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class VentasScreen extends StatefulWidget {
   @override
@@ -24,6 +33,8 @@ class VentasScreen extends StatefulWidget {
 
 class _VentasScreenState extends State<VentasScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+   DateTimeRange _date;
+   var _fechaHoy = DateTime.now();
   StreamController<List<Banca>> _streamControllerBancas;
   StreamController<Map<String, dynamic>> _streamControllerTablas;
   List<Banca> listaBanca = List();
@@ -48,6 +59,7 @@ class _VentasScreenState extends State<VentasScreen> {
     initializeDateFormatting();
     // _dateFormat = new DateFormat.yMMMMd(MyApp.myLocale.languageCode);
     _dateFormat = new DateFormat.yMMMMEEEEd(MyApp.myLocale.languageCode);
+    _date = MyDate.getTodayDateRange();
     _confirmarTienePermiso();
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTablas = BehaviorSubject();
@@ -117,7 +129,9 @@ class _VentasScreenState extends State<VentasScreen> {
       // setState(() => _cargando = true);
       _streamControllerTablas.add(null);
       _filtrarFecha();
-      datos = await ReporteService.ventas(fecha: _fechaInicial, fechaFinal: _fechaFinal, idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      int idBanca = await getIdBanca();
+      print("_ventas getIdBanca: $idBanca");
+      datos = await ReporteService.ventas(fecha: _date.start, fechaFinal: _date.end, idBanca: idBanca, context: context,);
       print("_ventas fechaInicial: ${datos["fechaInicial"]}");
       if(_onCreate){
         listaBanca = datos["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
@@ -128,6 +142,7 @@ class _VentasScreenState extends State<VentasScreen> {
       _streamControllerTablas.add(datos);
       // setState(() => _cargando = false);
     } on Exception catch(e){
+      _streamControllerTablas.add({});
       // setState(() => _cargando = false);
     }
   }
@@ -158,7 +173,12 @@ class _VentasScreenState extends State<VentasScreen> {
     var b = listaBanca.firstWhere((b) => b.id == banca.id);
     setState(() => _banca = (b != null) ? b : listaBanca.length > 0 ? listaBanca[0] : null);
   }else{
-    setState(() =>_banca = null);
+    if(_tienePermiso){
+      if(listaBanca.length > 0)
+        setState(() => _banca = listaBanca[0]);
+    }
+    else
+      setState(() =>_banca = null);
   }
 
   // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
@@ -1006,10 +1026,11 @@ Widget _buildTableTicketsGanadores(List map){
   }
 
   _filtroScreen() async {
-    var fechaInicial = _fechaInicial;
-    var fechaFinal = _fechaFinal;
+    var fechaInicial = _date.start;
+    var fechaFinal = _date.end;
     var fecha = _fecha;
-    var data = await showDialog(context: context, builder: (context){
+    var data = await showDialog(context: context, 
+    builder: (context){
       _back({sendData = false}){
         var map;
         if(sendData)
@@ -1124,34 +1145,47 @@ Widget _buildTableTicketsGanadores(List map){
                   //       padding: const EdgeInsets.all(8.0),
                   //       child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
                   //     ),
-                      Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Icon(Icons.date_range, size: 24, color: Colors.grey,),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: 
-                                  Row(
-                                    children: MyDate.listaFechaLarga.map((e) =>  Padding(
-                                      padding: const EdgeInsets.all(4.0),
-                                      child: MyContainerButton(
-                                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                                        selected: e[0] == fecha, data: [e[0], e[1]], onTap: (data){
-                                          print("_filtroScreen fecha: ${e[1]}");
-                                          _fechaChanged(e[0]);
-                                      },),
-                                    )).toList(),
-                                  ),
+                      // Row(
+                      //     children: [
+                      //       Padding(
+                      //         padding: const EdgeInsets.all(8.0),
+                      //         child: Icon(Icons.date_range, size: 24, color: Colors.grey,),
+                      //       ),
+                      //       Expanded(
+                      //         child: Padding(
+                      //           padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      //           child: SingleChildScrollView(
+                      //             scrollDirection: Axis.horizontal,
+                      //             child: 
+                      //             Row(
+                      //               children: MyDate.listaFechaLarga.map((e) =>  Padding(
+                      //                 padding: const EdgeInsets.all(4.0),
+                      //                 child: MyContainerButton(
+                      //                   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      //                   selected: e[0] == fecha, data: [e[0], e[1]], onTap: (data){
+                      //                     print("_filtroScreen fecha: ${e[1]}");
+                      //                     _fechaChanged(e[0]);
+                      //                 },),
+                      //               )).toList(),
+                      //             ),
                                   
-                                ),
-                              ),
-                            ),
-                          ],
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      
+                        MyFilter(
+                          value: _date,
+                          paddingContainer: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                          onChanged: (date){
+                            setState((){
+                              _date = date;
+                              _fecha = MyDate.dateRangeToMyDate(date);
+                              fechaInicial = _date.start;
+                              fechaFinal = _date.end;
+                            });
+                          },
                         ),
                         ListTile(
                           dense: true,
@@ -1184,8 +1218,7 @@ Widget _buildTableTicketsGanadores(List map){
       return;
 
     setState(() {
-      _fechaInicial = data["fechaInicial"];
-      _fechaFinal = data["fechaFinal"];
+      _date = DateTimeRange(start: data["fechaInicial"], end: data["fechaFinal"]);
       _fecha = data["fecha"];
 
       _ventas();
@@ -1325,9 +1358,297 @@ Widget _buildTableTicketsGanadores(List map){
     });
   }
 
+  _titleScreen(isSmallOrMedium){
+    Widget titleWidget = StreamBuilder(
+      stream: _streamControllerBancas.stream,
+      builder: (context, snapshot){
+        return GestureDetector(
+          onTap: _showBottomSheetBanca,
+          child: Row(
+            children: [
+              Text("${_banca != null ? _banca.descripcion : 'No hay banca'}", style: TextStyle(color: Colors.black),),
+              Visibility(visible: _tienePermiso, child: Icon(Icons.arrow_drop_down, color: Colors.black54,))
+            ],
+          ),
+        );
+      },
+    );
+
+    if(isSmallOrMedium)
+      titleWidget = MyCollapseChanged(child: titleWidget, actionWhenCollapse: MyCollapseAction.nothing,);
+
+    return titleWidget;
+  }
+
+  _subtitleOld(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+        // ),
+        _getListaFiltro().length == 0
+        ?
+        Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+                child: Icon(Icons.date_range, color: Colors.grey,),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: 
+                    Row(
+                      children: MyDate.listaFechaLarga.map((e) =>  Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: MyContainerButton(
+                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                          selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+                          setState((){
+                            print("_build fecha: ${e[1]}");
+                            _fecha = e[0];
+                            _ventas();
+                          });
+                        },),
+                      )).toList(),
+                    )
+                  ),
+                ),
+              ),
+            ],
+          )
+        :
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text("Hola")
+          // MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+        ),
+      ],
+    );
+  }
+
+  _dateChanged(date){
+    setState((){
+      _date = date;
+      _fecha = MyDate.dateRangeToMyDate(date);
+      _ventas();
+    });
+  }
+
+
+  _subtitle(bool isSmallOrMedium){
+    return 
+    isSmallOrMedium == false
+    ?
+    "Maneje todas sus ventas y filtrelas por fecha"
+    :
+    MyCollapseChanged(
+      child: MyFilter(
+        value: _date,
+        paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+        onChanged: _dateChanged,
+      ),
+    );
+    // MyFilter(
+    //   showListNormalCortaLarga: 3,
+    //   leading: null,
+    //   paddingContainer: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+    //   contentPadding: EdgeInsets.symmetric(vertical: 2,),
+    //   value: _date,
+    //   onChanged: (value){
+    //     setState(() => _date = value);
+    //   },
+    //   onDeleteAll: (){},
+    // );
+    Container(
+      child: 
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+        // ),
+        _getListaFiltro().length == 0
+        ?
+        Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+                child: Icon(Icons.date_range, color: Colors.grey,),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: 
+                    Row(
+                      children: MyDate.listaFechaLarga.map((e) =>  Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: MyContainerButton(
+                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                          selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+                          setState((){
+                            print("_build fecha: ${e[1]}");
+                            _fecha = e[0];
+                            _ventas();
+                          });
+                        },),
+                      )).toList(),
+                    )
+                  ),
+                ),
+              ),
+            ],
+          )
+        :
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child:Text("h")
+          //  MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+        ),
+      
+    );
+  }
+
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      showDrawerOnSmallOrMedium: false,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          expandedHeight: isSmallOrMedium ? 110 : 85,
+          title: _titleScreen(isSmallOrMedium),
+          subtitle: _subtitle(isSmallOrMedium),
+          floating: isSmallOrMedium,
+          actions: [
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return MyDropdown(title: null, 
+                      hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                      onTap: (){
+                        showMyOverlayEntry(
+                          context: context,
+                          builder: (context, overlay){
+                            _cancel(){
+                              overlay.remove();
+                            }
+                            return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                          }
+                        );
+                      },
+                    );
+                    MyButton(
+                      padding: EdgeInsets.symmetric(vertical: 9, horizontal: 15),
+                      type: MyButtonType.listTile,
+                      leading: Icon(Icons.date_range_outlined, size: 20),
+                      trailing: Icon(Icons.arrow_drop_down, size: 20),
+                      title: "${MyDate.dateRangeToNameOrString(_date)}",
+                      function: (){
+                        showMyOverlayEntry(
+                          context: context,
+                          builder: (context, overlay){
+                            _cancel(){
+                              overlay.remove();
+                            }
+                            return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){setState(() => _date = date); overlay.remove();},);
+                          }
+                        );
+                        // DateRangePickerDialog(firstDate: firstDate, lastDate: lastDate)
+                        // showDateRangePicker(
+                        //   initialEntryMode: DatePickerEntryMode.calendar,
+                        //   context: context, 
+                        //   firstDate: DateTime.now().subtract(Duration(days: 365 * 5)), 
+                        //   lastDate: DateTime.now().add(Duration(days: 365 * 2)),
+                        //   builder: (context, widget){
+                        //     return Material(
+                        //       child: Container(
+                        //         width: 100,
+                        //         child: Row(
+                        //           children: [
+                        //             Column(
+                        //               children: MyDate.listaFechaLarga.map((e) => Text("${e[1]}")).toList(),
+                        //             ),
+                        //             Expanded(child: widget,),
+                        //           ],
+                        //         )
+                        //       ),
+                        //     );
+                        //   }
+                        // );
+                      
+                      },
+                    );
+                  }
+                ),
+              ), 
+              onTap: (){}
+              ),
+            MySliverButton(title: null, onTap: _filtroScreen, iconWhenSmallScreen: Icons.date_range, showOnlyOnSmall: true),
+            MySliverButton(title: null, onTap: _showDialogImprimir, iconWhenSmallScreen: Icons.print, showOnlyOnSmall: true,),
+          ],
+        ), 
+        sliver: StreamBuilder<Map<String, dynamic>>(
+            stream: _streamControllerTablas.stream,
+            builder: (context, snapshot) {
+              if(snapshot.data == null)
+                return SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+
+              if(snapshot.data.isEmpty)
+                return SliverFillRemaining(
+                  child: Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.error,)),
+                );
+              
+              return SliverList(delegate: SliverChildListDelegate([
+               
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _tablaPrincipal(snapshot.data),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableTotalesPorLoteria((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Numeros ganadores", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableNumerosGanadores((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 15),
+                          child: Center(child: Text("Tickets ganadores", style: TextStyle(fontSize: 25),),),
+                        ),
+                        _buildTableTicketsGanadores((snapshot.data["ticketsGanadores"] != null) ? List.from(snapshot.data["ticketsGanadores"]) : List()),
+                        
+                   
+                    
+                  
+              ]));
+            }
+          )
+          
+      )
+    );
+    Scaffold(
       // appBar: AppBar(
       //   title: Text("Ventas", style: TextStyle(color: Colors.black),),
       //   leading: BackButton(
@@ -1364,20 +1685,7 @@ Widget _buildTableTicketsGanadores(List map){
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-            title: StreamBuilder(
-              stream: _streamControllerBancas.stream,
-              builder: (context, snapshot){
-                return GestureDetector(
-                  onTap: _showBottomSheetBanca,
-                  child: Row(
-                    children: [
-                      Text("${_banca != null ? _banca.descripcion : 'No hay banca'}", style: TextStyle(color: Colors.black),),
-                      Visibility(visible: _tienePermiso, child: Icon(Icons.arrow_drop_down, color: Colors.black54,))
-                    ],
-                  ),
-                );
-              },
-            ),
+            title: _titleScreen(isSmallOrMedium),
             leading: BackButton(
               color: Utils.colorPrimary,
             ),
@@ -1430,53 +1738,6 @@ Widget _buildTableTicketsGanadores(List map){
                                   },),
                                 )).toList(),
                               )
-                              // Row(
-                              //   children: [
-                              //     Padding(
-                              //     padding: const EdgeInsets.all(4.0),
-                              //     child: MyContainerButton(selected: _fecha, data: ["Hoy", "Hoy"], onTap: (data){
-                              //       print("$data");
-                              //     },),
-                              //   ),
-                              //   Padding(
-                              //     padding: const EdgeInsets.all(4.0),
-                              //     child: MyContainerButton(data: ["Ayer", "Ayer"], onTap: (data){
-                              //       print("$data");
-
-                              //     },),
-                              //   ),
-                              //   Padding(
-                              //     padding: const EdgeInsets.all(4.0),
-                              //     child: MyContainerButton(data: ["Esta semana", "Esta semana"], onTap: (data){
-                              //       print("$data");
-
-                              //     },),
-                              //   ),
-                              //   Padding(
-                              //     padding: const EdgeInsets.all(4.0),
-                              //     child: MyContainerButton(data: ["La semana pasada", "La semana pasada"], onTap: (data){
-                              //       print("$data");
-
-                              //     },),
-                              //   ),
-                              //   ],
-                              // ),
-                              
-                              // children: [
-                              //   Padding(
-                              //     padding: const EdgeInsets.all(8.0),
-                              //     child: MyContainerButton(data: ["Hoy", "Hoy"], onTap: (data){
-                              //       print("$data");
-                              //     },),
-                              //   ),
-                              //   Padding(
-                              //     padding: const EdgeInsets.all(8.0),
-                              //     child: MyContainerButton(data: ["Ayer", "Ayer"], onTap: (data){
-                              //       print("$data");
-
-                              //     },),
-                              //   ),
-                              // ],
                             ),
                           ),
                         ),
@@ -1485,17 +1746,9 @@ Widget _buildTableTicketsGanadores(List map){
                   :
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+                    child: Text("Hey")
+                    // MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
                   ),
-                  // _getListaFiltro().length == 0
-                  // ?
-                  // SizedBox()
-                  // :
-                  // Padding(
-                  //   padding: const EdgeInsets.only(bottom: 8.0),
-                  //   child: MyFilter(title: "Filtros", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
-                  // ),
-                  
                 ],
               ),
             
@@ -1545,9 +1798,7 @@ Widget _buildTableTicketsGanadores(List map){
           ],
         ),
       )
-      // SafeArea(
-      //   child: _screen1()
-      // ),
+      
     );
   }
 }

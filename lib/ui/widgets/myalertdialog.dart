@@ -49,7 +49,6 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
     else if(ScreenSize.isXLarge(screenSize))
       width = (widget.xlarge != null) ? screenSize / widget.xlarge : screenSize / getNotNullScreenSize();
    
-    print("myalertDialog size type: ${ScreenSize.isType(screenSize)} : $screenSize : x = ${widget.xlarge}");
     return width;
     
   }
@@ -237,7 +236,8 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                         child: AbsorbPointer(
                                           absorbing: widget.cargando,
                                           child: MyButton(
-                                            type: MyButtonType.noResponsive,
+                                            // type: MyButtonType.noResponsive,
+                                            isResponsive: false,
                                             title: widget.okDescription,
                                             function: widget.okFunction,
                                             color: (widget.cargando) ? Colors.grey[300] : null,

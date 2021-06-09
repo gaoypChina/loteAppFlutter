@@ -2135,6 +2135,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                       },
                     ),
                     ListTile(
+                      title: Text('Screen size test'),
+                      leading: Icon(Icons.dashboard),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/screensizetest");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                    ListTile(
                       title: Text('Bancas'),
                       leading: Icon(Icons.dashboard),
                       dense: true,

@@ -116,8 +116,8 @@ class _MySliverButtonState extends State<MySliverButton> {
     if(widget.visibleOnlyWhenSmall)
       return SizedBox.shrink();
 
-    if(widget.title is Widget)
-      return widget.title;
+    // if(widget.title is Widget)
+    //   return widget.title;
 
     if(widget.isFlatButton)
       return Padding(
@@ -129,8 +129,14 @@ class _MySliverButtonState extends State<MySliverButton> {
       alignment: Alignment.centerRight,
           child: Padding(
          padding: EdgeInsets.only(left: 5, right: 15.0),
-         child: MyButton(
-           type: MyButtonType.noResponsive,
+         child: 
+         widget.title is Widget
+         ?
+         widget.title
+         :
+         MyButton(
+          //  type: MyButtonType.noResponsive,
+          isResponsive: false,
            title: (widget.title is Widget) ? "" : widget.title,
            function: widget.onTap,
            color: widget.color,
@@ -181,7 +187,9 @@ class MySliverAppBar extends StatefulWidget {
   final EdgeInsets titlePadding;
   final String backRouteName;
   final Widget bottom;
-  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom}) : super(key: key);
+  final EdgeInsets dividerPadding;
+  final bool floating;
+  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom, this.dividerPadding = const EdgeInsets.only(right: 25, top: 20), this.floating = false}) : super(key: key);
 
   @override
   _MySliverAppBarState createState() => _MySliverAppBarState();
@@ -283,7 +291,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
                     ?
                     SizedBox.shrink()
                     :
-                    MyDivider(padding: EdgeInsets.only(right: 25, top: 20),)
+                    MyDivider(padding: widget.dividerPadding,)
                   ],
                 ),
               )
@@ -318,6 +326,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           // automaticallyImplyLeading: false,
           // backgroundColor: Colors.white,
           pinned: true,
+          floating: widget.floating,
           // bottom: PreferredSize(
           //   preferredSize: const Size.fromHeight(0),
           //   child: _flexibleSpace(),

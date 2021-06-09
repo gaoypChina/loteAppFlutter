@@ -665,7 +665,8 @@ _showBottomSheetMoneda() async {
                   :
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: MyFilter(title: "Filtros", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+                    child: Text("No")
+                    // MyFilter(title: "Filtros", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
                   ),
                   
                 ],

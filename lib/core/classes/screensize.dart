@@ -1,8 +1,10 @@
+import 'package:loterias/core/classes/cross_platform_screensize/cross_platform_screensize.dart';
+
 class ScreenSize{
-  static final double sm = 400;
-  static final double md = 700;
-  static final double lg = 1000;
-  static final double xlg = 1300;
+  static final double sm = (CrossScreenSize()).getSmSize();
+  static final double md = (CrossScreenSize()).getMdSize();
+  static final double lg = (CrossScreenSize()).getLgSize();
+  static final double xlg = (CrossScreenSize()).getXlgSize();
 
   static isSmall(double size){
     return size <= sm;

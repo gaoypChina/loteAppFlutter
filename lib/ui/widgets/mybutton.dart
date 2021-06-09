@@ -20,10 +20,11 @@ class MyButtonType {
 
   /// No responsive
   static const MyButtonType noResponsive = MyButtonType._(3);
+  static const MyButtonType listTile = MyButtonType._(4);
 
   /// A list of all the font weights.
   static const List<MyButtonType> values = <MyButtonType>[
-    normal, roundedWithOnlyBorder, rounded, noResponsive
+    normal, roundedWithOnlyBorder, rounded, noResponsive, listTile
   ];
 }
 
@@ -44,11 +45,12 @@ class MyButton extends StatefulWidget {
   final MyButtonType type;
   final double letterSpacing;
   final Widget leading;
+  final Widget trailing;
   final bool cargando;
   final ValueNotifier<bool> cargandoNotify;
   final fontSize;
-
-  MyButton({Key key, this.title = "", this.function, this.enabled = true, this.fontSize = 14, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 23, left: 23.0), this.paddingSmallScreen = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 18, left: 18.0), this.color, this.textColor, this.type = MyButtonType.normal, this.leading, this.letterSpacing = 0.4, this.cargando = false, this.cargandoNotify}) : super(key: key);
+  final bool isResponsive;
+  MyButton({Key key, this.title = "", this.function, this.enabled = true, this.fontSize = 14, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 23, left: 23.0), this.paddingSmallScreen = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 18, left: 18.0), this.color, this.textColor, this.type = MyButtonType.normal, this.leading, this.trailing, this.letterSpacing = 0.4, this.cargando = false, this.cargandoNotify, this.isResponsive = true}) : super(key: key);
 
   @override
   _MyButtonState createState() => _MyButtonState();
@@ -73,6 +75,13 @@ class _MyButtonState extends State<MyButton> {
           return  widget.color;
         }
         break;
+      case MyButtonType.listTile:
+        if(widget.color == null){
+          return  Theme.of(context).primaryColor.withOpacity(0.2);
+        }else{
+          return  widget.color;
+        }
+        break;
       default:
       if(widget.color == null){
         // return (widget.enabled) ? Utils.colorPrimaryBlue : Colors.grey[300];
@@ -92,6 +101,13 @@ class _MyButtonState extends State<MyButton> {
           return (widget.enabled) ? widget.textColor : Colors.grey;
         }
         break;
+      case MyButtonType.listTile:
+        if(widget.textColor == null){
+          return (widget.enabled) ? Theme.of(context).primaryColor : Colors.grey;
+        }else{
+          return (widget.enabled) ? widget.textColor : Colors.grey;
+        }
+        break;
       default:
         if(widget.textColor == null){
           return (widget.enabled) ? Colors.white : Colors.grey;
@@ -102,22 +118,84 @@ class _MyButtonState extends State<MyButton> {
   }
 
   _buttonNormal(){
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        borderRadius: BorderRadius.circular(5)
+      ),
+      child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+    );
     return InkWell(
     onTap: widget.function,
-    child: MyResizedContainer(
-      small: widget.small,
-      medium: widget.medium,
-      large: widget.large,
-      xlarge: widget.xlarge,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: widget.padding,
-        decoration: BoxDecoration(
-          color: _color(),
-          borderRadius: BorderRadius.circular(5)
-        ),
-        child: Center(child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),))
+    child: AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        borderRadius: BorderRadius.circular(5)
       ),
+      child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+    )
+  );
+  }
+
+  _buttonListTile(){
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        borderRadius: BorderRadius.circular(5)
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          widget.leading != null ? Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: widget.leading,
+          ) : SizedBox.shrink(),
+          Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),),
+          widget.trailing != null ? 
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: widget.trailing,
+          ) : SizedBox.shrink()
+        ],
+      )
+    );
+    return ClipRRect(
+        borderRadius: BorderRadius.all(
+          Radius.circular(32),
+        ),
+      child: ListTile(
+        selected: true,
+        selectedTileColor: _color(),
+        leading: widget.leading,
+        title: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),),
+      ),
+    );
+    return InkWell(
+    onTap: widget.function,
+    child: AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        borderRadius: BorderRadius.circular(5)
+      ),
+      child: ListTile(
+      leading: widget.leading,
+      title: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w400),),
+    )
+      // Row(
+      //   children: [
+      //     widget.leading != null ? widget.leading : SizedBox.shrink(),
+      //     Expanded(child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)),
+      //   ],
+      // )
     )
   );
   }
@@ -151,95 +229,77 @@ class _MyButtonState extends State<MyButton> {
 
 
   _buttonRoundedWithOnlyBorder(){
-    return InkWell(
-    onTap: widget.function,
-    child: MyResizedContainer(
-      small: widget.small,
-      medium: widget.medium,
-      large: widget.large,
-      xlarge: widget.xlarge,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: widget.padding,
-        decoration: BoxDecoration(
-          color: _color(),
-          border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.4),
-              spreadRadius: 0,
-              blurRadius: 1,
-              offset: Offset(0, 3), // changes position of shadow
-            ),
-          ]
-        ),
-        child: (widget.leading == null) 
-        ? 
-        Center(child: Text(widget.title.toUpperCase(), style: TextStyle(fontSize: widget.fontSize, color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),))
-        :
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            widget.leading,
-             Center(child: Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),))
-
-          ],
-        )
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.4),
+            spreadRadius: 0,
+            blurRadius: 1,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ]
       ),
-    )
-  ); 
+      child: (widget.leading == null) 
+      ? 
+      Center(child: Text(widget.title.toUpperCase(), style: TextStyle(fontSize: widget.fontSize, color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),))
+      :
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          widget.leading,
+           Center(child: Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),))
+
+        ],
+      )
+    ); 
   }
 
   _buttonRounded(){
-    return InkWell(
-    onTap: widget.function,
-    child: MyResizedContainer(
-      small: widget.small,
-      medium: widget.medium,
-      large: widget.large,
-      xlarge: widget.xlarge,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: widget.padding,
-        decoration: BoxDecoration(
-          color: _color(),
-          border: Border.all(color: _color().withOpacity(0.4), width: 1),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              // color: _color().withOpacity(0.4),
-              color: _color(),
-              spreadRadius: 0,
-              blurRadius: 1,
-              offset: Offset(0, 3), // changes position of shadow
-            ),
-          ]
-        ),
-        child: Center(
-          child: 
-           (widget.cargandoNotify == null) 
-              ? 
-              (widget.cargando)
-              ?
-              CircularProgressIndicator(backgroundColor: widget.textColor,) 
-              : 
-              Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),)
-          :
-          ValueListenableBuilder(
-            valueListenable: widget.cargandoNotify,
-            builder: (_, value, __){
-              return (value) 
-              ? 
-              CircularProgressIndicator(backgroundColor: widget.textColor,) 
-              : 
-              Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),);
-            },
-          )
-        )
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: _color(),
+        border: Border.all(color: _color().withOpacity(0.4), width: 1),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            // color: _color().withOpacity(0.4),
+            color: _color(),
+            spreadRadius: 0,
+            blurRadius: 1,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ]
       ),
-    )
-  ); 
+      child: Center(
+        child: 
+         (widget.cargandoNotify == null) 
+            ? 
+            (widget.cargando)
+            ?
+            CircularProgressIndicator(backgroundColor: widget.textColor,) 
+            : 
+            Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),)
+        :
+        ValueListenableBuilder(
+          valueListenable: widget.cargandoNotify,
+          builder: (_, value, __){
+            return (value) 
+            ? 
+            CircularProgressIndicator(backgroundColor: widget.textColor,) 
+            : 
+            Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),);
+          },
+        )
+      )
+    ); 
   }
 
 
@@ -254,9 +314,31 @@ class _MyButtonState extends State<MyButton> {
       case MyButtonType.noResponsive:
         return _buttonNoResponsive();
         break;
+      case MyButtonType.listTile:
+        return _buttonListTile();
+        break;
       default:
         return _buttonNormal();
     }
+  }
+
+  _responsiveOrNoResponsiveScreen(){
+    return InkWell(
+    onTap: widget.function,
+    child: 
+    widget.isResponsive == false
+    ?
+    _screen()
+    :
+    MyResizedContainer(
+      small: widget.small,
+      medium: widget.medium,
+      large: widget.large,
+      xlarge: widget.xlarge,
+      child: _screen()
+    )
+  ); 
+  
   }
 
   @override
@@ -270,6 +352,6 @@ class _MyButtonState extends State<MyButton> {
   @override
   Widget build(BuildContext context) {
     print("mybutton2 build");
-    return _screen();
+    return _responsiveOrNoResponsiveScreen();
   }
 }

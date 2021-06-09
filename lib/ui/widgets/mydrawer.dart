@@ -192,7 +192,7 @@ class _MyDrawerState extends State<MyDrawer> {
             child: ValueListenableBuilder(
               valueListenable: _showOnHoverNotify,
               builder: (context, value, __) {
-                return _screen(width: widget.visible == false && value == false ? 65 : 260);
+                return _screen(width: widget.visible == false && value == false ? 65.0 : 260.0);
               }
             ),
           ),

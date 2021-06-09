@@ -78,16 +78,17 @@ class ReporteService{
     print("ReporteService historico: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/historico"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/historico"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService historico: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor ReporteService historico", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor ReporteService historico", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor ReporteService historico");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ReporteService historico:  ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -123,11 +124,12 @@ class ReporteService{
 
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService ventas: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor ReporteService ventas", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor ReporteService ventas", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor ReporteService ventas");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);

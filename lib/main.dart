@@ -21,6 +21,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'core/classes/databasesingleton.dart';
 
 // void main() => runApp(Prueba2());
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 Future<void> main() async {
   // var path = Directory.current.path;
