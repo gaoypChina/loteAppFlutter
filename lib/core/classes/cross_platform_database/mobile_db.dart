@@ -59,9 +59,9 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future<bool> existePermiso(String permiso) {
+  Future<bool> existePermiso(String permiso, [var transaction]) {
     // TODO: implement existePermiso
-    return DBSqflite.existePermiso(permiso);
+    return DBSqflite.existePermiso(permiso, transaction);
   }
   
   @override
@@ -71,15 +71,15 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future<Map<String, dynamic>> getUsuario() {
+  Future<Map<String, dynamic>> getUsuario([var transaction]) {
     // TODO: implement getUsuario
-    return DBSqflite.getUsuario();
+    return DBSqflite.getUsuario(transaction);
   }
   
   @override
-  Future<int> idBanca() {
+  Future<int> idBanca([var transaction]) {
     // TODO: implement idBanca
-    return DBSqflite.idBanca();
+    return DBSqflite.idBanca(transaction);
   }
   
   @override
@@ -101,9 +101,9 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future<String> servidor() {
+  Future<String> servidor([var transaction]) {
     // TODO: implement servidor
-    return DBSqflite.servidor();
+    return DBSqflite.servidor(transaction);
   }
   
   @override
@@ -116,6 +116,18 @@ class MobileDB implements CrossDB{
   Future update(String table, Map<String, dynamic> dataToMap, id) {
   // TODO: implement update
     return DBSqflite.update(table, dataToMap, id);
+  }
+
+  @override
+  Future<bool> existePermisos(List<String> permiso, [var transaction]) {
+    // TODO: implement existePermisos
+    return DBSqflite.existePermisos(permiso, transaction);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLastRow(String table, [var transaction]) {
+    // TODO: implement getLastRow
+    return DBSqflite.getLastRow(table, transaction);
   }
   
 

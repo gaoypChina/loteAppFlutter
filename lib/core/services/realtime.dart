@@ -6,10 +6,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/blocksdirty.dart';
 import 'package:loterias/core/models/blocksdirtygenerals.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
@@ -17,8 +19,10 @@ import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/stocks.dart';
+import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -427,6 +431,70 @@ class Realtime{
         print("RealtimeServer todosPrueba batch listo");
   }
 
+  static guardarVenta({Banca banca, List<Jugada> jugadas, socket}) async {
+    print("Realtime guardarventa before: ${Db.database.transaction}");
+    Db.database.transaction((tx) async {
+    // Batch batch = tx.batch();
+    Usuario usuario = Usuario.fromMap(await Db.getUsuario(tx));
+    Ticket ticket = Ticket.fromMap(await Db.getLastRow("Tickets", tx));
+        
+    print("Realtime guardarVenta banca.status = ${banca.status}");
+    print("Realtime guardarVenta usuario = ${usuario}");
+    if(banca.status != 1)
+      throw Exception("Esta banca esta desactivada");
+
+    if(usuario.status != 1)
+      throw Exception("Este usuario esta desactivado: ${usuario.status}");
+
+    if(await Db.existePermisos(["Vender tickets", "Acceso al sistema"], tx) == false)
+      throw Exception("No tiene permiso para realizar esta accion vender y acceso");
+
+    if(await Db.idBanca(tx) != banca.id){
+        if(await Db.existePermiso("Jugar como cualquier banca") == false)
+          throw Exception("No tiene permiso para realizar para jugar como cualquier banca");
+    }
+
+    socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    // socket.emit("idTicket", 1234567);
+
+    /************* VALIDACION BANCA ESTA CERRADA O NO */
+    /************* me vole esta validacion, pero debo hacerla porque es importantisima y es un error de seguridad, esta en la linea 116 del archivo guardarVenta.sql */
+    /************* END VALIDACION BANCA ESTA CERRADA O NO */
+
+    if(jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element) > banca.limiteVenta)
+        throw Exception("A excedido el limite de ventas de la banca: ${banca.limiteVenta}");
+
+    ticket.codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
+
+    //La numeracion del codigo de barra la voy a optener de la function Utils.dateTimeToMiliseconds que retorna la fecha en milisegundos con el formato unix timestamp
+    //eje: 1623350167391    
+
+    /**************** AHORA DEBO INVESTIGAR COMO OBTENER EL NUMERO DE TICKET, ESTOY INVESTIGANDO LARAVEL CACHE A VER COMO SE COMUNICA CON REDIS */
+
+
+    // for (Jugada jugada in jugadas) {      
+    //   await Future(() async {
+    //     // int id = int.parse(oi.findElements("ID").first.text);
+    //     // String name = oi.findElements("NAME").first.text;
+
+    //     //  DatabaseHelper.insertElement(
+    //     //   tx,
+    //     //   id: id,
+    //     //   name: name,
+    //     //  );
+    //     String id = "";
+        
+        
+
+    //   });
+    // }
+
+    // batch.commit(noResult: false, continueOnError: false);
+    // tx.commit();
+  });
+    print("Realtime guardarventa after transaction");
+  }
+  
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
     int idUsuario = await Db.idUsuario();
     if(idUsuario != usuario["id"])
@@ -535,5 +603,16 @@ class Realtime{
         });
 
         return true;
+    }
+
+    static createTicketIfNotExists(var parsed) async {
+      var ticketMap = await Db.getLastRow("Tickets"); 
+      Ticket ticketDB = ticketMap != null ? Ticket.fromMap(ticketMap) : null;
+      Ticket ticketParsed = parsed != null ? Ticket.fromMap(parsed) : null;
+      if(ticketDB != null){
+        if(ticketDB.id != ticketParsed.id)
+          Db.insert("Tickets", ticketParsed.toJson());
+      }else
+        Db.insert("Tickets", ticketParsed.toJson());
     }
 }

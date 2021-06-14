@@ -4,6 +4,8 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/dia.dart';
+import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/usuario.dart';
@@ -76,7 +78,7 @@ class LoginService{
 
   static guardarDatos(Map<String, dynamic> parsed) async {
     Usuario u = Usuario.fromMap(parsed['usuario']);
-    Banca b = Banca.fromMap(parsed['bancaObject']);
+    Banca b = Banca.fromMap(parsed['bancaObject2']);
     Ajuste a = (parsed['ajustes'] != null) ? Ajuste.fromMap(parsed['ajustes']) : null;
     List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
     List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
@@ -87,6 +89,12 @@ class LoginService{
 
     await Db.insert('Users', u.toJson());
     await Db.insert('Branches', b.toJson());
+    for(Loteria l in b.loterias){
+      await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
+    }
+    for(Dia d in b.dias){
+      await Db.insert('Days', d.toJson());
+    }
     print("Loginservice guardarDatos: ${a.toJson()}");
     if(a != null)
       await Db.insert("Settings", {

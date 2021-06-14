@@ -274,14 +274,34 @@ class  Utils {
   }
 
   static removeDuplicateJugadasFromList(List<Jugada> lista){
-  // print("BEFORE DELETE");
-  for(var l in lista)
-     print(l);
-  final ids = lista.map((e) => e.jugada).toSet();
-  lista.retainWhere((x) => ids.remove(x.jugada));
-  // print("AFTER DELETE");
-  return lista;
-}
+    // print("BEFORE DELETE");
+    for(var l in lista)
+      print(l);
+    final ids = lista.map((e) => e.jugada).toSet();
+    lista.retainWhere((x) => ids.remove(x.jugada));
+    // print("AFTER DELETE");
+    return lista;
+  }
+
+  static removeDuplicateLoteriasFromList(List<Jugada> lista){
+    // print("BEFORE DELETE");
+    for(var l in lista)
+      print(l);
+    final ids = lista.map((e) => e.jugada).toSet();
+    lista.retainWhere((x) => ids.remove(x.idLoteria));
+    // print("AFTER DELETE");
+    return lista;
+  }
+
+  static removeDuplicateLoteriasSuperPaleFromList(List<Jugada> lista){
+    // print("BEFORE DELETE");
+    for(var l in lista)
+      print(l);
+    final ids = lista.map((e) => e.jugada).toSet();
+    lista.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
+    // print("AFTER DELETE");
+    return lista;
+  }
 
 
   static Color colorGanadorPerdedorPendiente(int status, double premio){
@@ -626,5 +646,7 @@ class  Utils {
     return (date == null) ? "" : "${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())}${hour != null ? ' ' + hour : ''}";
   }
 
-  
+  static dateTimeToMilisenconds(DateTime date){
+    return date.toUtc().millisecondsSinceEpoch;
+  }
 }

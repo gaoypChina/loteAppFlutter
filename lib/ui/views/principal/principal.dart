@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
@@ -158,6 +159,7 @@ Future<bool> _requestPermisionChannel() async {
 
 
   getIdBanca() async {
+    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")}");
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca].id;
     else
@@ -176,7 +178,8 @@ Future<bool> _requestPermisionChannel() async {
     
     try{
       setState(() => _cargando = true);
-      var datos = await TicketService.indexPost(idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      var banca = await getIdBanca();
+      var datos = await TicketService.indexPost(idUsuario: await Db.idUsuario(), idBanca: banca, scaffoldKey: _scaffoldKey);
       
       setState((){
         _cargando = false;
@@ -219,6 +222,9 @@ Future<bool> _requestPermisionChannel() async {
       return;
     }
 
+    _guardarLocal();
+    return;
+
     try{
       setState(() => _cargando = true);
       var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
@@ -243,6 +249,11 @@ Future<bool> _requestPermisionChannel() async {
     } on Exception catch(e){
       setState(() => _cargando = false);
     }
+  }
+
+
+  _guardarLocal() async {
+    Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket);
   }
 
   // esDirecto(String jugada){
@@ -627,6 +638,40 @@ Future<bool> _requestPermisionChannel() async {
     socket = null;
   }
 
+  _updateBranchesList(Map<String, dynamic> parsed) async {
+    print("Dentro principal view _updateBranchesList 1:");
+    if(parsed["branch"] == null)
+      return;
+    print("Dentro principal view _updateBranchesList paso parsed != null _administrador: $_tienePermisoJugarComoCualquierBanca");
+    
+    print("Dentro principal view _updateBranchesList 2");
+
+      try {
+        Banca banca = Banca.fromMap(parsed["branch"]);
+        if(_tienePermisoJugarComoCualquierBanca){
+          int idx = listaBanca.indexWhere((element) => element.id == banca.id);
+          if(idx == -1)
+            listaBanca[idx] = banca;
+        }
+        
+
+        if(await Db.idBanca() == banca.id){
+          await Db.delete("Branches");
+          await Db.insert('Branches', banca.toJson());
+        }
+        
+      } catch (e) {
+        print("Principal view _updateBranchesList error: $e");
+      }
+  }
+
+  _emitToGetNewIdTicket() async {
+    var idBanca = await getIdBanca();
+    print("_emitToGetNewIdTicket idBanca: ${idBanca}");
+    if(idBanca != null)
+      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
+  }
+
   initSocket() async {
     // var builder = new JWTBuilder();
     // var token = builder
@@ -677,7 +722,8 @@ Future<bool> _requestPermisionChannel() async {
     socket.on('connect', (_) async {
      print("connected...");
       // print(data);
-      socket.emit("message", ["Hello world!"]);
+      // socket.emit("message", ["Hello world!"]);
+      _emitToGetNewIdTicket();
       await Realtime.sincronizarTodos(_scaffoldKey);
       await _getPermisos();
       _socketContadorErrores = 0;
@@ -747,6 +793,12 @@ Future<bool> _requestPermisionChannel() async {
         print("Principalview blocksdirty: $parsed");
         await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
       });
+
+      socket.on("ticket", (data){
+        print("Socket ticket from server before: $data");
+        Realtime.createTicketIfNotExists(data);
+        print("Socket ticket from server after: $data");
+      });
     }
     
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
@@ -765,6 +817,11 @@ Future<bool> _requestPermisionChannel() async {
     socket.on("settings:App\\Events\\SettingsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       Realtime.ajustes(parsed);
+      // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+    });
+    socket.on("branches:App\\Events\\BranchesEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      _updateBranchesList(parsed);
       // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
     socket.on("error", (data){   //sample event
@@ -1461,6 +1518,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                               onChanged: (Banca banca){
                                                 setState(() {
                                                 _indexBanca = listaBanca.indexOf(banca); 
+                                                _emitToGetNewIdTicket();
                                                 indexPost(false);
                                                 });
                                               },
@@ -3863,7 +3921,10 @@ _seleccionarBancaPertenecienteAUsuario() async {
     print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
     setState(() => _indexBanca = (idx != -1) ? idx : 0);
   }else{
-    setState(() =>_indexBanca = 0);
+    setState(() {
+      _indexBanca = 0;
+      _emitToGetNewIdTicket();
+    });
   }
 
   // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');

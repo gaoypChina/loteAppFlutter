@@ -126,6 +126,7 @@ class Banca {
       "monedaColor": monedaColor,
       "descontar": descontar,
       "deCada": deCada,
+      "limiteVenta": limiteVenta,
       // "imprimirCodigoQr": imprimirCodigoQr,
       "piepagina1": piepagina1,
       "piepagina2": piepagina2,

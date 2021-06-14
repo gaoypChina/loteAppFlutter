@@ -38,7 +38,9 @@ class DBSqflite{
       await db.execute('CREATE TABLE Blocksdirty (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksdirtygenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Settings (id INTEGER PRIMARY KEY, consorcio TEXT, imprimirNombreConsorcio INTEGER, idTipoFormatoTicket INTEGER, descripcionTipoFormatoTicket Text, cancelarTicketWhatsapp INTEGER, imprimirNombreBanca INTEGER)');
-
+      await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER)');
+      await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
+      await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
     });
   }
 
@@ -83,8 +85,8 @@ class DBSqflite{
       }
   }
 
-  static Future<String> servidor() async {
-      var query = await database.query('Users');
+  static Future<String> servidor([var transaction]) async {
+      var query = transaction == null ? await database.query('Users') : await transaction.query('Users');;
       if(query.isEmpty){
         return null;
       }else{
@@ -92,8 +94,8 @@ class DBSqflite{
       }
   }
 
-  static Future<int> idBanca() async {
-      var query = await database.query('Branches');
+  static Future<int> idBanca([var transaction]) async {
+      var query = transaction == null ? await database.query('Branches') : await transaction.query('Branches');
       if(query.isEmpty){
         return null;
       }else{
@@ -101,8 +103,8 @@ class DBSqflite{
       }
   }
 
-  static Future<Map<String, dynamic>> getUsuario() async {
-      var query = await database.query('Users');
+  static Future<Map<String, dynamic>> getUsuario([var transaction]) async {
+      var query = transaction == null ? await database.query('Users') : await transaction.query('Users');
       if(query.isEmpty){
         return null;
       }else{
@@ -119,12 +121,30 @@ class DBSqflite{
       }
   }
 
-  static Future<bool> existePermiso(String permiso) async {
-      var query = await database.query('Permissions', where: '"descripcion" = ?', whereArgs: [permiso]);
+  static Future<bool> existePermiso(String permiso, [var transaction]) async {
+      var query = transaction == null 
+        ? 
+        await database.query('Permissions', where: '"descripcion" = ?', whereArgs: [permiso]) 
+        : 
+        await transaction.query('Permissions', where: '"descripcion" = ?', whereArgs: [permiso]);
       if(query.isEmpty){
         return false;
       }else{
         return true;
+      }
+  }
+
+  static Future<bool> existePermisos(List<String> permiso, [var transaction]) async {
+      String select = 'SELECT id from Permissions  WHERE descripcion IN (\'' +(permiso.join('\',\'')).toString() +'\')';
+      var query = transaction == null
+      ?
+      await database.rawQuery(select)
+      :
+      await transaction.rawQuery(select);
+      if(query.isEmpty){
+        return false;
+      }else{
+        return query.length == permiso.length;
       }
   }
 
@@ -147,6 +167,15 @@ class DBSqflite{
         return null;
       }else{
         return query.first["tipoFormatoTicket"];
+      }
+  }
+
+  static Future<Map<String, dynamic>> getLastRow(String table, [var transaction]) async {
+      var query = transaction == null ? await database.rawQuery('SELECT * FROM ' + table + ' ORDER BY ID DESC LIMIT 1') : await transaction.rawQuery('SELECT * FROM ' + table + ' ORDER BY ID DESC LIMIT 1');
+      if(query.isEmpty){
+        return null;
+      }else{
+        return query.first;
       }
   }
 

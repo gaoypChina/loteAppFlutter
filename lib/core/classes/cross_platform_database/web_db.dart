@@ -87,6 +87,9 @@ class WebMoor implements CrossDB{
       case "Settings":
         return database.db.deleteAllSetting();
         break;
+      case "Branches":
+        return database.db.deleteAllBranches();
+        break;
       default:
         return null;
     }
@@ -176,6 +179,18 @@ class WebMoor implements CrossDB{
     Future update(String table, Map<String, dynamic> dataToMap, id) {
     // TODO: implement update
     throw UnimplementedError("WebDatabase Uninplemented update");
+  }
+
+  @override
+  Future<bool> existePermisos(List<String> permiso) {
+    // TODO: implement existePermisos
+    throw UnimplementedError("WebDatabase Uninplemented existePermisos");
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLastRow(String table) {
+    // TODO: implement getLastRow
+    throw UnimplementedError("WebDatabase Uninplemented getLastRow");
   }
 
 }

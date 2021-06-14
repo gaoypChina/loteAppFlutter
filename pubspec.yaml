@@ -53,6 +53,7 @@ dependencies:
   socket_io_client: ^1.0.0
   file_picker: ^3.0.0
   syncfusion_flutter_datepicker: ^19.1.66-beta
+  device_info_plus: ^1.0.1
   flutter:
     sdk: flutter
 
