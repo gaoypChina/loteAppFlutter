@@ -166,6 +166,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _setsComisiones();
     _setsPagosCombinaciones();  
     _gastos = _data != null ? _data.gastos != null ? _data.gastos : [] : [];
+    listaDia = _data != null ? _data.dias != null ? _data.dias : listaDia : listaDia;
     _streamControllerGastos.add(_gastos);
 
 

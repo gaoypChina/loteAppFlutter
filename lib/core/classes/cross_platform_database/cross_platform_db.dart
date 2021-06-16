@@ -20,9 +20,11 @@ abstract class CrossDB {
   Future<Map<String, dynamic>> getBanca();
   Future<bool> existePermiso(String permiso);
   Future<bool> existePermisos(List<String> permiso);
+  Future<bool> existeLoteria(int id);
   Future deleteDB();
   Future<Map<String, dynamic>> ajustes();
   Future<Map<String, dynamic>> getLastRow(String table);
+  Future<Map<String, dynamic>> getNextTicket();
 
   Future<String> tipoFormatoTicket();
   factory CrossDB() => getDB();

@@ -23,6 +23,7 @@ import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/principal/probarnullsafety.dart';
 import 'package:loterias/ui/views/principal/probartiemporestante.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
+import 'package:loterias/ui/views/prueba/pruebatimezone.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/reportejugadasscreen.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
@@ -36,6 +37,9 @@ class MyRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/' :
+        return  MaterialPageRoute(
+          builder: (_)=> PruebaTimeZone()
+        );
         return  MaterialPageRoute(
           builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? settings.arguments : false,)
         );

@@ -41,11 +41,21 @@ class DBSqflite{
       await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER)');
       await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
+      await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
     });
   }
 
-  static insert(String table, Map<String, dynamic> dataToMap) async {
-    await database.insert(
+  static insert(String table, Map<String, dynamic> dataToMap, [var transaction]) async {
+    await 
+    transaction == null 
+    ?
+    database.insert(
+      table,
+      dataToMap,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    )
+    :
+    transaction.insert(
       table,
       dataToMap,
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -148,6 +158,19 @@ class DBSqflite{
       }
   }
 
+  static Future<bool> existeLoteria(int id, [var transaction]) async {
+      var query = transaction == null 
+        ? 
+        await database.query('Lotteries', where: '"id" = ?', whereArgs: [id]) 
+        : 
+        await transaction.query('Lotteries', where: '"id" = ?', whereArgs: [id]);
+      if(query.isEmpty){
+        return false;
+      }else{
+        return true;
+      }
+  }
+
   static Future deleteDB() async {
       await deleteDatabase(_path);
   }
@@ -172,6 +195,16 @@ class DBSqflite{
 
   static Future<Map<String, dynamic>> getLastRow(String table, [var transaction]) async {
       var query = transaction == null ? await database.rawQuery('SELECT * FROM ' + table + ' ORDER BY ID DESC LIMIT 1') : await transaction.rawQuery('SELECT * FROM ' + table + ' ORDER BY ID DESC LIMIT 1');
+      if(query.isEmpty){
+        return null;
+      }else{
+        return query.first;
+      }
+  }
+
+  static Future<Map<String, dynamic>> getNextTicket([var transaction]) async {
+      String queryStatemet = 'SELECT * FROM Tickets WHERE usado = 0 ORDER BY ID ASC LIMIT 1';
+      var query = transaction == null ? await database.rawQuery(queryStatemet) : await transaction.rawQuery(queryStatemet);
       if(query.isEmpty){
         return null;
       }else{

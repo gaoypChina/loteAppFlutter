@@ -31,5 +31,6 @@ class CrossDeviceInfo {
     } on PlatformException {
       throw UnimplementedError("UnimplementedError CrossDeviceInfo in this device");
     }
+    return uuid;
   }
 }

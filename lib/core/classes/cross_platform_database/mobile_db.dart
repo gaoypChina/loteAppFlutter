@@ -89,9 +89,9 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future insert(String table, Map<String, dynamic> dataToMap) {
+  Future insert(String table, Map<String, dynamic> dataToMap, [var transaction]) {
     // TODO: implement insert
-    return DBSqflite.insert(table, dataToMap);
+    return DBSqflite.insert(table, dataToMap, transaction);
   }
   
   @override
@@ -128,6 +128,18 @@ class MobileDB implements CrossDB{
   Future<Map<String, dynamic>> getLastRow(String table, [var transaction]) {
     // TODO: implement getLastRow
     return DBSqflite.getLastRow(table, transaction);
+  }
+
+  @override
+  Future<bool> existeLoteria(int id, [var transaction]) {
+    // TODO: implement existeLoteria
+    return DBSqflite.existeLoteria(id, transaction);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getNextTicket([var transaction]) {
+    // TODO: implement getLastRow
+    return DBSqflite.getNextTicket(transaction);
   }
   
 

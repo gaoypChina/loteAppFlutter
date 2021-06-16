@@ -193,6 +193,18 @@ class WebMoor implements CrossDB{
     throw UnimplementedError("WebDatabase Uninplemented getLastRow");
   }
 
+  @override
+  Future<bool> existeLoteria(int id) {
+    // TODO: implement existeLoteria
+    throw UnimplementedError("WebDatabase Uninplemented existeLoteria");
+  }
+
+  @override
+  Future<Map<String, dynamic>> getNextTicket() {
+    // TODO: implement getNextTicket
+    throw UnimplementedError("WebDatabase Uninplemented getNextTicket");
+  }
+
 }
 
 CrossDB getDB() => WebMoor();

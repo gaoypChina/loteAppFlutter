@@ -14,10 +14,11 @@ class Loteria {
   int status;
   List<Draws> sorteos;
   List<Loteria> loteriaSuperpale;
+  String horaApertura;
   String horaCierre;
   int minutosExtras;
 
-  Loteria({this.id, this.descripcion, this.abreviatura, this.status, this.sorteos, this.horaCierre, this.minutosExtras, this.loteriaSuperpale});
+  Loteria({this.id, this.descripcion, this.abreviatura, this.status, this.sorteos, this.horaApertura, this.horaCierre, this.minutosExtras, this.loteriaSuperpale});
 
   Loteria.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -31,6 +32,7 @@ class Loteria {
         status = snapshot['status'] ?? 1,
         sorteos = sorteosToMap(Utils.parsedToJsonOrNot(snapshot['sorteos'])) ?? [],
         loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
+        horaApertura= snapshot['horaApertura'] ?? '',
         horaCierre= snapshot['horaCierre'] ?? '',
         minutosExtras = snapshot['minutosExtras'] ?? 0
         ;
@@ -96,6 +98,7 @@ List sorteosToJson() {
       "tercera": tercera,
       "pick3": pick3,
       "pick4": pick4,
+      "horaApertura": horaApertura,
       "horaCierre": horaCierre,
       "minutosExtras": minutosExtras,
       "sorteos" : sorteosToJson(),

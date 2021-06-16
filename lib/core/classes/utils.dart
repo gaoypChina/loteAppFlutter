@@ -12,6 +12,7 @@ import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/models/jugadas.dart';
+import 'package:timezone/timezone.dart';
 
 class  Utils {
   static final String URL = 'http://127.0.0.1:8000';
@@ -275,30 +276,29 @@ class  Utils {
 
   static removeDuplicateJugadasFromList(List<Jugada> lista){
     // print("BEFORE DELETE");
-    for(var l in lista)
-      print(l);
     final ids = lista.map((e) => e.jugada).toSet();
     lista.retainWhere((x) => ids.remove(x.jugada));
     // print("AFTER DELETE");
     return lista;
   }
 
-  static removeDuplicateLoteriasFromList(List<Jugada> lista){
+  static List<Jugada> removeDuplicateLoteriasFromList(List<Jugada> lista){
     // print("BEFORE DELETE");
-    for(var l in lista)
-      print(l);
-    final ids = lista.map((e) => e.jugada).toSet();
+    final ids = lista.map((e) => e.idLoteria).toSet();
     lista.retainWhere((x) => ids.remove(x.idLoteria));
     // print("AFTER DELETE");
     return lista;
   }
 
-  static removeDuplicateLoteriasSuperPaleFromList(List<Jugada> lista){
+  static List<Jugada> removeDuplicateLoteriasSuperPaleFromList(List<Jugada> lista){
     // print("BEFORE DELETE");
-    for(var l in lista)
-      print(l);
-    final ids = lista.map((e) => e.jugada).toSet();
-    lista.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
+    var listaSuperpale = lista.where((element) => element.idLoteriaSuperpale > 0).toList();
+    print("removeDuplicateLoteriasSuperPaleFromList listaSUperpale lenght: ${listaSuperpale.length}");
+    if(listaSuperpale.length == 0)
+      return [];
+
+    final ids = listaSuperpale.map((e) => e.idLoteriaSuperpale).toSet();
+    listaSuperpale.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
     // print("AFTER DELETE");
     return lista;
   }
@@ -649,4 +649,56 @@ class  Utils {
   static dateTimeToMilisenconds(DateTime date){
     return date.toUtc().millisecondsSinceEpoch;
   }
+
+  static int getIdDiaActual(){
+    DateTime fecha = DateTime.now();
+    //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
+    return fecha.weekday;
+  }
+
+  static DateTime horaLoteriaToCurrentTimeZone(String hora, DateTime currentDateTime) {
+    if(currentDateTime == null)
+      return DateTime.now();
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.from(currentDateTime, santoDomingo);
+    var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${hora != null ? hora : '00:00'}");
+    
+    // Optenemos las diferencias en las horas, minutos y segundos de la fechaActualRD y de
+    int horasASumar = (fechaLoteriaRD.hour - fechaActualRd.hour);
+    int minutosASumar = (fechaLoteriaRD.minute - fechaActualRd.minute);
+    int segundosARestar = fechaActualRd.second;
+    
+    TZDateTime fechaLoteriaConvertidaAFormatoRD;
+    fechaLoteriaConvertidaAFormatoRD = fechaActualRd.add(Duration(hours: horasASumar, minutes: minutosASumar));
+    fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
+
+    int horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime = (currentDateTime.hour - fechaActualRd.hour);
+    var fechaLoteriaCurrentTimeZone = fechaLoteriaConvertidaAFormatoRD.add(Duration(hours: horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime));
+
+    return fechaLoteriaCurrentTimeZone;
+  }
+
+  static DateTime dateTimeToCurrentTimeZoneExactDateTime(DateTime datetime, currentTimeZone) {
+    if(currentTimeZone == null)
+      return DateTime.now();
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+
+    var fechaActualCurrent = TZDateTime.now(currentTimeZoneLocation);
+
+    return fechaActualCurrent;
+  }
+
+  static DateTime dateTimeToRD(DateTime fecha) {
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.from(fecha, santoDomingo);
+    
+    return fechaActualRd;
+  }
+
+
+ 
 }

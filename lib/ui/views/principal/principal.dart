@@ -159,7 +159,7 @@ Future<bool> _requestPermisionChannel() async {
 
 
   getIdBanca() async {
-    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")}");
+    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")} : ${listaBanca.length}");
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca].id;
     else
@@ -185,6 +185,7 @@ Future<bool> _requestPermisionChannel() async {
         _cargando = false;
         _idVenta = datos['idVenta'];
         listaBanca = datos["bancas"];
+        print("indexPost listaBanca: ${listaBanca.length}");
         listaVenta = datos["ventas"];
         _streamControllerBanca.add(true);
         _streamControllerVenta.add(true);
@@ -192,6 +193,7 @@ Future<bool> _requestPermisionChannel() async {
         _streamControllerLoteria.add(datos['loterias']);
         _seleccionarPrimeraLoteria();
         (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null;
+        // _emitToGetNewIdTicket();
       });
     } on Exception catch(e){
       setState(() => _cargando = false);
@@ -253,7 +255,7 @@ Future<bool> _requestPermisionChannel() async {
 
 
   _guardarLocal() async {
-    Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket);
+    Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
   }
 
   // esDirecto(String jugada){
@@ -667,7 +669,7 @@ Future<bool> _requestPermisionChannel() async {
 
   _emitToGetNewIdTicket() async {
     var idBanca = await getIdBanca();
-    print("_emitToGetNewIdTicket idBanca: ${idBanca}");
+    print("_emitToGetNewIdTicket idBanca: ${listaBanca.length}");
     if(idBanca != null)
       socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
   }
@@ -3546,6 +3548,7 @@ void _getTime() {
           idLoteria: loteria.id,
           monto: Utils.redondear(Utils.toDouble(monto), 2),
           descripcion: loteria.descripcion,
+          loteria: loteria,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3598,6 +3601,8 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
+          loteria: loteria,
+          loteriaSuperPale: loteriaSuperpale,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3639,6 +3644,7 @@ void _getTime() {
         listaJugadas.add(Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteriaMap["id"],
+          loteria: Loteria.fromMap(loteriaMap),
           monto: Utils.redondear(Utils.toDouble(jugada["monto"]), 2),
           descripcion: loteriaMap["descripcion"],
           idBanca: 0,
@@ -3700,6 +3706,8 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
+          loteria: loteria,
+          loteriaSuperPale: loteriaSuperpale,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3916,13 +3924,18 @@ void _getTime() {
 _seleccionarBancaPertenecienteAUsuario() async {
   var bancaMap = await Db.getBanca();
   Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
+  // print("_seleccionarBancaPertenecienteAUsuario bancaMap: ${bancaMap}");
   if(banca != null){
     int idx = listaBanca.indexWhere((b) => b.id == banca.id);
     print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
-    setState(() => _indexBanca = (idx != -1) ? idx : 0);
+    setState(() {
+      _indexBanca = (idx != -1) ? idx : 0;
+      _emitToGetNewIdTicket();
+    });
   }else{
     setState(() {
       _indexBanca = 0;
+      print("_seleccionarBancaPertenecienteAUsuario listaBanca: ${listaBanca.length}");
       _emitToGetNewIdTicket();
     });
   }
@@ -4487,6 +4500,10 @@ _selectedBanca() async {
   int getIdDia(){
     DateTime fecha = DateTime.now();
     //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
     return fecha.weekday;
   }
  

@@ -20,10 +20,13 @@ import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/permiso.dart';
+import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
+import 'package:ntp/ntp.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Realtime{
@@ -431,12 +434,14 @@ class Realtime{
         print("RealtimeServer todosPrueba batch listo");
   }
 
-  static guardarVenta({Banca banca, List<Jugada> jugadas, socket}) async {
+  static guardarVenta({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras}) async {
     print("Realtime guardarventa before: ${Db.database.transaction}");
     Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
+    DateTime date = await NTP.now();
     Usuario usuario = Usuario.fromMap(await Db.getUsuario(tx));
-    Ticket ticket = Ticket.fromMap(await Db.getLastRow("Tickets", tx));
+    Ticket ticket = Ticket.fromMap(await Db.getNextTicket(tx));
+    double total = 0;
         
     print("Realtime guardarVenta banca.status = ${banca.status}");
     print("Realtime guardarVenta usuario = ${usuario}");
@@ -457,37 +462,107 @@ class Realtime{
     socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
     // socket.emit("idTicket", 1234567);
 
-    /************* VALIDACION BANCA ESTA CERRADA O NO */
-    /************* me vole esta validacion, pero debo hacerla porque es importantisima y es un error de seguridad, esta en la linea 116 del archivo guardarVenta.sql */
-    /************* END VALIDACION BANCA ESTA CERRADA O NO */
+    // VALIDACION HORAR APERTURA Y CIERRE DE LA BANCA
+    DateTime hoyHoraAperturaBanca = banca.dias.firstWhere((element) => element.id == Utils.getIdDiaActual()).horaApertura;
+    DateTime hoyHoraCierreBanca = banca.dias.firstWhere((element) => element.id == Utils.getIdDiaActual()).horaCierre;
+    if(date.isBefore(hoyHoraAperturaBanca))
+        throw Exception("La banca no ha abierto");
+    if(date.isAfter(hoyHoraCierreBanca))
+        throw Exception("La banca ha cerrado");
 
-    if(jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element) > banca.limiteVenta)
+    total = jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element);
+    // VALIDACION LIMITE VENTA BANCA
+    if(total > banca.limiteVenta)
         throw Exception("A excedido el limite de ventas de la banca: ${banca.limiteVenta}");
 
+    // CREACION CODIGO BARRA
     ticket.codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
 
-    //La numeracion del codigo de barra la voy a optener de la function Utils.dateTimeToMiliseconds que retorna la fecha en milisegundos con el formato unix timestamp
-    //eje: 1623350167391    
+    List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(jugadas);
+    List<Jugada> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(jugadas);
+    listaLoteriasJugadas.forEach((element) {print("Realtime guardar venta loteria: ${element.idLoteria}");});
+    listaLoteriasSuperPaleJugadas.forEach((element) {print("Realtime guardar venta loteriaSuper: ${element.idLoteriaSuperpale}");});
+
+    // VALIDACION LOTERIA PERTENECE A BANCA
+    for (var jugada in listaLoteriasJugadas) {
+      if(await Db.existeLoteria(jugada.idLoteria, tx) == false)
+        throw Exception("La loteria ${jugada.loteria.descripcion} no pertenece a esta banca");
+      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(jugada.loteria.horaApertura, date)))
+        throw Exception("La loteria ${jugada.loteria.descripcion} no ha abierto");
+      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(jugada.loteria.horaCierre, date))){
+        if(!tienePermisoJugarFueraDeHorario){
+          if(tienePermisoJugarMinutosExtras){
+            var datePlusExtraMinutes = date.add(Duration(minutes: jugada.loteria.minutosExtras));
+            if(date.isAfter(datePlusExtraMinutes))
+              throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+          }
+          else
+            throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+        }
+      }
+    }
+    
+
+    // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
+    for (var jugada in listaLoteriasSuperPaleJugadas) {
+      if(await Db.existeLoteria(jugada.idLoteriaSuperpale, tx) == false)
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} no pertenece a esta banca");
+      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(jugada.loteriaSuperPale.horaApertura, date)))
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} aun no ha abierto");
+      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(jugada.loteriaSuperPale.horaCierre, date))){
+        if(!tienePermisoJugarFueraDeHorario){
+          if(tienePermisoJugarMinutosExtras){
+            var datePlusExtraMinutes = date.add(Duration(minutes: jugada.loteriaSuperPale.minutosExtras));
+            if(date.isAfter(datePlusExtraMinutes))
+              throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+          }
+          else
+            throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+        }
+      }
+      
+      
+    }
 
     /**************** AHORA DEBO INVESTIGAR COMO OBTENER EL NUMERO DE TICKET, ESTOY INVESTIGANDO LARAVEL CACHE A VER COMO SE COMUNICA CON REDIS */
 
 
-    // for (Jugada jugada in jugadas) {      
-    //   await Future(() async {
-    //     // int id = int.parse(oi.findElements("ID").first.text);
-    //     // String name = oi.findElements("NAME").first.text;
+    Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: DateTime.now()).toJson());
 
-    //     //  DatabaseHelper.insertElement(
-    //     //   tx,
-    //     //   id: id,
-    //     //   name: name,
-    //     //  );
-    //     String id = "";
+    for (Jugada jugada in jugadas) {      
+      await Future(() async {
+        // int id = int.parse(oi.findElements("ID").first.text);
+        // String name = oi.findElements("NAME").first.text;
+
+        //  DatabaseHelper.insertElement(
+        //   tx,
+        //   id: id,
+        //   name: name,
+        //  );
+        String id = "";
         
+        if(jugada.loteria.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+          throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteria.descripcion}");
+        if(jugada.idSorteo == 4){
+          if(jugada.loteriaSuperPale.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+            throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
+        }
         
 
-    //   });
-    // }
+      });
+    }
+
+    // VALIDAR SI LA LOTERIA EXISTE EN LA LISTA LOTERIA, SI NO EXISTE, ESO QUIERE DECIR O QUE HA CERRADO O QUE SE HAN REGISTRADO PREMIOS
+    for (var jugada in listaLoteriasJugadas) {
+      if(listaLoteria.indexWhere((element) => element.id == jugada.loteria.id) == -1)
+        throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado o se han registrado premios");
+    }
+
+    // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
+    for (var jugada in listaLoteriasSuperPaleJugadas) {
+      if(listaLoteria.indexWhere((element) => element.id == jugada.loteriaSuperPale.id) == -1)
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado o se han registrado premios");
+    }
 
     // batch.commit(noResult: false, continueOnError: false);
     // tx.commit();
@@ -609,6 +684,10 @@ class Realtime{
       var ticketMap = await Db.getLastRow("Tickets"); 
       Ticket ticketDB = ticketMap != null ? Ticket.fromMap(ticketMap) : null;
       Ticket ticketParsed = parsed != null ? Ticket.fromMap(parsed) : null;
+      if(ticketParsed.id == BigInt.zero)
+        return;
+
+      print("Realtime createTicketIfNotExists: ${ticketParsed.toJson()}");
       if(ticketDB != null){
         if(ticketDB.id != ticketParsed.id)
           Db.insert("Tickets", ticketParsed.toJson());
