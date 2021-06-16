@@ -255,7 +255,11 @@ Future<bool> _requestPermisionChannel() async {
 
 
   _guardarLocal() async {
-    Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
+    try {
+      var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
+    } on Exception catch (e) {
+      Utils.showAlertDialog(context: context, content: "$e", title: "Error");
+    }
   }
 
   // esDirecto(String jugada){
@@ -652,7 +656,10 @@ Future<bool> _requestPermisionChannel() async {
         Banca banca = Banca.fromMap(parsed["branch"]);
         if(_tienePermisoJugarComoCualquierBanca){
           int idx = listaBanca.indexWhere((element) => element.id == banca.id);
-          if(idx == -1)
+          print("Dentro principal view _updateBranchesList 3: $idx");
+          print("Dentro principal view _updateBranchesList 4 la primera pertenece: ${banca.loterias.indexWhere((element) => element.descripcion == "La Primera") == -1}");
+
+          if(idx != -1 && idx == _indexBanca)
             listaBanca[idx] = banca;
         }
         
@@ -831,6 +838,7 @@ Future<bool> _requestPermisionChannel() async {
     });
     socket.on('connect_error', (data) => print(data));
     socket.on('error', (data) => print("errr: ${data}"));
+    socket.onDisconnect((data) => print("onDisconnect principalview: ${data}"));
   //   socket.onConnectError((er) async {
   //     _socketContadorErrores++;
   //     if(_socketContadorErrores == 4)

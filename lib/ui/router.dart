@@ -37,9 +37,9 @@ class MyRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/' :
-        return  MaterialPageRoute(
-          builder: (_)=> PruebaTimeZone()
-        );
+        // return  MaterialPageRoute(
+        //   builder: (_)=> PruebaTimeZone()
+        // );
         return  MaterialPageRoute(
           builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? settings.arguments : false,)
         );

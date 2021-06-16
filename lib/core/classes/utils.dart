@@ -677,8 +677,11 @@ class  Utils {
     fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
 
     int horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime = (currentDateTime.hour - fechaActualRd.hour);
-    var fechaLoteriaCurrentTimeZone = fechaLoteriaConvertidaAFormatoRD.add(Duration(hours: horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime));
-
+    int minutosASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime = (currentDateTime.minute - fechaActualRd.minute);
+    segundosARestar = currentDateTime.second;
+    var fechaLoteriaCurrentTimeZone = fechaLoteriaConvertidaAFormatoRD.add(Duration(hours: horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime, minutes: minutosASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime));
+    fechaLoteriaCurrentTimeZone.subtract(Duration(seconds: segundosARestar));
+    
     return fechaLoteriaCurrentTimeZone;
   }
 

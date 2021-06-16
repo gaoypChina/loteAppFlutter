@@ -23,6 +23,7 @@ import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
@@ -459,7 +460,6 @@ class Realtime{
           throw Exception("No tiene permiso para realizar para jugar como cualquier banca");
     }
 
-    socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
     // socket.emit("idTicket", 1234567);
 
     // VALIDACION HORAR APERTURA Y CIERRE DE LA BANCA
@@ -485,19 +485,22 @@ class Realtime{
 
     // VALIDACION LOTERIA PERTENECE A BANCA
     for (var jugada in listaLoteriasJugadas) {
-      if(await Db.existeLoteria(jugada.idLoteria, tx) == false)
+      if(banca.loterias.indexWhere((element) => element.id == jugada.idLoteria) == -1)
         throw Exception("La loteria ${jugada.loteria.descripcion} no pertenece a esta banca");
-      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(jugada.loteria.horaApertura, date)))
-        throw Exception("La loteria ${jugada.loteria.descripcion} no ha abierto");
-      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(jugada.loteria.horaCierre, date))){
+
+      Loteria loteria = listaLoteria.firstWhere((element) => element.id == jugada.loteria.id, orElse: () => null);
+      print("Realtime guardarVenta apertura: ${loteria.horaApertura} horaCierre: ${loteria.horaCierre}");
+      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteria.horaApertura, date)))
+        throw Exception("La loteria ${loteria.descripcion} no ha abierto");
+      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(loteria.horaCierre, date))){
         if(!tienePermisoJugarFueraDeHorario){
           if(tienePermisoJugarMinutosExtras){
-            var datePlusExtraMinutes = date.add(Duration(minutes: jugada.loteria.minutosExtras));
+            var datePlusExtraMinutes = date.add(Duration(minutes: loteria.minutosExtras));
             if(date.isAfter(datePlusExtraMinutes))
-              throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+              throw Exception("La loteria ${loteria.descripcion} ha cerrado");
           }
           else
-            throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+            throw Exception("La loteria ${loteria.descripcion} ha cerrado");
         }
       }
     }
@@ -505,19 +508,21 @@ class Realtime{
 
     // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
     for (var jugada in listaLoteriasSuperPaleJugadas) {
-      if(await Db.existeLoteria(jugada.idLoteriaSuperpale, tx) == false)
+      if(banca.loterias.indexWhere((element) => element.id == jugada.idLoteriaSuperpale) == -1)
         throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} no pertenece a esta banca");
-      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(jugada.loteriaSuperPale.horaApertura, date)))
-        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} aun no ha abierto");
-      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(jugada.loteriaSuperPale.horaCierre, date))){
+      
+      Loteria loteriaSuperPale = listaLoteria.firstWhere((element) => element.id == jugada.loteriaSuperPale.id, orElse: () => null);
+      if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaApertura, date)))
+        throw Exception("La loteria ${loteriaSuperPale.descripcion} aun no ha abierto");
+      if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaCierre, date))){
         if(!tienePermisoJugarFueraDeHorario){
           if(tienePermisoJugarMinutosExtras){
-            var datePlusExtraMinutes = date.add(Duration(minutes: jugada.loteriaSuperPale.minutosExtras));
+            var datePlusExtraMinutes = date.add(Duration(minutes: loteriaSuperPale.minutosExtras));
             if(date.isAfter(datePlusExtraMinutes))
-              throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+              throw Exception("La loteria ${loteriaSuperPale.descripcion} ha cerrado");
           }
           else
-            throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+            throw Exception("La loteria ${loteriaSuperPale.descripcion} ha cerrado");
         }
       }
       
@@ -528,6 +533,10 @@ class Realtime{
 
 
     Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: DateTime.now()).toJson());
+    var saleMap = await Db.queryBy("Sales", "idTicket", ticket.id.toInt(), tx);
+    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+    if(sale == null)
+      throw Exception("Hubo un error al realizar la venta, la venta es nula");
 
     for (Jugada jugada in jugadas) {      
       await Future(() async {
@@ -541,14 +550,17 @@ class Realtime{
         //  );
         String id = "";
         
-        if(jugada.loteria.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+        Loteria loteria = listaLoteria.firstWhere((element) => element.id == jugada.loteria.id, orElse: () => null);
+        Loteria loteriaSuperPale;
+        if(loteria.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
           throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteria.descripcion}");
         if(jugada.idSorteo == 4){
-          if(jugada.loteriaSuperPale.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+          loteriaSuperPale = listaLoteria.firstWhere((element) => element.id == jugada.loteriaSuperPale.id, orElse: () => null);
+          if(loteriaSuperPale.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
             throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
         }
         
-
+        await Db.insert('Salesdetails', Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0).toJson());
       });
     }
 
@@ -564,6 +576,9 @@ class Realtime{
         throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado o se han registrado premios");
     }
 
+    ticket.usado = 1;
+    await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
+    socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
     // batch.commit(noResult: false, continueOnError: false);
     // tx.commit();
   });

@@ -113,9 +113,9 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future update(String table, Map<String, dynamic> dataToMap, id) {
+  Future update(String table, Map<String, dynamic> dataToMap, id, [var transaccion]) {
   // TODO: implement update
-    return DBSqflite.update(table, dataToMap, id);
+    return DBSqflite.update(table, dataToMap, id, transaccion);
   }
 
   @override
@@ -140,6 +140,12 @@ class MobileDB implements CrossDB{
   Future<Map<String, dynamic>> getNextTicket([var transaction]) {
     // TODO: implement getLastRow
     return DBSqflite.getNextTicket(transaction);
+  }
+
+  @override
+  Future<Map<String, dynamic>> queryBy(String table, String by, dynamic value, [var transaction]) {
+    // TODO: implement getLastRow
+    return DBSqflite.queryBy(table, by, value, transaction);
   }
   
 

@@ -27,7 +27,7 @@ class _PruebaTimeZoneState extends State<PruebaTimeZone> {
       systemDateTimeString = "${systemDateTime.hour}:${systemDateTime.minute}";
       var rdDateTime = Utils.dateTimeToRD(startDate);
       rdnowDateTimeString = "${rdDateTime.hour}:${rdDateTime.minute}";
-      var dateTimeLoteria = Utils.horaLoteriaToCurrentTimeZone("19:15", startDate);
+      var dateTimeLoteria = Utils.horaLoteriaToCurrentTimeZone("08:05", startDate);
       loteriaDateTimeString = "${dateTimeLoteria.hour}:${dateTimeLoteria.minute}";
     });
     // print('NTP DateTime: ${startDate}');
