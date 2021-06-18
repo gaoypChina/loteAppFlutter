@@ -2,6 +2,7 @@
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
 
 import 'loterias.dart';
@@ -28,9 +29,10 @@ class Sale {
 
   Banca banca;
   Usuario usuario;
+  Ticket ticket;
   
 
-  Sale({this.id, this.compartido, this.idUsuario, this.idBanca, this.total, this.subTotal, this.descuentoMonto, this.hayDescuento, this.idTicket, this.created_at, this.updated_at, this.status, this.loterias, this.jugadas, this.banca, this.usuario, this.subido});
+  Sale({this.id, this.compartido, this.idUsuario, this.idBanca, this.total, this.subTotal, this.descuentoMonto, this.hayDescuento, this.idTicket, this.created_at, this.updated_at, this.status, this.loterias, this.jugadas, this.banca, this.usuario, this.ticket, this.subido});
 
   Sale.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
@@ -47,7 +49,8 @@ class Sale {
         jugadas = jugadasToMap(snapshot['jugadas']) ?? [],
         loterias = loteriasToMap(snapshot['loterias']) ?? [],
         banca = (snapshot["banca"] != null) ? Banca.fromMap(Utils.parsedToJsonOrNot(snapshot['banca'])) : null,
-        usuario = (snapshot["usuario"] != null) ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null
+        usuario = (snapshot["usuario"] != null) ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null,
+        ticket = (snapshot["ticket"] != null) ? Ticket.fromMap(Utils.parsedToJsonOrNot(snapshot['ticket'])) : null
         ;
 
 List jugadasToJson() {

@@ -9,7 +9,7 @@ abstract class CrossDB {
   // QueryExecutor getMoorCrossConstructor();
   dynamic openConnection();
   String getPlatform();
-  Future insert(String table, Map<String, dynamic> dataToMap);
+  Future<void> insert(String table, Map<String, dynamic> dataToMap);
   Future update(String table, Map<String, dynamic> dataToMap, id);
   Future delete(String table, [id]);
   Future<List<Map<String, dynamic>>> query(String table);

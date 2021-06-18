@@ -1,5 +1,7 @@
 
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/loterias.dart';
 
 class Salesdetails {
   BigInt id;
@@ -19,8 +21,12 @@ class Salesdetails {
 
   int status;
 
+  Loteria loteria;
+  Loteria loteriaSuperPale;
+  Draws sorteo;
 
-  Salesdetails({this.id, this.idVenta, this.idLoteria, this.idSorteo, this.jugada, this.monto, this.premio, this.comision, this.idStock, this.created_at, this.updated_at, this.idLoteriaSuperpale, this.status});
+
+  Salesdetails({this.id, this.idVenta, this.idLoteria, this.idSorteo, this.jugada, this.monto, this.premio, this.comision, this.idStock, this.created_at, this.updated_at, this.idLoteriaSuperpale, this.status, this.loteria, this.loteriaSuperPale, this.sorteo});
 
   Salesdetails.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
@@ -34,7 +40,10 @@ class Salesdetails {
         idStock = Utils.toInt(snapshot['idStock'].toString()) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         idLoteriaSuperpale = snapshot['idLoteriaSuperpale'] ?? 0,
-        status = snapshot['status'] ?? 0
+        status = snapshot['status'] ?? 0,
+        loteria = (snapshot["loteria"] != null) ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteria'])) : null,
+        loteriaSuperPale = (snapshot["loteriaSuperPale"] != null) ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteriaSuperPale'])) : null,
+        sorteo = (snapshot["sorteo"] != null) ? Draws.fromMap(Utils.parsedToJsonOrNot(snapshot['sorteo'])) : null
         ;
 
   

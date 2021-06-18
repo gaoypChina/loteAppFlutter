@@ -7,6 +7,7 @@ import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_tim
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
+import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -18,6 +19,7 @@ import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
+import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -257,6 +259,9 @@ Future<bool> _requestPermisionChannel() async {
   _guardarLocal() async {
     try {
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
+      var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
+      print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
+      Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
     } on Exception catch (e) {
       Utils.showAlertDialog(context: context, content: "$e", title: "Error");
     }

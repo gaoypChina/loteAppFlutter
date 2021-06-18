@@ -47,7 +47,7 @@ class MobileDB implements CrossDB{
   @override
   Future<Map<String, dynamic>> ajustes() {
     // TODO: implement ajustes
-    throw UnimplementedError();
+    DBSqflite.ajustes();
   }
 
   @override
@@ -89,7 +89,7 @@ class MobileDB implements CrossDB{
   }
   
   @override
-  Future insert(String table, Map<String, dynamic> dataToMap, [var transaction]) {
+  Future<void> insert(String table, Map<String, dynamic> dataToMap, [var transaction]) {
     // TODO: implement insert
     return DBSqflite.insert(table, dataToMap, transaction);
   }

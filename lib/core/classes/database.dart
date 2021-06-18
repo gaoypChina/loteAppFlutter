@@ -46,7 +46,7 @@ class DBSqflite{
     });
   }
 
-  static insert(String table, Map<String, dynamic> dataToMap, [var transaction]) async {
+  static Future<void> insert(String table, Map<String, dynamic> dataToMap, [var transaction]) async {
     await 
     transaction == null 
     ?

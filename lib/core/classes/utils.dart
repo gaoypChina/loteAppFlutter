@@ -282,7 +282,7 @@ class  Utils {
     return lista;
   }
 
-  static List<Jugada> removeDuplicateLoteriasFromList(List<Jugada> lista){
+  static List removeDuplicateLoteriasFromList(List lista){
     // print("BEFORE DELETE");
     final ids = lista.map((e) => e.idLoteria).toSet();
     lista.retainWhere((x) => ids.remove(x.idLoteria));
@@ -290,9 +290,10 @@ class  Utils {
     return lista;
   }
 
-  static List<Jugada> removeDuplicateLoteriasSuperPaleFromList(List<Jugada> lista){
+  static List removeDuplicateLoteriasSuperPaleFromList(List lista){
     // print("BEFORE DELETE");
-    var listaSuperpale = lista.where((element) => element.idLoteriaSuperpale > 0).toList();
+    // var listaSuperpale = lista.where((element) => element.idLoteriaSuperpale != 0 && element.idLoteriaSuperpale != null).toList();
+    var listaSuperpale = lista.where((element) => element.idSorteo == 4).toList();
     print("removeDuplicateLoteriasSuperPaleFromList listaSUperpale lenght: ${listaSuperpale.length}");
     if(listaSuperpale.length == 0)
       return [];
@@ -300,7 +301,7 @@ class  Utils {
     final ids = listaSuperpale.map((e) => e.idLoteriaSuperpale).toSet();
     listaSuperpale.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
     // print("AFTER DELETE");
-    return lista;
+    return listaSuperpale;
   }
 
 

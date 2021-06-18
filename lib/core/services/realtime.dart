@@ -437,7 +437,9 @@ class Realtime{
 
   static guardarVenta({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras}) async {
     print("Realtime guardarventa before: ${Db.database.transaction}");
-    Db.database.transaction((tx) async {
+    Sale sale;
+    List<Salesdetails> listSalesdetails = [];
+    await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
     DateTime date = await NTP.now();
     Usuario usuario = Usuario.fromMap(await Db.getUsuario(tx));
@@ -478,8 +480,8 @@ class Realtime{
     // CREACION CODIGO BARRA
     ticket.codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
 
-    List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(jugadas);
-    List<Jugada> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(jugadas);
+    List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(jugadas)).cast<Jugada>().toList();
+    List<Jugada> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Jugada>().toList();
     listaLoteriasJugadas.forEach((element) {print("Realtime guardar venta loteria: ${element.idLoteria}");});
     listaLoteriasSuperPaleJugadas.forEach((element) {print("Realtime guardar venta loteriaSuper: ${element.idLoteriaSuperpale}");});
 
@@ -508,6 +510,7 @@ class Realtime{
 
     // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
     for (var jugada in listaLoteriasSuperPaleJugadas) {
+      print("Realtime guardarVenta validacion superpale: ${jugada.idLoteriaSuperpale} null: ${jugada.loteriaSuperPale == null}");
       if(banca.loterias.indexWhere((element) => element.id == jugada.idLoteriaSuperpale) == -1)
         throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} no pertenece a esta banca");
       
@@ -532,11 +535,17 @@ class Realtime{
     /**************** AHORA DEBO INVESTIGAR COMO OBTENER EL NUMERO DE TICKET, ESTOY INVESTIGANDO LARAVEL CACHE A VER COMO SE COMUNICA CON REDIS */
 
 
-    Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: DateTime.now()).toJson());
+    print("Realtime guardarVenta before insert sales idTicket: ${ticket.id.toInt()}");
+    await Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: DateTime.now()).toJson(), tx);
     var saleMap = await Db.queryBy("Sales", "idTicket", ticket.id.toInt(), tx);
-    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+    print("Realtime guardarVenta after insert sales saleMap: ${saleMap}");
+    sale = saleMap != null ? Sale.fromMap(saleMap) : null;
     if(sale == null)
       throw Exception("Hubo un error al realizar la venta, la venta es nula");
+
+    sale.ticket = ticket;
+    sale.banca = banca;
+    sale.usuario = usuario;
 
     for (Jugada jugada in jugadas) {      
       await Future(() async {
@@ -560,7 +569,10 @@ class Realtime{
             throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
         }
         
-        await Db.insert('Salesdetails', Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0).toJson());
+        var salesdetails = Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
+        await Db.insert('Salesdetails', salesdetails.toJson(), tx);
+        listSalesdetails.add(salesdetails);
+        print("Realtime guardarVenta for jugadas: ${listSalesdetails.length}");
       });
     }
 
@@ -578,11 +590,13 @@ class Realtime{
 
     ticket.usado = 1;
     await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
+
     socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
     // batch.commit(noResult: false, continueOnError: false);
     // tx.commit();
   });
-    print("Realtime guardarventa after transaction");
+    print("Realtime guardarventa after transaction: ${listSalesdetails.length}");
+    return [sale, listSalesdetails];
   }
   
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {

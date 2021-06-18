@@ -55,6 +55,8 @@ dependencies:
   syncfusion_flutter_datepicker: ^19.1.66-beta
   device_info_plus: ^1.0.1
   ntp: ^2.0.0
+  pdf: ^3.3.0
+  printing: ^5.2.1
   flutter:
     sdk: flutter
 
