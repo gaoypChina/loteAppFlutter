@@ -470,7 +470,7 @@ class Realtime{
     if(date.isBefore(hoyHoraAperturaBanca))
         throw Exception("La banca no ha abierto");
     if(date.isAfter(hoyHoraCierreBanca))
-        throw Exception("La banca ha cerrado");
+        throw Exception("La banca ha cerrado: ${hoyHoraCierreBanca.toString()} | ${date.toString()}");
 
     total = jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element);
     // VALIDACION LIMITE VENTA BANCA

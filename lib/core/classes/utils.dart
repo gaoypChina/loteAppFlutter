@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui';
 
 // import 'package:corsac_jwt/corsac_jwt.dart';
@@ -703,6 +704,33 @@ class  Utils {
     return fechaActualRd;
   }
 
+
+  static List<int> uint8ListToListIn(Uint8List uint8list){
+    return new List.from(uint8list);
+  }
+
+  static jugadaFormatToJugada(String jugada){
+   if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
+     return jugada.substring(0, 2) + '-' + jugada.substring(2, 4);
+   }
+   else if(jugada.length == 3){
+     return "${jugada.substring(0, 3)}S";
+   }
+   else if(jugada.length == 4 && jugada.indexOf('+') != -1){
+     return "${jugada.substring(0, 3)}B";
+   }
+   else if(jugada.length == 5 && jugada.indexOf('+') != -1){
+     return "${jugada.substring(0, 4)}B";
+   }
+   else if(jugada.length == 5 && jugada.indexOf('-') != -1){
+     return "${jugada.substring(0, 4)}S";
+   }
+  else if(jugada.length == 6){
+     return jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6);
+  }
+
+   return jugada;
+ }
 
  
 }

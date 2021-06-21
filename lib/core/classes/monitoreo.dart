@@ -42,7 +42,7 @@ class Monitoreo{
                   try{
                     setState(() => _cargando = true);
                     var datos = await TicketService.ticket(context: context, idTicket: venta.idTicket);
-                    ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    // ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
                     setState(() => _cargando = false);
                     Navigator.pop(context);
                   } on Exception catch(e){

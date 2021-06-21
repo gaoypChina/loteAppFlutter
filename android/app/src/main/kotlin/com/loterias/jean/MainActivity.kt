@@ -6,10 +6,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.os.Build
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import androidx.annotation.NonNull
@@ -24,9 +26,13 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 class MainActivity: FlutterActivity() {
 //    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -170,9 +176,14 @@ class MainActivity: FlutterActivity() {
                //Create ticket image
 
 //               try {
-                   val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
+//                   val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
+
+                   val ticketBitmap = Utils.base64ToBitmap(call.argument<ByteArray>("image")!!)
+//                   val ticketBitmap = getImageFromAsset(call.argument<String>("image")!!)
                    val bitmapQr = generateQr(call.argument<String>("codigoQr"));
-                   val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
+//                   val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
+//                   val bitmap = combinarBitmap(ticketBitmap, bitmapQr);
+                   val bitmap = combinarBitmap(ticketBitmap, bitmapQr);
                    //val base64 = bitmapToBase64(bitmap!!)
 
                    SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp") as Boolean)
@@ -189,6 +200,16 @@ class MainActivity: FlutterActivity() {
 ////           sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", e.message)
 //           result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, e.message);
 //       }
+    }
+
+    fun getImageFromAsset(name : String) : Bitmap{
+        val imgFile = File(name)
+        lateinit var myBitmap: Bitmap
+        if (imgFile.exists()) {
+            myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath())
+        }
+
+        return myBitmap
     }
 
     fun sendErrorMessage(title: String, message: String){
@@ -238,7 +259,8 @@ class MainActivity: FlutterActivity() {
         val bmOverlay = Bitmap.createBitmap(bitmap1!!.width, bitmap1.height, bitmap1.config)
         val canvas = Canvas(bmOverlay)
         canvas.drawBitmap(bitmap1, 0f, 0f, null)
-        canvas.drawBitmap(bitmap2!!, 125f, bitmap1.height - 150.toFloat(), null)
+//        canvas.drawBitmap(bitmap2!!, 125f, bitmap1.height - 150.toFloat(), null)
+        canvas.drawBitmap(bitmap2!!, (bitmap1.width.toFloat() / 2) - bitmap2.width / 2, bitmap1.height.toFloat() - 260.toFloat(), null)
         return bmOverlay
     }
 
@@ -256,7 +278,7 @@ class MainActivity: FlutterActivity() {
     }
 
     fun generateQr( codigoQr: String?) : Bitmap {
-        val qrgEncoder = QRGEncoder(codigoQr, null, QRGContents.Type.TEXT, 150)
+        val qrgEncoder = QRGEncoder(codigoQr, null, QRGContents.Type.TEXT, 250)
         return qrgEncoder.encodeAsBitmap();
     }
 

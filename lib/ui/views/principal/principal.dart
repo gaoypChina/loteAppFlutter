@@ -247,7 +247,7 @@ Future<bool> _requestPermisionChannel() async {
         _seleccionarPrimeraLoteria();
         _cargando = false;
         listaEstadisticaJugada.clear();
-        (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
+        // (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
       
       });
     } on Exception catch(e){
@@ -261,6 +261,7 @@ Future<bool> _requestPermisionChannel() async {
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
       var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
       print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
+      ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
       Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
     } on Exception catch (e) {
       Utils.showAlertDialog(context: context, content: "$e", title: "Error");

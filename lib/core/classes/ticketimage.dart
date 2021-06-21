@@ -13,6 +13,7 @@ import 'package:loterias/core/models/salesdetails.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 
 class TicketImage {
@@ -22,6 +23,12 @@ class TicketImage {
     final pdf = pw.Document();
     var theme = await _initFont();
     var header = await _ticketHead(sale, original);
+    // QrImage a = QrImage(
+    //   data: "1234567890",
+    //   version: QrVersions.auto,
+    //   size: 200.0,
+    // );
+    
     pdf.addPage(pw.Page(
       theme: theme,
       pageFormat: PdfPageFormat.undefined,
@@ -30,7 +37,8 @@ class TicketImage {
           width: _screenWidth,
           padding: pw.EdgeInsets.only(left: 20, right: 20, top: 10),
           decoration: pw.BoxDecoration(
-            border: pw.Border.all(width: 3, color: PdfColor.fromHex("#1170ec"))
+            border: pw.Border.all(width: 3, color: PdfColor.fromHex("#1170ec")),
+            color: PdfColor.fromHex("#ffffff")
           ),
           child:  pw.Column(
             children: [
@@ -77,12 +85,12 @@ class TicketImage {
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         nombreConsorcio,
-        pw.Text("${sale.banca.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18)),
-        pw.Text("** ${original ? 'ORIGINAL' : 'COPIA'} **", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-        pw.Text("TICKET: ${Utils.toSecuencia('', sale.idTicket, false)}",),
-        pw.Text("FECHA: ${DateFormat('EEE, MMM d yyy jms').format(sale.created_at)}",),
+        pw.Text("${sale.banca.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
+        pw.Text("** ${original ? 'ORIGINAL' : 'COPIA'} **", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
+        pw.Text("TICKET: ${Utils.toSecuencia('', sale.idTicket, false)}", style: pw.TextStyle(fontSize: 30)),
+        pw.Text("FECHA: ${DateFormat('EEE, MMM d yyy jms').format(sale.created_at)}", style: pw.TextStyle(fontSize: 30)),
         pw.SizedBox(height: 20),
-        pw.Text("${sale.ticket.codigoBarra}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18)),
+        pw.Text("${sale.ticket.codigoBarra}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
         pw.SizedBox(height: 20),
       ]
     );
@@ -127,9 +135,9 @@ class TicketImage {
         if(i == 0){
           widgets.add(pw.Divider());
           if(lasJugadasSonDeTipoSuperPale == false)
-            widgets.add(pw.Text("${loteria.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)));
+            widgets.add(pw.Text("${loteria.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)));
           else
-            widgets.add(pw.Text("Super pale(${loteria.descripcion} / ${salesdetails[i].loteriaSuperPale.descripcion})", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)));
+            widgets.add(pw.Text("Super pale(${loteria.descripcion} / ${salesdetails[i].loteriaSuperPale.descripcion})", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)));
 
           widgets.add(pw.Divider());
           widgets.add(pw.SizedBox(height: 10));
@@ -150,15 +158,15 @@ class TicketImage {
                  pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                    width: 40,
-                    child: pw.Text("Jugada", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    width: 170,
+                    child: pw.Text("Jugada", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
                   ),
                   ),
                   pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                      width: 40,
-                      child: pw.Text("Monto", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      width: 150,
+                      child: pw.Text("Monto", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
                     ),
                   ),
                 ]
@@ -168,15 +176,15 @@ class TicketImage {
                   pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                    width: 40,
-                    child: pw.Text("Jugada", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    width: 170,
+                    child: pw.Text("Jugada", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
                   ),
                   ),
                   pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                      width: 40,
-                      child: pw.Text("Monto", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      width: 150,
+                      child: pw.Text("Monto", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
                     ),
                   ),
                   // pw.Text("Jugada", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
@@ -203,15 +211,15 @@ class TicketImage {
                   pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                      width: 40,
-                      child: pw.Text("${detail.jugada}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      width: 170,
+                      child: pw.Text("${Utils.jugadaFormatToJugada(detail.jugada)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 45)),
                     ),
                   ),
                   pw.Padding(
                     padding: pw.EdgeInsets.symmetric(horizontal: 10),
                     child: pw.Container(
-                      width: 40,
-                      child: pw.Text("${detail.monto}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      width: 150,
+                      child: pw.Text("${detail.monto}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 45)),
                     ),
                   )
                 ]
@@ -224,15 +232,15 @@ class TicketImage {
               pw.Padding(
                 padding: pw.EdgeInsets.symmetric(horizontal: 10),
                 child: pw.Container(
-                    width: 40,
-                    child: pw.Text("${detail2 != null ? detail2.jugada : ''}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    width: 170,
+                    child: pw.Text("${detail2 != null ? Utils.jugadaFormatToJugada(detail2.jugada) : ''}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 45)),
                   ),
               ),
               pw.Padding(
                 padding: pw.EdgeInsets.symmetric(horizontal: 10),
                 child: pw.Container(
-                  width: 40,
-                  child: pw.Text("${detail2 != null ? detail2.monto : ''}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  width: 150,
+                  child: pw.Text("${detail2 != null ? detail2.monto : ''}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 45)),
                 ),
               )
             ]
@@ -247,16 +255,18 @@ class TicketImage {
 
   static pw.Widget _ticketFooter(Sale sale, List<Salesdetails> listSalesdetails){
     var total = listSalesdetails.map((e) => e.monto).reduce((value, element) => value + element);
-    var subTotalWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Subtotal: ${Utils.toCurrency(sale.total)}",) : pw.SizedBox();
-    var descuentoMontoWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Descuento: ${Utils.toCurrency(sale.descuentoMonto)}",) : pw.SizedBox();
-    var totalWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Total: ${Utils.toCurrency(sale.total - sale.descuentoMonto)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18)) : pw.Text("Total: ${Utils.toCurrency(sale.total)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18));
+    var subTotalWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Subtotal: ${Utils.toCurrency(sale.total)}", style: pw.TextStyle(fontSize: 30)) : pw.SizedBox();
+    var descuentoMontoWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Descuento: ${Utils.toCurrency(sale.descuentoMonto)}", style: pw.TextStyle(fontSize: 30)) : pw.SizedBox();
+    var totalWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Total: ${Utils.toCurrency(sale.total - sale.descuentoMonto)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)) : pw.Text("Total: ${Utils.toCurrency(sale.total)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50));
     
-    var piepagina1Widget = sale.banca.piepagina1 != null ? sale.banca.piepagina1.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina1}",) : pw.SizedBox() : pw.SizedBox();
-    var piepagina2Widget = sale.banca.piepagina2 != null ? sale.banca.piepagina2.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina2}",) : pw.SizedBox() : pw.SizedBox();
-    var piepagina3Widget = sale.banca.piepagina3 != null ? sale.banca.piepagina3.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina3}",) : pw.SizedBox() : pw.SizedBox();
-    var piepagina4Widget = sale.banca.piepagina4 != null ? sale.banca.piepagina4.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina4}",) : pw.SizedBox() : pw.SizedBox();
+    var piepagina1Widget = sale.banca.piepagina1 != null ? sale.banca.piepagina1.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina1}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina2Widget = sale.banca.piepagina2 != null ? sale.banca.piepagina2.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina2}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina3Widget = sale.banca.piepagina3 != null ? sale.banca.piepagina3.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina3}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina4Widget = sale.banca.piepagina4 != null ? sale.banca.piepagina4.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina4}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
     
-    return  pw.Column(
+    return  pw.Padding(
+      padding: pw.EdgeInsets.only(bottom: 260),
+      child: pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [
         subTotalWidget,
@@ -267,6 +277,7 @@ class TicketImage {
         piepagina3Widget,
         piepagina4Widget,
       ]
+    )
     );
   }
 
@@ -277,9 +288,12 @@ class TicketImage {
   static Future<Uint8List> pdfFileToImage(Uint8List pdfFile) async {
     var _image;
     await for (final page in Printing.raster(pdfFile)) {
-      final image = page.toImage(); // ...or page.toPng()
-      var byteData = await (await image).toByteData(format: ImageByteFormat.png);
-      _image = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+      // final image = page.toImage(); // ...or page.toPng()
+      // final image = page.toPng(); // ...or page.toPng()
+      // var byteData = await (await image).toByteData(format: ImageByteFormat.png);
+      // _image = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+
+      _image = page.toPng();
       break;
     }
     return _image;

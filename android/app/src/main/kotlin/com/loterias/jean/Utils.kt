@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.net.Uri
 import android.provider.MediaStore
@@ -71,6 +72,12 @@ class Utils {
         suspend fun htmlToBitmap(html: String ?, context: Context) : Bitmap?{
             val bitmap = Html2Bitmap.Builder().setContext(context).setContent(WebViewContent.html(html)).setBitmapWidth(400).build().bitmap
             return bitmap;
+        }
+
+        fun base64ToBitmap(image : ByteArray) : Bitmap{
+//            val imageBytes = Base64.decode(image, 0)
+            val img = BitmapFactory.decodeByteArray(image, 0, image.size)
+            return img
         }
 
         fun generateQr( codigoQr: String?) : Bitmap {
