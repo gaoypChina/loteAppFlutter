@@ -89,11 +89,15 @@ class  Utils {
     }
   }
 
-  static isNumber(String caracter){
+  static isNumber(dynamic caracter){
     try {
-      double.parse(caracter);
+      if(caracter == null)
+        return;
+
+      double.parse(caracter.toString());
       return true;
     } catch (e) {
+      print("Utils isNumber error: ${e.toString()}");
       return false;
     }
   }

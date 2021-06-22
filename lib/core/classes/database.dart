@@ -42,7 +42,7 @@ class DBSqflite{
       await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
       await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
-      await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idLoteria INTEGER, idSorteo INTEGER, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
+      await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idLoteria INTEGER, idSorteo INTEGER, sorteoDescripcion TEXT, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
     });
   }
 
@@ -229,6 +229,26 @@ class DBSqflite{
         : 
         await transaction.query(table, where: '"$by" = ?', whereArgs: [value]);
 
+      if(query.isEmpty){
+        return null;
+      }else{
+        return query.first;
+      }
+  }
+
+  static Future<List<Map<String, dynamic>>> queryListBy(String table, String by, value, [var transaction]) async {
+      var query = transaction == null 
+        ? 
+        await database.query(table, where: '"$by" = ?', whereArgs: [value]) 
+        : 
+        await transaction.query(table, where: '"$by" = ?', whereArgs: [value]);
+
+      return query;
+  }
+
+  static Future<Map<String, dynamic>> getSaleNoSubida([var transaction]) async {
+      String queryStatemet = 'SELECT * FROM Sales WHERE subido != 1 ORDER BY ID ASC LIMIT 1';
+      var query = transaction == null ? await database.rawQuery(queryStatemet) : await transaction.rawQuery(queryStatemet);
       if(query.isEmpty){
         return null;
       }else{

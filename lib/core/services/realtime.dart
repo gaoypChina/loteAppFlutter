@@ -439,15 +439,19 @@ class Realtime{
     print("Realtime guardarventa before: ${Db.database.transaction}");
     Sale sale;
     List<Salesdetails> listSalesdetails = [];
+    Usuario usuario;
     await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
     DateTime date = await NTP.now();
-    Usuario usuario = Usuario.fromMap(await Db.getUsuario(tx));
+    usuario = Usuario.fromMap(await Db.getUsuario(tx));
     Ticket ticket = Ticket.fromMap(await Db.getNextTicket(tx));
     double total = 0;
         
     print("Realtime guardarVenta banca.status = ${banca.status}");
     print("Realtime guardarVenta usuario = ${usuario}");
+    if(!socket.connected)
+      throw Exception("No esta conectado a internet.");
+    
     if(banca.status != 1)
       throw Exception("Esta banca esta desactivada");
 
@@ -569,7 +573,7 @@ class Realtime{
             throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
         }
         
-        var salesdetails = Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
+        var salesdetails = Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, sorteoDescripcion: jugada.sorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
         await Db.insert('Salesdetails', salesdetails.toJson(), tx);
         listSalesdetails.add(salesdetails);
         print("Realtime guardarVenta for jugadas: ${listSalesdetails.length}");
@@ -591,7 +595,11 @@ class Realtime{
     ticket.usado = 1;
     await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
 
+    if(!socket.connected)
+      throw Exception("No esta conectado a internet.");
+
     socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(tx), "usuario" : usuario.toJson(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
     // batch.commit(noResult: false, continueOnError: false);
     // tx.commit();
   });
@@ -716,11 +724,32 @@ class Realtime{
       if(ticketParsed.id == BigInt.zero)
         return;
 
-      print("Realtime createTicketIfNotExists: ${ticketParsed.toJson()}");
+      // print("Realtime createTicketIfNotExists: ${ticketParsed.toJson()}");
       if(ticketDB != null){
         if(ticketDB.id != ticketParsed.id)
           Db.insert("Tickets", ticketParsed.toJson());
       }else
         Db.insert("Tickets", ticketParsed.toJson());
+    }
+
+    static setVentaToSubido(var parsed) async {
+      if(Utils.isNumber(parsed) == false)
+        return;
+
+      var ventas = await Db.query("Sales");
+      print("Realtime setVentaToSubido: ${ventas}");
+        
+      var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
+      Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+      // print("Realtime setVentaToSubido before save: ${sale.toJson()}");
+      if(sale != null){
+        if(sale.subido != 1){
+          sale.subido = 1;
+          // print("Realtime setVentaToSubido before save 2: ${sale.toJson()}");
+          
+          await Db.update("Sales", sale.toJson(), sale.id.toInt());
+          // print("Realtime setVentaToSubido after save: ${sale.toJson()}");
+        }
+      }
     }
 }

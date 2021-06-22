@@ -120,6 +120,7 @@ String _montoPrueba = '0';
   bool _txtMontoPrimerCaracter = true;
   List<Loteria> _selectedLoterias;
   Timer _timer;
+  Timer _timerSaveVentaNoSubidas;
 
   static const platform = const MethodChannel('flutter.loterias');
   Usuario _usuario;
@@ -520,6 +521,8 @@ Future<bool> _requestPermisionChannel() async {
     
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
+      if(!kIsWeb)
+        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 5), (Timer t) => _getTime());
     
     
     focusNode = FocusNode();
@@ -566,6 +569,10 @@ Future<bool> _requestPermisionChannel() async {
     // _txtLoteriasSeleccionadasParaLigar.dispose();
     // _txtMontoLigar.dispose();
     _timer.cancel();
+    if(!kIsWeb){
+      if(_timerSaveVentaNoSubidas != null)
+        _timerSaveVentaNoSubidas.cancel();
+    }
     focusNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _streamControllerBanca.close();
@@ -685,6 +692,21 @@ Future<bool> _requestPermisionChannel() async {
     print("_emitToGetNewIdTicket idBanca: ${listaBanca.length}");
     if(idBanca != null)
       socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
+  }
+
+  _emitToSaveTicketsNoSubidos() async {
+    var saleMap = await Db.getSaleNoSubida();
+    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+    if(sale == null)
+      return;
+
+    if(sale.subido != 0)
+      return;
+
+    var salesdetails = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
+    print("_emitToSaveTicketsNoSubidos idBanca: ${sale}");
+
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
   }
 
   initSocket() async {
@@ -812,6 +834,11 @@ Future<bool> _requestPermisionChannel() async {
       socket.on("ticket", (data){
         print("Socket ticket from server before: $data");
         Realtime.createTicketIfNotExists(data);
+        print("Socket ticket from server after: $data");
+      });
+      socket.on("recibirVenta", (data){
+        print("Socket ticket from server before: $data");
+        Realtime.setVentaToSubido(data);
         print("Socket ticket from server after: $data");
       });
     }
@@ -4158,7 +4185,15 @@ _selectedBanca() async {
     
     var montoDisponible = null;
     
-    
+    if(socket == null){
+      Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+      return 0;
+    }
+    if(!socket.connected){
+      Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+      return 0;
+    }
+
     int idDia = getIdDia();
     int idSorteo = await getIdSorteo(jugada, loteria);
     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);

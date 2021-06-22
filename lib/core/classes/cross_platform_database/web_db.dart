@@ -211,6 +211,18 @@ class WebMoor implements CrossDB{
     throw UnimplementedError("WebDatabase Uninplemented queryBy");
   }
 
+  @override
+  Future<List<Map<String, dynamic>>> queryListBy(String table, String by, value) {
+    // TODO: implement queryBy
+    throw UnimplementedError("WebDatabase Uninplemented queryListBy");
+  }
+
+  @override
+  Future<Map<String, dynamic>> getSaleNoSubida() {
+    // TODO: implement getSaleNoSubida
+    throw UnimplementedError("WebDatabase Uninplemented getSaleNoSubida");
+  }
+
 }
 
 CrossDB getDB() => WebMoor();

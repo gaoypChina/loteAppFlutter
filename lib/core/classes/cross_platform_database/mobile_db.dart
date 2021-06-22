@@ -147,6 +147,18 @@ class MobileDB implements CrossDB{
     // TODO: implement getLastRow
     return DBSqflite.queryBy(table, by, value, transaction);
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> queryListBy(String table, String by, dynamic value, [var transaction]) {
+    // TODO: implement getLastRow
+    return DBSqflite.queryListBy(table, by, value, transaction);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getSaleNoSubida([var transaction]) {
+    // TODO: implement getLastRow
+    return DBSqflite.getSaleNoSubida(transaction);
+  }
   
 
 }

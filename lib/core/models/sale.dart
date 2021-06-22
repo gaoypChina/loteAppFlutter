@@ -78,7 +78,7 @@ List jugadasToJson() {
 
   toJson() {
     return {
-      "id": id,
+      "id": id != null ? id.toInt() : null,
       "compartido": compartido,
       "idUsuario": idUsuario,
       "idBanca": idBanca,
@@ -90,6 +90,7 @@ List jugadasToJson() {
       "created_at": created_at != null ? created_at.toString() : null,
       "updated_at": updated_at != null ? updated_at.toString() : null,
       "status": status,
+      "subido": subido,
     };
   }
   toJsonFull() {
