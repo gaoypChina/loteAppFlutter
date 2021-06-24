@@ -10,7 +10,10 @@ import 'package:loterias/core/classes/mysocket.dart';
 import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
+import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
@@ -522,7 +525,7 @@ Future<bool> _requestPermisionChannel() async {
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
       if(!kIsWeb)
-        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 5), (Timer t) => _getTime());
+        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 5), (Timer t) => _emitToSaveTicketsNoSubidos());
     
     
     focusNode = FocusNode();
@@ -695,7 +698,20 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _emitToSaveTicketsNoSubidos() async {
+    if(kIsWeb)
+      return;
+
+    if(socket == null)
+      return;
+
+    if(!socket.connected)
+      return;
+
     var saleMap = await Db.getSaleNoSubida();
+    // var saleMapAll = await Db.query("Sales");
+
+    print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
+    // print("_emitToSaveTicketsNoSubidos before validate, saleMapAll: ${saleMapAll}");
     Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
     if(sale == null)
       return;
@@ -703,10 +719,17 @@ Future<bool> _requestPermisionChannel() async {
     if(sale.subido != 0)
       return;
 
-    var salesdetails = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
-    print("_emitToSaveTicketsNoSubidos idBanca: ${sale}");
+    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+    Ticket ticket = Ticket.fromMap(ticketMap);
+    sale.ticket = ticket;
 
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
+    var salesdetailsListMap = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
+    List<Salesdetails> salesdetails = salesdetailsListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
+    print("_emitToSaveTicketsNoSubidos idBanca: ${ticketMap}");
+    
+    // return;
+
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
   }
 
   initSocket() async {
@@ -1033,6 +1056,9 @@ _showIntentNotificationIfExists() async {
   _duplicar(Map<String, dynamic> datos) async {
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    if(loteriasAduplicar == null)
+      return;
+
     loteriasAduplicar.forEach((l) async {
       for(Map<String, dynamic> jugada in datos["jugadas"]){
         if(l["id"] == jugada["idLoteria"]){
@@ -1762,6 +1788,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                   GestureDetector(
                                     onTap: (){
                                       // _showMultiSelect(context);
+                                      changeMontoDisponibleFromTxtMontoDisponible();
                                       setState(() => _jugadaOmonto = false);
                                     },
                                     child: Padding(
@@ -2740,7 +2767,7 @@ void _getTime() {
     if(caracter == 'ENTER'){
       if(_jugadaOmonto){
         setState((){
-          montoDisponible();
+          changeMontoDisponibleFromTxtMontoDisponible();
           _jugadaOmonto = !_jugadaOmonto;
           _txtMontoPrimerCaracter = true;
         });
@@ -3188,7 +3215,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + '+';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -3201,7 +3228,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + '-';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -3218,7 +3245,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + 's';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -3230,7 +3257,7 @@ void _getTime() {
       return;
     
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    await montoDisponible();
+    await changeMontoDisponibleFromTxtMontoDisponible();
     _txtJugada.text = _txtJugada.text + '.';
   }
 
@@ -3239,17 +3266,19 @@ void _getTime() {
     if(jugada.length < 2)
       return;
 
-    if(montoDisponible.isEmpty)
-      return;
+    // if(montoDisponible.isEmpty)
+    //   return;
 
-    if((Utils.toDouble(montoDisponible) == 0 || Utils.toDouble(montoDisponible) < 0) || Utils.toDouble(montoDisponible) < Utils.toDouble(monto)){
-      if(montoDisponible != 'X' && selectedLoterias.length < 2){
-        if(Utils.toDouble(monto) > Utils.toDouble(montoDisponible)){
-          _showSnackBar('No hay monto suficiente');
-            return;
-        }
-      }
-    }
+    // if((Utils.toDouble(montoDisponible) == 0 || Utils.toDouble(montoDisponible) < 0) || Utils.toDouble(montoDisponible) < Utils.toDouble(monto)){
+    //   if(montoDisponible != 'X' && selectedLoterias.length < 2){
+    //     // VALIDAMOS OTRA VEZ EL MONTO DISPONIBLE
+    //     var montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca());
+    //     if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+    //       _showSnackBar('No hay monto suficiente');
+    //         return;
+    //     }
+    //   }
+    // }
     
 
     if(Utils.toDouble(monto) == 0){
@@ -3268,87 +3297,16 @@ void _getTime() {
     }
 
     if(loteriaMap != null){
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteriaMap["id"]) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria ${loteriaMap["descripcion"]} desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: loteriaMap["id"],
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: loteriaMap["descripcion"],
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
-
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
-
       insertarJugadaDuplicar(loteriaMap, jugadaMap);
-
     }
     else if(selectedLoterias.length == 1){
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria ${selectedLoterias[0].descripcion} desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: selectedLoterias[0].id,
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: selectedLoterias[0].descripcion,
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
 
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
+      // VALIDAMOS EL MONTO DISPONIBLE
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
+      if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente');
+          return;
+      }
 
       insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto);
       _streamControllerJugada.add(listaJugadas);
@@ -3358,60 +3316,24 @@ void _getTime() {
       // setState(() => _jugadaOmonto = true);
     }
     else if(_selectedLoterias.length >= 2 && Utils.esSuperpale(jugada)){
-      // Loteria loteria = selectedLoterias[0];
-      // Loteria loteriaSuperpale = selectedLoterias[1];
-      // if(loteria.id > loteriaSuperpale.id){
-      //   Loteria tmp = loteriaSuperpale;
-      //   loteriaSuperpale = loteria;
-      //   loteria = tmp;
-      // }
+     
 
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria Super pale(${loteria.descripcion}/${loteriaSuperpale.descripcion}) desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: loteria.id,
-      //     idLoteriaSuperpale: loteriaSuperpale.id,
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: loteria.descripcion,
-      //     descripcionSuperpale: loteriaSuperpale.descripcion,
-      //     abreviatura: loteria.abreviatura,
-      //     abreviaturaSuperpale: loteriaSuperpale.abreviatura,
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
-
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
-
-      
+      var banca = await _selectedBanca();
       //Ordenamos las loterias seleccionadas de menor a mayor basedo en su id
       _selectedLoterias.sort((a, b) => a.id.compareTo(b.id));
+
+      // VALIDAMOS DE QUE HAYA MONTO DISPONIBLE
+      for(int i=0; i < _selectedLoterias.length; i++){
+        for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
+          double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, _selectedLoterias[i2]);
+          if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+            _showSnackBar('No hay monto suficiente');
+              return;
+          }
+        }
+      }
+
+      // INSERTAMOS LOS SUPER PALE
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto);
@@ -3422,43 +3344,23 @@ void _getTime() {
       _txtMontoDisponible.text = '';
     }
     else{
-      selectedLoterias.forEach((l){
-        // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == l.id) : -1;
-        // if(idx != -1){
-        //   showDialog(
-        //     context: context,
-        //     builder: (context){
-        //       return AlertDialog(
-        //         title: Text('Jugada existe'),
-        //         content: Text('La jugada ${jugada} existe en la loteria ${l.descripcion} desea agregar?'),
-        //         actions: <Widget>[
-        //           FlatButton(child: Text("Cancelar"), onPressed: (){
-        //           Navigator.of(context).pop();
-        //           },),
-        //           FlatButton(child: Text("Agregar"), onPressed: (){
-        //               Navigator.of(context).pop();
-        //               listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(monto), 2);
-        //             // });
-        //             },
-        //           )
-        //         ],
-        //       );
-        //     }
-        //   );
-        // }
-        // else{
-        //   listaJugadas.add(Jugada(
-        //     jugada: jugada,
-        //     idLoteria: l.id,
-        //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-        //     descripcion: l.descripcion,
-        //     idBanca: 0
-        //   ));
-        // }
 
+      // OBTENEMOS LA BANCA
+      var banca = await _selectedBanca();
+
+      // VALIDAMOS LOS MONTOS DISPONIBLES
+      for (var l in selectedLoterias) {
+        double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
+        if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+          _showSnackBar('No hay monto suficiente');
+            return;
+        }
+      }
+
+      // INSERTAMOS LAS LOTERIAS
+      for (var l in selectedLoterias) {
         insertarJugada(jugada: jugada, loteria: l, monto: monto);
-        
-      });
+      }
 
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
@@ -3655,6 +3557,14 @@ void _getTime() {
 
   insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada) async {
     if(jugada["idSorteo"] != 4){
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
+      if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente');
+          return;
+      }
+
+      print("insertarJugadaDuplicar jugada: ${jugada}");
+
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteriaMap["id"]) : -1;
       if(idx != -1){
         showDialog(
@@ -3681,6 +3591,7 @@ void _getTime() {
           }
         );
       }else{
+
         Draws _sorteo = await getSorteo(jugada["jugada"]);
         listaJugadas.add(Jugada(
           jugada: jugada["jugada"],
@@ -3708,6 +3619,13 @@ void _getTime() {
         loteria = tmp;
       }
 
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
+      if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente');
+          return;
+      }
+
+      print("insertarJugadaDuplicar jugadaSuperpale: ${jugada["jugada"]}");
       print("insertarJugadaDuplicar superpale: ${loteriaSuperpale.toJson()}");
       print("insertarJugadaDuplicar normal: ${loteria.toJson()}");
 
@@ -4157,7 +4075,12 @@ _selectedBanca() async {
    return descuento;
  }
 
- montoDisponible() async {
+ changeMontoDisponibleFromTxtMontoDisponible() async {
+   if(_txtJugada.text.isEmpty){
+     _txtMontoDisponible.text = "0";
+     return;
+   }
+
    double montoDisponible = 0;
    if(_selectedLoterias.length == 1){
      montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca());
@@ -4180,6 +4103,7 @@ _selectedBanca() async {
      _showSnackBar("Debe seleccionar una loteria");
    }
  }
+ 
 
  Future<double> getMontoDisponible(String jugada, Loteria loteria, Banca banca, [Loteria loteriaSuperpale]) async {
     
@@ -4196,6 +4120,7 @@ _selectedBanca() async {
 
     int idDia = getIdDia();
     int idSorteo = await getIdSorteo(jugada, loteria);
+    String jugadaConSigno = jugada;
     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
 
     if(idSorteo != 4){
@@ -4398,11 +4323,12 @@ _selectedBanca() async {
   
     int idx = -1;
     if(idSorteo == 4)
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugada);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugadaConSigno);
     else
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugada);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugadaConSigno);
       // _selectedLoterias[0].id
     // double montoDisponibleFinal = montoDisponible.toDouble();
+    
     double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
     if(idx != -1){
       print("encontrado: ${listaJugadas[idx].monto}");

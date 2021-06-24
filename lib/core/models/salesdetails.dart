@@ -31,7 +31,7 @@ class Salesdetails {
 
   Salesdetails.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
-        idVenta = snapshot['idVenta'] ?? 0,
+        idVenta = snapshot['idVenta'] != null ? BigInt.from(snapshot['idVenta']) : BigInt.zero,
         idLoteria = snapshot['idLoteria'] ?? 0,
         idSorteo = snapshot['idSorteo'] ?? 0,
         jugada = snapshot['jugada'] ?? '',
@@ -79,7 +79,7 @@ class Salesdetails {
   toJsonFull() {
     return {
       "id": id,
-      "idVenta": idVenta,
+      "idVenta": idVenta != null ? idVenta.toInt() : null,
       "idLoteria": idLoteria,
       "idSorteo": idSorteo,
       "monto": monto,

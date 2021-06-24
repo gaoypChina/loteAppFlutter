@@ -598,12 +598,15 @@ class Realtime{
     if(!socket.connected)
       throw Exception("No esta conectado a internet.");
 
-    socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(tx), "usuario" : usuario.toJson(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+    // socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(tx), "usuario" : usuario.toJson(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+
     // batch.commit(noResult: false, continueOnError: false);
     // tx.commit();
   });
     print("Realtime guardarventa after transaction: ${listSalesdetails.length}");
+    socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
     return [sale, listSalesdetails];
   }
   
@@ -736,8 +739,14 @@ class Realtime{
       if(Utils.isNumber(parsed) == false)
         return;
 
+      
+
       var ventas = await Db.query("Sales");
       print("Realtime setVentaToSubido: ${ventas}");
+      print("Realtime setVentaToSubido tookParameter: ${parsed}");
+
+      if(parsed == null)
+        return;
         
       var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
       Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;

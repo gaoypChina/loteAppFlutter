@@ -50,7 +50,8 @@ class Sale {
         loterias = loteriasToMap(snapshot['loterias']) ?? [],
         banca = (snapshot["banca"] != null) ? Banca.fromMap(Utils.parsedToJsonOrNot(snapshot['banca'])) : null,
         usuario = (snapshot["usuario"] != null) ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null,
-        ticket = (snapshot["ticket"] != null) ? Ticket.fromMap(Utils.parsedToJsonOrNot(snapshot['ticket'])) : null
+        ticket = (snapshot["ticket"] != null) ? Ticket.fromMap(Utils.parsedToJsonOrNot(snapshot['ticket'])) : null,
+        subido = snapshot['subido'] ?? 0
         ;
 
 List jugadasToJson() {
@@ -90,12 +91,12 @@ List jugadasToJson() {
       "created_at": created_at != null ? created_at.toString() : null,
       "updated_at": updated_at != null ? updated_at.toString() : null,
       "status": status,
-      "subido": subido,
+      "subido": subido != null ? subido : 0,
     };
   }
   toJsonFull() {
     return {
-      "id": id,
+       "id": id != null ? id.toInt() : null,
       "compartido": compartido,
       "idUsuario": idUsuario,
       "idBanca": idBanca,
@@ -107,6 +108,8 @@ List jugadasToJson() {
       "created_at": created_at != null ? created_at.toString() : null,
       "updated_at": updated_at != null ? updated_at.toString() : null,
       "status": status,
+      "subido": subido != null ? subido : 0,
+      "ticket": ticket != null ? ticket.toJson() : null,
       "banca": banca != null ? banca.toJson() : null,
       "usuario": usuario != null ? usuario.toJson() : null,
     };

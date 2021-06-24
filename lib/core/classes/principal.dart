@@ -188,147 +188,158 @@ class Principal{
             return AlertDialog(
               contentPadding: EdgeInsets.all(0),
               title: Text('Duplicar ticket'),
-              content: ListView(
-                children: 
-                  _loteriasAduplicar.map((l) => 
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          Text("${l["descripcion"]}"),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: DropdownButton(
-                              value: l["duplicar"].toString(),
-                              items: loterias.map((lo) => DropdownMenuItem<String>(
-                                value: lo.descripcion,
-                                child: Text("${lo.descripcion}"),
-                              )).toList(),
-                              onChanged: (String value){
-                                setState(() {
-                                   l["duplicar"] = value;
-                                   Loteria loteria = loterias.firstWhere((lote) => lote.descripcion == value);
-                                   l["duplicarId"] = (loteria != null) ? loteria.id : 0;
-                                });
-                              },
-                            ),
-                          )
-                        ],
-                      ),
-                      Column(
-                        children: l["loteriaSuperpale"].map<Row>((e) { 
-                          
-                        
-                        print("duplicarLlenarSuperpale: ${l["duplicarSuperpale"]}");
-                        return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          Text("SP(${l["abreviatura"]}/${e["abreviatura"]})", style: TextStyle(fontSize: 15),),
-                          Flexible(
-                            child: InkWell(
-                              onTap: () async{
-                                print("Dentro superpaleeeeeee");
-                                
-
-                                final selectedValues = await showDialog<Set<int>>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      
-                                      Set<int> initialSelectedValues = Set();
-                                      if(l["duplicarIdSuperpale"] is int){
-                                        // print("initialSelectedValue int: ${l["duplicarIdSuperpale"]}");
-                                        initialSelectedValues.add(l["duplicarIdSuperpale"]);
-                                      }
-                                      else{
-                                        for(int e in l["duplicarIdSuperpale"]){
-                                          // print("initialSelectedValue array: $e");
-                                          initialSelectedValues.add(e);
-                                        }
-                                      }
-                                      if(loterias.isEmpty)
-                                        loterias = List();
-
-                                      var items = loterias.map((l){
-                                        return MultiSelectDialogItem(l.id, l.descripcion, unSelectOthersItems: (l.id == 0 || l.id == -1));
-                                      }).toList();
-                                    return MultiSelectDialog(
-                                        items: items,
-                                        // initialSelectedValues: [1, 3].toSet(),
-                                        initialSelectedValues: initialSelectedValues,
-                                      );
-
-                                      
-                                    },
-                                  );
-
-                                  print("Datos seleccionados: ${selectedValues.toString()}");
-                                  if(selectedValues.length == 0)
-                                    setState(() { 
-                                      l["duplicarSuperpale"] = "- NO COPIAR -";
+              content: SingleChildScrollView(
+                child: Column(
+                  children: 
+                    _loteriasAduplicar.map((l) => 
+                    Column(
+                      children: [
+                        Visibility(
+                          visible: mapVenta["jugadas"].indexWhere((e) => e["idSorteo"] != 4) != -1,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              Text("${l["descripcion"]}"),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: DropdownButton(
+                                  value: l["duplicar"].toString(),
+                                  items: loterias.map((lo) => DropdownMenuItem<String>(
+                                    value: lo.descripcion,
+                                    child: Text("${lo.descripcion}"),
+                                  )).toList(),
+                                  onChanged: (String value){
+                                    setState(() {
+                                       l["duplicar"] = value;
+                                       Loteria loteria = loterias.firstWhere((lote) => lote.descripcion == value);
+                                       l["duplicarId"] = (loteria != null) ? loteria.id : 0;
                                     });
-                                  else if(selectedValues.length == 1){
-                                    // print("selectedValues.length == 1: ${selectedValues.toList()[0]}");
-                                    Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
-                                    if(loteria == null){
-                                      setState((){
-                                        l["duplicarSuperpale"] = "- NO MOVER -";
-                                        l["duplicarIdSuperpale"] = 0;
-                                      });
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        Column(
+                          children: l["loteriaSuperpale"].length == 0 ? [SizedBox.shrink()] : l["loteriaSuperpale"].map<Row>((e) { 
+                            
+                          
+                          print("duplicarLlenarSuperpale: ${l["duplicarSuperpale"]}");
+                          return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            Text("SP(${l["abreviatura"]}/${e["abreviatura"]})", style: TextStyle(fontSize: 15),),
+                            Flexible(
+                              child: InkWell(
+                                onTap: () async{
+                                  print("Dentro superpaleeeeeee");
+                                  
+                                  Set<int> initialSelectedValues = Set();
+                                  if(l["duplicarIdSuperpale"] is int){
+                                    // print("initialSelectedValue int: ${l["duplicarIdSuperpale"]}");
+                                    initialSelectedValues.add(l["duplicarIdSuperpale"]);
+                                  }
+                                  else{
+                                    for(int e in l["duplicarIdSuperpale"]){
+                                      // print("initialSelectedValue array: $e");
+                                      initialSelectedValues.add(e);
                                     }
-                                    else if(loteria.descripcion != "- NO COPIAR -" && loteria.descripcion != "- NO MOVER -"){
+                                  }
+                                  var selectedValues = await showDialog<Set<int>>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        
+                                        
+                                        
+                                        if(loterias.isEmpty)
+                                          loterias = [];
+              
+                                        var items = loterias.map((l){
+                                          return MultiSelectDialogItem(l.id, l.descripcion, unSelectOthersItems: (l.id == 0 || l.id == -1));
+                                        }).toList();
+                                      return MultiSelectDialog(
+                                          items: items,
+                                          // initialSelectedValues: [1, 3].toSet(),
+                                          initialSelectedValues: initialSelectedValues,
+                                        );
+              
+                                        
+                                      },
+                                    );
+              
+                                    print("Datos seleccionados: ${selectedValues.toString()}");
+                                    if(selectedValues == null){
+                                      if(initialSelectedValues != null)
+                                        selectedValues = initialSelectedValues;
+                                    }
+                                    if(selectedValues.length == 0)
+                                      setState(() { 
+                                        l["duplicarSuperpale"] = "- NO COPIAR -";
+                                      });
+                                    else if(selectedValues.length == 1){
+                                      // print("selectedValues.length == 1: ${selectedValues.toList()[0]}");
+                                      Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
+                                      if(loteria == null){
+                                        setState((){
+                                          l["duplicarSuperpale"] = "- NO MOVER -";
+                                          l["duplicarIdSuperpale"] = 0;
+                                        });
+                                      }
+                                      else if(loteria.descripcion != "- NO COPIAR -" && loteria.descripcion != "- NO MOVER -"){
+                                        setState((){
+                                          l["duplicarSuperpale"] = "- NO MOVER -";
+                                          l["duplicarIdSuperpale"] = 0;
+                                        });
+                                        Utils.showAlertDialog(context: context, content: "Debe seleccionar solamente 2 loterias", title: "Error");
+                                      }else{
+                                        setState(() {
+                                          l["duplicarSuperpale"] = loteria.descripcion ;
+                                          l["duplicarIdSuperpale"] = loteria.id;
+                                        });
+                                      }
+                                    }
+                                    else if(selectedValues.length > 2){
                                       setState((){
                                         l["duplicarSuperpale"] = "- NO MOVER -";
                                         l["duplicarIdSuperpale"] = 0;
                                       });
                                       Utils.showAlertDialog(context: context, content: "Debe seleccionar solamente 2 loterias", title: "Error");
-                                    }else{
-                                      setState(() {
-                                        l["duplicarSuperpale"] = loteria.descripcion ;
-                                        l["duplicarIdSuperpale"] = loteria.id;
-                                      });
                                     }
-                                  }
-                                  else if(selectedValues.length > 2){
-                                    setState((){
-                                      l["duplicarSuperpale"] = "- NO MOVER -";
-                                      l["duplicarIdSuperpale"] = 0;
-                                    });
-                                    Utils.showAlertDialog(context: context, content: "Debe seleccionar solamente 2 loterias", title: "Error");
-                                  }
-                                  else{
-                                      Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
-                                      Loteria loteriaSuperpale = loterias.firstWhere((element) => element.id == selectedValues.toList()[1]);
-                                    setState(() {
-                                      l["duplicarSuperpale"] = "${loteria.abreviatura} / ${loteriaSuperpale.abreviatura}";
-                                      l["duplicarIdSuperpale"] = selectedValues.toList();
-                                    });
-
-                                    // print("dentro condicion correcta: ${loteria.descripcion} / ${loteriaSuperpale.descripcion}");
-                                  }
-
-                                  
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey, width: 1.0),
-                                  borderRadius: BorderRadius.all(Radius.circular(5))
+                                    else{
+                                        Loteria loteria = loterias.firstWhere((element) => element.id == selectedValues.toList()[0]);
+                                        Loteria loteriaSuperpale = loterias.firstWhere((element) => element.id == selectedValues.toList()[1]);
+                                      setState(() {
+                                        l["duplicarSuperpale"] = "${loteria.abreviatura} / ${loteriaSuperpale.abreviatura}";
+                                        l["duplicarIdSuperpale"] = selectedValues.toList();
+                                      });
+              
+                                      // print("dentro condicion correcta: ${loteria.descripcion} / ${loteriaSuperpale.descripcion}");
+                                    }
+              
+                                    
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey, width: 1.0),
+                                    borderRadius: BorderRadius.all(Radius.circular(5))
+                                  ),
+                                  child: Text(l["duplicarSuperpale"], style: TextStyle(fontSize: 14)),
                                 ),
-                                child: Text(l["duplicarSuperpale"], style: TextStyle(fontSize: 14)),
                               ),
-                            ),
-                          )
-                        ],
-                      );
-                      },
-                      ).toList(),
-                      )
-                    ],
-                  )
-                  
-                  ).toList()
-                ,
+                            )
+                          ],
+                        );
+                        },
+                        ).toList(),
+                        )
+                      
+                      ],
+                    )
+                    
+                    ).toList()
+                  ,
+                ),
               ),
               actions: <Widget>[
                 FlatButton(child: Text("Cancelar"), onPressed: (){
