@@ -1074,7 +1074,9 @@ _showIntentNotificationIfExists() async {
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
+                  print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
                   jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
@@ -3619,7 +3621,7 @@ void _getTime() {
         loteria = tmp;
       }
 
-      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), loteria, await _selectedBanca(), loteriaSuperpale);
       if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
         _showSnackBar('No hay monto suficiente');
           return;
