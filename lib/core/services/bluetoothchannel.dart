@@ -509,7 +509,11 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
   static quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(tamano, String jugadaOMonto){
         // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
         // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
-        return tamano.substring(0, tamano.length - jugadaOMonto.length);
+        var espaciosAQuitarAlTamano = tamano.length - jugadaOMonto.length;
+        if(espaciosAQuitarAlTamano < 0)
+          return "";
+        else
+          return tamano.substring(0, tamano.length - jugadaOMonto.length);
       }
 
   static Map<int, dynamic> generateMapTicket(Map<String, dynamic> mapVenta, String typeTicket){
@@ -547,7 +551,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
         // totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
         map[map.length] = _getMapNuevo(cmd: CMD.center);
         map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
-        map[map.length] = _getMapNuevo(text:"${loteria["descripcion"]}: ${_getTotalPertenecienteALoteria(jugadas)}\n");
+        map[map.length] = _getMapNuevo(text:"${loteria["descripcion"]}: ${Utils.toPrintCurrency(_getTotalPertenecienteALoteria(jugadas), true, false)}\n");
         map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
         
         for(int contador=0; contador < jugadas.length; contador++){
@@ -568,7 +572,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
           }
           if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
             String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1]["jugada"].toString(), jugadas[contador - 1]["sorteo"]);
-            String montoAnterior = jugadas[contador - 1]["monto"].toString();
+            String montoAnterior = Utils.toPrintCurrency(jugadas[contador - 1]["monto"].toString());
             espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
             
             espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
@@ -576,11 +580,11 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
             // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
             // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
             map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
-            map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${jugada["monto"]}\n");
+            map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${Utils.toPrintCurrency(jugada["monto"])}\n");
           }else{
             espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
             map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"]));
-            map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${jugada["monto"]}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+            map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${Utils.toPrintCurrency(jugada["monto"])}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
           }
 
           contadorCicleJugadas++;
@@ -608,7 +612,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
             
             map[map.length] = _getMapNuevo(cmd: CMD.center);
             map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
-            map[map.length] = _getMapNuevo(text:"Super pale (${loteria["descripcion"]}/${ls["descripcion"]}): ${_getTotalPertenecienteALoteria(jugadas)}\n", cmd: CMD.p);
+            map[map.length] = _getMapNuevo(text:"Super pale (${loteria["descripcion"]}/${ls["descripcion"]}): ${Utils.toPrintCurrency(_getTotalPertenecienteALoteria(jugadas), true, false)}\n", cmd: CMD.p);
             // map[map.length] = _getMapNuevo(text:"Super pale", );
             // map[map.length] = _getMapNuevo(text:"(${loteria["descripcion"]}/${ls["descripcion"]})", cmd: CMD.p);
             // map[map.length] = _getMapNuevo(text:")", cmd: CMD.h1);
@@ -632,7 +636,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
               }
               if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
                 String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1]["jugada"].toString(), jugadas[contador - 1]["sorteo"]);
-                String montoAnterior = jugadas[contador - 1]["monto"].toString();
+                String montoAnterior = Utils.toPrintCurrency(jugadas[contador - 1]["monto"].toString());
                 espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
                 
                 espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
@@ -640,11 +644,11 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
                 // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
                 // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
                 map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
-                map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${jugada["monto"]}\n");
+                map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${Utils.toPrintCurrency(jugada["monto"])}\n");
               }else{
                 espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
                 map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"]));
-                map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${jugada["monto"]}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+                map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${Utils.toPrintCurrency(jugada["monto"])}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
               }
 
               contadorCicleJugadas++;
@@ -673,7 +677,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
       if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || mapVenta["banca"]["imprimirCodigoQr"] == 0)
         saltoLineaTotal += "\n\n";
       
-      map[map.length] = _getMapNuevo(text:"-TOTAL: $total-$saltoLineaTotal", cmd: CMD.h1);
+      map[map.length] = _getMapNuevo(text:"TOTAL: ${Utils.toPrintCurrency(total, true, false)}$saltoLineaTotal", cmd: CMD.h1);
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
@@ -780,7 +784,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
             // espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
             String sorteo = Utils.sorteoToDosLetras(jugada["sorteo"]);
             String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true);
-            String monto = "${Utils.toCurrency(jugada["monto"], true)}";
+            String monto = "${Utils.toPrintCurrency(jugada["monto"])}";
             // contentJugadas += "$sorteo$jugadaString";
             // print("ContentJugadasSay: ${contentJugadas.length}");
             // contentJugadas += quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])) + monto + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length) + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto);
@@ -867,7 +871,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
               
                   String sorteo = Utils.sorteoToDosLetras(jugada["sorteo"]);
                   String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true);
-                  String monto = "${Utils.toCurrency(jugada["monto"], true)}";
+                  String monto = "${Utils.toPrintCurrency(jugada["monto"])}";
                   map[map.length] = _getMapNuevo(text: sorteo, cmd: CMD.h1);
                   map[map.length] = _getMapNuevo(text: jugadaString, cmd: CMD.h1);
                   map[map.length] = _getMapNuevo(text: quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"], true)) + monto + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto) + "\n", cmd: CMD.h1);
@@ -898,7 +902,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
       
       
       map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
-      map[map.length] = _getMapNuevo(text:"TOTAL: ${Utils.toCurrency(total, true)}\n", cmd: CMD.h1);
+      map[map.length] = _getMapNuevo(text:"TOTAL: ${Utils.toPrintCurrency(total, true, false)}\n", cmd: CMD.h1);
       map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
     
       if(typeTicket == TYPE_CANCELADO)
@@ -941,7 +945,11 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
   static _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(String tamano, String jugadaOMonto){
     // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
     // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
-    return tamano.substring(0, tamano.length - jugadaOMonto.length);
+    var espaciosAQuitarAlTamano = tamano.length - jugadaOMonto.length;
+    if(espaciosAQuitarAlTamano < 0)
+      return "";
+    else
+      return tamano.substring(0, espaciosAQuitarAlTamano);
   }
   static Map<int, dynamic> generateMapTicketViejo(Map<String, dynamic> mapVenta, String typeTicket){
     List listMapToPrint = List();
