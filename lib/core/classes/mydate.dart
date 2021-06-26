@@ -208,6 +208,8 @@ class MyDate {
   static datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){
     String fechaString = "fecha";
     var now = DateTime.now();
+    if(fechaInicial == null)
+      return '';
     print("MyDate.datesToString i: ${fechaInicial.toString()}");
     if((fechaInicial.month == now.month) && (fechaInicial.year == now.year)){
       String dia = (fechaInicial.day == now.day) ? "" : "${fechaInicial.day}";

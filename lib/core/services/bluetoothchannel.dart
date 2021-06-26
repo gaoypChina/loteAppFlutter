@@ -1149,14 +1149,21 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
         print("bluetoothchannel generateticket banca: ${banca.toString()}");
         if(banca.piepagina1 != null){
           print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca.piepagina1}");
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
+          if(banca.piepagina1.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
         }
-        if(banca.piepagina2 != null)
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
-        if(banca.piepagina3 != null)
+        if(banca.piepagina2 != null){
+          if(banca.piepagina2.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
+        }
+        if(banca.piepagina3 != null){
+          if(banca.piepagina3.isNotEmpty)
           map[map.length] = _getMapNuevo(text:"${banca.piepagina3}\n", cmd: CMD.p);
-        if(banca.piepagina4 != null)
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
+        }
+        if(banca.piepagina4 != null){
+          if(banca.piepagina4.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
+        }
         if(banca.imprimirCodigoQr == 1)
           map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
         
@@ -1381,15 +1388,21 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
         Banca banca = sale.banca;
         if(banca.piepagina1 != null){
           print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca.piepagina1}");
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
+          if(banca.piepagina1.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
         }
-        if(banca.piepagina2 != null)
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
-        if(banca.piepagina3 != null)
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina3}\n", cmd: CMD.p);
-        if(banca.piepagina4 != null)
-          map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
-        if(banca.imprimirCodigoQr == 1){
+        if(banca.piepagina2 != null){
+          if(banca.piepagina2.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
+        }
+        if(banca.piepagina3 != null){
+          if(banca.piepagina3.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina3}\n", cmd: CMD.p);
+        }
+        if(banca.piepagina4 != null){
+          if(banca.piepagina4.isNotEmpty)
+            map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
+        }if(banca.imprimirCodigoQr == 1){
           map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
           map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
         }else

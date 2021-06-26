@@ -436,21 +436,24 @@ class Realtime{
   }
 
   static guardarVenta({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras}) async {
-    print("Realtime guardarventa before: ${Db.database.transaction}");
+    // print("Realtime guardarventa before: ${Db.database.transaction}");
     Sale sale;
     List<Salesdetails> listSalesdetails = [];
     Usuario usuario;
+    print("Realtime guardarVenta before date");
+    DateTime date = await NTP.now();
     await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
-    DateTime date = await NTP.now();
     usuario = Usuario.fromMap(await Db.getUsuario(tx));
     Ticket ticket = Ticket.fromMap(await Db.getNextTicket(tx));
     double total = 0;
-        
+    print("Realtime guardarVenta after ticket");
+      
     print("Realtime guardarVenta banca.status = ${banca.status}");
     print("Realtime guardarVenta usuario = ${usuario}");
     if(!socket.connected)
       throw Exception("No esta conectado a internet.");
+    print("Realtime guardarVenta after sockets");
     
     if(banca.status != 1)
       throw Exception("Esta banca esta desactivada");
@@ -458,13 +461,19 @@ class Realtime{
     if(usuario.status != 1)
       throw Exception("Este usuario esta desactivado: ${usuario.status}");
 
+    print("Realtime guardarVenta before permisos");
+
     if(await Db.existePermisos(["Vender tickets", "Acceso al sistema"], tx) == false)
       throw Exception("No tiene permiso para realizar esta accion vender y acceso");
+    print("Realtime guardarVenta after permisos");
 
     if(await Db.idBanca(tx) != banca.id){
-        if(await Db.existePermiso("Jugar como cualquier banca") == false)
+        if(await Db.existePermiso("Jugar como cualquier banca", tx) == false)
           throw Exception("No tiene permiso para realizar para jugar como cualquier banca");
     }
+
+    print("Realtime guardarVenta after bancas");
+
 
     // socket.emit("idTicket", 1234567);
 

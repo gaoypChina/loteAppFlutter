@@ -22,6 +22,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
   bool _imprimirNombreConsorcio = true;
   bool _imprimirNombreBanca = true;
   bool _cancelarTicketWhatsapp = false;
+  bool _pagarTicketEnCualquierBanca = false;
   
   Future _init() async{
     var parsed = await AjustesService.index(scaffoldKey: _scaffoldKey);
@@ -37,6 +38,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _imprimirNombreConsorcio = (_ajuste != null) ? _ajuste.imprimirNombreConsorcio == 1 : true; 
     _imprimirNombreBanca = (_ajuste != null) ? _ajuste.imprimirNombreBanca == 1 : true; 
     _cancelarTicketWhatsapp = (_ajuste != null) ? _ajuste.cancelarTicketWhatsapp == 1 : true; 
+    _pagarTicketEnCualquierBanca = (_ajuste != null) ? _ajuste.pagarTicketEnCualquierBanca == 1 : false; 
   }
 
   _guardar() async {
@@ -47,6 +49,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
       _ajuste.imprimirNombreConsorcio = (_imprimirNombreConsorcio) ? 1 : 0;
       _ajuste.imprimirNombreBanca = (_imprimirNombreBanca) ? 1 : 0;
       _ajuste.cancelarTicketWhatsapp = (_cancelarTicketWhatsapp) ? 1 : 0;
+      _ajuste.pagarTicketEnCualquierBanca = (_pagarTicketEnCualquierBanca) ? 1 : 0;
       var parsed = await AjustesService.guardar(scaffoldKey: _scaffoldKey, ajuste: _ajuste);
       _ajuste = parsed;
       setState(() => _cargando = false);
@@ -126,6 +129,10 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   _cancelarTicketWhatsappChanged(value){
     setState(() => _cancelarTicketWhatsapp = value);
+  }
+
+  _pagarTicketEnCualquierBancaChanged(value){
+    setState(() => _pagarTicketEnCualquierBanca = value);
   }
 
   @override
@@ -245,6 +252,11 @@ class _AjustesScreenState extends State<AjustesScreen> {
                   leading: FaIcon(FontAwesomeIcons.whatsapp),
                   title: Text("Cancelar tickets WhatsApp"),
                   trailing: Switch(activeColor: Utils.colorPrimary, value: _cancelarTicketWhatsapp, onChanged: _cancelarTicketWhatsappChanged),
+                ),
+                ListTile(
+                  leading: FaIcon(FontAwesomeIcons.whatsapp),
+                  title: Text("Pagar desde cualquier banca"),
+                  trailing: Switch(activeColor: Utils.colorPrimary, value: _pagarTicketEnCualquierBanca, onChanged: _pagarTicketEnCualquierBancaChanged),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),

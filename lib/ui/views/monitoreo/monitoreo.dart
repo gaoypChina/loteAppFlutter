@@ -13,6 +13,7 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
+import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
@@ -383,12 +384,25 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                   }
             }
 
-            _updateStreamControllerVenta(){
+            _updateStreamControllerVenta(ventaMap){
+              if(ventaMap == null)
+                return;
+
+              print("_updateStreamControllerVenta validation1 passed: ${ventaMap.runtimeType}");
+              // if(!(ventaMap is Map<String, dynamic>))
+              //   return;
+
+                print("_updateStreamControllerVenta validation2 passed");
               var index = _listaVenta.indexWhere((element) => element.id == venta.id);
               if(index == -1)
                 return;
 
+                print("_updateStreamControllerVenta validation3 passed");
+
               _listaVenta[index].status = 0;
+              _listaVenta[index].usuarioCancelacion = ventaMap["usuarioCancelacion"];
+              _listaVenta[index].fechaCancelacion = ventaMap["fechaCancelacion"] != null ? DateTime.parse(ventaMap["fechaCancelacion"]) : null;
+                print("_updateStreamControllerVenta before _stremaController");
               _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
             }
 
@@ -417,7 +431,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         await BluetoothChannel.printTicket(datos["ticket"], BluetoothChannel.TYPE_CANCELADO);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta();
+                        _updateStreamControllerVenta(datos["ticket"]);
                         _back();
                       } on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);
@@ -428,7 +442,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         var datos = await TicketService.cancelar(scaffoldKey: _scaffoldKey, codigoBarra: venta.codigoBarra);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta();
+                        _updateStreamControllerVenta(datos["ticket"]);
                         _back();
                       }on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);
