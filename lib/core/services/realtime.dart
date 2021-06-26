@@ -643,7 +643,7 @@ class Realtime{
       try {
         if(parsed["settings"] != null){
             Ajuste a = Ajuste.fromMap(parsed["settings"]);
-            await Db.database.delete("Settings");
+            await Db.delete("Settings");
             await Db.insert("Settings", {
               "id" : a.id, 
               "consorcio" : a.consorcio,
@@ -652,9 +652,11 @@ class Realtime{
               "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
               "imprimirNombreBanca" : a.imprimirNombreBanca,
               "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
+              "pagarTicketEnCualquierBanca" : a.pagarTicketEnCualquierBanca,
             });
         
-          print("RealTime ajustes, se guardaron correctamente");
+          print("RealTime ajustes, se guardaron correctamente: ${await Db.ajustes()}");
+          print("RealTime ajustes, se guardaron correctamente2: ${a.toJson()}");
         }
       } on Exception catch (e) {
         print("Error RealTime.ajustes: ${e.toString()}");

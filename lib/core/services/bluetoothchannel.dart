@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +9,10 @@ import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
 
 class BluetoothChannel{
   static const String TYPE_ORIGINAL = "ORIGINAL";
@@ -91,6 +95,32 @@ class BluetoothChannel{
     );
   }
 
+  static printTicketV2({@required Sale sale, @required List<Salesdetails> salesdetails, @required String type}) async {
+    var c = await DB.create();
+    var printer = await c.getValue("printer");
+    if(_connectado){
+      return;
+    }
+
+    print("BluetoothChannel printTicket ajustes: ${await Db.ajustes()}");
+    _ajustes = Ajuste.fromMap(await Db.ajustes());
+          
+     _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+      (onData) async {
+        print("Listen OnData: $onData");
+        _connectado = true;
+        final bool result = await _methodChannel.invokeMethod("printText", {"data" : _ajustes.descripcionTipoFormatoTicket == "Formato de ticket 2" ? generateMapTicketOtroFormatoV2(sale, salesdetails, type) : generateMapTicketV2(sale, salesdetails, type)});
+        // final bool result = await _methodChannel.invokeMethod("printText", {"data" : generateMapTicketV2(sale, salesdetails, type)});
+        disconnect();
+        print("Listen OnData print: $result");
+      },
+      onError: (error){
+        _connectado = false;
+        print("Listen Error: $error");
+      }
+    );
+  }
+
   static quickPrint() async {
     try{
       final bool result = await _methodChannel.invokeMethod("quickPrinter");
@@ -138,7 +168,7 @@ class BluetoothChannel{
         print("Listen OnData: $onData");
         _connectado = true;
         var map = Map<int, dynamic>();
-        map[map.length] = (normalOPrueba) ? _getMap(content, nWidthTimes) : _getMapPrueba(content, nWidthTimes);
+        map[map.length] = (normalOPrueba) ? _getMapNuevo(text: content) : _getMapNuevo(text: content);
         final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
         // if(normalOPrueba){
         //   map[map.length] = _getMap(content, nWidthTimes);
@@ -942,106 +972,197 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     // }
   }
 
-  static _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(String tamano, String jugadaOMonto){
-    // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
-    // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
-    var espaciosAQuitarAlTamano = tamano.length - jugadaOMonto.length;
-    if(espaciosAQuitarAlTamano < 0)
-      return "";
-    else
-      return tamano.substring(0, espaciosAQuitarAlTamano);
-  }
-  static Map<int, dynamic> generateMapTicketViejo(Map<String, dynamic> mapVenta, String typeTicket){
-    List listMapToPrint = List();
-    print("generateMapTicket: ${mapVenta.toString()}");
+  static Map<int, dynamic> generateMapTicketV2(Sale sale, List<Salesdetails> listSalesdetails, String typeTicket){
+    List listMapToPrint = [];
+    
+    
+
     Map<int, dynamic> map = Map<int, dynamic>();
-    map[map.length] = _getMapAlign(TYPE_ALIGN_CENTER);
-    map[map.length] = _getMap("${mapVenta["banca"]["descripcion"]}\n", 1);
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    if(_ajustes.imprimirNombreConsorcio == 1)
+      map[map.length] = _getMapNuevo(text:"${_ajustes.consorcio}\n\n", cmd: CMD.h1);
+    if(_ajustes.imprimirNombreBanca == 1)
+      map[map.length] = _getMapNuevo(text:"${sale.banca.descripcion}\n", cmd: CMD.h1);
+      
+
     map[map.length] = _printTicketHeader(typeTicket);
-    map[map.length] = _getMap("${mapVenta["fecha"]}\n");
-    map[map.length] = _getMap("Ticket:" + Utils.toSecuencia(mapVenta["banca"]["codigo"], BigInt.from(mapVenta["idTicket"])) + "\n");
-    map[map.length] = _getMap("Fecha: ${mapVenta["fecha"]}\n");
+    // var fecha = DateTime.parse(mapVenta["created_at"]);
+    //${DateFormat('EEEE').format(fecha)} 
+    // map[map.length] = _getMapNuevo(text:"${mapVenta["created_at"]}\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"Ticket:" + Utils.toSecuencia(sale.banca.codigo, sale.idTicket) + "\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"Fecha: ${sale.created_at.toString()}\n", cmd: CMD.p);
     if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
-      map[map.length] = _getMap("${mapVenta["codigoBarra"]}\n", 1);
+      map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
     
     double total = 0;
-    for(Map<String, dynamic> loteria in mapVenta["loterias"]){
+    List<Salesdetails> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(listSalesdetails)).cast<Salesdetails>().toList();
+    for(var salesdetailsLoteria in listaLoteriasJugadas){
+      Loteria loteria = salesdetailsLoteria.loteria;
+      List<Salesdetails> jugadas = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idLoteriaSuperpale == 0 || element.idLoteriaSuperpale == null)).toList();
       bool primerCicloJugadas = true;
       int contadorCicleJugadas = 0;
       double totalPorLoteria = 0;
       
       
-      List jugadas = _getJugadasPertenecienteALoteria(jugadas: mapVenta["jugadas"], idLoteria: loteria["id"], type: typeTicket);
-      if(jugadas.isEmpty)
-        continue;
+      if(jugadas.isNotEmpty){
+        // totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
+        map[map.length] = _getMapNuevo(cmd: CMD.center);
+        map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+        map[map.length] = _getMapNuevo(text:"${loteria.descripcion}: ${Utils.toPrintCurrency(jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element), true, false)}\n");
+        map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+        
+        for(int contador=0; contador < jugadas.length; contador++){
+          Salesdetails jugada = jugadas[contador];
+          String espaciosPrimerMonto = "         ";
+          String espaciosSegundaJugada = "       ";
+          String espaciosSegundoMonto = "         ";
+            if(loteria.id != jugada.idLoteria)
+              continue;
 
-      map[map.length] = _getMap("---------------\n", 1);
-      map[map.length] = _getMap("${loteria["descripcion"]}\n");
-      map[map.length] = _getMap("---------------\n", 1);
+          total += Utils.toDouble(jugada.monto.toString());
+          totalPorLoteria += Utils.toDouble(jugada.monto.toString());
+
+          map[map.length] = _getMapNuevo(cmd: CMD.left);
+          if(primerCicloJugadas){
+            map[map.length] = _getMapNuevo(text:"JUGADA   MONTO  JUGADA   MONTO\n");
+            primerCicloJugadas = false;
+          }
+          if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
+            String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1].jugada.toString(), jugadas[contador - 1].sorteoDescripcion);
+            String montoAnterior = Utils.toPrintCurrency(jugadas[contador - 1].monto.toString());
+            espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
+            
+            espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
+            espaciosSegundoMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundoMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada.toString(), jugada.sorteoDescripcion));
+            // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+            // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
+            map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion)}");
+            map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${Utils.toPrintCurrency(jugada.monto)}\n");
+          }else{
+            espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada.toString(), jugada.sorteoDescripcion));
+            map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion));
+            map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${Utils.toPrintCurrency(jugada.monto)}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+          }
+
+          contadorCicleJugadas++;
+        }
+
+        // map[map.length] = _getMapNuevo(cmd: CMD.center);
+        // int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+        // if(loteriasLength > 1)
+        //   map[map.length] = _getMapNuevo(text:"\n total: $totalPorLoteria \n");
+        
+        }
+
+        print("loteriaSuperpale: $loteria");
+        // continue;
+
+        // Buscamos todas las jugadas de tipo SuperPale que tenga esta loteria usada arriba y nos aseguramos de que los idLoteriaSuperPale sean de diferentes loterias
+        // y no sea nulos
+        jugadas = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
+        List<Salesdetails> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Salesdetails>().toList();
+          
+        for(Salesdetails salesdetailLoteriaSuperPale in listaLoteriasSuperPaleJugadas){
+          Loteria loteria = salesdetailLoteriaSuperPale.loteria;
+          Loteria ls = salesdetailLoteriaSuperPale.loteriaSuperPale;
+          jugadas = jugadas.where((element) => element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
+          if(jugadas.isNotEmpty){
+            primerCicloJugadas = true;
+            contadorCicleJugadas = 0;
+            totalPorLoteria = 0;
+            
+            map[map.length] = _getMapNuevo(cmd: CMD.center);
+            map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text:"Super pale (${loteria.descripcion}/${ls.descripcion}): ${Utils.toPrintCurrency(_getTotalPertenecienteALoteria(jugadas), true, false)}\n", cmd: CMD.p);
+            map[map.length] = _getMapNuevo(text:"Super pale (${loteria.descripcion}/${ls.descripcion}): ${Utils.toPrintCurrency(jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element), true, false)}\n", cmd: CMD.p);
+            // map[map.length] = _getMapNuevo(text:"Super pale", );
+            // map[map.length] = _getMapNuevo(text:"(${loteria["descripcion"]}/${ls["descripcion"]})", cmd: CMD.p);
+            // map[map.length] = _getMapNuevo(text:")", cmd: CMD.h1);
+            map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+            
+            for(int contador=0; contador < jugadas.length; contador++){
+              Salesdetails jugada = jugadas[contador];
+              String espaciosPrimerMonto = "         ";
+              String espaciosSegundaJugada = "       ";
+              String espaciosSegundoMonto = "         ";
+                if(loteria.id != jugada.idLoteria)
+                  continue;
+
+              total += Utils.toDouble(jugada.monto.toString());
+              totalPorLoteria += Utils.toDouble(jugada.monto.toString());
+
+              map[map.length] = _getMapNuevo(cmd: CMD.left);
+              if(primerCicloJugadas){
+                map[map.length] = _getMapNuevo(text:"JUGADA   MONTO  JUGADA   MONTO\n");
+                primerCicloJugadas = false;
+              }
+              if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
+                String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1].jugada.toString(), jugadas[contador - 1].sorteoDescripcion);
+                String montoAnterior = Utils.toPrintCurrency(jugadas[contador - 1].monto.toString());
+                espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
+                
+                espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
+                espaciosSegundoMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundoMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada.toString(), jugada.sorteoDescripcion));
+                // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+                // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
+                map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion)}");
+                map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${Utils.toPrintCurrency(jugada.monto)}\n");
+              }else{
+                espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada.toString(), jugada.sorteoDescripcion));
+                map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion));
+                map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${Utils.toPrintCurrency(jugada.monto)}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+              }
+
+              contadorCicleJugadas++;
+            }
+
+            // map[map.length] = _getMapNuevo(cmd: CMD.center);
+            // int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+            // if(loteriasLength > 1)
+            //   map[map.length] = _getMapNuevo(text:"\n total: $totalPorLoteria \n");
+
+            }
+        }
       
-      for(Map<String, dynamic> jugada in jugadas){
-          if(loteria["id"] != jugada["idLoteria"])
-            continue;
-
-        total += Utils.toDouble(jugada["monto"].toString());
-        totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
-
-        map[map.length] = _getMapAlign(TYPE_ALIGN_LEFT);
-        if(primerCicloJugadas){
-          map[map.length] = _getMap("JUGADA   MONTO  JUGADA   MONTO\n");
-          primerCicloJugadas = false;
-        }
-        if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
-          map[map.length] = _getMap("                 ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
-          map[map.length] = _getMap("                          ${jugada["monto"]}\n");
-        }else{
-          map[map.length] = _getMap(Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"]));
-          map[map.length] = _getMap("          ${jugada["monto"]}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
-        }
-
-        contadorCicleJugadas++;
+      
       }
+        
 
-      map[map.length] = _getMapAlign(1);
-      int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
-      if(loteriasLength > 1)
-        map[map.length] = _getMap("\n total: $totalPorLoteria \n\n\n");
-      }
-
-      if(mapVenta["hayDescuento"] == 1){
-        map[map.length] = _getMap("subTotal: ${mapVenta["total"]}\n");
-        map[map.length] = _getMap("descuento: ${mapVenta["descuentoMonto"]}\n");
-        total -= Utils.toDouble(mapVenta["descuentoMonto"].toString());
+      map[map.length] = _getMapNuevo(cmd: CMD.center);
+      if(sale.hayDescuento == 1){
+        map[map.length] = _getMapNuevo(text:"subTotal: ${sale.total}\n");
+        map[map.length] = _getMapNuevo(text:"descuento: ${sale.descuentoMonto}\n");
+        total -= Utils.toDouble(sale.descuentoMonto.toString());
       }
 
       String saltoLineaTotal = "\n";
-      if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || mapVenta["banca"]["imprimirCodigoQr"] == 0)
+      if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || sale.banca.imprimirCodigoQr == 0)
         saltoLineaTotal += "\n\n";
       
-      map[map.length] = _getMap("- TOTAL: $total$saltoLineaTotal");
+      map[map.length] = _getMapNuevo(text:"TOTAL: ${Utils.toPrintCurrency(total, true, false)}$saltoLineaTotal", cmd: CMD.h1);
     
       if(typeTicket == TYPE_CANCELADO)
-        map[map.length] = _getMap("** CANCELADO **\n\n\n", 1);
+        map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
       
       if(typeTicket == TYPE_ORIGINAL){
-        Map<String, dynamic> banca = mapVenta["banca"];
+        Banca banca = sale.banca;
         print("bluetoothchannel generateticket banca: ${banca.toString()}");
-        if(banca["piepagina1"] != null){
-          print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca["piepagina1"]}");
-          map[map.length] = _getMap("${banca["piepagina1"]}\n");
+        if(banca.piepagina1 != null){
+          print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca.piepagina1}");
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
         }
-        if(banca["piepagina2"] != null)
-          map[map.length] = _getMap("${banca["piepagina2"]}\n",);
-        if(banca["piepagina3"] != null)
-          map[map.length] = _getMap("${banca["piepagina3"]}\n");
-        if(banca["piepagina4"] != null)
-          map[map.length] = _getMap("${banca["piepagina4"]}\n");
-        if(banca["imprimirCodigoQr"] == 1)
-          map[map.length] = _getMapQR(mapVenta["codigoQr"]);
+        if(banca.piepagina2 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
+        if(banca.piepagina3 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina3}\n", cmd: CMD.p);
+        if(banca.piepagina4 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
+        if(banca.imprimirCodigoQr == 1)
+          map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
         
-        map[map.length] = _getMap("\n\n\n");
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
       }else{
-        map[map.length] = _getMap("\n\n\n");
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
       }
 
     return map;
@@ -1051,16 +1172,254 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     // }
   }
 
+static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdetails> listSalesdetails, String typeTicket){
+    
+    
+    // Venta venta = Venta.fromMap(mapVenta);
+    Map<int, dynamic> map = Map<int, dynamic>();
+    map[map.length] = _getMapNuevo(cmd: CMD.textBoldOn);
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    String headerJugadas = "";
+    String contentJugadas = "";
+    if(_ajustes.imprimirNombreConsorcio == 1)
+      map[map.length] = _getMapNuevo(text:"${(_ajustes.consorcio != null) ? _ajustes.consorcio.toUpperCase() : ''}\n\n", cmd: CMD.h1);
+    if(_ajustes.imprimirNombreBanca == 1)
+      map[map.length] = _getMapNuevo(text:"${sale.banca.descripcion}\n", cmd: CMD.h1);
+    // map[map.length] = _getMapNuevo(text:"${mapVenta["banca"]["descripcion"]}\n", cmd: CMD.h1);
+    // map[map.length] = _printTicketHeader(typeTicket);
+
+    // var fecha = DateTime.parse(mapVenta["created_at"]);
+    //${DateFormat('EEEE').format(fecha)} 
+    // map[map.length] = _getMapNuevo(text:"${mapVenta["created_at"]}\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"TICKET:" + Utils.toSecuencia(sale.banca.codigo, sale.idTicket) + "\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"FECHA: ${sale.created_at.toString()}\n", cmd: CMD.p);
+    // if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
+    //   map[map.length] = _getMapNuevo(text:"${mapVenta["codigoBarra"]}\n", cmd: CMD.h1);
+    
+    double total = 0;
+     map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+     map[map.length] = _getMapNuevo(text:"TP JUGADA MONTO\n", cmd: CMD.h1);
+    List<Salesdetails> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(listSalesdetails)).cast<Salesdetails>().toList();
+    for(var salesdetailsLoteria in listaLoteriasJugadas){
+      Loteria loteria = salesdetailsLoteria.loteria;
+      List<Salesdetails> jugadas = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idLoteriaSuperpale == 0 || element.idLoteriaSuperpale == null)).toList();
+      bool primerCicloJugadas = true;
+      int contadorCicleJugadas = 0;
+      double totalPorLoteria = 0;
+      
+      
+      if(jugadas.isNotEmpty){
+        // totalPorLoteria += Utils.toDouble(jugada["monto"].toString());
+        map[map.length] = _getMapNuevo(cmd: CMD.center);
+        map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+        // map[map.length] = _getMapNuevo(text:"${loteria["descripcion"]}: ${_getTotalPertenecienteALoteria(jugadas)}\n", cmd: CMD.h1);
+        map[map.length] = _getMapNuevo(text:"${loteria.descripcion}\n", cmd: CMD.h1);
+        map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+
+        for(int contador=0; contador < jugadas.length; contador++){
+          Salesdetails jugada = jugadas[contador];
+          String espaciosPrimerMonto = "       ";
+          String espaciosJugada = "   ";
+            if(loteria.id != jugada.idLoteria)
+              continue;
+
+          total += Utils.toDouble(jugada.monto.toString());
+          totalPorLoteria += Utils.toDouble(jugada.monto.toString());
+
+          // map[map.length] = _getMapNuevo(cmd: CMD.left);
+          if(primerCicloJugadas){
+            // map[map.length] = _getMapNuevo(text:"TP JUGADA MONTO\n", cmd: CMD.h1);
+            // headerJugadas = "TP JUGADA MONTO";
+            primerCicloJugadas = false;
+          }
+          // if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
+          //   String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1]["jugada"].toString(), jugadas[contador - 1]["sorteo"]);
+          //   String montoAnterior = jugadas[contador - 1]["monto"].toString();
+          //   espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
+            
+          //   espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
+          //   espaciosSegundoMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundoMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+          //   // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+          //   // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
+          //   map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+          //   map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${jugada["monto"]}\n");
+          // }else{
+            // espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+            String sorteo = Utils.sorteoToDosLetras(jugada.sorteoDescripcion);
+            String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion, true);
+            String monto = "${Utils.toPrintCurrency(jugada.monto)}";
+            // contentJugadas += "$sorteo$jugadaString";
+            // print("ContentJugadasSay: ${contentJugadas.length}");
+            // contentJugadas += quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])) + monto + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length) + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto);
+            map[map.length] = _getMapNuevo(text: sorteo, cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text: quitarOPonerEspaciosJugada(espaciosDePrimerMontoA2daJugada: espaciosJugada, montoAnterior: sorteo) + jugadaString, cmd: CMD.h1);
+            map[map.length] = _getMapNuevo(text: jugadaString, cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text: _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + jugadaString, cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text: _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaString + sorteo) + monto, cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text: quitarOPonerEspaciosMonto(espaciosDeJugadaAMonto: espaciosPrimerMonto, jugadaAnterior: jugadaString) + monto + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length), cmd: CMD.h1);
+            map[map.length] = _getMapNuevo(text: quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion, true)) + monto + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto) + "\n", cmd: CMD.h1);
+          // }
+          // 
+          // print("Espacios quitado al espacioMonto: ${quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaString).length}");
+
+          contadorCicleJugadas++;
+        }
+
+        // map[map.length] = _getMapNuevo(cmd: CMD.center);
+        // int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+        // if(loteriasLength > 1)
+        //   map[map.length] = _getMapNuevo(text:"\n total: $totalPorLoteria \n");
+        
+        }
+
+        print("HeaderJugadas : ${headerJugadas}");
+        print("ContentJugadas: ${contentJugadas}");
+
+        // return {};
+
+        print("loteriaSuperpale: $loteria");
+        // continue;
+        
+        jugadas = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
+        List<Salesdetails> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Salesdetails>().toList();
+          
+        for(Salesdetails salesdetailLoteriaSuperPale in listaLoteriasSuperPaleJugadas){
+          Loteria loteria = salesdetailLoteriaSuperPale.loteria;
+          Loteria ls = salesdetailLoteriaSuperPale.loteriaSuperPale;
+          jugadas = jugadas.where((element) => element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
+
+          if(jugadas.isNotEmpty){
+            primerCicloJugadas = true;
+            contadorCicleJugadas = 0;
+            totalPorLoteria = 0;
+            
+            map[map.length] = _getMapNuevo(cmd: CMD.center);
+            map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+            map[map.length] = _getMapNuevo(text:"Super pale (${loteria.descripcion}/${ls.descripcion})\n", cmd: CMD.h1);
+            // map[map.length] = _getMapNuevo(text:"Super pale", );
+            // map[map.length] = _getMapNuevo(text:"(${loteria["descripcion"]}/${ls["descripcion"]})", cmd: CMD.p);
+            // map[map.length] = _getMapNuevo(text:")", cmd: CMD.h1);
+            map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+            
+            for(int contador=0; contador < jugadas.length; contador++){
+              Salesdetails jugada = jugadas[contador];
+              String espaciosSegundaJugada = "       ";
+              String espaciosSegundoMonto = "         ";
+
+              String espaciosPrimerMonto = "       ";
+              String espaciosJugada = "   ";
+                if(loteria.id != jugada.idLoteria)
+                  continue;
+
+              total += Utils.toDouble(jugada.monto.toString());
+              totalPorLoteria += Utils.toDouble(jugada.monto.toString());
+
+              map[map.length] = _getMapNuevo(cmd: CMD.left);
+              if(primerCicloJugadas){
+                // map[map.length] = _getMapNuevo(text:"JUGADA   MONTO  JUGADA   MONTO\n");
+                primerCicloJugadas = false;
+              }
+              // if(((contadorCicleJugadas + 1) % 2) == 0){ //PAR
+              //   String jugadaAnterior = Utils.agregarSignoYletrasParaImprimir(jugadas[contador - 1]["jugada"].toString(), jugadas[contador - 1]["sorteo"]);
+              //   String montoAnterior = jugadas[contador - 1]["monto"].toString();
+              //   espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, jugadaAnterior) + montoAnterior;
+                
+              //   espaciosSegundaJugada = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundaJugada, montoAnterior);
+              //   espaciosSegundoMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosSegundoMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+              //   // map[map.length] = _getMapNuevo(text:"                ${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+              //   // map[map.length] = _getMapNuevo(text:"                         ${jugada["monto"]}\n");
+              //   map[map.length] = _getMapNuevo(text:"$espaciosSegundaJugada${Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"])}");
+              //   map[map.length] = _getMapNuevo(text:"$espaciosSegundoMonto${jugada["monto"]}\n");
+              // }else{
+                // espaciosPrimerMonto = _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada["jugada"].toString(), jugada["sorteo"]));
+                // map[map.length] = _getMapNuevo(text:Utils.agregarSignoYletrasParaImprimir(jugada["jugada"], jugada["sorteo"]));
+                // map[map.length] = _getMapNuevo(text:"$espaciosPrimerMonto${jugada["monto"]}" + siEsUltimaJugadaDarSaltoDeLinea(contadorCicleJugadas, jugadas.length));
+              
+                  String sorteo = Utils.sorteoToDosLetras(jugada.sorteoDescripcion);
+                  String jugadaString = quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosJugada, sorteo) + Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion, true);
+                  String monto = "${Utils.toPrintCurrency(jugada.monto)}";
+                  map[map.length] = _getMapNuevo(text: sorteo, cmd: CMD.h1);
+                  map[map.length] = _getMapNuevo(text: jugadaString, cmd: CMD.h1);
+                  map[map.length] = _getMapNuevo(text: quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(espaciosPrimerMonto, Utils.agregarSignoYletrasParaImprimir(jugada.jugada, jugada.sorteoDescripcion, true)) + monto + quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado("     ", monto) + "\n", cmd: CMD.h1);
+              // }
+
+              contadorCicleJugadas++;
+            }
+
+            // map[map.length] = _getMapNuevo(cmd: CMD.center);
+            // int loteriasLength = (typeTicket == TYPE_PAGADO) ? mapVenta["loterias"].length - 1 : mapVenta["loterias"].length;
+            // if(loteriasLength > 1)
+            //   map[map.length] = _getMapNuevo(text:"\n total: $totalPorLoteria \n");
+
+            }
+        }
+      
+      
+      }
+        
+
+      map[map.length] = _getMapNuevo(cmd: CMD.center);
+      if(sale.hayDescuento == 1){
+        map[map.length] = _getMapNuevo(text:"subTotal: ${sale.total}\n");
+        map[map.length] = _getMapNuevo(text:"descuento: ${sale.descuentoMonto}\n");
+        total -= Utils.toDouble(sale.descuentoMonto.toString());
+      }
+
+      
+      
+      map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+      map[map.length] = _getMapNuevo(text:"TOTAL: ${Utils.toPrintCurrency(total, true, false)}\n", cmd: CMD.h1);
+      map[map.length] = _getMapNuevo(text:"---------------\n", cmd: CMD.h1);
+    
+      if(typeTicket == TYPE_CANCELADO)
+        map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+
+      if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || sale.banca.imprimirCodigoQr == 0)
+        map[map.length] = _getMapNuevo(text:"\n\n", cmd: CMD.h1);
+      
+      if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO){
+        Banca banca = sale.banca;
+        if(banca.piepagina1 != null){
+          print("Dentro pie de pagina 1 desde bluetoothchannel: ${banca.piepagina1}");
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina1}\n", cmd: CMD.p);
+        }
+        if(banca.piepagina2 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina2}\n", cmd: CMD.p);
+        if(banca.piepagina3 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina3}\n", cmd: CMD.p);
+        if(banca.piepagina4 != null)
+          map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
+        if(banca.imprimirCodigoQr == 1){
+          map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
+          map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
+        }else
+          map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
+        
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
+      }else{
+        map[map.length] = _getMapNuevo(text:"\n\n\n");
+      }
+
+    return map;
+    // print("printicket: ${map.length}");
+    // for(Map<String, dynamic> map in mapVenta["jugadas"]){
+    //   print("Jugada: ${map["jugada"]}");
+    // }
+  }
+
+
+  static _quitarEspaciosDeAcuerdoAlTamanoDeLaJugadaOMontoDado(String tamano, String jugadaOMonto){
+    // print("tamano: $tamano - ${tamano.length} | jugadaOMonto: $jugadaOMonto - ${jugadaOMonto.length}");
+    // print("tamanoFinal: ${tamano.substring(0, tamano.length - jugadaOMonto.length)} - ${tamano.substring(0, tamano.length - jugadaOMonto.length).length}");
+    var espaciosAQuitarAlTamano = tamano.length - jugadaOMonto.length;
+    if(espaciosAQuitarAlTamano < 0)
+      return "";
+    else
+      return tamano.substring(0, espaciosAQuitarAlTamano);
+  }
+  
   static Map<String, dynamic> _getMapNuevo({String text = '', cmd = CMD.h2}){
     return {"text" : text, "cmd" : cmd};
-  }
-
-  static Map<String, dynamic> _getMap(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT, String cmd = CMD.h2]){
-    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : type, "cmd" : cmd};
-  }
-
-  static Map<String, dynamic> _getMapPrueba(String text, [int nWidthTimes = 0, String type = TYPE_CMD_PRINT_TEXT, String cmd = CMD.h2]){
-    return {"text" : text, "nWidthTimes" : nWidthTimes, "type" : "prueba", "cmd" : cmd};
   }
 
   static Map<String, dynamic> _getMapAlign(int align){

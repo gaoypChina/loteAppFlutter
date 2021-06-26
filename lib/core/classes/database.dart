@@ -37,7 +37,7 @@ class DBSqflite{
       await db.execute('CREATE TABLE Servers (id INTEGER PRIMARY KEY, descripcion TEXT, pordefecto INTEGER)');
       await db.execute('CREATE TABLE Blocksdirty (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksdirtygenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
-      await db.execute('CREATE TABLE Settings (id INTEGER PRIMARY KEY, consorcio TEXT, imprimirNombreConsorcio INTEGER, idTipoFormatoTicket INTEGER, descripcionTipoFormatoTicket Text, cancelarTicketWhatsapp INTEGER, imprimirNombreBanca INTEGER)');
+      await db.execute('CREATE TABLE Settings (id INTEGER PRIMARY KEY, consorcio TEXT, imprimirNombreConsorcio INTEGER, idTipoFormatoTicket INTEGER, descripcionTipoFormatoTicket Text, cancelarTicketWhatsapp INTEGER, imprimirNombreBanca INTEGER, pagarTicketEnCualquierBanca INTEGER)');
       await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER)');
       await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');

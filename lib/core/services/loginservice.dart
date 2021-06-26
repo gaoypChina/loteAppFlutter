@@ -105,9 +105,10 @@ class LoginService{
         "descripcionTipoFormatoTicket" : a.tipoFormatoTicket.descripcion,
         "imprimirNombreBanca" : a.imprimirNombreBanca,
         "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
+        "pagarTicketEnCualquierBanca" : a.pagarTicketEnCualquierBanca,
       });
 
-      print("LoginService guardarDatos after settings been saved");
+      print("LoginService guardarDatos after settings been saved: ${await Db.ajustes()}");
     
     for(Permiso p in permisos){
       await Db.insert('Permissions', p.toJson());

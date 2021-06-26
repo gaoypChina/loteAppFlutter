@@ -136,8 +136,10 @@ class TicketImage {
           widgets.add(pw.Divider());
           if(lasJugadasSonDeTipoSuperPale == false)
             widgets.add(pw.Text("${loteria.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)));
-          else
+          else{
+            print("TicketImage _ticketJugadasContent: ${salesdetails[i].toJson()}");
             widgets.add(pw.Text("Super pale(${loteria.descripcion} / ${salesdetails[i].loteriaSuperPale.descripcion})", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)));
+          }
 
           widgets.add(pw.Divider());
           widgets.add(pw.SizedBox(height: 10));

@@ -188,6 +188,42 @@ class TicketService{
     return parsed;
   }
 
+  static Future<Map<String, dynamic>> ticketV2({BigInt idVenta, BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idVenta"] = idVenta.toInt();
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = await Db.idBanca();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/getTicketById"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService ticketById: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService ticketById", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService ticketById", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService ticketById");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    // print("ticketservice getTicketById: ${parsed["ticket"]["testImage"]}");
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService ticketById: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
   static Future<Map<String, dynamic>> pagar({String codigoBarra = "", String codigoQr = "", BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
@@ -258,6 +294,45 @@ class TicketService{
 
     return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
   }
+
+  static Future<List<Venta>> monitoreoV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = idBanca;
+    map["fecha"] = (fecha != null) ? fecha.toString() : DateTime.now().toString();
+    map["fechaFinal"] = (fechaFinal != null) ? fechaFinal.toString() : DateTime.now().toString();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService monitoreo: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService monitoreo", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService monitoreo", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService monitoreo");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
+    }
+
+    print("ticketservice monitoreo: $parsed");
+
+    return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
+  }
+
 
   static showDialogAceptaCancelar({BuildContext context, String ticket}) async{
     return await showDialog(

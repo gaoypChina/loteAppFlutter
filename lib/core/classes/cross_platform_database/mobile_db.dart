@@ -47,7 +47,7 @@ class MobileDB implements CrossDB{
   @override
   Future<Map<String, dynamic>> ajustes() {
     // TODO: implement ajustes
-    DBSqflite.ajustes();
+    return DBSqflite.ajustes();
   }
 
   @override

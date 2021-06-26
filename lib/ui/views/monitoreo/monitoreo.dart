@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +7,16 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
+import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
@@ -89,7 +95,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _streamControllerMonitoreo.add(null);
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
-    _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    _listaVenta = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
     // setState(() => _cargando = false);
@@ -358,11 +364,21 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
             _compartirTicket() async {
               try{
                     setState(() => _cargandoCompartirTicket = true);
-                    var datos = await TicketService.ticket(context: context, idTicket: venta.idTicket);
-                    ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id);
+                    Sale sale = parsed["sale"] != null ? Sale.fromMap(parsed["sale"]) : null;
+                    if(sale == null)
+                      return;
+
+                    print("_compartirTicket datos: ${parsed}");
+                    List<Salesdetails> salesdetails = (parsed["salesdetails"] != null) ? parsed["salesdetails"].map<Salesdetails>((json) => Salesdetails.fromMap(json)).toList() : [];
+                    Uint8List image = await TicketImage.create(sale, salesdetails);
+
+                    // ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: image, codigoQr: sale.ticket.codigoBarra, sms_o_whatsapp: true);
                     setState(() => _cargandoCompartirTicket = false);
                     _back();
                   } on Exception catch(e){
+                    Utils.showAlertDialog(context: context, content: "$e", title: "Error");
                     setState(() => _cargandoCompartirTicket = false);
                   }
             }

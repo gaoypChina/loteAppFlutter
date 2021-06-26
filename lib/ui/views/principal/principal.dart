@@ -263,10 +263,15 @@ Future<bool> _requestPermisionChannel() async {
   _guardarLocal() async {
     try {
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
-      var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
       print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
-      ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
-      Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
+      if(_ckbPrint)
+        BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
+      else{
+        var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
+        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
+      }
+     
     } on Exception catch (e) {
       Utils.showAlertDialog(context: context, content: "$e", title: "Error");
     }
@@ -3147,7 +3152,7 @@ void _getTime() {
   }
 
   _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto){
-    var listaJugadasLigadas = List<String>();
+    List<String> listaJugadasLigadas = [];
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
     var listaJugadaDirectos = listaJugadas.where((e) => e.jugada.length == 2).toList();

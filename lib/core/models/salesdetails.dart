@@ -43,7 +43,7 @@ class Salesdetails {
         idLoteriaSuperpale = snapshot['idLoteriaSuperpale'] ?? 0,
         status = snapshot['status'] ?? 0,
         loteria = (snapshot["loteria"] != null) ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteria'])) : null,
-        loteriaSuperPale = (snapshot["loteriaSuperPale"] != null) ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteriaSuperPale'])) : null,
+        loteriaSuperPale = (snapshot["loteriaSuperpale"] != null) ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteriaSuperpale'])) : null,
         sorteo = (snapshot["sorteo"] != null) ? Draws.fromMap(Utils.parsedToJsonOrNot(snapshot['sorteo'])) : null,
         sorteoDescripcion = snapshot['sorteoDescripcion'] ?? ''
         ;
