@@ -135,9 +135,6 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       print("id: ${item.id} usuario: ${item.usuario}");
     }
     _setsAllFields(parsed);
-
-
-    
   }
 
   _setsAllFields(parsed){
@@ -616,15 +613,20 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       });
     }
 
-    _horariosColumnChildren(){
+    _horariosColumnChildren(bool isSmallOrMedium){
       var children = listaDia.map((e) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: isSmallOrMedium ? 20 : 0),
             child: Wrap(
+              alignment: isSmallOrMedium ? WrapAlignment.spaceBetween : WrapAlignment.start,
+              crossAxisAlignment: isSmallOrMedium ? WrapCrossAlignment.center : WrapCrossAlignment.start,
               children: [
-                MyResizedContainer( xlarge: 8, child: Text("${e.descripcion}")), 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer(medium: 7, large: 6, xlarge: 9, child: Container(child: Container(
+                  padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 8.0 : 0),
+                  child: MyResizedContainer( xlarge: 8, child: Text("${e.descripcion}", style: TextStyle(fontSize: isSmallOrMedium ? 20 : null),)),
+                ), 
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 35.0),
+                  child: MyResizedContainer(medium: 7, large: 6, xlarge: 9, small: 2.5, child: Container(child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
@@ -634,8 +636,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                   ))),
                 ), 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer(medium: 7,  xlarge: 9, child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 35.0),
+                  child: MyResizedContainer(medium: 7,  xlarge: 9, small: 2.5, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
@@ -650,13 +652,17 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
         //INSERT CAMPOS PARA CAMBIAR TODOS LOS HORARIOS
         children.insert(0, Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: isSmallOrMedium ? 20 : 0),
             child: Wrap(
+              alignment: isSmallOrMedium ? WrapAlignment.spaceBetween : WrapAlignment.start,
               children: [
-                MyResizedContainer( xlarge: 8, child: Text("Cambiar todos", style: TextStyle(fontWeight: FontWeight.bold),)), 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer(medium: 7, large: 6, xlarge: 9, child: Container(child: Container(
+                  padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 8.0 : 0),
+                  child: MyResizedContainer( xlarge: 8, child: Text("Cambiar todos", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 20 : null),)),
+                ), 
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 35.0),
+                  child: MyResizedContainer(medium: 7, large: 6, xlarge: 9, small: 2.5, child: Container(child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
@@ -666,8 +672,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                   ))),
                 ), 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer(medium: 7,  xlarge: 9, child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0 : 35.0),
+                  child: MyResizedContainer(medium: 7,  xlarge: 9, small: 2.5, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
@@ -679,33 +685,34 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
             ),
           ));
 
-        children.insert(0, Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Wrap(
-            children: [
-                MyResizedContainer( xlarge: 8, child: Center(child: MySubtitle(title: "Dias",))), 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer( xlarge: 9, child:  Center(child: MySubtitle(title: "Apertura",))),
-                ), 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                  child: MyResizedContainer( xlarge: 9, child:  Center(child: MySubtitle(title: "Cierre",))),
-                ), 
-            ],
-          ),
-        ));
+        if(!isSmallOrMedium)
+          children.insert(0, Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Wrap(
+              children: [
+                  MyResizedContainer( xlarge: 8, child: Center(child: MySubtitle(title: "Dias",))), 
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                    child: MyResizedContainer( xlarge: 9, child:  Center(child: MySubtitle(title: "Apertura",))),
+                  ), 
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                    child: MyResizedContainer( xlarge: 9, child:  Center(child: MySubtitle(title: "Cierre",))),
+                  ), 
+              ],
+            ),
+          ));
 
         return children;
     }
 
-    _horariosScreen(){
+    _horariosScreen(bool isSmallOrMedium){
       return MyScrollbar(
           child: MyResizedContainer(
           xlarge: 2,
           child: Column(
             // crossAxisAlignment: CrossAxisAlignment.start,
-            children: _horariosColumnChildren(),
+            children: _horariosColumnChildren(isSmallOrMedium),
           ),
         ),
       );
@@ -2428,7 +2435,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                       xlarge: 1.02,
                       large: 1.02,
                       medium: 1,
-                      child: _horariosScreen()
+                      child: _horariosScreen(isSmallOrMedium)
                     ),
                   ),
                   Align(

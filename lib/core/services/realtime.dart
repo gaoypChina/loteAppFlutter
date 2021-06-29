@@ -487,7 +487,7 @@ class Realtime{
 
     total = jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element);
     // VALIDACION LIMITE VENTA BANCA
-    if(total > banca.limiteVenta)
+    if((banca.ventasDelDia + total) > banca.limiteVenta)
         throw Exception("A excedido el limite de ventas de la banca: ${banca.limiteVenta}");
 
     // CREACION CODIGO BARRA

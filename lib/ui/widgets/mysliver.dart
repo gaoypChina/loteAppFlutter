@@ -270,37 +270,26 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           print("Pruebasliver: ${boxconstraint.biggest.height}");
           return Align(
             alignment: Alignment.bottomLeft,
-            child: SingleChildScrollView(
-              child: 
-              // (ScreenSize.isMedium(MediaQuery.of(context).size.width) || ScreenSize.isSmall(MediaQuery.of(context).size.width))
-              // ?
-              Padding(
-                padding: EdgeInsets.only( bottom: isSmallOrMedium ? 10 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // _actionsScreen(isSmallOrMedium)
-                    // SizedBox(height: boxconstraint.biggest.height < 57 ? 20 : 10,),
-                    _subtitle(isSmallOrMedium),
-                    // Padding(
-                    //   padding: const EdgeInsets.only(right: 25.0, top: 20),
-                    //   child: Divider(color: Colors.grey.shade300, thickness: 0.9, height: 1,),
-                    // ),
-                    (Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
-                    ?
-                    SizedBox.shrink()
-                    :
-                    MyDivider(padding: widget.dividerPadding,)
-                  ],
-                ),
-              )
-              // :
-              // Padding(
-              //   padding: const EdgeInsets.only(top: 53.0),
-              //   child: MyHeader(title: "Clientes", subtitle: widget.subtitle,),
-              // )
-
+            child: Padding(
+              padding: EdgeInsets.only( bottom: isSmallOrMedium ? 10 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // _actionsScreen(isSmallOrMedium)
+                  // SizedBox(height: boxconstraint.biggest.height < 57 ? 20 : 10,),
+                  _subtitle(isSmallOrMedium),
+                  // Padding(
+                  //   padding: const EdgeInsets.only(right: 25.0, top: 20),
+                  //   child: Divider(color: Colors.grey.shade300, thickness: 0.9, height: 1,),
+                  // ),
+                  (Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+                  ?
+                  SizedBox.shrink()
+                  :
+                  MyDivider(padding: widget.dividerPadding,)
+                ],
+              ),
             ),
           );
         }
@@ -334,7 +323,8 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           titleSpacing: 0.0,
           // title: _titleSmallScreen(isSmallOrMedium),
           actions: _actionsScreen(isSmallOrMedium),
-          title: widget.title is MyCollapseChanged ? widget.title : MyCollapseChanged(child: _titleSmallScreen(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.hide : MyCollapseAction.nothing,),
+          // title: widget.title is MyCollapseChanged ? widget.title : MyCollapseChanged(child: _titleSmallScreen(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.hide : MyCollapseAction.nothing,),
+          title:  _titleSmallScreen(isSmallOrMedium),
           // title: _titleSmallScreen(isSmallOrMedium),
           // leading: Container(
           //   padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10),
@@ -380,7 +370,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           expandedHeight: (widget.subtitle != "") ? isSmallOrMedium ? widget.expandedHeight : widget.expandedHeight + 8 : null,
           // flexibleSpace: MyColapseChanged(child: _flexibleSpace(isSmallOrMedium), actionWhenCollapse: isSmallOrMedium ? MyCollapseAction.padding30 : MyCollapseAction.hide,)
           flexibleSpace: _flexibleSpace(isSmallOrMedium),
-          bottom: widget.bottom,
+          // bottom: widget.bottom,
           
           
         );

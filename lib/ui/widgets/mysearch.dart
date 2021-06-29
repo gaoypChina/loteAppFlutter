@@ -30,7 +30,9 @@ class MySearchField extends StatefulWidget {
   final EdgeInsets contentPadding;
   final bool showOnlyOnSmall;
   final bool showOnlyOnLarge;
-  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.contentPadding = const EdgeInsets.only(top: 15, bottom: 15), this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
+  final bool enabled;
+  final Function onTap;
+  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.contentPadding = const EdgeInsets.only(top: 15, bottom: 15), this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.enabled = true, this.onTap}) : super(key: key);
   @override
   _MySearchFieldState createState() => _MySearchFieldState();
 }
@@ -163,6 +165,8 @@ class _MySearchFieldState extends State<MySearchField> {
                            ),
                            Expanded(
                              child: TextFormField(
+                               onTap: widget.onTap,
+                               enabled: widget.enabled,
                                focusNode: _myFocus,
                                 controller: widget.controller,
                                 maxLines: widget.maxLines,

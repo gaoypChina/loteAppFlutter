@@ -135,6 +135,87 @@ class BancaService{
 
     return parsed;
   }
+  static Future<List<Banca>> search({@required BuildContext context, scaffoldKey, String search}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    // map["servidor"] = "valentin";
+    // var jwt = await Utils.createJwtForTest(map);
+    map = {
+      "servidor" : await Db.servidor(),
+      "search" : search,
+    };
+    var jwt = await Utils.createJwt(map);
+    
+    var map2 = {
+      "datos" : jwt
+    };
+    
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/search"), body: json.encode(map2), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BancaService index: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BancaService index: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BancaService index: ${parsed["mensaje"]}");
+    }
+
+    return parsed["data"].map<Banca>((e) => Banca.fromMap(e)).toList();
+  }
+ 
+  static Future<Map<String, dynamic>> searchTest({@required BuildContext context, scaffoldKey, String search}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    // map["servidor"] = "valentin";
+    // var jwt = await Utils.createJwtForTest(map);
+    map = {
+      "servidor" : "valentin",
+      "search" : search,
+    };
+    var jwt = await Utils.createJwtForTest(map);
+    
+    var map2 = {
+      "datos" : jwt
+    };
+    
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/search"), body: json.encode(map2), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BancaService index: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BancaService index: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BancaService index: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
  
   static Future<Map<String, dynamic>> guardar({@required BuildContext context, scaffoldKey, @required Banca data}) async {
     var map = Map<String, dynamic>();

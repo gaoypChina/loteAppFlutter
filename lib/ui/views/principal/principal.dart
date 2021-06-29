@@ -701,6 +701,12 @@ Future<bool> _requestPermisionChannel() async {
     if(idBanca != null)
       socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
   }
+  _emitToGetVentasDelDia() async {
+    var idBanca = await getIdBanca();
+    print("_emitToGetVentasDelDia idBanca: ${idBanca}");
+    if(idBanca != null)
+      socket.emit("obtenerVentasDelDia", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca}));
+  }
 
   _emitToSaveTicketsNoSubidos() async {
     if(kIsWeb)
@@ -789,6 +795,7 @@ Future<bool> _requestPermisionChannel() async {
       // print(data);
       // socket.emit("message", ["Hello world!"]);
       _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
       await Realtime.sincronizarTodos(_scaffoldKey);
       await _getPermisos();
       _socketContadorErrores = 0;
@@ -868,6 +875,13 @@ Future<bool> _requestPermisionChannel() async {
         print("Socket ticket from server before: $data");
         Realtime.setVentaToSubido(data);
         print("Socket ticket from server after: $data");
+      });
+      socket.on("obtenerVentasDelDia", (data){
+        print("Socket obtenerVentasDelDia 1: $data");
+        var parsed = data.cast<String, dynamic>();
+        print("Socket obtenerVentasDelDia 2: $data");
+        _updateBranchesList(parsed);
+        print("Socket obtenerVentasDelDia 3: $data");
       });
     }
     
@@ -3311,7 +3325,7 @@ void _getTime() {
       // VALIDAMOS EL MONTO DISPONIBLE
       double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
       if(Utils.toDouble(monto) > montoDisponibleOtraVez){
-        _showSnackBar('No hay monto suficiente');
+        _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
           return;
       }
 
@@ -3334,7 +3348,7 @@ void _getTime() {
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, _selectedLoterias[i2]);
           if(Utils.toDouble(monto) > montoDisponibleOtraVez){
-            _showSnackBar('No hay monto suficiente');
+            _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
               return;
           }
         }
@@ -3359,7 +3373,7 @@ void _getTime() {
       for (var l in selectedLoterias) {
         double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
         if(Utils.toDouble(monto) > montoDisponibleOtraVez){
-          _showSnackBar('No hay monto suficiente');
+          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
             return;
         }
       }
@@ -3566,7 +3580,7 @@ void _getTime() {
     if(jugada["idSorteo"] != 4){
       double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
       if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
-        _showSnackBar('No hay monto suficiente');
+        _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
           return;
       }
 
@@ -3628,7 +3642,7 @@ void _getTime() {
 
       double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), loteria, await _selectedBanca(), loteriaSuperpale);
       if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
-        _showSnackBar('No hay monto suficiente');
+        _showSnackBar('No hay monto suficiente para el super pale ${jugada["jugada"]} en las loterias ${loteria.descripcion}/${loteriaSuperpale.descripcion}');
           return;
       }
 
@@ -3897,12 +3911,14 @@ _seleccionarBancaPertenecienteAUsuario() async {
     setState(() {
       _indexBanca = (idx != -1) ? idx : 0;
       _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
     });
   }else{
     setState(() {
       _indexBanca = 0;
       print("_seleccionarBancaPertenecienteAUsuario listaBanca: ${listaBanca.length}");
       _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
     });
   }
 

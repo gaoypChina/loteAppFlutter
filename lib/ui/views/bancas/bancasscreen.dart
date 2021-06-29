@@ -7,7 +7,11 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/loteriaservice.dart';
+import 'package:loterias/ui/views/bancas/bancassearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mybottomsheet.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
@@ -16,6 +20,7 @@ import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 
 class BancasScreen extends StatefulWidget {
@@ -207,18 +212,58 @@ class _BancasScreenState extends State<BancasScreen> {
   }
 
   Widget _mysearch(){
-    return MySearchField(controller: _txtSearch, onChanged: _search, hint: "", medium: 1, xlarge: 2.6, padding: EdgeInsets.all(0),);
+    return GestureDetector(
+      onTap: () async {
+        var data = await showSearch(context: context, delegate: BancasSearch(listaData));
+        if(data == null)
+          return;
+
+        _showDialogGuardar(data: data);
+      }, 
+      child: MySearchField(enabled: false, controller: _txtSearch, hint: "", medium: 1, xlarge: 2.6, padding: EdgeInsets.all(0), contentPadding: const EdgeInsets.symmetric(vertical: 12),));
   }
 
   _subtitle(bool isSmallOrMedium){
          return isSmallOrMedium 
            ?
-           Padding(
-             padding: const EdgeInsets.symmetric(horizontal: 20),
-             child: _mysearch(),
+           MyCollapseChanged(
+             actionWhenCollapse: MyCollapseAction.hide,
+             child: Padding(
+               padding: const EdgeInsets.symmetric(horizontal: 20),
+               child: _mysearch(),
+             ),
            )
            :
            "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.";
+  }
+List<String> opciones = ["Todos", "Activas", "Desactivadas"];
+String _selectedOpcion;
+_opcionChanged(String opcion){
+  _selectedOpcion = opcion;
+  if(opcion == "Activas")
+    _streamController.add(listaData.where((element) => element.status == 1).toList());
+  if(opcion == "Desactivadas")
+    _streamController.add(listaData.where((element) => element.status == 0).toList());
+  else
+    _streamController.add(listaData);
+
+}
+  _filterScreen(){
+    if(_selectedOpcion == null)
+      _selectedOpcion = opciones[0];
+
+      opcionChanged(String opcion){
+        setState(() => _selectedOpcion = opcion);
+        _opcionChanged(opcion);
+        Navigator.pop(context);
+      }
+
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(children: opciones.map((e) => CheckboxListTile(title: Text("$e"), value: _selectedOpcion == e, controlAffinity: ListTileControlAffinity.leading, onChanged: (value){opcionChanged(e);})).toList(),),
+      )
+    );
   }
 
   @override
@@ -247,11 +292,13 @@ class _BancasScreenState extends State<BancasScreen> {
       floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _showDialogGuardar,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
+          floating: isSmallOrMedium ? true : false,
           expandedHeight: isSmallOrMedium ? 105 : 85,
-          title: "Loterias",
+          title: "Bancas",
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
             MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar, showOnlyOnLarge: true,),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
 
           ],
         ),

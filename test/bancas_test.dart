@@ -29,5 +29,18 @@ void main() {
       print("data: $parsed");
       expect(parsed == null, false);
     });
+
+    test("Testing Bancasearch", () async {
+      var parsed = await BancaService.searchTest(context: null, search: "01");
+      print("parsed: $parsed");
+      // var _data = parsed["data"] != null ? Banca.fromMap(parsed["data"]) : null;
+      // _data.loterias.forEach((element) {
+      //   print("Loteria: ${element.descripcion}");
+      //   element.sorteos.forEach((e) {
+      //     print("sorteo: ${e.descripcion}");
+      //   });
+      // });
+      expect(parsed == null, false);
+    });
   });
 }
