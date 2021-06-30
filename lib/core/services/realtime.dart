@@ -504,6 +504,9 @@ class Realtime{
         throw Exception("La loteria ${jugada.loteria.descripcion} no pertenece a esta banca");
 
       Loteria loteria = listaLoteria.firstWhere((element) => element.id == jugada.loteria.id, orElse: () => null);
+      if(loteria == null)
+        throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+
       print("Realtime guardarVenta apertura: ${loteria.horaApertura} horaCierre: ${loteria.horaCierre}");
       if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteria.horaApertura, date)))
         throw Exception("La loteria ${loteria.descripcion} no ha abierto");
@@ -528,6 +531,9 @@ class Realtime{
         throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} no pertenece a esta banca");
       
       Loteria loteriaSuperPale = listaLoteria.firstWhere((element) => element.id == jugada.loteriaSuperPale.id, orElse: () => null);
+      if(loteriaSuperPale == null)
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+
       if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaApertura, date)))
         throw Exception("La loteria ${loteriaSuperPale.descripcion} aun no ha abierto");
       if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaCierre, date))){

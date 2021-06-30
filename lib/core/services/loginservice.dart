@@ -78,7 +78,7 @@ class LoginService{
 
   static guardarDatos(Map<String, dynamic> parsed) async {
     Usuario u = Usuario.fromMap(parsed['usuario']);
-    Banca b = Banca.fromMap(parsed['bancaObject2']);
+    Banca b = parsed['bancaObject2'] != null ? Banca.fromMap(parsed['bancaObject2']) : null;
     Ajuste a = (parsed['ajustes'] != null) ? Ajuste.fromMap(parsed['ajustes']) : null;
     List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
     List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
@@ -88,12 +88,14 @@ class LoginService{
     await Db.openConnection();
 
     await Db.insert('Users', u.toJson());
-    await Db.insert('Branches', b.toJson());
-    for(Loteria l in b.loterias){
-      await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
-    }
-    for(Dia d in b.dias){
-      await Db.insert('Days', d.toJson());
+    if(b != null){
+      await Db.insert('Branches', b.toJson());
+      for(Loteria l in b.loterias){
+        await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
+      }
+      for(Dia d in b.dias){
+        await Db.insert('Days', d.toJson());
+      }
     }
     print("Loginservice guardarDatos: ${a.toJson()}");
     if(a != null)

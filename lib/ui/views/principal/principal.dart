@@ -175,8 +175,11 @@ Future<bool> _requestPermisionChannel() async {
   Future<Banca> getBanca() async {
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca];
-    else
-      return Banca.fromMap(await Db.getBanca());
+    else{
+      var bancaTmp = Banca.fromMap(await Db.getBanca());
+      Banca banca = listaBanca.firstWhere((element) => element.id == bancaTmp.id, orElse: () => null);
+      return banca;
+    }
   }
 
   indexPost(bool seleccionarBancaPertenecienteAUsuario) async {
@@ -263,6 +266,8 @@ Future<bool> _requestPermisionChannel() async {
   _guardarLocal() async {
     try {
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
+      listaJugadas = [];
+      _streamControllerJugada.add(listaJugadas);
       print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
       if(_ckbPrint)
         BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
@@ -878,6 +883,9 @@ Future<bool> _requestPermisionChannel() async {
       });
       socket.on("obtenerVentasDelDia", (data){
         print("Socket obtenerVentasDelDia 1: $data");
+        if(data == null)
+          return;
+
         var parsed = data.cast<String, dynamic>();
         print("Socket obtenerVentasDelDia 2: $data");
         _updateBranchesList(parsed);
