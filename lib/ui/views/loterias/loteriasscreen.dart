@@ -7,6 +7,7 @@ import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/services/gruposservice.dart';
 import 'package:loterias/core/services/loteriaservice.dart';
+import 'package:loterias/ui/views/loterias/loteriassearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -216,7 +217,21 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
   }
 
   Widget _mysearch(){
-    return MySearchField(controller: _txtSearch, onChanged: _search, hint: "", medium: 1, xlarge: 2.6, padding: EdgeInsets.all(0),);
+    return MySearchField(
+      controller: _txtSearch, 
+      onTap: () async {
+        Loteria data = await showSearch(context: context, delegate: LoteriasSearch(listaData));
+        if(data == null)
+          return;
+
+        _showDialogGuardar(data: data);
+      },
+      hint: "", 
+      medium: 1, 
+      xlarge: 2.6, 
+      padding: EdgeInsets.all(0), 
+      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+    );
   }
 
   _subtitle(bool isSmallOrMedium){

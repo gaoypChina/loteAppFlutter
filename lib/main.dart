@@ -72,6 +72,7 @@ class MyApp extends StatelessWidget {
           ),
           // backgroundColor: Colors.white,
           // primarySwatch: MyColors.lightBlue,
+          // primaryColor: Utils.colorMaterialCustom,
           accentColor: Colors.pink,
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.white,

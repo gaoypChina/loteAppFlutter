@@ -701,12 +701,18 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _emitToGetNewIdTicket() async {
+    if(kIsWeb)
+      return;
+
     var idBanca = await getIdBanca();
     print("_emitToGetNewIdTicket idBanca: ${listaBanca.length}");
     if(idBanca != null)
       socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
   }
   _emitToGetVentasDelDia() async {
+    if(kIsWeb)
+      return;
+      
     var idBanca = await getIdBanca();
     print("_emitToGetVentasDelDia idBanca: ${idBanca}");
     if(idBanca != null)
@@ -1433,7 +1439,7 @@ AppBar _appBar(bool screenHeightIsSmall){
     double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
     double _iconPaddingHorizontal = 12;
     return AppBar(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Utils.colorMaterialCustom,
       iconTheme: IconThemeData(color: Colors.white),
       actionsIconTheme: IconThemeData(color: Colors.white),
       title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 17))) : Text('Principal'),
@@ -2073,7 +2079,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         child: Row(
                                           children: <Widget>[
                                             IconButton(
-                                              icon: Icon(Icons.print, color: Colors.blue, size: 38),
+                                              icon: Icon(Icons.copy, color: Colors.blue, size: 38),
                                               onPressed: () async {
                                                 if(listaVenta.isNotEmpty){
                                                   var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
