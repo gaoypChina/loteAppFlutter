@@ -712,7 +712,7 @@ Future<bool> _requestPermisionChannel() async {
   _emitToGetVentasDelDia() async {
     if(kIsWeb)
       return;
-      
+
     var idBanca = await getIdBanca();
     print("_emitToGetVentasDelDia idBanca: ${idBanca}");
     if(idBanca != null)
@@ -2296,6 +2296,30 @@ AppBar _appBar(bool screenHeightIsSmall){
                         _scaffoldKey.currentState.openEndDrawer();
 
                       },
+                    ),
+                    ExpansionTile(
+                      leading: Icon(Icons.person_outline),
+                      title: Text("Usuarios"),
+                      children: [
+                         ListTile(
+                          title: Text('Usuarios'),
+                          leading: Icon(Icons.person),
+                          dense: true,
+                          onTap: (){
+                            Navigator.of(context).pushNamed("/usuarios");
+                            _scaffoldKey.currentState.openEndDrawer();
+                          },
+                        ),
+                         ListTile(
+                          title: Text('Sesiones'),
+                          leading: Icon(Icons.dashboard),
+                          dense: true,
+                          onTap: (){
+                            Navigator.of(context).pushNamed("/sesiones");
+                            _scaffoldKey.currentState.openEndDrawer();
+                          },
+                        ),
+                      ],
                     ),
                     ListTile(
                       title: Text('Screen size test'),

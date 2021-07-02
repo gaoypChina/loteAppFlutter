@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
+import 'package:loterias/core/models/ventaporfecha.dart';
 
 
 class ReporteService{
@@ -143,6 +145,50 @@ class ReporteService{
     }
 
     return parsed;
+  }
+  static Future<List<VentaPorFecha>> ventasPorFecha({BuildContext context, scaffoldKey, DateTimeRange date, List<Banca> bancas, Moneda moneda, bool retornarMonedas = false, bool retornarBancas = false}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
+
+    map["fechaDesde"] = date.start.toString();
+    map["fechaHasta"] = date.end.toString();
+    map["idUsuario"] = await Db.idUsuario();
+    map["bancas"] = bancas != null ? Banca.bancasToJson(bancas) : [];
+    map["moneda"] = moneda != null ? moneda.toJson() : null;
+    map["retornarBancas"] = retornarBancas;
+    map["retornarMonedas"] = retornarMonedas;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService ventas: ${mapDatos.toString()}");
+    // return listaBanca;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ventasPorFecha"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService ventas: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    print("reporteservice ventas datos: ${parsed.toString()}");
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ReporteService ventas: ${parsed["mensaje"]}");
+    }
+
+    return parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
   }
 
   static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca}) async {

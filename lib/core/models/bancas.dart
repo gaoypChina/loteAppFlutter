@@ -116,6 +116,18 @@ class Banca {
             return [];
         }
 
+        static List bancasToJson(List<Banca> lista) {
+          List jsonList = [];
+          if(lista == null)
+            return jsonList;
+
+          lista.map((u)=>
+            jsonList.add(u.toJson())
+          ).toList();
+          return jsonList;
+        }
+        
+
   toJson() {
     return {
       "id": id,

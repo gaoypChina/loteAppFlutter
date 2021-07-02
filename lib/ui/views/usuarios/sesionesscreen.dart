@@ -31,13 +31,15 @@ class _SesionesScreenState extends State<SesionesScreen> {
   List<Sesion> listaData;
 
   _sesiones() async {
+     _streamController.add(null);
      listaData = await UsuarioService.sesiones(context: context, fecha: _date);
      _streamController.add(listaData);
   }
 
   _init() async {
     _date = MyDate.getTodayDateRange();
-    _sesiones();
+     listaData = await UsuarioService.sesiones(context: context, fecha: _date);
+    _streamController.add(listaData);
   }
 
   _dateChanged(date){
@@ -54,13 +56,68 @@ class _SesionesScreenState extends State<SesionesScreen> {
     ?
     MyCollapseChanged(
       child: MyFilter(
+        filterTitle: '',
+        filterLeading: SizedBox.shrink(),
+        leading: SizedBox.shrink(),
         value: _date,
         paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
         onChanged: _dateChanged,
+        showListNormalCortaLarga: 2,
       ),
     )
     :
     "Observe las horas en las cuales los usuarios han iniciado sesion";
+  }
+
+  _listTile(Sesion sesion, int index){
+      return Container(
+        padding: EdgeInsets.all(10),
+        child: ListTile(
+          leading: Text("${index + 1}"),
+          // title: Text("${sesion.usuario} ( ${sesion.banca} )"),
+          title: Text("${sesion.usuario}"),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Visibility(
+                visible: sesion.primerInicioSesionPC != null || sesion.ultimoInicioSesionPC != null,
+                child: Wrap(
+                  alignment: WrapAlignment.start,
+                  children: [
+                    Icon(Icons.computer, size: 17),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 2.0),
+                      child: Text("${sesion.primerInicioSesionPC != null ? MyDate.datetimeToHour(sesion.primerInicioSesionPC) : ''}"),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 5.0),
+                      child: Text("${sesion.ultimoInicioSesionPC != null ? MyDate.datetimeToHour(sesion.ultimoInicioSesionPC) : ''}"),
+                    ),
+                  ],
+                ),
+              ),
+              Visibility(
+                visible: sesion.primerInicioSesionCelular != null || sesion.ultimoInicioSesionCelular != null,
+                child: Wrap(
+                  alignment: WrapAlignment.start,
+                  children: [
+                    Icon(Icons.phone_android, size: 17),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 2.0),
+                      child: Text("${sesion.primerInicioSesionCelular != null ? MyDate.datetimeToHour(sesion.primerInicioSesionCelular) : ''}"),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 5.0),
+                      child: Text("${sesion.ultimoInicioSesionCelular != null ? MyDate.datetimeToHour(sesion.ultimoInicioSesionCelular) : ''}"),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          trailing: Text("${sesion.banca}"),
+        ),
+      );
   }
 
   @override
@@ -88,6 +145,22 @@ class _SesionesScreenState extends State<SesionesScreen> {
           expandedHeight: isSmallOrMedium ? 105 : 85,
           actions: [
             MySliverButton(
+              title: "title", 
+              iconWhenSmallScreen: Icons.date_range,
+              showOnlyOnSmall: true,
+              onTap: () async {
+                if(isSmallOrMedium){
+                  var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime.now().subtract(Duration(days: 365 * 5)), lastDate: DateTime.now().add(Duration(days: 365 * 2)));
+                  if(date == null)
+                    return;
+                  _dateChanged(DateTimeRange(
+                    start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00:00"),
+                    end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59"),
+                  ));
+                }
+              }
+            ),
+            MySliverButton(
               showOnlyOnLarge: true,
               title: Container(
                 width: 180,
@@ -95,7 +168,9 @@ class _SesionesScreenState extends State<SesionesScreen> {
                   builder: (context) {
                     return MyDropdown(title: null, 
                       hint: "${MyDate.dateRangeToNameOrString(_date)}",
-                      onTap: (){
+                      onTap: () async {
+                        
+
                         showMyOverlayEntry(
                           context: context,
                           builder: (context, overlay){
@@ -126,6 +201,39 @@ class _SesionesScreenState extends State<SesionesScreen> {
             return SliverFillRemaining(
               child: Center(child: CircularProgressIndicator(),),
             );
+            if(isSmallOrMedium)
+            return SliverFillRemaining(
+              child: ListView.builder(
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, index){
+                  if(index == 0)
+                    return Column(
+                      children: [
+                        // ListTile(
+                        //   selectedTileColor: ,
+                        //   leading: Text("ID"),
+                        //   title: Text("Usuario"),
+                        //   trailing: Text("Banca"),
+                        // ),
+                         Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          // color: Colors.amber,
+                          color: Colors.grey[100],
+                          child: ListTile(
+                            leading: Text('ID'),
+                            title: Text('Usuario'),
+                            trailing: Text('Banca'),
+                          ),
+                        ),
+                        _listTile(snapshot.data[index], index)
+                      ],
+                    );
+                  return _listTile(snapshot.data[index], index);
+                }
+              ),
+            );
+
+
 
           return SliverList(delegate: SliverChildListDelegate([
             MySubtitle(title: "Datos"),
@@ -135,10 +243,10 @@ class _SesionesScreenState extends State<SesionesScreen> {
               rows: snapshot.data.map((e) => [
                 e, e.banca, 
                 e.usuario, 
-                e.primerInicioSesionPC != null ? e.primerInicioSesionPC.toString() : '', 
-                e.ultimoInicioSesionPC != null ? e.ultimoInicioSesionPC.toString() : '', 
-                e.primerInicioSesionCelular != null ? e.primerInicioSesionCelular.toString() : '', 
-                e.ultimoInicioSesionCelular != null ? e.ultimoInicioSesionCelular.toString() : ''
+                e.primerInicioSesionPC != null ? MyDate.datetimeToHour(e.primerInicioSesionPC) : '', 
+                e.ultimoInicioSesionPC != null ? MyDate.datetimeToHour(e.ultimoInicioSesionPC) : '', 
+                e.primerInicioSesionCelular != null ? MyDate.datetimeToHour(e.primerInicioSesionCelular) : '', 
+                e.ultimoInicioSesionCelular != null ? MyDate.datetimeToHour(e.ultimoInicioSesionCelular) : ''
               ]).toList()
             )
           ]));
