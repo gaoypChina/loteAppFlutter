@@ -21,7 +21,7 @@ class MyDrawer extends StatefulWidget {
   final bool configuracionOtro;
   final bool cuentas;
   final bool usuarios;
-  final bool roles;
+  final bool sesiones;
   final bool sucursales;
   final bool pagos;
   final bool garantias;
@@ -29,7 +29,7 @@ class MyDrawer extends StatefulWidget {
   final bool visible;
   final bool isForSmallScreen;
   // final ValueChanged onChanged;
-  MyDrawer({Key key, @required this.visible, this.inicio = false, this.clientes = false, this.rutas = false, this.gastos = false, this.cajas = false, this.cerrarCaja = false, this.bancos = false, this.prestamos =  false, this.configuracion = false, this.configuracionPrestamo = false, this.configuracionEmpresa = false, this.configuracionRecibo = false, this.configuracionOtro = false, this.cuentas = false, this.usuarios = false, this.roles = false, this.sucursales = false, this.clientesBack = false, this.garantias, this.pagos, this.isForSmallScreen = false}) : super(key: key);
+  MyDrawer({Key key, @required this.visible, this.inicio = false, this.clientes = false, this.rutas = false, this.gastos = false, this.cajas = false, this.cerrarCaja = false, this.bancos = false, this.prestamos =  false, this.configuracion = false, this.configuracionPrestamo = false, this.configuracionEmpresa = false, this.configuracionRecibo = false, this.configuracionOtro = false, this.cuentas = false, this.usuarios = false, this.sesiones = false, this.sucursales = false, this.clientesBack = false, this.garantias, this.pagos, this.isForSmallScreen = false}) : super(key: key);
   @override
   _MyDrawerState createState() => _MyDrawerState();
 }
@@ -140,14 +140,14 @@ class _MyDrawerState extends State<MyDrawer> {
                               ]
                             ),
                             MyExpansionTile(
-                              title: "Usuarios y roles", 
+                              title: "Usuarios y sesiones", 
                               type: widget.visible ? MyExpansionTileType.normal : _showOnHoverNotify.value ? MyExpansionTileType.normal : MyExpansionTileType.onlyIcon,
-                              selected: widget.usuarios || widget.roles,
+                              selected: widget.usuarios || widget.sesiones,
                               icon: Icons.supervised_user_circle_outlined, 
-                              initialExpanded: widget.usuarios || widget.roles,
+                              initialExpanded: widget.usuarios || widget.sesiones,
                               listaMylisttile: [
                                 MyListTile(type: widget.visible ? MyListTileType.normal : _showOnHoverNotify.value ? MyListTileType.normal : MyListTileType.onlyIcon, title: "Usuarios", icon: null, onTap: (){_gotTo("/usuarios");}, selected: widget.usuarios,), 
-                                MyListTile(type: widget.visible ? MyListTileType.normal : _showOnHoverNotify.value ? MyListTileType.normal : MyListTileType.onlyIcon, title: "Roles", icon: null, onTap: (){_gotTo("/roles");}, selected: widget.roles,), 
+                                MyListTile(type: widget.visible ? MyListTileType.normal : _showOnHoverNotify.value ? MyListTileType.normal : MyListTileType.onlyIcon, title: "Sesiones", icon: null, onTap: (){_gotTo("/sesiones");}, selected: widget.sesiones,), 
                               ]
                             ),
                             MyExpansionTile(

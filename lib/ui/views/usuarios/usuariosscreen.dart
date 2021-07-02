@@ -14,8 +14,11 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/usuarioservice.dart';
 import 'package:loterias/ui/views/usuarios/rolscreen.dart';
 import 'package:loterias/ui/views/usuarios/usuariosaddscreen.dart';
+import 'package:loterias/ui/views/usuarios/usuariossearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycolor.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
@@ -29,6 +32,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 
 class UsuarioScreen extends StatefulWidget {
@@ -57,6 +61,8 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   TipoUsuario _tipoUsuario = TipoUsuario();
   Grupo _grupo = Grupo();
   var developerImage;
+  List<String> opciones = ["Todos", "Activos", "Desactivados"];
+  String _selectedOpcion;
 
 
   _init() async {
@@ -136,12 +142,23 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   }
 
 
-   _showDialogGuardar({Usuario data}){
+   _showDialogGuardar({Usuario data}) async {
      Usuario usuario = data;
      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
-       Navigator.push(context, MaterialPageRoute(builder: (context){
+       Usuario returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
          return UsuarioAddScreen(usuario: data, listaGrupo: listaGrupo, listaTipoUsuario: listaTipoUsuario, listaPermiso: listaPermiso,);
        }));
+
+       if(returnedUser == null)
+        return;
+
+        var idx = listaData.indexWhere((element) => element.id == returnedUser.id);
+        if(idx == -1)
+          listaData.add(returnedUser);
+        else
+          listaData[idx] = returnedUser;
+
+        _streamController.add(listaData);
 
        return;
      }
@@ -819,15 +836,35 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   }
 
    Widget _mysearch(){
-    return MySearchField(controller: _txtSearch, onChanged: _search, hint: "", medium: 1, xlarge: 2.6, padding: EdgeInsets.all(0),);
+    return GestureDetector(
+      onTap: () async {
+          Usuario usuario = await showSearch(context: context, delegate: UsuariosSearch(listaData));
+          if(usuario == null)
+            return;
+    
+          _showDialogGuardar(data: usuario);
+      }, 
+      child: MySearchField(
+        controller: _txtSearch, 
+        enabled: false, 
+        hint: "", 
+        medium: 1, 
+        xlarge: 2.6,
+        padding: EdgeInsets.all(0), 
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      ),
+    );
   }
 
   _subtitle(bool isSmallOrMedium){
   return isSmallOrMedium 
     ?
-    Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: _mysearch(),
+    MyCollapseChanged(
+      actionWhenCollapse: MyCollapseAction.hide,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: _mysearch(),
+      ),
     )
     :
     "Maneje todos sus usuarios con sus respectivos permisos";
@@ -902,6 +939,37 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   }
 
 
+  _opcionChanged(String opcion){
+    _selectedOpcion = opcion;
+    // print("_opcionChanged: $opcion activas: ${opcion == "Activas"}");
+    if(opcion == "Activos"){
+      _streamController.add(listaData.where((element) => element.status == 1).toList());
+    }
+    else if(opcion == "Desactivados")
+      _streamController.add(listaData.where((element) => element.status == 0).toList());
+    else
+      _streamController.add(listaData);
+
+  }
+
+  _filterScreen(){
+    if(_selectedOpcion == null)
+      _selectedOpcion = opciones[0];
+
+      opcionChanged(String opcion){
+        setState(() => _selectedOpcion = opcion);
+        _opcionChanged(opcion);
+        Navigator.pop(context);
+      }
+
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(children: opciones.map((e) => CheckboxListTile(title: Text("$e"), value: _selectedOpcion == e, controlAffinity: ListTileControlAffinity.leading, onChanged: (value){opcionChanged(e);})).toList(),),
+      )
+    );
+  }
+
 
   @override
   void initState() {
@@ -929,9 +997,11 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Usuarios",
+          floating: true,
           subtitle: _subtitle(isSmallOrMedium),
-          expandedHeight: isSmallOrMedium ? 95 : 85,
+          expandedHeight: isSmallOrMedium ? 105 : 85,
           actions: [
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
             MySliverButton(
               title: "Agregar",
               // iconWhenSmallScreen: Icons.person_add,

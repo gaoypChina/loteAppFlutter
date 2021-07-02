@@ -9,6 +9,8 @@ import 'package:loterias/core/services/gruposservice.dart';
 import 'package:loterias/core/services/loteriaservice.dart';
 import 'package:loterias/ui/views/loterias/loteriassearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
@@ -18,6 +20,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LoteriasScreen extends StatefulWidget {
@@ -32,6 +35,8 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
   var _txtCodigo = TextEditingController();
   var _txtSearch = TextEditingController();
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
+  List<String> opciones = ["Todos", "Activas", "Desactivadas"];
+  String _selectedOpcion;
 
   List<Loteria> listaData = [];
   _init() async {
@@ -217,32 +222,71 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
   }
 
   Widget _mysearch(){
-    return MySearchField(
-      controller: _txtSearch, 
+    return GestureDetector(
       onTap: () async {
-        Loteria data = await showSearch(context: context, delegate: LoteriasSearch(listaData));
-        if(data == null)
-          return;
-
-        _showDialogGuardar(data: data);
-      },
-      hint: "", 
-      medium: 1, 
-      xlarge: 2.6, 
-      padding: EdgeInsets.all(0), 
-      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          Loteria data = await showSearch(context: context, delegate: LoteriasSearch(listaData));
+          if(data == null)
+            return;
+    
+          _showDialogGuardar(data: data);
+        },
+      child: MySearchField(
+        controller: _txtSearch, 
+        enabled: false,
+        hint: "", 
+        medium: 1, 
+        xlarge: 2.6, 
+        padding: EdgeInsets.all(0), 
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      ),
     );
   }
 
   _subtitle(bool isSmallOrMedium){
          return isSmallOrMedium 
            ?
-           Padding(
-             padding: const EdgeInsets.symmetric(horizontal: 20),
-             child: _mysearch(),
+           MyCollapseChanged(
+            actionWhenCollapse: MyCollapseAction.hide,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _mysearch(),
+            ),
            )
            :
            "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.";
+  }
+
+  _opcionChanged(String opcion){
+    _selectedOpcion = opcion;
+    // print("_opcionChanged: $opcion activas: ${opcion == "Activas"}");
+    if(opcion == "Activas"){
+      listaData.where((element) => element.status == 1).toList().forEach((element) {print("_opcionChanged loteria: ${element.descripcion} status: ${element.status}");});
+
+      _streamController.add(listaData.where((element) => element.status == 1).toList());
+    }
+    else if(opcion == "Desactivadas")
+      _streamController.add(listaData.where((element) => element.status == 0).toList());
+    else
+      _streamController.add(listaData);
+
+  }
+
+  _filterScreen(){
+    if(_selectedOpcion == null)
+      _selectedOpcion = opciones[0];
+
+      opcionChanged(String opcion){
+        setState(() => _selectedOpcion = opcion);
+        _opcionChanged(opcion);
+        Navigator.pop(context);
+      }
+
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(children: opciones.map((e) => CheckboxListTile(title: Text("$e"), value: _selectedOpcion == e, controlAffinity: ListTileControlAffinity.leading, onChanged: (value){opcionChanged(e);})).toList(),),
+      )
+    );
   }
 
   @override
@@ -276,6 +320,7 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
             MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar, showOnlyOnLarge: true,),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
 
           ],
         ),

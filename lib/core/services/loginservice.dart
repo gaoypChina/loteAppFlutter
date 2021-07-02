@@ -98,7 +98,7 @@ class LoginService{
       }
     }
     print("Loginservice guardarDatos: ${a.toJson()}");
-    if(a != null)
+    if(a != null && !kIsWeb)
       await Db.insert("Settings", {
         "id" : a.id, 
         "consorcio" : (a.consorcio != null) ? a.consorcio : '',
@@ -110,7 +110,6 @@ class LoginService{
         "pagarTicketEnCualquierBanca" : a.pagarTicketEnCualquierBanca,
       });
 
-      print("LoginService guardarDatos after settings been saved: ${await Db.ajustes()}");
     
     for(Permiso p in permisos){
       await Db.insert('Permissions', p.toJson());

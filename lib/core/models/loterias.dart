@@ -29,7 +29,7 @@ class Loteria {
         tercera = snapshot['tercera'] ?? '',
         pick3 = snapshot['pick3'] ?? '',
         pick4 = snapshot['pick4'] ?? '',
-        status = snapshot['status'] ?? 1,
+        status = snapshot['status'] ?? 0,
         sorteos = sorteosToMap(Utils.parsedToJsonOrNot(snapshot['sorteos'])) ?? [],
         loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
         horaApertura= snapshot['horaApertura'] ?? '',

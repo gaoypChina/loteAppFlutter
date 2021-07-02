@@ -5,7 +5,9 @@ import 'package:loterias/core/classes/moor_database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/services/gruposservice.dart';
+import 'package:loterias/ui/views/grupos/grupossearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -16,6 +18,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -31,8 +34,10 @@ class _GrupoScreenState extends State<GrupoScreen> {
   var _txtCodigo = TextEditingController();
   var _txtSearch = TextEditingController();
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
-
   List<Grupo> listaData = [];
+  List<String> opciones = ["Todos", "Activos", "Desactivados"];
+  String _selectedOpcion;
+  
   _init() async {
     var parsed = await GrupoService.index(context: context);
     listaData = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
@@ -195,6 +200,39 @@ class _GrupoScreenState extends State<GrupoScreen> {
     _streamController.add(listTmp);
   }
 
+  _opcionChanged(String opcion){
+    _selectedOpcion = opcion;
+    // print("_opcionChanged: $opcion activas: ${opcion == "Activas"}");
+    if(opcion == "Activos"){
+      listaData.where((element) => element.status == 1).toList().forEach((element) {print("_opcionChanged loteria: ${element.descripcion} status: ${element.status}");});
+
+      _streamController.add(listaData.where((element) => element.status == 1).toList());
+    }
+    else if(opcion == "Desactivados")
+      _streamController.add(listaData.where((element) => element.status == 0).toList());
+    else
+      _streamController.add(listaData);
+
+  }
+
+  _filterScreen(){
+    if(_selectedOpcion == null)
+      _selectedOpcion = opciones[0];
+
+      opcionChanged(String opcion){
+        setState(() => _selectedOpcion = opcion);
+        _opcionChanged(opcion);
+        Navigator.pop(context);
+      }
+
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(children: opciones.map((e) => CheckboxListTile(title: Text("$e"), value: _selectedOpcion == e, controlAffinity: ListTileControlAffinity.leading, onChanged: (value){opcionChanged(e);})).toList(),),
+      )
+    );
+  }
+
   _search(String data){
     print("SucursalesSCreen _search: $data");
     if(data.isEmpty)
@@ -257,7 +295,23 @@ class _GrupoScreenState extends State<GrupoScreen> {
   }
 
   Widget _mysearch(){
-    return MySearchField(controller: _txtSearch, onChanged: _search, hint: "", xlarge: 2.6, padding: EdgeInsets.all(0),);
+    return GestureDetector(
+      onTap: () async {
+        Grupo data = await showSearch(context: context, delegate: GruposSearch(listaData));
+        if(data == null)
+          return;
+  
+        _showDialogGuardar(data: data);
+      },
+      child: MySearchField(
+        controller: _txtSearch, 
+        enabled: false, 
+        hint: "", 
+        xlarge: 2.6, 
+        padding: EdgeInsets.all(0),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      ),
+    );
   }
 
   _subtitle(bool isSmallOrMedium){
@@ -300,10 +354,11 @@ class _GrupoScreenState extends State<GrupoScreen> {
           expandedHeight: isSmallOrMedium ? 105 : 85,
           title: "Grupos",
           subtitle: _subtitle(isSmallOrMedium),
-          // actions: [
-          //   MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar),
+          actions: [
+            // MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
 
-          // ],
+          ],
         ),
         sliver: StreamBuilder<List<Grupo>>(
           stream: _streamController.stream,

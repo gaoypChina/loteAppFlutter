@@ -84,9 +84,9 @@ class Usuario {
         email = snapshot['email'] ?? '',
         sexo = snapshot['sexo'] ?? '',
         status = snapshot['status'] ?? 1,
-        permisos = permisosToMap(snapshot['permisos']) ?? [],
+        permisos = permisosToMap(Utils.parsedToJsonOrNot(snapshot['permisos'])) ?? [],
         grupo = (snapshot['grupo'] != null) ? Grupo.fromMap(Utils.parsedToJsonOrNot(snapshot['grupo'])) : null,
-        tipoUsuario = (snapshot['tipoUsuarioObject'] != null) ? TipoUsuario.fromMap(snapshot['tipoUsuarioObject']) : null,
+        tipoUsuario = (snapshot['tipoUsuarioObject'] != null) ? TipoUsuario.fromMap(Utils.parsedToJsonOrNot(snapshot['tipoUsuarioObject'])) : null,
         esUsuarioPrincipalDelCliente = (snapshot['esUsuarioPrincipalDelCliente'] == 1) ? true : false
         ;
 

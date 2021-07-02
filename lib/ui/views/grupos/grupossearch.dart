@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/usuario.dart';
-import 'package:loterias/core/services/bancaservice.dart';
-import 'package:loterias/core/services/usuarioservice.dart';
+import 'package:loterias/core/models/grupo.dart';
 
-class UsuariosSearch extends SearchDelegate <Usuario>{
-  final List<Usuario> data;
-  UsuariosSearch(this.data);
+class GruposSearch extends SearchDelegate <Grupo>{
+  final List<Grupo> data;
+  GruposSearch(this.data);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
    _avatarScreen(String data){
@@ -17,18 +15,18 @@ class UsuariosSearch extends SearchDelegate <Usuario>{
     );
   }
 
-  _listView(List<Usuario> listData){
+  _listView(List<Grupo> listData){
     return ListView.builder(
       itemCount: listData.length,
       itemBuilder: (context, index){
         return ListTile(
-            leading: _avatarScreen(listData[index].nombres),
-            title: Text("${listData[index].nombres}"),
+            leading: _avatarScreen(listData[index].descripcion),
+            title: Text("${listData[index].descripcion}"),
             isThreeLine: true,
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("${listData[index].usuario}"),
+                Text("${listData[index].codigo}"),
                 // Text("${e.sorteos}"),
               ],
             ),
@@ -57,16 +55,9 @@ class UsuariosSearch extends SearchDelegate <Usuario>{
   @override
   Widget buildResults(BuildContext context) {
     // TODO: implement buildResults
-    print("UsuarioSearch buildResults: $query");
-    return FutureBuilder(
-      future: UsuarioService.search(context: context, search: query),
-      builder: (context, snapshot){
-        if(snapshot.connectionState != ConnectionState.done)
-          return Center(child: CircularProgressIndicator());
-        else
-          return _listView(snapshot.data);
-      },
-    );
+    print("LoteriasSearch buildResults: $query");
+
+    return _listView(data.where((element) => element.descripcion.toLowerCase().indexOf(query.toLowerCase()) != -1 || element.codigo.toLowerCase().indexOf(query.toLowerCase()) != -1).toList());
   }
 
   @override

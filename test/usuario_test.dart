@@ -8,7 +8,7 @@ import 'package:loterias/core/services/usuarioservice.dart';
 
 
 void main() {
-  group("Bancas test", (){
+  group("Usuario test", (){
     test("Testing Usuariosearch", () async {
       var parsed = await UsuarioService.searchTest(context: null, search: "01");
       print("parsed: $parsed");

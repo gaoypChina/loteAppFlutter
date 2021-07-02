@@ -30,6 +30,7 @@ import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
 import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
+import 'package:loterias/ui/views/usuarios/sesionesscreen.dart';
 import 'package:loterias/ui/views/usuarios/usuariosscreen.dart';
 
 
@@ -133,9 +134,13 @@ class MyRouter {
           return MaterialPageRoute(
             builder: (_)=> GruposAddScreen(grupo: settings.arguments,)
           ) ;
-          case '/usuarios' :
+        case '/usuarios' :
           return MaterialPageRoute(
             builder: (_)=> UsuarioScreen()
+          ) ;
+        case '/sesiones' :
+          return MaterialPageRoute(
+            builder: (_)=> SesionesScreen()
           ) ;
           case '/loterias' :
           return MaterialPageRoute(

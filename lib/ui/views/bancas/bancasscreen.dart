@@ -36,6 +36,8 @@ class _BancasScreenState extends State<BancasScreen> {
   var _txtSearch = TextEditingController();
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
   List<Banca> listaData = [];
+  List<String> opciones = ["Todos", "Activas", "Desactivadas"];
+  String _selectedOpcion;
 
   _init() async {
     var parsed = await BancaService.index(context: context, retornarBancas: true);
@@ -236,13 +238,12 @@ class _BancasScreenState extends State<BancasScreen> {
            :
            "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.";
   }
-List<String> opciones = ["Todos", "Activas", "Desactivadas"];
-String _selectedOpcion;
+
 _opcionChanged(String opcion){
   _selectedOpcion = opcion;
   if(opcion == "Activas")
     _streamController.add(listaData.where((element) => element.status == 1).toList());
-  if(opcion == "Desactivadas")
+  else if(opcion == "Desactivadas")
     _streamController.add(listaData.where((element) => element.status == 0).toList());
   else
     _streamController.add(listaData);

@@ -7,7 +7,7 @@ import 'mybottom.dart';
 import 'mybutton.dart';
 
 
-myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool inicio = false, bool clientes = false, bool rutas = false, bool gastos = false, bool cajas = false, bool bancos = false, bool prestamos = false, bool configuracionPrestamo = false, bool configuracionEmpresa = false, bool configuracionRecibo = false, bool configuracionOtro = false, bool cuentas = false, bool roles = false, bool garantias = false, bool pagos = false, bool sucursales = false, bool usuarios = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton}){
+myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool inicio = false, bool clientes = false, bool rutas = false, bool gastos = false, bool cajas = false, bool bancos = false, bool prestamos = false, bool configuracionPrestamo = false, bool configuracionEmpresa = false, bool configuracionRecibo = false, bool configuracionOtro = false, bool cuentas = false, bool sesiones = false, bool garantias = false, bool pagos = false, bool sucursales = false, bool usuarios = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton}){
   Widget widget = SizedBox();
   var _valueNotifyDrawer = ValueNotifier(true);
   // if(myNestedScrollBar != null)
@@ -25,7 +25,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
         ValueListenableBuilder(
           valueListenable: _valueNotifyDrawer, 
           builder: (_, value, __){
-            return MyDrawer(visible: value, inicio: inicio, clientes: clientes, cajas: cajas, rutas: rutas, gastos: gastos, bancos: bancos, prestamos: prestamos, configuracionPrestamo: configuracionPrestamo, configuracionEmpresa: configuracionEmpresa, configuracionRecibo: configuracionRecibo, configuracionOtro: configuracionOtro, cuentas: cuentas, roles: roles, sucursales: sucursales, usuarios: usuarios, garantias: garantias, pagos: pagos);
+            return MyDrawer(visible: value, inicio: inicio, clientes: clientes, cajas: cajas, rutas: rutas, gastos: gastos, bancos: bancos, prestamos: prestamos, configuracionPrestamo: configuracionPrestamo, configuracionEmpresa: configuracionEmpresa, configuracionRecibo: configuracionRecibo, configuracionOtro: configuracionOtro, cuentas: cuentas, sesiones: sesiones, sucursales: sucursales, usuarios: usuarios, garantias: garantias, pagos: pagos);
           }
         ),
         ValueListenableBuilder(
@@ -69,7 +69,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       if(showDrawerOnSmallOrMedium == false && Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
         return null;
 
-      return MyDrawer(isForSmallScreen: true, visible: true, inicio: inicio, clientes: clientes, cajas: cajas, rutas: rutas, gastos: gastos, bancos: bancos, prestamos: prestamos, configuracionPrestamo: configuracionPrestamo, configuracionEmpresa: configuracionEmpresa, configuracionRecibo: configuracionRecibo, configuracionOtro: configuracionOtro, cuentas: cuentas, roles: roles, sucursales: sucursales, usuarios: usuarios, garantias: garantias, pagos: pagos);
+      return MyDrawer(isForSmallScreen: true, visible: true, inicio: inicio, clientes: clientes, cajas: cajas, rutas: rutas, gastos: gastos, bancos: bancos, prestamos: prestamos, configuracionPrestamo: configuracionPrestamo, configuracionEmpresa: configuracionEmpresa, configuracionRecibo: configuracionRecibo, configuracionOtro: configuracionOtro, cuentas: cuentas, sesiones: sesiones, sucursales: sucursales, usuarios: usuarios, garantias: garantias, pagos: pagos);
     }
 
   return Scaffold(

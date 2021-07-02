@@ -170,6 +170,8 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
                   if(date is PickerDateRange){
                     var _fechaInicial = (date.startDate != null) ? DateTime.parse("${date.startDate.year}-${Utils.toDosDigitos(date.startDate.month.toString())}-${Utils.toDosDigitos(date.startDate.day.toString())} 00:00:00") : null;
                     var _fechaFinal = (date.endDate != null) ? DateTime.parse("${date.endDate.year}-${Utils.toDosDigitos(date.endDate.month.toString())}-${Utils.toDosDigitos(date.endDate.day.toString())} 23:59:59") : null;
+                    if(_fechaInicial != null && _fechaFinal == null)
+                      _fechaFinal = (date.startDate != null) ? DateTime.parse("${date.startDate.year}-${Utils.toDosDigitos(date.startDate.month.toString())}-${Utils.toDosDigitos(date.startDate.day.toString())} 23:59:59") : null;
                     widget.onOk(DateTimeRange(start: _fechaInicial, end: _fechaFinal));
                   }
                 },

@@ -476,11 +476,12 @@ StreamController<List<Usuario>> _streamController;
       
       setState(() => _cargando = true);
       var parsed = await UsuarioService.guardar(context: context, usuario: usuario);
-      print("_guardar parsed: $parsed");
+      print("UsuariosAddScreen _guardar parsed: $parsed");
       setState(() => _cargando = false);
-      if(parsed["usuario"] != null)
-        _back(Usuario.fromMap(parsed["usuario"]));
-      Navigator.pop(context);
+      if(parsed["data"] != null)
+        _back(Usuario.fromMap(parsed["data"]));
+      else
+        Navigator.pop(context);
     } on Exception catch (e) {
       setState(() => _cargando = false);
     }
