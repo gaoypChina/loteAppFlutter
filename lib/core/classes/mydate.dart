@@ -205,7 +205,7 @@ class MyDate {
     return dateString;
   }
 
-  static datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){
+  static String datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){
     String fechaString = "fecha";
     var now = DateTime.now();
     if(fechaInicial == null)

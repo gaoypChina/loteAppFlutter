@@ -157,7 +157,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
               )).toList(),
             ),
           ),
-          VerticalDivider(),
+          // VerticalDivider(),
           Expanded(
             child: Theme(
               data: ThemeData(),

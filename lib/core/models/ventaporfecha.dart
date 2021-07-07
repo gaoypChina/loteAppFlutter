@@ -10,7 +10,7 @@ class VentaPorFecha {
   DateTime created_at;
 
 
-  VentaPorFecha({this.neto, this.premios, this.ventas, this.comisiones, this.descuentoMonto});
+  VentaPorFecha({this.neto, this.premios, this.ventas, this.comisiones, this.descuentoMonto, this.created_at});
 
   VentaPorFecha.fromMap(Map snapshot) :
         ventas = Utils.toDouble(snapshot['ventas'].toString()) ?? 0,

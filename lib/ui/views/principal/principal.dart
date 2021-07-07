@@ -2321,6 +2321,60 @@ AppBar _appBar(bool screenHeightIsSmall){
                         ),
                       ],
                     ),
+                    ExpansionTile(
+                      leading: Icon(Icons.person_outline),
+                      title: Text("Reportes"),
+                      children: [
+                         Visibility(
+                          visible: _tienePermisoVerReporteJugadas,
+                          child: ListTile(
+                            title: Text('Reporte jugadas'),
+                            leading: Icon(Icons.receipt_long),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/reporteJugadas");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: _tienePermisoVerHistoricoVentas,
+                          child: ListTile(
+                            title: Text('Historico ventas'),
+                            leading: Icon(Icons.timeline),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/historicoVentas");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: _tienePermisoVerHistoricoVentas,
+                          child: ListTile(
+                            title: Text('Ventas por fecha'),
+                            leading: Icon(Icons.timeline),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/ventasPorFecha");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: _tienePermisoVerVentas,
+                          child: ListTile(
+                            title: Text('Ventas'),
+                            leading: Icon(Icons.insert_chart),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/ventas");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                     ListTile(
                       title: Text('Screen size test'),
                       leading: Icon(Icons.dashboard),
@@ -2412,42 +2466,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                         _scaffoldKey.currentState.openEndDrawer();},
                       ),
                     ),
-                    Visibility(
-                      visible: _tienePermisoVerReporteJugadas,
-                      child: ListTile(
-                        title: Text('Reporte jugadas'),
-                        leading: Icon(Icons.receipt_long),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/reporteJugadas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerHistoricoVentas,
-                      child: ListTile(
-                        title: Text('Historico ventas'),
-                        leading: Icon(Icons.timeline),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/historicoVentas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerVentas,
-                      child: ListTile(
-                        title: Text('Ventas'),
-                        leading: Icon(Icons.insert_chart),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/ventas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
+                    
                     Visibility(
                       visible: _tienePermisoVerListaDeBalancesDeBancass,
                       child: ListTile(

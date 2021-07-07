@@ -84,7 +84,8 @@ class _MyMultiselectState extends State<MyMultiselect> {
         ),
       ),
       actions: [
-        Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),))),
+        // Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),))),
+        TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),)),
         TextButton(onPressed: _seleccionarTodos, child: Text("Selec. todos")),
         TextButton(onPressed: _back, child: Text("Ok")),
       ],

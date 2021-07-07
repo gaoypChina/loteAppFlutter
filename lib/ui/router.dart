@@ -28,6 +28,7 @@ import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/reportejugadasscreen.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
+import 'package:loterias/ui/views/reportes/ventasporfechascreen.dart';
 import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
 import 'package:loterias/ui/views/usuarios/sesionesscreen.dart';
@@ -158,9 +159,13 @@ class MyRouter {
           return MaterialPageRoute(
             builder: (_)=> BancasAddScreen(data: settings.arguments,)
           ) ;
-           case '/screensizetest' :
+        case '/screensizetest' :
           return MaterialPageRoute(
             builder: (_)=> ScreenSizeTest()
+          ) ;
+        case '/ventasPorFecha' :
+          return MaterialPageRoute(
+            builder: (_)=> VentasPorFechaScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(
