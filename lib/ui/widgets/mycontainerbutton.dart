@@ -9,8 +9,9 @@ class MyContainerButton extends StatefulWidget {
   final Color textColor;
   final Color borderColor;
   final IconData icon;
+  final Widget trailing;
   final Color iconColor;
-  MyContainerButton({Key key, this.selected = false, @required this.data, @required this.onTap, this.padding = const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), this.textColor, this.borderColor, this.icon, this.iconColor}) : super(key: key);
+  MyContainerButton({Key key, this.selected = false, @required this.data, @required this.onTap, this.trailing, this.padding = const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), this.textColor, this.borderColor, this.icon, this.iconColor}) : super(key: key);
   @override
   _MyContainerButtonState createState() => _MyContainerButtonState();
 }
@@ -60,7 +61,7 @@ class _MyContainerButtonState extends State<MyContainerButton> {
           borderRadius: BorderRadius.circular(20)
         ),
         child: 
-        (widget.icon == null)
+        (widget.icon == null && widget.trailing == null)
         ?
         Text(widget.data[1], style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: widget.selected ? Colors.white : _textColor),)
         :
@@ -68,7 +69,8 @@ class _MyContainerButtonState extends State<MyContainerButton> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
           Text(widget.data[1], style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: widget.selected ? Colors.white : _textColor),),
-          Icon(widget.icon, color: _iconColor, size: 18,)
+          Visibility(visible: widget.icon != null, child: Icon(widget.icon != null ? widget.icon : Icons.add, color: _iconColor, size: 18,)),
+          Visibility(visible: widget.trailing != null, child: widget.trailing != null ? widget.trailing : SizedBox.shrink())
         ],)
       ),
     );

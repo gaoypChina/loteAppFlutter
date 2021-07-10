@@ -68,8 +68,9 @@ class Usuario {
   Grupo grupo;
   TipoUsuario tipoUsuario;
   bool esUsuarioPrincipalDelCliente;
+  int idGrupo;
 
-  Usuario({this.id, this.foto, this.nombreFoto, this.usuario, this.password, this.servidor, this.status = 1, this.nombres, this.apellidos, this.celular, this.telefono, this.email, this.permisos = const [], this.grupo, this.sexo, this.tipoUsuario, this.esUsuarioPrincipalDelCliente = false});
+  Usuario({this.id, this.foto, this.nombreFoto, this.usuario, this.password, this.servidor, this.status = 1, this.nombres, this.apellidos, this.celular, this.telefono, this.email, this.permisos = const [], this.grupo, this.sexo, this.tipoUsuario, this.esUsuarioPrincipalDelCliente = false, this.idGrupo});
 
   Usuario.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -84,6 +85,7 @@ class Usuario {
         email = snapshot['email'] ?? '',
         sexo = snapshot['sexo'] ?? '',
         status = snapshot['status'] ?? 1,
+        idGrupo = snapshot['idGrupo'] ?? null,
         permisos = permisosToMap(Utils.parsedToJsonOrNot(snapshot['permisos'])) ?? [],
         grupo = (snapshot['grupo'] != null) ? Grupo.fromMap(Utils.parsedToJsonOrNot(snapshot['grupo'])) : null,
         tipoUsuario = (snapshot['tipoUsuarioObject'] != null) ? TipoUsuario.fromMap(Utils.parsedToJsonOrNot(snapshot['tipoUsuarioObject'])) : null,
@@ -133,6 +135,7 @@ class Usuario {
       "usuario": usuario,
       "servidor": servidor,
       "status": status,
+      "idGrupo": idGrupo,
     };
   }
 

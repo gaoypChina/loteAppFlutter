@@ -159,6 +159,12 @@ class MobileDB implements CrossDB{
     // TODO: implement getLastRow
     return DBSqflite.getSaleNoSubida(transaction);
   }
+
+  @override
+  Future<int> idGrupo() {
+    // TODO: implement idGrupo
+    return DBSqflite.idGrupo();
+  }
   
 
 }

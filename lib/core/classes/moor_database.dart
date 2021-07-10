@@ -42,6 +42,7 @@ class Users extends Table{
   TextColumn get servidor => text()();
   DateTimeColumn get created_at => dateTime().nullable()();
   IntColumn get status => integer()();
+  IntColumn get idGrupo => integer()();
   // BoolColumn get status => boolean().withDefault(Constant(false))();
 
   @override
@@ -277,6 +278,10 @@ class AppDatabase extends _$AppDatabase{
   Future<int> idUsuario() async {
     User e = await ((select(users)..limit(1)).getSingleOrNull());
     return (e != null) ? e.id : 0;
+  }
+  Future<int> idGrupo() async {
+    User e = await ((select(users)..limit(1)).getSingleOrNull());
+    return (e != null) ? e.idGrupo : 0;
   }
 
   Future insertSetting(Setting setting) => into(settings).insert(setting);

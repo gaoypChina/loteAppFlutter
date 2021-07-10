@@ -590,12 +590,14 @@ class User extends DataClass implements Insertable<User> {
   final String servidor;
   final DateTime created_at;
   final int status;
+  final int idGrupo;
   User(
       {@required this.id,
       @required this.usuario,
       @required this.servidor,
       this.created_at,
-      @required this.status});
+      @required this.status,
+      @required this.idGrupo});
   factory User.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -611,6 +613,8 @@ class User extends DataClass implements Insertable<User> {
       created_at: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       status: intType.mapFromDatabaseResponse(data['${effectivePrefix}status']),
+      idGrupo:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}id_grupo']),
     );
   }
   @override
@@ -631,6 +635,9 @@ class User extends DataClass implements Insertable<User> {
     if (!nullToAbsent || status != null) {
       map['status'] = Variable<int>(status);
     }
+    if (!nullToAbsent || idGrupo != null) {
+      map['id_grupo'] = Variable<int>(idGrupo);
+    }
     return map;
   }
 
@@ -648,6 +655,9 @@ class User extends DataClass implements Insertable<User> {
           : Value(created_at),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
+      idGrupo: idGrupo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idGrupo),
     );
   }
 
@@ -660,6 +670,7 @@ class User extends DataClass implements Insertable<User> {
       servidor: serializer.fromJson<String>(json['servidor']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
       status: serializer.fromJson<int>(json['status']),
+      idGrupo: serializer.fromJson<int>(json['idGrupo']),
     );
   }
   @override
@@ -671,6 +682,7 @@ class User extends DataClass implements Insertable<User> {
       'servidor': serializer.toJson<String>(servidor),
       'created_at': serializer.toJson<DateTime>(created_at),
       'status': serializer.toJson<int>(status),
+      'idGrupo': serializer.toJson<int>(idGrupo),
     };
   }
 
@@ -679,13 +691,15 @@ class User extends DataClass implements Insertable<User> {
           String usuario,
           String servidor,
           DateTime created_at,
-          int status}) =>
+          int status,
+          int idGrupo}) =>
       User(
         id: id ?? this.id,
         usuario: usuario ?? this.usuario,
         servidor: servidor ?? this.servidor,
         created_at: created_at ?? this.created_at,
         status: status ?? this.status,
+        idGrupo: idGrupo ?? this.idGrupo,
       );
   @override
   String toString() {
@@ -694,7 +708,8 @@ class User extends DataClass implements Insertable<User> {
           ..write('usuario: $usuario, ')
           ..write('servidor: $servidor, ')
           ..write('created_at: $created_at, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('idGrupo: $idGrupo')
           ..write(')'))
         .toString();
   }
@@ -704,8 +719,10 @@ class User extends DataClass implements Insertable<User> {
       id.hashCode,
       $mrjc(
           usuario.hashCode,
-          $mrjc(servidor.hashCode,
-              $mrjc(created_at.hashCode, status.hashCode)))));
+          $mrjc(
+              servidor.hashCode,
+              $mrjc(created_at.hashCode,
+                  $mrjc(status.hashCode, idGrupo.hashCode))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -714,7 +731,8 @@ class User extends DataClass implements Insertable<User> {
           other.usuario == this.usuario &&
           other.servidor == this.servidor &&
           other.created_at == this.created_at &&
-          other.status == this.status);
+          other.status == this.status &&
+          other.idGrupo == this.idGrupo);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -723,12 +741,14 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String> servidor;
   final Value<DateTime> created_at;
   final Value<int> status;
+  final Value<int> idGrupo;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.usuario = const Value.absent(),
     this.servidor = const Value.absent(),
     this.created_at = const Value.absent(),
     this.status = const Value.absent(),
+    this.idGrupo = const Value.absent(),
   });
   UsersCompanion.insert({
     this.id = const Value.absent(),
@@ -736,15 +756,18 @@ class UsersCompanion extends UpdateCompanion<User> {
     @required String servidor,
     this.created_at = const Value.absent(),
     @required int status,
+    @required int idGrupo,
   })  : usuario = Value(usuario),
         servidor = Value(servidor),
-        status = Value(status);
+        status = Value(status),
+        idGrupo = Value(idGrupo);
   static Insertable<User> custom({
     Expression<int> id,
     Expression<String> usuario,
     Expression<String> servidor,
     Expression<DateTime> created_at,
     Expression<int> status,
+    Expression<int> idGrupo,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -752,6 +775,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (servidor != null) 'servidor': servidor,
       if (created_at != null) 'created_at': created_at,
       if (status != null) 'status': status,
+      if (idGrupo != null) 'id_grupo': idGrupo,
     });
   }
 
@@ -760,13 +784,15 @@ class UsersCompanion extends UpdateCompanion<User> {
       Value<String> usuario,
       Value<String> servidor,
       Value<DateTime> created_at,
-      Value<int> status}) {
+      Value<int> status,
+      Value<int> idGrupo}) {
     return UsersCompanion(
       id: id ?? this.id,
       usuario: usuario ?? this.usuario,
       servidor: servidor ?? this.servidor,
       created_at: created_at ?? this.created_at,
       status: status ?? this.status,
+      idGrupo: idGrupo ?? this.idGrupo,
     );
   }
 
@@ -788,6 +814,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
+    if (idGrupo.present) {
+      map['id_grupo'] = Variable<int>(idGrupo.value);
+    }
     return map;
   }
 
@@ -798,7 +827,8 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('usuario: $usuario, ')
           ..write('servidor: $servidor, ')
           ..write('created_at: $created_at, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('idGrupo: $idGrupo')
           ..write(')'))
         .toString();
   }
@@ -869,9 +899,21 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     );
   }
 
+  final VerificationMeta _idGrupoMeta = const VerificationMeta('idGrupo');
+  GeneratedIntColumn _idGrupo;
+  @override
+  GeneratedIntColumn get idGrupo => _idGrupo ??= _constructIdGrupo();
+  GeneratedIntColumn _constructIdGrupo() {
+    return GeneratedIntColumn(
+      'id_grupo',
+      $tableName,
+      false,
+    );
+  }
+
   @override
   List<GeneratedColumn> get $columns =>
-      [id, usuario, servidor, created_at, status];
+      [id, usuario, servidor, created_at, status, idGrupo];
   @override
   $UsersTable get asDslTable => this;
   @override
@@ -909,6 +951,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
           status.isAcceptableOrUnknown(data['status'], _statusMeta));
     } else if (isInserting) {
       context.missing(_statusMeta);
+    }
+    if (data.containsKey('id_grupo')) {
+      context.handle(_idGrupoMeta,
+          idGrupo.isAcceptableOrUnknown(data['id_grupo'], _idGrupoMeta));
+    } else if (isInserting) {
+      context.missing(_idGrupoMeta);
     }
     return context;
   }

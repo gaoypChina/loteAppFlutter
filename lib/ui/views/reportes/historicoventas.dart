@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:horizontal_data_table/horizontal_data_table.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/historico.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
@@ -15,9 +17,11 @@ import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
@@ -53,8 +57,27 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   List<int> listaLimite = [70, 120, 180, 240];
   int _limite = 70;
   List<Moneda> listaMoneda = [];
+  List<Grupo> listaGrupo = [];
   Moneda _moneda;
+  Grupo _grupo;
   var _txtSearch = TextEditingController();
+  List<MyFilterSubData2> _selctedFilter = [];
+  List<MyFilterData2> listaFiltros = [
+    MyFilterData2(
+        child: "Estado", 
+        isMultiple: true,
+        data: [
+          MyFilterSubData2(
+            child: "Activo",
+            value: 1,
+          ),
+          MyFilterSubData2(
+            child: "Desactivado",
+            value: 0,
+          )
+        ]
+      )
+  ];
 
   @override
   initState(){
@@ -68,7 +91,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
         DeviceOrientation.landscapeRight,
         DeviceOrientation.landscapeLeft,
     ]);
-    _historicoVentas(true);
+    _init();
   }
 
   @override
@@ -124,16 +147,40 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
     }
   }
 
-
-
-  _historicoVentas([bool callFromInit = false]) async {
+_init() async {
     try{
       // setState(() => _cargando = true);
-      if(!callFromInit)
-        _streamControllerHistorio.add(null);
 
       _filtrarFecha();
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, moneda: _moneda, limite: _limite);
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [1], limite: _limite, idGrupo: await Db.idGrupo());
+      listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
+      // listaData = List.from(parsed["bancas"]);
+      listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
+      listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList() : [];
+      if(listaGrupo.length > 0)
+        listaFiltros.add(MyFilterData2(child: "Grupo", data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e.id)).toList()));
+      if(listaMoneda.length > 0)
+        listaFiltros.add(MyFilterData2(child: "Moneda", isMultiple: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e.id)).toList()));
+
+      _streamControllerHistorio.add(listaData);
+
+      // if(_moneda == null)
+      //   setState(() => _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null);
+
+      _filterTable();
+    } on Exception catch(e){
+      _streamControllerHistorio.add([]);
+      
+    }
+  }
+
+  _historicoVentas() async {
+    try{
+      // setState(() => _cargando = true);
+        _streamControllerHistorio.add(null);
+      _filtrarFecha();
+
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, moneda: _moneda, limite: _limite, idGrupo: _grupo.id != 0 ? _grupo.id : null);
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
       // listaData = List.from(parsed["bancas"]);
       if(listaMoneda.length == 0)
@@ -1473,6 +1520,16 @@ _monedaChanged(moneda){
     );
   }
 
+  _selectOrRemoveFilter(MyFilterSubData2 data, [bool delete = false]){
+     int index = _selctedFilter.indexWhere((element) => element == data);
+    if(index == -1 || !delete)
+      setState(() => _selctedFilter.add(data));
+    else
+      setState(() => _selctedFilter.remove(data));
+
+    print("HistoricoVentasScreen _selectOrRemoveFilter type: ${data.type}");
+  }
+
   _myWebFilterScreen(bool isSmallOrMedium){
     return 
     isSmallOrMedium
@@ -1480,24 +1537,65 @@ _monedaChanged(moneda){
     SizedBox.shrink()
     :
     Padding(
-      padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 20),
-      child: Stack(
+      padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0),
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           // _mydropdown(),
-          MyDropdown(
-            title: "Filtrar",
-            hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-            elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-            onTap: (value){
-              _opcionChanged(value);
+          // MyDropdown(
+          //   large: 5.8,
+          //   title: "Filtrar",
+          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+          //   onTap: (value){
+          //     _opcionChanged(value);
+          //   },
+          // ),
+          // MyDropdown(
+          //   large: 5.8,
+          //   title: "Grupos",
+          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+          //   onTap: (value){
+          //     _opcionChanged(value);
+          //   },
+          // ),
+          MyFilter2(
+            xlarge: 1.65,
+            large: 2,
+            onChanged: (data){
+              if(data is MyFilterSubData2){
+               _selectOrRemoveFilter(data);
+              }else{
+                if(data.length == 0){
+                  setState(() {
+                    _selctedFilter = [];
+                  });
+                  return;
+                }
+
+                setState(() {
+                  _selctedFilter = data;
+                });
+                // for (var item in data) {
+                //   _selectOrRemoveFilter(item, true);
+                // }
+              }
+              
             },
+            onDelete: (data){
+              data.data.forEach((element) {setState(() => _selctedFilter.remove(element));});
+            },
+            onDeleteAll: (){setState(() => _selctedFilter = []);},
+            data: listaFiltros,
+            values: _selctedFilter
           ),
-          Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-              child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-            ))
+          Padding(
+            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          ),
+          MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0),),
         ],
       ),
     );
@@ -1579,8 +1677,9 @@ _monedaChanged(moneda){
               return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
 
             return SliverList(delegate: SliverChildListDelegate([
-              MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
               _myWebFilterScreen(isSmallOrMedium),
+              MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
+              
               _getBodyWidget(snapshot.data, isSmallOrMedium)
               // :
               // MyTable(

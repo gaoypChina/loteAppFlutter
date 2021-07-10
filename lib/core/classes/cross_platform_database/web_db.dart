@@ -136,6 +136,13 @@ class WebMoor implements CrossDB{
       return database.db.idUsuario();
       throw UnimplementedError("WebDatabase Uninplemented idUsuario");
     }
+    @override
+    Future<int> idGrupo() {
+      // TODO: implement idGrupo
+       var database = WebMoor();
+      return database.db.idGrupo();
+      throw UnimplementedError("WebDatabase Uninplemented idGrupo");
+    }
   
     @override
     Future<List<Map<String, dynamic>>> query(String table) async {

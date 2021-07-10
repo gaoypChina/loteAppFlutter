@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -57,7 +58,7 @@ class _VentasPorFechaScreenState extends State<VentasPorFechaScreen> {
 
   _init() async {
     _date = MyDate.getTodayDateRange();
-     var parsed = await ReporteService.ventasPorFecha(context: context, date: _date, retornarMonedas: true, retornarBancas: true);
+     var parsed = await ReporteService.ventasPorFecha(context: context, date: _date, retornarMonedas: true, retornarBancas: true, idGrupo: await Db.idGrupo());
      listaData = parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
      listaBanca = parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList();
      listaMoneda = parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList();
@@ -567,7 +568,7 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
             );
 
           List<Widget> widgets = [
-            MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Datos"),
+            MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25),),
             Wrap(
               children: [
                 Padding(
