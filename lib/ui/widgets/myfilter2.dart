@@ -19,8 +19,10 @@ class MyFilterData2 {
   dynamic defaultValue;
   dynamic value;
   bool isMultiple;
+  bool fixed;
   final ValueChanged<dynamic> onChanged;
-  MyFilterData2({@required this.child, @required this.defaultValue, this.value, @required this.data, @required this.color, this.onChanged, this.isMultiple = false});
+  final bool enabled;
+  MyFilterData2({@required this.child, @required this.defaultValue, this.value, @required this.data, @required this.color, this.onChanged, this.isMultiple = false, this.fixed = false, this.enabled = true});
 }
 
 class MyFilter2 extends StatefulWidget {
@@ -29,7 +31,7 @@ class MyFilter2 extends StatefulWidget {
   final List<MyFilterSubData2> values;
   final Function(dynamic) onChanged;
   final Function(MyFilterData2) onDelete;
-  final Function onDeleteAll;
+  final Function(List<MyFilterData2>) onDeleteAll;
   final double small;
   final double medium;
   final double large;
@@ -92,27 +94,46 @@ class _MyFilter2State extends State<MyFilter2> {
         
         return StatefulBuilder(
           builder: (context, setState) {
-             _selectItem(MyFilterSubData2 value){
-            int idx = selectedData.indexWhere((element) => element == value);
-            if(idx == -1)
-              setState(() => selectedData.add(value));
-            else
-              setState(() => selectedData.removeAt(idx));
-          }
+            _selectItem(MyFilterData2 myFilterData2, MyFilterSubData2 value){
+              int idx = selectedData.indexWhere((element) => element == value);
+              // SI EL FILTRO NO EXISTE Y ES MULTIPLE ESO QUIERE DECIR QUE SE INSERTARA
+              if(idx == -1 && myFilterData2.isMultiple)
+                setState(() => selectedData.add(value));
+              //SI EL FILTRO EXISTE Y NO ES MULTIPLE, PUES BUSCAREMOS EL FILTRO DE SU MISMO TIPO Y LO REEMPLAZAREMOS POR EL NUEVO
+              else if(!myFilterData2.isMultiple){
+                idx = selectedData.indexWhere((element) => element.type == value.type);
+                if(idx == -1)
+                  setState(() => selectedData.add(value));
+                else
+                  setState(() => selectedData[idx] = value);
+              }
+              else
+                setState(() => selectedData.removeAt(idx));
+            }
 
         _checkBox(MyFilterData2 myFilterData2, MyFilterSubData2 e){
           e.type = myFilterData2.child;
           // return Row(children: [Checkbox(value: selectedData.indexWhere((element) => element == e.value) != -1, onChanged: (value){}), e.child is Widget ? e.child : Text("${e.child}")],);
-          return CheckboxListTile(controlAffinity: ListTileControlAffinity.leading, value: selectedData.indexWhere((element) => element == e) != -1,onChanged: (value){_selectItem(e);}, title: e.child is Widget ? e.child : Text("${e.child}", style: TextStyle(fontSize: 13)), dense: true,);
+          return CheckboxListTile(controlAffinity: ListTileControlAffinity.leading, value: selectedData.indexWhere((element) => element == e) != -1,onChanged: (value){_selectItem(myFilterData2, e);}, title: e.child is Widget ? e.child : Text("${e.child}", style: TextStyle(fontSize: 13)), dense: true,);
         }
 
         _normal(MyFilterData2 myFilterData2, MyFilterSubData2 e){
           e.type = myFilterData2.child;
-          return InkWell(
+          return ListTile(
+            title: Text("${e.child}"),
             onTap: (){
               // print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
               print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
-              _selectItem(e);
+              _selectItem(myFilterData2, e);
+              widget.onChanged(selectedData);
+              overlay.remove();
+            }
+          );
+          InkWell(
+            onTap: (){
+              // print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
+              print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
+              // _selectItem(e);
               widget.onChanged(selectedData);
               overlay.remove();
             },
@@ -337,27 +358,29 @@ class _MyFilter2State extends State<MyFilter2> {
                           valueListenable: _valueNotifierElevation,
                           builder: (context, value, __) {
                             return Material(
-                              elevation: value,
+                              elevation: _selectedValues[index].fixed ? 4 : value,
                                 borderRadius: BorderRadius.circular(15),
                               child: ListTile(
                                 dense: true,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                                 contentPadding: EdgeInsets.symmetric(horizontal: 8),
                                 selected: true,
-                                selectedTileColor: value == 4 ? Colors.white : Theme.of(context).primaryColor.withOpacity(0.1),
+                                selectedTileColor: _selectedValues[index].fixed == false ? value == 4 ? Colors.white : Theme.of(context).primaryColor.withOpacity(0.1) : Colors.white,
                                 hoverColor: Colors.white,
                                 // title: Text("${_selectedValues[index].child}", style: TextStyle(fontSize: 14, color: Colors.blue[700], fontWeight: FontWeight.w700),),
                                 title: Text("$title", style: TextStyle(fontSize: 14, color: Colors.blue[700], fontWeight: FontWeight.w700),),
                                 trailing: InkWell(
                                   onTap: (){
-                                    widget.onDelete(_selectedValues[index]);
+                                    if(!_selectedValues[index].fixed)
+                                      widget.onDelete(_selectedValues[index]);
                                   }, 
-                                  child: Icon(Icons.clear, size: 20, color: Colors.blue[700])
+                                  child: Icon(_selectedValues[index].fixed ? Icons.push_pin_rounded : Icons.clear, size: 20, color: Colors.blue[700])
                                 ),
                                 minVerticalPadding: 0,
-                                onTap: (){
+                                onTap: !_selectedValues[index].enabled ? null : (){
                                   _openSecondFilter(context, _selectedValues[index]);
                                 },
+                                mouseCursor: !_selectedValues[index].enabled ? SystemMouseCursors.forbidden : null,
                               ),
                             );
                           }
@@ -388,7 +411,7 @@ class _MyFilter2State extends State<MyFilter2> {
               }
             ),
           ),
-          Visibility(visible: _selectedValues.length > 0, child: Expanded(child: Align(alignment: Alignment.topRight, child: IconButton(onPressed: widget.onDeleteAll, icon: Icon(Icons.clear, semanticLabel: "Quitar todos los filtros",)))))
+          Visibility(visible: _selectedValues.length > 0, child: Expanded(child: Align(alignment: Alignment.topRight, child: IconButton(onPressed: (){widget.onDeleteAll(_selectedValues.where((element) => !element.fixed).toList());}, icon: Icon(Icons.clear, semanticLabel: "Quitar todos los filtros",)))))
         ],
       )
     );

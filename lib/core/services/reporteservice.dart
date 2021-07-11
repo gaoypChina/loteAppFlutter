@@ -73,12 +73,12 @@ class ReporteService{
     map["opcion"] = opcion;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
-    map["grupos"] = idMonedas;
+    map["grupos"] = idGrupos;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    print("ReporteService historico: ${mapDatos.toString()}");
+    print("ReporteService historico: ${map.toString()}");
     // return listaBanca;
 
     var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/historico"), body: json.encode(mapDatos), headers: Utils.header);

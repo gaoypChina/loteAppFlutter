@@ -58,8 +58,9 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   int _limite = 70;
   List<Moneda> listaMoneda = [];
   List<Grupo> listaGrupo = [];
-  Moneda _moneda;
-  Grupo _grupo;
+  List<Moneda> _monedas = [];
+  List<Grupo> _grupos = [];
+  int _idGrupoDeEsteUsuario;
   var _txtSearch = TextEditingController();
   List<MyFilterSubData2> _selctedFilter = [];
   List<MyFilterData2> listaFiltros = [
@@ -152,15 +153,32 @@ _init() async {
       // setState(() => _cargando = true);
 
       _filtrarFecha();
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [1], limite: _limite, idGrupo: await Db.idGrupo());
+      _idGrupoDeEsteUsuario = await Db.idGrupo();
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [], limite: _limite, idGrupos: _idGrupoDeEsteUsuario != null ? [_idGrupoDeEsteUsuario] : []);
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
       // listaData = List.from(parsed["bancas"]);
       listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
       listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList() : [];
-      if(listaGrupo.length > 0)
-        listaFiltros.add(MyFilterData2(child: "Grupo", data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e.id)).toList()));
+      MyFilterData2 filtroGrupo;
+      
+      var filtroOpcion = MyFilterData2(child: "Opcion", fixed: true, data: listaOpciones.map((e) => MyFilterSubData2(child: e, value: e, type: "Opcion")).toList());
+      listaFiltros.add(filtroOpcion);
+      _selctedFilter.add(filtroOpcion.data.firstWhere((element) => element.value == _selectedOption, orElse: () => null));
+
+      if(listaGrupo.length > 0){
+         filtroGrupo = MyFilterData2(child: "Grupo", fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, isMultiple: true, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e, type: "Grupo")).toList());
+        listaFiltros.add(filtroGrupo);
+      }
       if(listaMoneda.length > 0)
-        listaFiltros.add(MyFilterData2(child: "Moneda", isMultiple: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e.id)).toList()));
+        listaFiltros.add(MyFilterData2(child: "Moneda", isMultiple: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
+
+      if(_idGrupoDeEsteUsuario != null && filtroGrupo != null){
+        _selctedFilter.add(filtroGrupo.data.firstWhere((element) => element.value.id == _idGrupoDeEsteUsuario, orElse: () => null));
+        _grupos = listaGrupo.where((element) => element.id == _idGrupoDeEsteUsuario).toList();
+      }
+
+      
+
 
       _streamControllerHistorio.add(listaData);
 
@@ -180,15 +198,13 @@ _init() async {
         _streamControllerHistorio.add(null);
       _filtrarFecha();
 
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, moneda: _moneda, limite: _limite, idGrupo: _grupo.id != 0 ? _grupo.id : null);
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: _monedas.map((e) => e.id).toList(), limite: _limite, idGrupos: _grupos.map((e) => e.id).toList());
+      print("HistoricoVentasScreen _historicoVentas query: ${parsed["query"]}");
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
       // listaData = List.from(parsed["bancas"]);
-      if(listaMoneda.length == 0)
-        listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
+      // if(listaMoneda.length == 0)
+      //   listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
       _streamControllerHistorio.add(listaData);
-
-      if(_moneda == null)
-        setState(() => _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null);
 
       _filterTable();
     } on Exception catch(e){
@@ -655,7 +671,6 @@ _getListaFiltro(){
     var fechaFinal = _date.end;
     var dateRange = _date;
     var limite = _limite;
-    var moneda = _moneda;
     var data = await showDialog(context: context, builder: (context){
       _back({sendData = false}){
         var map;
@@ -664,7 +679,6 @@ _getListaFiltro(){
             "fecha" : fecha,
             "date" : dateRange,
             "limite" : limite,
-            "moneda" : moneda,
           };
 
         Navigator.pop(context, map);
@@ -834,24 +848,24 @@ _getListaFiltro(){
                           padding: const EdgeInsets.only(bottom: 12.0),
                           child: Divider(thickness: 1,),
                         ),
-                        ListTile(
-                          leading: Icon(Icons.attach_money),
-                          // title: Text("${_moneda != null ? _moneda.descripcion : ''}"),
-                          dense: true,
-                          title: DropdownButtonHideUnderline(
-                            child: DropdownButton(
-                              value: moneda,
-                              // selectedItemBuilder: (context){
-                              //   return listaLimite.map((e) => Center(child: Text("$e filas a mostrar"))).toList();
-                              // },
-                              items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}"), value: e),).toList(),
-                              onChanged: (data){
-                                setState(() => moneda = data);
-                              },
-                            ),
-                          ),
-                          // onTap: _showMoneda,
-                        ),
+                        // ListTile(
+                        //   leading: Icon(Icons.attach_money),
+                        //   // title: Text("${_moneda != null ? _moneda.descripcion : ''}"),
+                        //   dense: true,
+                        //   title: DropdownButtonHideUnderline(
+                        //     child: DropdownButton(
+                        //       value: moneda,
+                        //       // selectedItemBuilder: (context){
+                        //       //   return listaLimite.map((e) => Center(child: Text("$e filas a mostrar"))).toList();
+                        //       // },
+                        //       items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}"), value: e),).toList(),
+                        //       onChanged: (data){
+                        //         setState(() => moneda = data);
+                        //       },
+                        //     ),
+                        //   ),
+                        //   // onTap: _showMoneda,
+                        // ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Divider(thickness: 1,),
@@ -893,7 +907,7 @@ _getListaFiltro(){
       return;
 
     // if(_fechaInicial == data["fechaInicial"] && _fechaFinal == data["fechaFinal"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
-    if(_date == data["date"] && _fecha == data["fecha"] && _limite == data["limite"] && _moneda == data["moneda"])
+    if(_date == data["date"] && _fecha == data["fecha"] && _limite == data["limite"])
       return;
 
     setState(() {
@@ -902,7 +916,6 @@ _getListaFiltro(){
       _fecha = data["fecha"];
       _date = data["date"];
       _limite = data["limite"];
-      _moneda = data["moneda"];
 
       _historicoVentas();
     });
@@ -911,7 +924,6 @@ _getListaFiltro(){
 
 _monedaChanged(moneda){
     setState((){
-        _moneda = moneda;
         _historicoVentas();
       });
   }
@@ -931,8 +943,6 @@ _monedaChanged(moneda){
               Navigator.pop(context);
             }
             monedaChanged(moneda){
-              setState(() => _moneda = moneda);
-              _monedaChanged(moneda);
               _back();
             }
         return Container(
@@ -950,7 +960,8 @@ _monedaChanged(moneda){
                         return CheckboxListTile(
                           controlAffinity: ListTileControlAffinity.leading,
 
-                          value: _moneda == listaMoneda[index],
+                          // value: _moneda == listaMoneda[index],
+                          value: true,
                           onChanged: (data){
                             monedaChanged(listaMoneda[index]);
                           },
@@ -1442,26 +1453,27 @@ _monedaChanged(moneda){
     "Maneje todas sus ventas y filtrelas por fecha"
     :
     MyCollapseChanged(
-      child: MyFilter(
-        filterTitle: "",
-        value: _date,
-        showListNormalCortaLarga: 3,
-        paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
-        onChanged: _dateChanged,
-        onDeleteAll: (){
-          setState(() {
-            _limite = listaLimite[0];
-            _date = MyDate.getTodayDateRange();
-            _historicoVentas();
-          });
-        },
-        data: [
-          MyFilterData(text: "$_limite filas", defaultValue: 70, value: _limite, color: Colors.green, onChanged: (value){setState((){
-            _limite = listaLimite[0];
-            _historicoVentas();
-          });}),
-        ],
-      ),
+      child: _myFilterWidget()
+      // MyFilter(
+      //   filterTitle: "",
+      //   value: _date,
+      //   showListNormalCortaLarga: 3,
+      //   paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+      //   onChanged: _dateChanged,
+      //   onDeleteAll: (){
+      //     setState(() {
+      //       _limite = listaLimite[0];
+      //       _date = MyDate.getTodayDateRange();
+      //       _historicoVentas();
+      //     });
+      //   },
+      //   data: [
+      //     MyFilterData(text: "$_limite filas", defaultValue: 70, value: _limite, color: Colors.green, onChanged: (value){setState((){
+      //       _limite = listaLimite[0];
+      //       _historicoVentas();
+      //     });}),
+      //   ],
+      // ),
     );
     // MyFilter(
     //   showListNormalCortaLarga: 3,
@@ -1478,25 +1490,28 @@ _monedaChanged(moneda){
   }
 
   _coinButton(bool isSmallOrMedium){
-    return
-    isSmallOrMedium
-    ?
-     MySliverButton(
-      title: TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))), 
-      onTap: _showBottomSheetMoneda
-    )
-    :
-    MySliverButton(
-      title: DropdownButtonHideUnderline(
-        child: DropdownButton(
-          isDense: true,
-          value: _moneda,
-          items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}", style: TextStyle(color: Utils.fromHex(e.color), fontWeight: FontWeight.w600),), value: e)).toList(),
-          onChanged: _monedaChanged,
-        ),
-      ),
-      onTap: (){}
-    );
+    return MySliverButton(title: SizedBox.shrink());
+    // isSmallOrMedium
+    // ?
+    //  MySliverButton(
+    //   // title: TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))), 
+    //   title: TextButton(onPressed: _showBottomSheetMoneda, child: Text("", style: TextStyle(color: Utils.colorPrimary))), 
+    //   onTap: _showBottomSheetMoneda
+    // )
+    // :
+    // MySliverButton(
+    //   title: DropdownButtonHideUnderline(
+    //     child: DropdownButton(
+    //       isDense: true,
+    //       // value: _moneda,
+    //       value: true,
+    //       items: listaMoneda.map((e) => DropdownMenuItem(child: Text("${e.descripcion}", style: TextStyle(color: Utils.fromHex(e.color), fontWeight: FontWeight.w600),), value: e)).toList(),
+    //       onChanged: _monedaChanged,
+    //     ),
+    //   ),
+    //   onTap: (){}
+    // );
+
   }
 
   _limiteButton(bool isSmallOrMedium){
@@ -1530,6 +1545,72 @@ _monedaChanged(moneda){
     print("HistoricoVentasScreen _selectOrRemoveFilter type: ${data.type}");
   }
 
+  _myFilterWidget(){
+    return  MyFilter2(
+            xlarge: 1.65,
+            large: 2,
+            medium: 1,
+            small: 1,
+            onChanged: (data){
+              
+              if(data.length == 0){
+                setState(() {
+                  _selctedFilter = [];
+                  _grupos = [];
+                  _monedas = []; 
+                  _historicoVentas();
+                });
+                return;
+              }
+
+              _grupos = [];
+              _monedas = []; 
+              setState(() {
+                _selctedFilter = data;
+                for (MyFilterSubData2 myFilterSubData2 in data) {
+                  print("HistoricoVentas Filter2 for subData: ${myFilterSubData2.type} value: ${myFilterSubData2.value}");
+                  if(myFilterSubData2.type == "Grupo")
+                    _grupos.add(myFilterSubData2.value);
+                  else if(myFilterSubData2.type == "Moneda")
+                    _monedas.add(myFilterSubData2.value);
+                  else if(myFilterSubData2.type == "Opcion")
+                    _selectedOption = myFilterSubData2.value;
+                }
+                _historicoVentas();
+              });
+              
+            },
+            onDelete: (data){
+              setState(() {
+                if(data.child == "Grupo")
+                  _grupos = [];
+                if(data.child == "Moneda" )
+                  _monedas = [];
+                for (var element in data.data) {
+                  _selctedFilter.remove(element);
+                }
+                _historicoVentas();
+              });
+            },
+            onDeleteAll: (values){
+              setState((){
+                // for (var item in _selctedFilter) {
+                //   if(item.type == "Grupo" && _idGrupoDeEsteUsuario == null)
+                //     _selctedFilter.remove(item);
+                //   else
+                //     _selctedFilter.remove(item);
+                // }
+
+                for (var item in values) {
+                  _selctedFilter.removeWhere((element) => element.type == item.child);
+                }
+              });
+            },
+            data: listaFiltros,
+            values: _selctedFilter
+          );
+  }
+
   _myWebFilterScreen(bool isSmallOrMedium){
     return 
     isSmallOrMedium
@@ -1561,36 +1642,7 @@ _monedaChanged(moneda){
           //     _opcionChanged(value);
           //   },
           // ),
-          MyFilter2(
-            xlarge: 1.65,
-            large: 2,
-            onChanged: (data){
-              if(data is MyFilterSubData2){
-               _selectOrRemoveFilter(data);
-              }else{
-                if(data.length == 0){
-                  setState(() {
-                    _selctedFilter = [];
-                  });
-                  return;
-                }
-
-                setState(() {
-                  _selctedFilter = data;
-                });
-                // for (var item in data) {
-                //   _selectOrRemoveFilter(item, true);
-                // }
-              }
-              
-            },
-            onDelete: (data){
-              data.data.forEach((element) {setState(() => _selctedFilter.remove(element));});
-            },
-            onDeleteAll: (){setState(() => _selctedFilter = []);},
-            data: listaFiltros,
-            values: _selctedFilter
-          ),
+         _myFilterWidget(),
           Padding(
             padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
             child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
@@ -1711,7 +1763,7 @@ _monedaChanged(moneda){
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: <Widget>[
-              TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))),
+              // TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary))),
               IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
         ],
       ),
