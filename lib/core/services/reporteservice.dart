@@ -147,7 +147,7 @@ class ReporteService{
 
     return parsed;
   }
-  static Future<Map<String, dynamic>> ventasPorFecha({BuildContext context, scaffoldKey, DateTimeRange date, List<Banca> bancas, Moneda moneda, bool retornarMonedas = false, bool retornarBancas = false, int idGrupo}) async {
+  static Future<Map<String, dynamic>> ventasPorFecha({BuildContext context, scaffoldKey, DateTimeRange date, List<int> idGrupos, List<int> idBancas, List<int> idMonedas, bool retornarMonedas = false, bool retornarBancas = false, bool retornarGrupos = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
@@ -155,11 +155,12 @@ class ReporteService{
     map["fechaDesde"] = date.start.toString();
     map["fechaHasta"] = date.end.toString();
     map["idUsuario"] = await Db.idUsuario();
-    map["idGrupo"] = idGrupo;
-    map["bancas"] = bancas != null ? bancas.length > 0 ? Banca.bancasToJson(bancas) : [] : [];
-    map["moneda"] = moneda != null ? moneda.toJson() : null;
+    map["bancas"] = idBancas != null ? idBancas.length > 0 ? idBancas : [] : [];
+    map["monedas"] = idMonedas != null ? idMonedas.length > 0 ? idMonedas : [] : [];
+    map["grupos"] = idGrupos != null ? idGrupos.length > 0 ? idGrupos : [] : [];
     map["retornarBancas"] = retornarBancas;
     map["retornarMonedas"] = retornarMonedas;
+    map["retornarGrupos"] = retornarMonedas;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;

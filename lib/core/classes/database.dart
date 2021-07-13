@@ -262,7 +262,7 @@ class DBSqflite{
       if(query.isEmpty){
         return null;
       }else{
-        return query.first["id"];
+        return query.first["idGrupo"];
       }
   }
 

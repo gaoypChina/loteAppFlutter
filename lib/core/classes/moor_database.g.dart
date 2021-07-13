@@ -597,7 +597,7 @@ class User extends DataClass implements Insertable<User> {
       @required this.servidor,
       this.created_at,
       @required this.status,
-      @required this.idGrupo});
+      this.idGrupo});
   factory User.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -756,11 +756,10 @@ class UsersCompanion extends UpdateCompanion<User> {
     @required String servidor,
     this.created_at = const Value.absent(),
     @required int status,
-    @required int idGrupo,
+    this.idGrupo = const Value.absent(),
   })  : usuario = Value(usuario),
         servidor = Value(servidor),
-        status = Value(status),
-        idGrupo = Value(idGrupo);
+        status = Value(status);
   static Insertable<User> custom({
     Expression<int> id,
     Expression<String> usuario,
@@ -907,7 +906,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     return GeneratedIntColumn(
       'id_grupo',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -955,8 +954,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     if (data.containsKey('id_grupo')) {
       context.handle(_idGrupoMeta,
           idGrupo.isAcceptableOrUnknown(data['id_grupo'], _idGrupoMeta));
-    } else if (isInserting) {
-      context.missing(_idGrupoMeta);
     }
     return context;
   }

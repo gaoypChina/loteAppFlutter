@@ -42,7 +42,7 @@ class Users extends Table{
   TextColumn get servidor => text()();
   DateTimeColumn get created_at => dateTime().nullable()();
   IntColumn get status => integer()();
-  IntColumn get idGrupo => integer()();
+  IntColumn get idGrupo => integer().nullable()();
   // BoolColumn get status => boolean().withDefault(Constant(false))();
 
   @override

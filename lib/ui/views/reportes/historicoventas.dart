@@ -13,6 +13,7 @@ import 'package:loterias/core/models/historico.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/main.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
@@ -27,6 +28,8 @@ import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/showmydaterangedialog.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -36,6 +39,7 @@ class HistoricoVentasScreen extends StatefulWidget {
 }
 
 class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
+  GlobalKey<MyFilter2State> _myFilterKey = GlobalKey<MyFilter2State>();
   static const int sortName = 0;
   static const int sortStatus = 1;
   bool isAscending = true;
@@ -154,6 +158,7 @@ _init() async {
 
       _filtrarFecha();
       _idGrupoDeEsteUsuario = await Db.idGrupo();
+      print("HistoricoVentas _init _idGrupoDeEsteUsuario: $_idGrupoDeEsteUsuario");
       var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [], limite: _limite, idGrupos: _idGrupoDeEsteUsuario != null ? [_idGrupoDeEsteUsuario] : []);
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
       // listaData = List.from(parsed["bancas"]);
@@ -163,17 +168,21 @@ _init() async {
       
       var filtroOpcion = MyFilterData2(child: "Opcion", fixed: true, data: listaOpciones.map((e) => MyFilterSubData2(child: e, value: e, type: "Opcion")).toList());
       listaFiltros.add(filtroOpcion);
-      _selctedFilter.add(filtroOpcion.data.firstWhere((element) => element.value == _selectedOption, orElse: () => null));
+      setState(() {
+        _selctedFilter.add(filtroOpcion.data.firstWhere((element) => element.value == _selectedOption, orElse: () => null));
+      });
 
       if(listaGrupo.length > 0){
          filtroGrupo = MyFilterData2(child: "Grupo", fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, isMultiple: true, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e, type: "Grupo")).toList());
-        listaFiltros.add(filtroGrupo);
+          listaFiltros.add(filtroGrupo);
       }
       if(listaMoneda.length > 0)
-        listaFiltros.add(MyFilterData2(child: "Moneda", isMultiple: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
+          listaFiltros.add(MyFilterData2(child: "Moneda", isMultiple: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
 
       if(_idGrupoDeEsteUsuario != null && filtroGrupo != null){
-        _selctedFilter.add(filtroGrupo.data.firstWhere((element) => element.value.id == _idGrupoDeEsteUsuario, orElse: () => null));
+          setState(() {
+            _selctedFilter.add(filtroGrupo.data.firstWhere((element) => element.value.id == _idGrupoDeEsteUsuario, orElse: () => null));
+          });
         _grupos = listaGrupo.where((element) => element.id == _idGrupoDeEsteUsuario).toList();
       }
 
@@ -666,6 +675,8 @@ _getListaFiltro(){
   }
 
   _filtroScreen() async {
+    _myFilterKey.currentState.openFilter(context);
+    return;
     var fecha = _fecha;
     var fechaInicial = _date.start;
     var fechaFinal = _date.end;
@@ -1453,7 +1464,7 @@ _monedaChanged(moneda){
     "Maneje todas sus ventas y filtrelas por fecha"
     :
     MyCollapseChanged(
-      child: _myFilterWidget()
+      child: _myFilterWidget(isSmallOrMedium)
       // MyFilter(
       //   filterTitle: "",
       //   value: _date,
@@ -1545,12 +1556,55 @@ _monedaChanged(moneda){
     print("HistoricoVentasScreen _selectOrRemoveFilter type: ${data.type}");
   }
 
-  _myFilterWidget(){
+  _myFilterWidget(bool isSmallOrMedium){
     return  MyFilter2(
+            key: _myFilterKey,
             xlarge: 1.65,
             large: 2,
             medium: 1,
             small: 1,
+            leading: 
+            !isSmallOrMedium
+            ?
+            null
+            :
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    _back(){
+                      Navigator.pop(context);
+                    }
+                    showMyModalBottomSheet(
+                      context: context, 
+                      myBottomSheet2: MyBottomSheet2(
+                        child: MyDateRangeDialog(
+                          date: _date,
+                          onCancel: _back,
+                          onOk: (date){
+                            _dateChanged(date);
+                            _back();
+                          },
+                        ), 
+                      height: 350
+                      )
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        // border: Border.all(color: Colors.blue[900]),
+                        color: Colors.grey[200]
+                      ),
+                      child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
+                    ),
+                  ),
+                ),
+                Container(height: 34, width: 1, color: Colors.grey),
+              ],
+            ),
             onChanged: (data){
               
               if(data.length == 0){
@@ -1603,7 +1657,13 @@ _monedaChanged(moneda){
 
                 for (var item in values) {
                   _selctedFilter.removeWhere((element) => element.type == item.child);
+                  if(item.child == "Grupo")
+                  _grupos = [];
+                  if(item.child == "Moneda" )
+                    _monedas = [];
+
                 }
+                _historicoVentas();
               });
             },
             data: listaFiltros,
@@ -1642,7 +1702,7 @@ _monedaChanged(moneda){
           //     _opcionChanged(value);
           //   },
           // ),
-         _myFilterWidget(),
+         _myFilterWidget(isSmallOrMedium),
           Padding(
             padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
             child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
