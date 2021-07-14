@@ -2520,6 +2520,30 @@ AppBar _appBar(bool screenHeightIsSmall){
                         },
                       ),
                     ),
+                    ExpansionTile(
+                      leading: Icon(Icons.dangerous),
+                      title: Text("Bloqueos"),
+                      children: [
+                         ListTile(
+                          title: Text('Por loterias'),
+                          leading: Icon(Icons.person),
+                          dense: true,
+                          onTap: (){
+                            Navigator.of(context).pushNamed("/bloqueosporloteria");
+                            _scaffoldKey.currentState.openEndDrawer();
+                          },
+                        ),
+                         ListTile(
+                          title: Text('Por jugadas'),
+                          leading: Icon(Icons.dashboard),
+                          dense: true,
+                          onTap: (){
+                            Navigator.of(context).pushNamed("/sesiones");
+                            _scaffoldKey.currentState.openEndDrawer();
+                          },
+                        ),
+                      ],
+                    ),
                     Visibility(
                       visible: _tienePermisoVerAjustes,
                       child: ListTile(
