@@ -27,7 +27,9 @@ class MyDropdown extends StatefulWidget {
   final bool showOnlyOnLarge;
   final Color color;
   final Color textColor;
-  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading, this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false}) : super(key: key);
+  final String helperText;
+  final bool onlyBorder;
+  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading, this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false}) : super(key: key);
   @override
   _MyDropdownState createState() => _MyDropdownState();
 }
@@ -37,11 +39,11 @@ class _MyDropdownState extends State<MyDropdown> {
   String hint;
 
   _textColor(){
-    return widget.textColor != null ? widget.textColor : Theme.of(context).primaryColor;
+    return widget.textColor != null ? widget.textColor : Colors.blue[700];
   }
 
   _color(){
-    return widget.color != null ? widget.color : Theme.of(context).primaryColorLight.withOpacity(0.4);
+    return widget.color != null ? widget.color : Theme.of(context).primaryColor.withOpacity(0.2);
   }
 
   OverlayEntry _createOverlayEntry2() {
@@ -155,10 +157,18 @@ class _MyDropdownState extends State<MyDropdown> {
     ? 
     null 
     : 
+    widget.onlyBorder
+    ?
+    BoxDecoration(
+      // color: widget.enabled ? Colors.blue.withOpacity(0.15) : Colors.grey.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(5),
+      border: Border.all(color: Colors.black, width: 0.5)
+    )
+    :
     BoxDecoration(
       // color: widget.enabled ? Colors.blue.withOpacity(0.15) : Colors.grey.withOpacity(0.2),
       color: widget.enabled ?_color() : Colors.grey.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(5)
+      borderRadius: BorderRadius.circular(5),
     );
   }
 
@@ -169,7 +179,7 @@ class _MyDropdownState extends State<MyDropdown> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
-          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: _textColor(), fontWeight: FontWeight.w700)))
+          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ),
         // Icon(Icons.arrow_drop_down, color: Utils.fromHex("#1967d2")),
         Icon(Icons.arrow_drop_down, color: _textColor()),
@@ -181,7 +191,7 @@ class _MyDropdownState extends State<MyDropdown> {
       children: [
         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? _textColor() : Colors.grey,),
         Expanded(
-          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: FontWeight.w700)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: FontWeight.w700)))
+          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ),
         // Icon(Icons.arrow_drop_down, color: widget.enabled ? Utils.fromHex("#1967d2") : Colors.grey),
         Icon(Icons.arrow_drop_down, color: widget.enabled ? _textColor() : Colors.grey),
@@ -251,10 +261,26 @@ class _MyDropdownState extends State<MyDropdown> {
                     textChanged();
                   }
                 },
-                child: Container(
+                child:
+                widget.helperText == null
+                ? 
+                Container(
                   padding: widget.padding,
                   decoration: _getDecoration(),
-                  child: _getContentRow(),
+                  child: 
+                  _getContentRow()
+                )
+                :
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: widget.padding,
+                      decoration: _getDecoration(),
+                      child: _getContentRow()
+                    ),
+                    Text(widget.helperText, style: TextStyle(fontSize: 13),)
+                  ],
                 ),
               ),
             ),

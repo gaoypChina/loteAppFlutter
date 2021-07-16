@@ -206,7 +206,10 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
           labelText: widget.isSideTitle ? null : widget.title,
           // contentPadding: EdgeInsets.all(10),
           isDense: true,
-          
+          focusedBorder: new UnderlineInputBorder(
+            // borderRadius: new BorderRadius.circular(25.0),
+            borderSide: new BorderSide(width: 1.5, color: Colors.black),
+          )
         ),
         obscureText: widget.isPassword,
         keyboardType: _getkeyboardType(),

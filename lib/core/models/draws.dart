@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Draws{
    int id;
    String descripcion;
@@ -7,6 +9,7 @@ class Draws{
    int cantidadNumeros;
    int status;
    DateTime created_at;
+   double monto;
 
   Draws(this.id, this.descripcion, this.bolos, this.cantidadNumeros, this.status, this.created_at);
 
@@ -16,7 +19,8 @@ Draws.fromMap(Map snapshot) :
         bolos = snapshot['bolos'] ?? 0,
         cantidadNumeros = snapshot['cantidadNumeros'] ?? 0,
         status = snapshot['status'] ?? 0,
-        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
+        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
+        monto = snapshot['monto'] != null ? Utils.toDouble(snapshot['monto']) : null
         ;
 
   toJson() {
@@ -30,10 +34,22 @@ Draws.fromMap(Map snapshot) :
     };
   }
 
-  static List drawsToJson(List<Draws> lista) {
-    List jsonList = List();
+  toJsonFull() {
+    return {
+      "id": id,
+      "descripcion": descripcion,
+      "bolos": bolos,
+      "cantidadNumeros": cantidadNumeros,
+      "status": status,
+      "created_at": created_at.toString(),
+      "monto": monto,
+    };
+  }
+
+  static List drawsToJson(List<Draws> lista, [var toJsonFull = false]) {
+    List jsonList = [];
     lista.map((u)=>
-      jsonList.add(u.toJson())
+      jsonList.add(toJsonFull ? u.toJsonFull() : u.toJson())
     ).toList();
     return jsonList;
   }

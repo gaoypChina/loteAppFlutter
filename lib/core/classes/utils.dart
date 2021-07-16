@@ -512,6 +512,27 @@ class  Utils {
         return jugada + ultimoCaracter;
       }
     }
+    else if(jugada.length == 6){
+      if(!Utils.isNumber(jugada))
+        return jugada;
+
+      String primerParNumeros = jugada.substring(0, 2);
+      String segundoParNumeros = jugada.substring(2, 4);
+      String tercerParNumeros = jugada.substring(4, 6);
+
+      List<String> list = [];
+      list.addAll([primerParNumeros, segundoParNumeros, tercerParNumeros]);
+      for(int i=0; i < list.length ; i++){
+        for(int i2 = i + 1; i2 < list.length; i2++){
+          if(double.parse(list[i]) > double.parse(list[i2])){
+            var tmpMayor = list[i];
+            list[i] = list[i2];
+            list[i2] = tmpMayor;
+          }
+        }
+      }
+      return list.join("");
+    }
 
     return jugada;
   }

@@ -182,11 +182,7 @@ class _MyCheckBoxState extends State<MyCheckBox> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, boxconstraints) {
-        return Padding(
-          padding: EdgeInsets.all(widget.padding),
-          child: 
-          (widget.isSideTitle) ? _screenwithSideTitle(getWidth(boxconstraints.maxWidth) - (widget.padding * 2)) : _screenWithNormalTitle(getWidth(boxconstraints.maxWidth) - (widget.padding * 2))
-        );
+        return (widget.isSideTitle) ? _screenwithSideTitle(getWidth(boxconstraints.maxWidth) - (widget.padding * 2)) : _screenWithNormalTitle(getWidth(boxconstraints.maxWidth) - (widget.padding * 2));
       }
     );
   }

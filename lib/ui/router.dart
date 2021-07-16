@@ -9,6 +9,7 @@ import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
 import 'package:loterias/ui/views/bancas/bancasaddscreen.dart';
 import 'package:loterias/ui/views/bancas/bancasscreen.dart';
+import 'package:loterias/ui/views/bloqueos/bloqueosporjugadas.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporloteriasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
@@ -171,6 +172,10 @@ class MyRouter {
         case '/bloqueosporloteria' :
           return MaterialPageRoute(
             builder: (_)=> BloqueosPorLoteriasScreen()
+          ) ;
+        case '/bloqueosporjugadas' :
+          return MaterialPageRoute(
+            builder: (_)=> BloqueosPorJugadas()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

@@ -2538,7 +2538,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                           leading: Icon(Icons.dashboard),
                           dense: true,
                           onTap: (){
-                            Navigator.of(context).pushNamed("/sesiones");
+                            Navigator.of(context).pushNamed("/bloqueosporjugadas");
                             _scaffoldKey.currentState.openEndDrawer();
                           },
                         ),

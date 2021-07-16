@@ -951,155 +951,153 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                 selectedItems: selectedLoteriaComision != null ? [MyToggleData(value: selectedLoteriaComision.id, child: "${selectedLoteriaComision.descripcion}")] : [],
               ),
               
-            Expanded(
-              child: MyScrollbar(
-                child: Column(
-                  children: [
-                    Visibility(
-                      visible: selectedLoteriaComision != null ? selectedLoteriaComision.id == 0 : false,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                        child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
-                      ),
+            MyScrollbar(
+              child: Column(
+                children: [
+                  Visibility(
+                    visible: selectedLoteriaComision != null ? selectedLoteriaComision.id == 0 : false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      child: Text("Al llenar las campos debajos se copiaran los valores automaticamentes a todas las loterias", style: TextStyle(color: Colors.green)),
                     ),
-                    Visibility(
-                      visible: _existeSorteoComision("directo"),
-                      child: Wrap(
-                        children: [
-                          MyDivider(showOnlyOnSmall: true,),
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                            child: MyTextFormField(
-                              leading: isSmallOrMedium ? Text("QN") : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                              controller: _txtDirecto,
-                              title: !isSmallOrMedium ? "Quiniela" : "",
-                              hint: "Quiniela",
-                              medium: 1,
-                              onChanged: _comisionQuinielaChanged,
-                            ),
+                  ),
+                  Visibility(
+                    visible: _existeSorteoComision("directo"),
+                    child: Wrap(
+                      children: [
+                        MyDivider(showOnlyOnSmall: true,),
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                          child: MyTextFormField(
+                            leading: isSmallOrMedium ? Text("QN") : null,
+                            isSideTitle: isSmallOrMedium ? false : true,
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            controller: _txtDirecto,
+                            title: !isSmallOrMedium ? "Quiniela" : "",
+                            hint: "Quiniela",
+                            medium: 1,
+                            onChanged: _comisionQuinielaChanged,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible: _existeSorteoComision("pale"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("PL") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtPale,
+                        title: !isSmallOrMedium ? "Pale" : "",
+                        hint: "Pale",
+                        medium: 1,
+                        onChanged: _comisionPaleChanged,
                       ),
                     ),
-                    Visibility(
-                      visible: _existeSorteoComision("pale"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("PL") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtPale,
-                          title: !isSmallOrMedium ? "Pale" : "",
-                          hint: "Pale",
-                          medium: 1,
-                          onChanged: _comisionPaleChanged,
-                        ),
+                  ),
+                  Visibility(
+                    visible: _existeSorteoComision("tripleta"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("TP") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtTripleta,
+                        title: !isSmallOrMedium ? "Tripleta *" : "",
+                        hint: "Tripleta",
+                        medium: 1,
+                        onChanged: _comisionTripletaChanged,
                       ),
                     ),
-                    Visibility(
-                      visible: _existeSorteoComision("tripleta"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("TP") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtTripleta,
-                          title: !isSmallOrMedium ? "Tripleta *" : "",
-                          hint: "Tripleta",
-                          medium: 1,
-                          onChanged: _comisionTripletaChanged,
-                        ),
+                  ),
+                  Visibility(
+                    visible: _existeSorteoComision("super pale"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("SP") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtSuperpale,
+                        title: !isSmallOrMedium ? "Super pale" : "",
+                        hint: "Super pale",
+                        onChanged: _comisionSuperpaleChanged,
+                        medium: 1,
                       ),
                     ),
-                    Visibility(
-                      visible: _existeSorteoComision("super pale"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("SP") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtSuperpale,
-                          title: !isSmallOrMedium ? "Super pale" : "",
-                          hint: "Super pale",
-                          onChanged: _comisionSuperpaleChanged,
-                          medium: 1,
-                        ),
+                  ),
+                  MyDivider(showOnlyOnSmall: true,),
+                  Visibility(
+                    visible: _existeSorteoComision("pick 3 box"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("P3B") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtPick3Box,
+                        title: !isSmallOrMedium ? "Pick 3 box" : "",
+                        hint: "Pick 3 box",
+                        medium: 1,
+                        onChanged: _comisionPick3BoxChanged,
                       ),
                     ),
-                    MyDivider(showOnlyOnSmall: true,),
-                    Visibility(
-                      visible: _existeSorteoComision("pick 3 box"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("P3B") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtPick3Box,
-                          title: !isSmallOrMedium ? "Pick 3 box" : "",
-                          hint: "Pick 3 box",
-                          medium: 1,
-                          onChanged: _comisionPick3BoxChanged,
-                        ),
+                  ),
+                   
+                  Visibility(
+                    visible: _existeSorteoComision("pick 3 straight"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("P3S") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtPick3Straight,
+                        title: !isSmallOrMedium ? "Pick 3 straight" : "",
+                        hint: "Pick 3 straight",
+                        medium: 1,
+                        onChanged: _comisionPick3StraightChanged,
                       ),
                     ),
-                     
-                    Visibility(
-                      visible: _existeSorteoComision("pick 3 straight"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("P3S") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtPick3Straight,
-                          title: !isSmallOrMedium ? "Pick 3 straight" : "",
-                          hint: "Pick 3 straight",
-                          medium: 1,
-                          onChanged: _comisionPick3StraightChanged,
-                        ),
+                  ),
+                   Visibility(
+                    visible: _existeSorteoComision("pick 4 box"),
+                     child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("P3B") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtPick4Box,
+                        title: !isSmallOrMedium ? "Pick 4 box" : "",
+                        hint: "Pick 4 box",
+                        medium: 1,
+                        onChanged: _comisionPick4BoxChanged,
+                      ),
+                  ),
+                   ),
+                  Visibility(
+                    visible: _existeSorteoComision("pick 4 straight"),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                      child: MyTextFormField(
+                        leading: isSmallOrMedium ? Text("P4S") : null,
+                        isSideTitle: isSmallOrMedium ? false : true,
+                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                        controller: _txtPick4Straight,
+                        title: !isSmallOrMedium ? "Pick 4 straight" : "",
+                        hint: "Pick 4 straight",
+                        medium: 1,
+                        onChanged: _comisionPick4StraightChanged,
                       ),
                     ),
-                     Visibility(
-                      visible: _existeSorteoComision("pick 4 box"),
-                       child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("P3B") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtPick4Box,
-                          title: !isSmallOrMedium ? "Pick 4 box" : "",
-                          hint: "Pick 4 box",
-                          medium: 1,
-                          onChanged: _comisionPick4BoxChanged,
-                        ),
-                    ),
-                     ),
-                    Visibility(
-                      visible: _existeSorteoComision("pick 4 straight"),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                        child: MyTextFormField(
-                          leading: isSmallOrMedium ? Text("P4S") : null,
-                          isSideTitle: isSmallOrMedium ? false : true,
-                          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                          controller: _txtPick4Straight,
-                          title: !isSmallOrMedium ? "Pick 4 straight" : "",
-                          hint: "Pick 4 straight",
-                          medium: 1,
-                          onChanged: _comisionPick4StraightChanged,
-                        ),
-                      ),
-                    ),
-                     
-                  ],
-                ),
+                  ),
+                   
+                ],
               ),
             ),
           ],
