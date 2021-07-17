@@ -9,7 +9,6 @@ class MyTabBar extends StatefulWidget {
   final unselectedLabelColor;
   final indicator;
   final EdgeInsetsGeometry labelPadding;
-
   MyTabBar({Key key, @required this.controller, @required this.tabs, this.isScrollable = true, this.unselectedLabelStyle = const TextStyle(color: Colors.black, fontWeight: FontWeight.w600), this.labelColor = Colors.black, this.unselectedLabelColor, this.indicator, this.labelPadding}) : super(key: key);
   @override
   _MyTabBarState createState() => _MyTabBarState();
@@ -33,7 +32,7 @@ class _MyTabBarState extends State<MyTabBar> {
         print("TabBar onTap: $index");
       },
       controller: widget.controller,
-      isScrollable: true,
+      isScrollable: widget.isScrollable,
       // labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
       unselectedLabelStyle: widget.unselectedLabelStyle,
       labelColor: widget.labelColor,

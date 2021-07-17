@@ -315,6 +315,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       controller: widget.controller,
       maxLines: widget.maxLines,
       autofocus: widget.autofocus,
+      textAlign: TextAlign.center,
       style: TextStyle(color: widget.isDanger ? Colors.red : null, fontSize: widget.fontSize),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),

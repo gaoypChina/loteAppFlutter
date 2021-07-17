@@ -20,14 +20,24 @@ class MyDate {
   static const MyDate anteayer = MyDate._(6);
   static const MyDate ultimos30Dias = MyDate._(7);
 
+  static const MyDate hastaManana = MyDate._(8);
+  static const MyDate porDosDias = MyDate._(9);
+  static const MyDate porTresDias = MyDate._(10);
+  static const MyDate porUnaSemana = MyDate._(11);
+  static const MyDate porDosSemanas = MyDate._(12);
+  static const MyDate porUnMes = MyDate._(13);
+  static const MyDate porTresMeses = MyDate._(14);
+  static const MyDate porUnAno = MyDate._(15);
+
   /// A list of all the date names.
   static const List<MyDate> values = <MyDate>[
-    hoy, ayer, estaSemana, laSemanaPasada, ultimos2Dias, esteMes, anteayer, ultimos30Dias
+    hoy, ayer, estaSemana, laSemanaPasada, ultimos2Dias, esteMes, anteayer, ultimos30Dias, hastaManana, porDosDias, porTresDias, porUnaSemana, porDosSemanas, porUnMes, porTresMeses, porUnAno
   ];
 
   static List<dynamic> listaFecha = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"], [ultimos2Dias, "Ultimos 2 días"], [estaSemana, "Esta semana"], [laSemanaPasada, "La semana pasada"]];
   static List<dynamic> listaFechaLarga = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"], [ultimos2Dias, "Ultimos 2 días"], [estaSemana, "Esta semana"], [laSemanaPasada, "La Semana pasada"], [esteMes, "Este mes"], [ultimos30Dias, "Ultimos 30 días"],];
   static List<dynamic> listaFechaCorta = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"],];
+  static List<dynamic> listaFechaFuturo = [[hoy, "Hoy"], [porDosDias, "Por 2 dias"], [porTresDias, "Por 3 dias"], [porUnaSemana, "Por 1 semana"], [porDosSemanas, "Por 2 semanas"], [porUnMes, "Por 1 mes"], [porTresMeses, "Por 3 meses"], [porTresMeses, "Por 1 año"],];
 
   static List<DateTime> getHoy(){
     var fechaActual = DateTime.now();

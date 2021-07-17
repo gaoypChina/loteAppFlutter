@@ -3943,7 +3943,7 @@ void _getTime() {
     if(listaLoteria.length == 0)
       return;
 
-    _selectedLoterias = List();
+    _selectedLoterias = [];
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);
   }
