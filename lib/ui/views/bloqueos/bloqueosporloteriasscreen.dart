@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
@@ -7,15 +6,11 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
-import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
-import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
-import 'package:loterias/ui/widgets/myfilter.dart';
-import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -23,7 +18,6 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
-import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 
 class BloqueosPorLoteriasScreen extends StatefulWidget {
   const BloqueosPorLoteriasScreen({ Key key }) : super(key: key);
@@ -48,14 +42,9 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   List<Draws> _sorteos = [];
   bool _descontarDelBloqueoGeneral = true;
   var _cargandoNotify = ValueNotifier<bool>(false);
-  List<MyFilterData2> listaFiltros = [];
-  List<MyFilterSubData2> _selectedFilter = [];
-  DateTimeRange _date;
-
 
 
   _init() async {
-    _date = MyDate.getTodayDateRange();
     var parsed = await BloqueosService.index(context: context);
     listaBanca = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
     listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
@@ -193,158 +182,6 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     return abreviatura;
   }
 
-  _dateChanged(date){
-    setState((){
-      _date = date;
-    });
-  }
-
-  _myFilterWidget(bool isSmallOrMedium){
-    return MyFilter2(
-            xlarge: 1.1,
-            large: 1.1,
-            medium: 1,
-            small: 1,
-            leading: 
-            !isSmallOrMedium
-            ?
-            null
-            :
-            _selectedFilter.length == 0
-            ?
-            SizedBox.shrink()
-            :
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    _back(){
-                      Navigator.pop(context);
-                    }
-                    showMyModalBottomSheet(
-                      context: context, 
-                      myBottomSheet2: MyBottomSheet2(
-                        child: MyDateRangeDialog(
-                          date: _date,
-                          onCancel: _back,
-                          onOk: (date){
-                            _dateChanged(date);
-                            _back();
-                          },
-                        ), 
-                      height: 350
-                      )
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        // border: Border.all(color: Colors.blue[900]),
-                        color: Colors.grey[200]
-                      ),
-                      child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
-                    ),
-                  ),
-                ),
-                Container(height: 34, width: 1, color: Colors.grey),
-              ],
-            )
-            ,
-            widgetWhenNoFilter: Expanded(
-              child: MyFilter(
-                filterTitle: '',
-                filterLeading: SizedBox.shrink(),
-                leading: SizedBox.shrink(),
-                value: _date,
-                paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
-                onChanged: _dateChanged,
-                showListNormalCortaLarga: 3,
-              ),
-            ),
-            onChanged: (data){
-              
-              if(data.length == 0){
-                setState(() {
-                  _selectedFilter = [];
-                  _bancas = [];
-                  _monedas = []; 
-                  _grupos = [];
-                  _getData();
-                });
-                return;
-              }
-
-              _grupos = [];
-              _bancas = [];
-              _monedas = []; 
-              setState(() {
-                _selectedFilter = data;
-                for (MyFilterSubData2 myFilterSubData2 in data) {
-                  print("HistoricoVentas Filter2 for subData: ${myFilterSubData2.type} value: ${myFilterSubData2.value}");
-                  if(myFilterSubData2.type == "Banca")
-                    _bancas.add(myFilterSubData2.value);
-                  else if(myFilterSubData2.type == "Moneda")
-                    _monedas.add(myFilterSubData2.value);
-                  if(myFilterSubData2.type == "Grupo")
-                    _grupos.add(myFilterSubData2.value);
-                }
-                _getData();
-              });
-              
-            },
-            onDelete: (data){
-              setState(() {
-                if(data.child == "Banca")
-                  _bancas = [];
-                if(data.child == "Grupo")
-                  _grupos = [];
-                if(data.child == "Moneda" )
-                  _monedas = [];
-                for (var element in data.data) {
-                  _selectedFilter.remove(element);
-                }
-                _getData();
-              });
-            },
-            onDeleteAll: (values){
-              setState((){
-                // _selectedFilter = [];
-                for (var item in values) {
-                  _selectedFilter.removeWhere((element) => element.type == item.child);
-                  if(item.child == "Banca")
-                  _bancas = [];
-                  if(item.child == "Grupo")
-                    _grupos = [];
-                  if(item.child == "Moneda" )
-                    _monedas = [];
-                }
-                _getData();
-              });
-            },
-            data: listaFiltros,
-            values: _selectedFilter
-          );
-  
-  }
-
-
-  
-
-
-  _subtitle(bool isSmallOrMedium){
-    return 
-      isSmallOrMedium
-      ?
-      _myFilterWidget(isSmallOrMedium)
-      :
-      "Limite todas las jugadas que desea por monedas, por bancas, por sorteo, etc.";
-
-  }
-
-  
-
   @override
   void initState() {
     // TODO: implement initState
@@ -363,7 +200,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Reglas",
-          subtitle: _subtitle(isSmallOrMedium),
+          subtitle: "",
           actions: [
             MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
           ],

@@ -12,7 +12,9 @@ import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/loterias.dart';
 import 'package:timezone/timezone.dart';
 
 class  Utils {
@@ -779,6 +781,98 @@ class  Utils {
   }
 
   
+  static Future<int> getIdSorteo(String jugada) async {
+   int idSorteo = 0;
+
+   if(jugada.length == 2)
+    idSorteo = 1;
+  else if(jugada.length == 3){
+    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+    var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+  }
+  else if(jugada.length == 4){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }else{
+      idSorteo = 2;
+      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+      //   idSorteo = 4;
+      // }else{
+      //   idSorteo = 2;
+      // }
+    }
+  }
+  else if(jugada.length == 5){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+    else if(jugada.indexOf("-") != -1){
+       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+    else if(jugada.indexOf("s") != -1){
+       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+  }
+  else if(jugada.length == 6)
+    idSorteo = 3;
+
+  return idSorteo;
+ }
+
+  static Future<Draws> getSorteo(String jugada) async {
+    Draws sorteo;
+
+   if(jugada.length == 2){
+     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
+     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+   }
+  else if(jugada.length == 3){
+    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+  else if(jugada.length == 4){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }else{
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+      //   idSorteo = 4;
+      // }else{
+      //   idSorteo = 2;
+      // }
+    }
+  }
+  else if(jugada.length == 5){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("-") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("s") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+  }
+  else if(jugada.length == 6){
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+
+  return sorteo;
+ }
 
  
 }

@@ -1,22 +1,35 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/grupo.dart';
+import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
+import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/myrich.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
+import 'package:rxdart/rxdart.dart';
 
 class BloqueosPorJugadas extends StatefulWidget {
   const BloqueosPorJugadas({ Key key }) : super(key: key);
@@ -26,6 +39,8 @@ class BloqueosPorJugadas extends StatefulWidget {
 }
 
 class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerProviderStateMixin {
+  StreamController<List<Moneda>> _streamControllerMoneda;
+  StreamController<List<Jugada>> _streamControllerJugada;
   var _txtJugada = TextEditingController();
   var _txtMonto = TextEditingController();
   var _tabController;
@@ -49,6 +64,10 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   var _cargandoNotify = ValueNotifier<bool>(false);
   bool _jugadaOmonto = true;
   bool _txtMontoPrimerCaracter = true;
+  List<MyFilterSubData2> _selectedFilter = [];
+  List<MyFilterData2> listaFiltros = [];
+  List<Grupo> _grupos = [];
+  List<Jugada> _jugadas = [];
 
 
   _init() async {
@@ -65,6 +84,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
     if(listaDia.length > 0)
       _dias = List.from(listaDia);
+
+    _streamControllerMoneda.add(listaMoneda);
 
     print("BloqueosPorJugadasScreen: ${parsed}");
   }
@@ -308,13 +329,72 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       );
   }
 
-  addJugada({String jugada, String monto}){
+  
+
+  addJugada({String jugada, String monto}) async {
     if(_loterias.length == 0){
       Utils.showAlertDialog(context: context, title: "Error", content: "No hay loterias seleccionadas");
       return;
     }
 
-    String jugadaOrdenada = Utils.ordenarMenorAMayor(jugada);
+      jugada = Utils.ordenarMenorAMayor(jugada);
+      List<Jugada> jugadasTmp = List.from(_jugadas);
+      for (var loteria in _loterias) {
+        Draws sorteo = await Utils.getSorteo(jugada);
+        if(sorteo == null){
+          Utils.showAlertDialog(context: context, title: "Error", content: "El sorteo no existe");
+          return;
+        }
+
+        if(loteria.sorteos.indexWhere((element) => element.id == sorteo.id) == -1){
+          String mensajeSorteo = sorteo != null ? "El sorteo ${sorteo.descripcion}" : "Este sorteo";
+          Utils.showAlertDialog(context: context, title: "Error", content: "$mensajeSorteo no pertenece a la loteria ${loteria.descripcion}");
+          return;
+        }
+
+        if(jugadasTmp.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada) == -1)
+          jugadasTmp.add(Jugada(loteria: loteria, sorteo: sorteo.descripcion, idSorteo: sorteo.id, jugada: jugada, monto: Utils.toDouble(monto)));
+        else{
+          var esSi = await showDialog(
+            context: context, 
+            builder: (context){
+              return AlertDialog(
+                title: Text("Jugada existe"),
+                content: RichText(
+                  
+                  text: TextSpan(
+                    style: TextStyle(color: Colors.black),
+                  children: [
+                    TextSpan(text: "La jugada "),
+                    TextSpan(text: "${jugada} ", style: TextStyle(fontWeight: FontWeight.w800)),
+                    TextSpan(text: "existe en la loteria "),
+                    TextSpan(text: "${loteria.descripcion} ", style: TextStyle(fontWeight: FontWeight.w800)),
+                    TextSpan(text: "desea agregar?"),
+                  ]
+                )),
+                actions: [
+                  TextButton(onPressed: (){Navigator.pop(context, false);}, child: Text("No")),
+                  TextButton(onPressed: (){Navigator.pop(context, true);}, child: Text("Si")),
+                ],
+              );
+            }
+          );
+          if(esSi){
+            int index = jugadasTmp.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada);
+            jugadasTmp[index].monto += Utils.toDouble(monto);
+          }
+          
+        }
+
+        
+        
+      }
+
+      _jugadas = List.from(jugadasTmp);
+      _streamControllerJugada.add(_jugadas);
+      _txtJugada.text = "";
+      setState(() => _jugadaOmonto = !_jugadaOmonto);
+
   }
 
   _loteriasChanged() async {
@@ -333,17 +413,201 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       setState(() => _loterias = List.from(dataRetornada));
   }
 
+  _bancasChanged() async {
+    var dataRetornada = await showDialog(
+      context: context, 
+      builder: (context){
+        return MyMultiselect(
+          title: "Agregar bancas",
+          items: listaBanca.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+          initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+        );
+      }
+    );
+
+    if(dataRetornada != null)
+      setState(() => _bancas = List.from(dataRetornada));
+  }
+
+  _monedaChanged(Moneda data){
+    setState(() => _selectedMoneda = data);
+  }
+
+   
+  _showMonedas(){
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(
+          children: listaMoneda.map((e) => CheckboxListTile(title: Text(e.descripcion), controlAffinity: ListTileControlAffinity.leading, value: _selectedMoneda == e, onChanged: (value){setState(() => _selectedMoneda = e); _monedaChanged(e); Navigator.pop(context);},)).toList(),
+        ),
+      )
+    );
+  }
+
+   _tipoChanged(String data){
+    setState(() => _selectedTipo = data);
+  }
+
+  _showTipos(){
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(
+          children: listaTipo.map((e) => CheckboxListTile(title: Text("$e"), controlAffinity: ListTileControlAffinity.leading, value: _selectedTipo == e, onChanged: (value){setState(() => _selectedTipo = e); _tipoChanged(e); Navigator.pop(context);},)).toList(),
+        ),
+      )
+    );
+  }
+
+  _subtitle(bool isSmallOrMedium){
+    return !isSmallOrMedium
+    ?
+    SizedBox.shrink()
+    :
+    Row(
+      children: [
+        InkWell(
+          onTap: _showTipos,
+          child: Row(children: [
+            Text("${_selectedTipo != null ? _selectedTipo : ''}", style: TextStyle(color: Colors.black),),
+            Icon(Icons.arrow_drop_down, color: Colors.black)
+          ],),
+        )
+      ],
+    );
+  }
+
+  _buildRichOrTextAndConvertJugadaToLegible(String jugada){
+   if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4), style: TextStyle(fontSize: 16));
+   }
+   else if(jugada.length == 3){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 3)),
+           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 4 && jugada.indexOf('+') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 3)),
+           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 5 && jugada.indexOf('+') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 4)),
+           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 5 && jugada.indexOf('-') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 4)),
+           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+  else if(jugada.length == 6){
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 16));
+  }
+
+   return Text(jugada, style: TextStyle(fontSize: 16));
+ }
+
+
+
+  Widget _buildTable(List<Jugada> jugadas){
+   var tam = jugadas.length;
+   List<TableRow> rows;
+   if(tam == 0){
+     rows = <TableRow>[
+          
+        ];
+   }else{
+     rows = jugadas.map((j)
+          => TableRow(
+            children: [
+              Center(child: Text(Utils.esSuperpale(j.jugada) ? "SP(${j.abreviatura}/${j.abreviaturaSuperpale})" : j.descripcion, style: TextStyle(fontSize: Utils.esSuperpale(j.jugada) ? 14 : 16))),
+              Center(child: _buildRichOrTextAndConvertJugadaToLegible(j.jugada)),
+              Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 16))),
+              Center(child: IconButton(icon: Icon(Icons.delete, size: 28,), onPressed: () async {
+                setState((){
+                  _jugadas.remove(j);
+                  _streamControllerJugada.add(_jugadas);
+                  // await removeEstadisticaJugada(jugada: j.jugada, idLoteria: j.idLoteria);
+                });
+              },)),
+            ],
+          )
+        
+        ).toList();
+        
+    rows.insert(0, 
+              TableRow(
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Center(child: Text('Loteria', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                  Center(child: Text('Jugada', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),
+                  Center(child: Text('Monto', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),
+                  Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),
+                ]
+              )
+              );
+        
+   }
+
+  return Flexible(
+      child: ListView(
+      children: <Widget>[
+        Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: <int, TableColumnWidth>{0 : FractionColumnWidth(.35)},
+            children: rows,
+           ),
+      ],
+    ),
+  );
+   
+ }
+
+
+  
+
   @override
   void initState() {
     // TODO: implement initState
+    initializeDateFormatting();
     _tabController = TabController(length: 2, vsync: this);
-
+    _streamControllerMoneda = BehaviorSubject();
+    _streamControllerJugada = BehaviorSubject();
     _future = _init();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return myScaffold(
       context: context,
       cargando: false,
@@ -351,7 +615,17 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       isSliverAppBar: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
-          title: "Limitar jugadas",
+          title: Row(
+            children: [
+              InkWell(
+                onTap: _showTipos,
+                child: Row(children: [
+                  Text("${_selectedTipo != null ? _selectedTipo : ''}", style: TextStyle(color: Colors.black),),
+                  Icon(Icons.arrow_drop_down, color: Colors.black)
+                ],),
+              )
+            ],
+          ),
           actions: [
             MySliverButton(
               showOnlyOnLarge: true,
@@ -382,6 +656,27 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               ), 
               onTap: (){}
               ),
+            MySliverButton(
+              title: Container(
+                width: 60,
+                child: StreamBuilder<List<Moneda>>(
+                  stream: _streamControllerMoneda.stream,
+                  builder: (context, snapshot) {
+                    if(snapshot.data == null)
+                      return SizedBox.shrink();
+
+                    return InkWell(
+                      onTap: _showMonedas,
+                      child: Row(children: [
+                        Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    );
+                  }
+                ),
+              ), 
+              onTap: _showMonedas
+              ),
           ],
         ), 
         sliver: FutureBuilder<void>(
@@ -396,7 +691,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               child: Column(
                 // mainAxisAlignment: ,
                 children: [
-                  MyTabBar(controller: _tabController, tabs: ["Bloquear", "Jugadas"], isScrollable: false,),
+                  MyTabBar(controller: _tabController, tabs: ["Bloquear", "Jugadas [${_jugadas.length}]"], isScrollable: false,),
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
@@ -407,6 +702,30 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                           children: [
                             Column(
                               children: [
+                                Visibility(
+                                  visible: _selectedTipo == "Por banca",
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: GestureDetector(
+                                      onTap: _bancasChanged,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[100],
+                                            borderRadius: BorderRadius.circular(10)
+                                          ),
+                                          child: MyResizedContainer(
+                                            small: 1,
+                                            medium: 1,
+                                            child: Center(child: Text("${_bancas.length > 0 ? _bancas.length != listaBanca.length ? _bancas.length == 1 ? 'Banca: ' + _bancas[0].descripcion : 'Bancas: [' + _bancas.length.toString() + ']' : 'Banca: Todas' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: _bancas.length > 0 ? 16 : 22))),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 GestureDetector(
                                   onTap: _loteriasChanged,
                                   child: Padding(
@@ -558,7 +877,156 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                             )
                           ],
                         ),
-                        Text("Jugadas"),
+                        Column(
+                          children: [
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+                                child: MyResizedContainer(
+                                  small: 1,
+                                  medium: 1,
+                                  child: InkWell(
+                                    onTap: (){
+                                      setState(() => _jugadas = []);
+                                      _streamControllerJugada.add(_jugadas);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[100],
+                                        borderRadius: BorderRadius.circular(10)
+                                      ),
+                                      child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: StreamBuilder<List<Jugada>>(
+                                stream: _streamControllerJugada.stream,
+                                builder: (context, snapshot) {
+                                  if(snapshot.data == null)
+                                    return SizedBox.shrink();
+                                  if(snapshot.data.length == 0)
+                                    return SizedBox.shrink();
+
+                                  return ListView.builder(
+                                    itemCount: snapshot.data.length,
+                                    itemBuilder: (context, index){
+                                      if(index == 0)
+                                      return Wrap(
+                                        children: [
+                                          Wrap(
+                                            children: [
+                                              MyResizedContainer(
+                                                small: 3.8,
+                                                child: Center(child: Text("Loteria", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Text("Jugada", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Text("Monto", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 5,
+                                                child: Center(child: Text("Borrar", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                            ],
+                                          ),
+                                          Wrap(
+                                            children: [
+                                              MyResizedContainer(
+                                                small: 3.8,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 5,
+                                                child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){setState((){_jugadas.removeAt(index); _streamControllerJugada.add(_jugadas);});},)),
+                                              ),
+                                            ],
+                                          ),
+                                        
+                                          // Wrap(
+                                          //   children: [
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Loteria")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Jugada")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Monto")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Borrar")),
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                        
+                                        ],
+                                      );
+                              
+                                      return Wrap(
+                                        children: [
+                                          MyResizedContainer(
+                                            small: 3.8,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 4,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 4,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 5,
+                                            child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){_jugadas.removeAt(index); _streamControllerJugada.add(_jugadas);},)),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  );
+                                }
+                              ),
+                            )
+                          ],
+                        ),
                       ]
                     )
                   )

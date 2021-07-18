@@ -18,7 +18,7 @@ class BloqueosService{
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Uri.parse(Utils.URL + "/api/bloqueos?token=$jwt"), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/bloqueos/v2?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
