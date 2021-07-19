@@ -874,5 +874,33 @@ class  Utils {
   return sorteo;
  }
 
+ static DateTime getLastDayOfMonth(DateTime date){
+    if(date == null)
+    date = new DateTime.now();
+    // Find the last day of the month.
+    var lastDayDateTime = (date.month < 12) ? new DateTime(date.year, date.month + 1, 0) : new DateTime(date.year + 1, 1, 0);
+
+    // print(lastDayDateTime.day); // 28 for February
+    return lastDayDateTime;
+  }
+
+ static DateTime getNextMonth(DateTime date, {int dayOfTheMonth, int monthsToAdd = 1}){
+    DateTime nextMonth;
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (date.day > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+    }
+    else
+      nextMonth = new DateTime(date.year, date.month + monthsToAdd, date.day);
+
+    return nextMonth;
+  }
+
  
 }

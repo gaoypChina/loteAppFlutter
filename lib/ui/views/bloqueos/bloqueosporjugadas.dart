@@ -658,7 +658,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               ),
             MySliverButton(
               title: Container(
-                width: 60,
+                width: 52,
+                // color: Colors.grey[100],
                 child: StreamBuilder<List<Moneda>>(
                   stream: _streamControllerMoneda.stream,
                   builder: (context, snapshot) {
@@ -671,6 +672,57 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                         Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
                         Icon(Icons.arrow_drop_down, color: Colors.black)
                       ],),
+                    );
+                  }
+                ),
+              ), 
+              onTap: _showMonedas
+              ),
+            MySliverButton(
+              title: Container(
+                width: 130,
+                height: 37,
+                padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+                decoration: BoxDecoration(
+                color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: StreamBuilder<List<Moneda>>(
+                  stream: _streamControllerMoneda.stream,
+                  builder: (context, snapshot) {
+                    if(snapshot.data == null)
+                      return SizedBox.shrink();
+
+                    return InkWell(
+                      onTap: (){
+                        showMyModalBottomSheet(
+                          context: context,
+                          myBottomSheet2: MyBottomSheet2(
+                            height: 450,
+                            child: MyDateRangeDialog(
+                              date: _date, 
+                              listaFecha: MyDate.listaFechaFuturo,
+                              onCancel: () => Navigator.pop(context), 
+                              onOk: (date){
+                                  print("BloqueoPorJugadasScreen date: ${date}");
+                                  _dateChanged(date); 
+                                  Navigator.pop(context);
+                                  // overlay.remove();
+                                },
+                              )
+                                  
+                          )
+                        );
+                      },
+                      child: Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                          Icon(Icons.date_range),
+                          Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+                          Icon(Icons.arrow_drop_down, color: Colors.black)
+                        ],),
+                      ),
                     );
                   }
                 ),

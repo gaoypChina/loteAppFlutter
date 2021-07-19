@@ -37,7 +37,7 @@ class MyDate {
   static List<dynamic> listaFecha = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"], [ultimos2Dias, "Ultimos 2 días"], [estaSemana, "Esta semana"], [laSemanaPasada, "La semana pasada"]];
   static List<dynamic> listaFechaLarga = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"], [ultimos2Dias, "Ultimos 2 días"], [estaSemana, "Esta semana"], [laSemanaPasada, "La Semana pasada"], [esteMes, "Este mes"], [ultimos30Dias, "Ultimos 30 días"],];
   static List<dynamic> listaFechaCorta = [[hoy, "Hoy"], [ayer, "Ayer"], [anteayer, "Anteayer"],];
-  static List<dynamic> listaFechaFuturo = [[hoy, "Hoy"], [porDosDias, "Por 2 dias"], [porTresDias, "Por 3 dias"], [porUnaSemana, "Por 1 semana"], [porDosSemanas, "Por 2 semanas"], [porUnMes, "Por 1 mes"], [porTresMeses, "Por 3 meses"], [porTresMeses, "Por 1 año"],];
+  static List<dynamic> listaFechaFuturo = [[hoy, "Hoy"], [porDosDias, "Por 2 dias"], [porTresDias, "Por 3 dias"], [porUnaSemana, "Por 1 semana"], [porDosSemanas, "Por 2 semanas"], [porUnMes, "Por 1 mes"], [porTresMeses, "Por 3 meses"], [porUnAno, "Por 1 año"],];
 
   static List<DateTime> getHoy(){
     var fechaActual = DateTime.now();
@@ -105,6 +105,63 @@ class MyDate {
     return [fechaInicial, fechaFinal];
   }
 
+  static List<DateTime> getPorDosDias(){
+    var fechaActual = DateTime.now();
+    var fecha2Dias = DateTime.now().add(Duration(days: 2));
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fecha2Dias.year}-${Utils.toDosDigitos(fecha2Dias.month.toString())}-${Utils.toDosDigitos(fecha2Dias.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorTresDias(){
+    var fechaActual = DateTime.now();
+    var fecha3Dias = DateTime.now().add(Duration(days: 3));
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fecha3Dias.year}-${Utils.toDosDigitos(fecha3Dias.month.toString())}-${Utils.toDosDigitos(fecha3Dias.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorUnaSemana(){
+    var fechaActual = DateTime.now();
+    var fechaUnaSemana = DateTime.now().add(Duration(days: 7));
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaUnaSemana.year}-${Utils.toDosDigitos(fechaUnaSemana.month.toString())}-${Utils.toDosDigitos(fechaUnaSemana.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorDosSemanas(){
+    var fechaActual = DateTime.now();
+    var fechaDosSemanas = DateTime.now().add(Duration(days: 15));
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaDosSemanas.year}-${Utils.toDosDigitos(fechaDosSemanas.month.toString())}-${Utils.toDosDigitos(fechaDosSemanas.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorUnMes(){
+    var fechaActual = DateTime.now();
+    var fechaPorUnMes = Utils.getNextMonth(fechaActual);
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaPorUnMes.year}-${Utils.toDosDigitos(fechaPorUnMes.month.toString())}-${Utils.toDosDigitos(fechaPorUnMes.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorTresMeses(){
+    var fechaActual = DateTime.now();
+    var fechaPorTresMeses = Utils.getNextMonth(fechaActual, monthsToAdd: 3);
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaPorTresMeses.year}-${Utils.toDosDigitos(fechaPorTresMeses.month.toString())}-${Utils.toDosDigitos(fechaPorTresMeses.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
+  static List<DateTime> getPorUnAno(){
+    var fechaActual = DateTime.now();
+    var fechaPorUnAno = DateTime(fechaActual.year + 1, fechaActual.month, fechaActual.day);
+    print("MyDate getPorUnAno: ${fechaPorUnAno.year}");
+    var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
+    var fechaFinal = DateTime.parse("${fechaPorUnAno.year}-${Utils.toDosDigitos(fechaPorUnAno.month.toString())}-${Utils.toDosDigitos(fechaPorUnAno.day.toString())} 23:59:59");
+    return [fechaInicial, fechaFinal];
+  }
+
 
   static isHoy(DateTime fechaInicial, DateTime fechaFinal){
     var fechasHoy = MyDate.getHoy();
@@ -143,6 +200,41 @@ class MyDate {
 
   static isUltimos30Dias(DateTime fechaInicial, DateTime fechaFinal){
     var fechasHoy = MyDate.getUltimos30Dias();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorDosDias(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorDosDias();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorTresDias(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorTresDias();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorUnaSemana(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorUnaSemana();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorDosSemanas(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorDosSemanas();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorUnMes(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorUnMes();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorTresMeses(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorTresMeses();
+    return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
+  }
+
+  static isPorUnAno(DateTime fechaInicial, DateTime fechaFinal){
+    var fechasHoy = MyDate.getPorUnAno();
     return fechaInicial.isAtSameMomentAs(fechasHoy[0]) && fechaFinal.isAtSameMomentAs(fechasHoy[1]);
   }
 
@@ -205,6 +297,20 @@ class MyDate {
       dateString = "Ultimos 2 días";
     else if(MyDate.isEsteMes(date.start, date.end))
       dateString = "Este mes";
+    else if(MyDate.isPorDosDias(date.start, date.end))
+      dateString = "Por 2 días";
+    else if(MyDate.isPorTresDias(date.start, date.end))
+      dateString = "Por 3 días";
+    else if(MyDate.isPorUnaSemana(date.start, date.end))
+      dateString = "Por 1 semana";
+    else if(MyDate.isPorDosSemanas(date.start, date.end))
+      dateString = "Por 2 semanas";
+    else if(MyDate.isPorUnMes(date.start, date.end))
+      dateString = "Por 1 mes";
+    else if(MyDate.isPorTresMeses(date.start, date.end))
+      dateString = "Por 3 meses";
+    else if(MyDate.isPorUnAno(date.start, date.end))
+      dateString = "Por 1 año";
     else if(MyDate.isUltimos30Dias(date.start, date.end))
       dateString = "Ultimos 30 días";
     

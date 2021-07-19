@@ -7,7 +7,8 @@ class MyDateRangeDialog extends StatefulWidget {
   final Function onCancel;
   final Function(dynamic value) onOk;
   final DateTimeRange date;
-  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk}) : super(key: key);
+  final listaFecha;
+  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha}) : super(key: key);
   @override
   _MyDateRangeDialogState createState() => _MyDateRangeDialogState();
 }
@@ -15,6 +16,7 @@ class MyDateRangeDialog extends StatefulWidget {
 class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
   DateTimeRange _date;
   MyDate _myDate;
+  List<dynamic> _listaFecha;
 
   setsFields(){
     if(widget.date != _date)
@@ -67,6 +69,46 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
         fechaInicial = fechas[0];
         fechaFinal = fechas[1];
         break;
+      case MyDate.porDosDias:
+        var fechas = MyDate.getPorDosDias();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porTresDias:
+        var fechas = MyDate.getPorTresDias();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porTresDias:
+        var fechas = MyDate.getPorTresDias();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porUnaSemana:
+        var fechas = MyDate.getPorUnaSemana();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porDosSemanas:
+        var fechas = MyDate.getPorDosSemanas();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porUnMes:
+        var fechas = MyDate.getPorUnMes();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porTresMeses:
+        var fechas = MyDate.getPorTresMeses();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
+      case MyDate.porUnAno:
+        var fechas = MyDate.getPorUnAno();
+        fechaInicial = fechas[0];
+        fechaFinal = fechas[1];
+        break;
       default:
         var fechas = MyDate.getSemanaPasada();
         fechaInicial = fechas[0];
@@ -102,6 +144,20 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
       myDate = MyDate.esteMes;
     else if(MyDate.isUltimos30Dias(_date.start, _date.end))
       myDate = MyDate.ultimos30Dias;
+    else if(MyDate.isPorDosDias(_date.start, _date.end))
+      myDate = MyDate.porDosDias;
+    else if(MyDate.isPorTresDias(_date.start, _date.end))
+      myDate = MyDate.porTresDias;
+    else if(MyDate.isPorUnaSemana(_date.start, _date.end))
+      myDate = MyDate.porUnaSemana;
+    else if(MyDate.isPorDosSemanas(_date.start, _date.end))
+      myDate = MyDate.porDosSemanas;
+    else if(MyDate.isPorUnMes(_date.start, _date.end))
+      myDate = MyDate.porUnMes;
+    else if(MyDate.isPorTresMeses(_date.start, _date.end))
+      myDate = MyDate.porTresMeses;
+    else if(MyDate.isPorUnAno(_date.start, _date.end))
+      myDate = MyDate.porUnAno;
     else
       myDate = null;
 
@@ -113,6 +169,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
   void initState() {
     // TODO: implement initState
     setsFields();
+    _listaFecha = widget.listaFecha == null ? MyDate.listaFechaLarga : widget.listaFecha;
     super.initState();
   }
 
@@ -139,7 +196,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: MyDate.listaFechaLarga.map((e) => Padding(
+              children: _listaFecha.map((e) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 14),
                 child: InkWell(
                   onTap: (){
@@ -152,7 +209,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
                       borderRadius: BorderRadius.circular(10),
                       color: e[0] == _myDate ? Theme.of(context).primaryColor : null,
                     ),
-                    child: Text("${e[1]}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
+                    child: Text("${e[1]} ${e[0] == MyDate.porUnAno}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
                 ),
               )).toList(),
             ),
