@@ -131,7 +131,7 @@ class MyDate {
 
   static List<DateTime> getPorDosSemanas(){
     var fechaActual = DateTime.now();
-    var fechaDosSemanas = DateTime.now().add(Duration(days: 15));
+    var fechaDosSemanas = DateTime.now().add(Duration(days: 14));
     var fechaInicial = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(fechaActual.month.toString())}-${Utils.toDosDigitos(fechaActual.day.toString())} 00:00");
     var fechaFinal = DateTime.parse("${fechaDosSemanas.year}-${Utils.toDosDigitos(fechaDosSemanas.month.toString())}-${Utils.toDosDigitos(fechaDosSemanas.day.toString())} 23:59:59");
     return [fechaInicial, fechaFinal];

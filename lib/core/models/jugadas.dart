@@ -69,6 +69,18 @@ class Jugada {
         cantidadVecesQueSeHaJugado = snapshot['cantidadVecesQueSeHaJugado'] ?? null,
         cantidadVecesQueHaSalido = snapshot['cantidadVecesQueHaSalido'] ?? null;
 
+      
+  static List jugadasToJson(List<Jugada> lista) {
+    List jsonList = [];
+    if(lista == null)
+      return jsonList;
+      
+    lista.map((u)=>
+      jsonList.add(u.toJson())
+    ).toList();
+    return jsonList;
+  }
+
   toJson() {
     return {
       "id": id,

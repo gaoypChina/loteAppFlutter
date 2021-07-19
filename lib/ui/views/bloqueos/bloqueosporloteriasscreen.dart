@@ -110,7 +110,10 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   }
 
   _monedaChanged(value){
-    setState(() => _selectedMoneda = value);
+    setState((){
+      _selectedMoneda = value;
+      _bancas = _bancas.where((element) => element.idMoneda == _selectedMoneda.id).toList();
+    });
   }
 
   _diaChanged(Dia dia){
@@ -126,12 +129,18 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   }
 
   _bancasChanged() async {
+    var listaBancaTmp = listaBanca.where((element) => element.idMoneda == _selectedMoneda.id).toList();
+    if(listaBancaTmp.length == 0){
+      Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas");
+      return;
+    }
+
     var dataRetornada = await showDialog(
       context: context, 
       builder: (context){
         return MyMultiselect(
           title: "Agregar bancas",
-          items: listaBanca.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+          items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
           initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
         );
       }

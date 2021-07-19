@@ -7,6 +7,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/grupo.dart';
+import 'package:loterias/core/models/jugadas.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/models/loterias.dart';
@@ -105,6 +106,93 @@ class BloqueosService{
     };
 
     var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v2/general/loterias/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BloqueosService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BloqueosService guardar ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BloqueosService guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> guardarJugadas({@required BuildContext context, scaffoldKey, @required List<Banca> bancas, @required List<Loteria> loterias, @required List<Jugada> jugadas, @required Moneda moneda, @required bool ignorarDemasBloqueos, @required DateTimeRange date}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["idUsuario"] = await Db.idUsuario();
+    map["bancas"] = bancas != null ? Banca.bancasToJson(bancas) : [];
+    map["loterias"] = loterias != null ? Loteria.loteriasToJson(loterias) : [];
+    map["jugadas"] = jugadas != null ? Jugada.jugadasToJson(jugadas) : [];
+    map["idMoneda"] = moneda != null ? moneda.id : null;
+    map["ignorarDemasBloqueos"] = ignorarDemasBloqueos;
+    map["servidor"] = await Db.servidor();
+    map["fechaDesde"] = date.start.toString();
+    map["fechaHasta"] = date.end.toString();
+    var jwt = await Utils.createJwt(map);
+    // mapDatos["datos"] = jwt;
+    mapDatos = {
+      "datos" : jwt
+    };
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v2/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BloqueosService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BloqueosService guardar ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BloqueosService guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> guardarJugadasGeneral({@required BuildContext context, scaffoldKey, @required List<Loteria> loterias, @required List<Jugada> jugadas, @required Moneda moneda, @required bool ignorarDemasBloqueos, @required DateTimeRange date}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["idUsuario"] = await Db.idUsuario();
+    map["loterias"] = loterias != null ? Loteria.loteriasToJson(loterias) : [];
+    map["jugadas"] = jugadas != null ? Jugada.jugadasToJson(jugadas) : [];
+    map["idMoneda"] = moneda != null ? moneda.id : null;
+    map["ignorarDemasBloqueos"] = ignorarDemasBloqueos;
+    map["servidor"] = await Db.servidor();
+    map["fechaDesde"] = date.start.toString();
+    map["fechaHasta"] = date.end.toString();
+    var jwt = await Utils.createJwt(map);
+    // mapDatos["datos"] = jwt;
+    mapDatos = {
+      "datos" : jwt
+    };
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v2/general/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

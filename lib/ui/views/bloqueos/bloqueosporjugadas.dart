@@ -13,6 +13,7 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
@@ -414,12 +415,18 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   }
 
   _bancasChanged() async {
+    var listaBancaTmp = listaBanca.where((element) => element.idMoneda == _selectedMoneda.id).toList();
+    if(listaBancaTmp.length == 0){
+      Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas");
+      return;
+    }
+
     var dataRetornada = await showDialog(
       context: context, 
       builder: (context){
         return MyMultiselect(
           title: "Agregar bancas",
-          items: listaBanca.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+          items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
           initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
         );
       }
@@ -430,7 +437,10 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   }
 
   _monedaChanged(Moneda data){
-    setState(() => _selectedMoneda = data);
+    setState((){
+      _selectedMoneda = data;
+      _bancas = _bancas.where((element) => element.idMoneda == _selectedMoneda.id).toList();
+    });
   }
 
    
@@ -465,17 +475,88 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     ?
     SizedBox.shrink()
     :
-    Row(
-      children: [
-        InkWell(
-          onTap: _showTipos,
-          child: Row(children: [
-            Text("${_selectedTipo != null ? _selectedTipo : ''}", style: TextStyle(color: Colors.black),),
-            Icon(Icons.arrow_drop_down, color: Colors.black)
-          ],),
-        )
-      ],
+    MyCollapseChanged(
+      actionWhenCollapse: MyCollapseAction.hide,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Row(
+          children: [
+          Container(
+              width: 140,
+              height: 37,
+              padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+              decoration: BoxDecoration(
+              color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: StreamBuilder<List<Moneda>>(
+                stream: _streamControllerMoneda.stream,
+                builder: (context, snapshot) {
+                  if(snapshot.data == null)
+                    return SizedBox.shrink();
+    
+                  return InkWell(
+                    onTap: (){
+                      showMyModalBottomSheet(
+                        context: context,
+                        myBottomSheet2: MyBottomSheet2(
+                          height: 450,
+                          child: MyDateRangeDialog(
+                            date: _date, 
+                            listaFecha: MyDate.listaFechaFuturo,
+                            onCancel: () => Navigator.pop(context), 
+                            onOk: (date){
+                                print("BloqueoPorJugadasScreen date: ${date}");
+                                _dateChanged(date); 
+                                Navigator.pop(context);
+                                // overlay.remove();
+                              },
+                            )
+                                
+                        )
+                      );
+                    },
+                    child: Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                        Icon(Icons.date_range),
+                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    ),
+                  );
+                }
+              ),
+            ), 
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                width: 52,
+                // color: Colors.grey[100],
+                child: StreamBuilder<List<Moneda>>(
+                  stream: _streamControllerMoneda.stream,
+                  builder: (context, snapshot) {
+                    if(snapshot.data == null)
+                      return SizedBox.shrink();
+    
+                    return InkWell(
+                      onTap: _showMonedas,
+                      child: Row(children: [
+                        Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    );
+                  }
+                ),
+              ),
+            ),
+    
+          ],
+        ),
+      ),
     );
+                            
   }
 
   _buildRichOrTextAndConvertJugadaToLegible(String jugada){
@@ -591,6 +672,45 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
    
  }
 
+ _guardar() async {
+   if(_jugadas.length == 0){
+     Utils.showAlertDialog(context: context, title: "Error", content: "No hay jugadas realizadas");
+     return;
+   }
+   if(_loterias.length == 0){
+     Utils.showAlertDialog(context: context, title: "Error", content: "No hay loterias seleccionadas");
+     return;
+   }
+   if(_bancas.length == 0 && _selectedTipo == "Por banca"){
+     Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas seleccionadas");
+     return;
+   }
+
+   try {
+      var parsed;
+       if(_selectedTipo == "Por banca")
+        parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
+      else
+        parsed = await BloqueosService.guardarJugadasGeneral(context: context, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
+
+      print("BloqueosPorJugadas _guardar parsed: $parsed");
+      setState(() {
+        _bancas = [];
+        _loterias = [];
+        _jugadas = [];
+        _dias = List.from(listaDia);
+        for (var sorteo in listaSorteo) {
+          sorteo.monto = null;
+        }
+        _streamControllerJugada.add([]);
+      });
+      Utils.showAlertDialog(context: context, title: "Correctamente", content: "Se ha guardado correctamente");
+      _cargandoNotify.value = false;
+    } on Exception catch (e) {
+      _cargandoNotify.value = false;
+    }
+ }
+
 
   
 
@@ -626,6 +746,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               )
             ],
           ),
+          expandedHeight: isSmallOrMedium ? 95 : 85,
+          subtitle: _subtitle(isSmallOrMedium),
           actions: [
             MySliverButton(
               showOnlyOnLarge: true,
@@ -656,79 +778,81 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               ), 
               onTap: (){}
               ),
-            MySliverButton(
-              title: Container(
-                width: 52,
-                // color: Colors.grey[100],
-                child: StreamBuilder<List<Moneda>>(
-                  stream: _streamControllerMoneda.stream,
-                  builder: (context, snapshot) {
-                    if(snapshot.data == null)
-                      return SizedBox.shrink();
+              MySliverButton(title: "Guardar", onTap: _guardar)
+            // MySliverButton(
+            //   title: Container(
+            //     width: 52,
+            //     // color: Colors.grey[100],
+            //     child: StreamBuilder<List<Moneda>>(
+            //       stream: _streamControllerMoneda.stream,
+            //       builder: (context, snapshot) {
+            //         if(snapshot.data == null)
+            //           return SizedBox.shrink();
 
-                    return InkWell(
-                      onTap: _showMonedas,
-                      child: Row(children: [
-                        Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
-                        Icon(Icons.arrow_drop_down, color: Colors.black)
-                      ],),
-                    );
-                  }
-                ),
-              ), 
-              onTap: _showMonedas
-              ),
-            MySliverButton(
-              title: Container(
-                width: 130,
-                height: 37,
-                padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-                decoration: BoxDecoration(
-                color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(10)
-                ),
-                child: StreamBuilder<List<Moneda>>(
-                  stream: _streamControllerMoneda.stream,
-                  builder: (context, snapshot) {
-                    if(snapshot.data == null)
-                      return SizedBox.shrink();
+            //         return InkWell(
+            //           onTap: _showMonedas,
+            //           child: Row(children: [
+            //             Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
+            //             Icon(Icons.arrow_drop_down, color: Colors.black)
+            //           ],),
+            //         );
+            //       }
+            //     ),
+            //   ), 
+            //   onTap: _showMonedas
+            //   ),
+            // MySliverButton(
+            //   title: Container(
+            //     width: 130,
+            //     height: 37,
+            //     padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+            //     decoration: BoxDecoration(
+            //     color: Colors.grey[100],
+            //       borderRadius: BorderRadius.circular(10)
+            //     ),
+            //     child: StreamBuilder<List<Moneda>>(
+            //       stream: _streamControllerMoneda.stream,
+            //       builder: (context, snapshot) {
+            //         if(snapshot.data == null)
+            //           return SizedBox.shrink();
 
-                    return InkWell(
-                      onTap: (){
-                        showMyModalBottomSheet(
-                          context: context,
-                          myBottomSheet2: MyBottomSheet2(
-                            height: 450,
-                            child: MyDateRangeDialog(
-                              date: _date, 
-                              listaFecha: MyDate.listaFechaFuturo,
-                              onCancel: () => Navigator.pop(context), 
-                              onOk: (date){
-                                  print("BloqueoPorJugadasScreen date: ${date}");
-                                  _dateChanged(date); 
-                                  Navigator.pop(context);
-                                  // overlay.remove();
-                                },
-                              )
+            //         return InkWell(
+            //           onTap: (){
+            //             showMyModalBottomSheet(
+            //               context: context,
+            //               myBottomSheet2: MyBottomSheet2(
+            //                 height: 450,
+            //                 child: MyDateRangeDialog(
+            //                   date: _date, 
+            //                   listaFecha: MyDate.listaFechaFuturo,
+            //                   onCancel: () => Navigator.pop(context), 
+            //                   onOk: (date){
+            //                       print("BloqueoPorJugadasScreen date: ${date}");
+            //                       _dateChanged(date); 
+            //                       Navigator.pop(context);
+            //                       // overlay.remove();
+            //                     },
+            //                   )
                                   
-                          )
-                        );
-                      },
-                      child: Container(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                          Icon(Icons.date_range),
-                          Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
-                          Icon(Icons.arrow_drop_down, color: Colors.black)
-                        ],),
-                      ),
-                    );
-                  }
-                ),
-              ), 
-              onTap: _showMonedas
-              ),
+            //               )
+            //             );
+            //           },
+            //           child: Container(
+            //             child: Row(
+            //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //               children: [
+            //               Icon(Icons.date_range),
+            //               Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+            //               Icon(Icons.arrow_drop_down, color: Colors.black)
+            //             ],),
+            //           ),
+            //         );
+            //       }
+            //     ),
+            //   ), 
+            //   onTap: _showMonedas
+            //   ),
+          
           ],
         ), 
         sliver: FutureBuilder<void>(
@@ -771,7 +895,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                           child: MyResizedContainer(
                                             small: 1,
                                             medium: 1,
-                                            child: Center(child: Text("${_bancas.length > 0 ? _bancas.length != listaBanca.length ? _bancas.length == 1 ? 'Banca: ' + _bancas[0].descripcion : 'Bancas: [' + _bancas.length.toString() + ']' : 'Banca: Todas' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: _bancas.length > 0 ? 16 : 22))),
+                                            child: Center(child: Text("${_bancas.length > 0 ? _bancas.length != listaBanca.length ? _bancas.length == 1 ? 'Banca: ' + _bancas[0].descripcion : 'Bancas: [' + _bancas.length.toString() + ']' : 'Banca: Todas' : 'Seleccionar bancas...'}", style: TextStyle(fontSize: 16))),
                                           ),
                                         ),
                                       ),
@@ -791,7 +915,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                       child: MyResizedContainer(
                                         small: 1,
                                         medium: 1,
-                                        child: Center(child: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: _loterias.length > 0 ? 16 : 22))),
+                                        child: Center(child: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: 16))),
                                       ),
                                     ),
                                   ),
@@ -811,7 +935,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                       child: CheckboxListTile(
                                         controlAffinity: ListTileControlAffinity.leading,
                                         title: Text("Ignorar demas bloqueos", style: TextStyle(fontSize: 12)),
-                                        value: _descontarDelBloqueoGeneral,
+                                        value: _ignorarDemasBloqueos,
                                         onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
                                       ),
                                     ),
@@ -844,6 +968,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                           controller: _txtJugada,
                                           fontSize: 23,
                                           hint: "Jugada",
+                                          textAlign: TextAlign.center,
                                           
                                         )
                                       ),
@@ -865,6 +990,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                           controller: _txtMonto,
                                           fontSize: 23,
                                           hint: "Monto",
+                                          textAlign: TextAlign.center,
                                         )
                                       ),
                                     ),
@@ -926,7 +1052,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                   );
                                 }
                               ),
-                            )
+                            ),
+                            
                           ],
                         ),
                         Column(

@@ -209,7 +209,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
                       borderRadius: BorderRadius.circular(10),
                       color: e[0] == _myDate ? Theme.of(context).primaryColor : null,
                     ),
-                    child: Text("${e[1]} ${e[0] == MyDate.porUnAno}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
+                    child: Text("${e[1]}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
                 ),
               )).toList(),
             ),
