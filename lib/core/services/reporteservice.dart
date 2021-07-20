@@ -14,11 +14,13 @@ import 'package:loterias/core/models/ventaporfecha.dart';
 
 class ReporteService{
 
-   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, Moneda moneda, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, bool retornarMonedas = false, int limite = 20}) async {
+   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, Moneda moneda, Banca banca, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, bool retornarMonedas = false, bool retornarBancas = false, bool retornarGrupos = false, int idGrupo, int limite = 20}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
+    map["retornarGrupos"] = retornarGrupos;
+    map["retornarBancas"] = retornarBancas;
     map["retornarLoterias"] = retornarLoterias;
     map["retornarSorteos"] = retornarSorteos;
     map["retornarMonedas"] = retornarMonedas;
@@ -28,16 +30,18 @@ class ReporteService{
     map["loteria"] = (loteria != null) ? loteria.toJson() : null;
     map["jugada"] = (jugada != null) ? jugada : null;
     map["moneda"] = (moneda != null) ? moneda.toJson() : null;
+    map["banca"] = (banca != null) ? banca.toJson() : null;
+    map["grupo"] = idGrupo;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    print("ReporteService historico: ${mapDatos.toString()}");
+    print("ReporteService jugadas: ${map.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/reporteJugadas"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/reporteJugadas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

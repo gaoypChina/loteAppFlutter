@@ -482,7 +482,7 @@ class MyFilter2State extends State<MyFilter2> {
     );
   }
 
-  _selectedFilterWidget(MyFilterData2 myFilterData2, [var padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 1)]){
+  _selectedFilterWidget(MyFilterData2 myFilterData2, bool isSmallOrMedium, [var padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 1)]){
      var _valueNotifierColor = ValueNotifier<Color>(Theme.of(context).primaryColor.withOpacity(0.2));
       var _valueNotifierElevation = ValueNotifier<double>(0);
       double _elevation = 0;
@@ -517,7 +517,7 @@ class MyFilter2State extends State<MyFilter2> {
                 valueListenable: _valueNotifierElevation,
                 builder: (context, value, __) {
                   return Material(
-                    elevation: myFilterData2.fixed ? 4 : value,
+                    elevation: myFilterData2.fixed ? !isSmallOrMedium ? 4 : value : value,
                       borderRadius: BorderRadius.circular(15),
                     child: GestureDetector(
                       
@@ -528,7 +528,7 @@ class MyFilter2State extends State<MyFilter2> {
                         padding: padding,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          color: myFilterData2.fixed == false ? value == 4 ? Colors.white : Theme.of(context).primaryColor.withOpacity(0.1) : Colors.white
+                          color: myFilterData2.fixed == false ? isSmallOrMedium ? Theme.of(context).primaryColor.withOpacity(0.1) : value == 4 ? Colors.white : Theme.of(context).primaryColor.withOpacity(0.1) : isSmallOrMedium ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.white
                         ),
                         child: Center(
                           child: Wrap(
@@ -595,7 +595,7 @@ class MyFilter2State extends State<MyFilter2> {
                 itemCount: _selectedValues != null ? _selectedValues.length : 0,
                 itemBuilder: (context, index){
                   // return Container(child: Text("Filtroooooooooo"),);
-                    return _selectedFilterWidget(_selectedValues[index]);
+                    return _selectedFilterWidget(_selectedValues[index], isSmallOrMedium);
                  }
               ),
             );
@@ -646,7 +646,7 @@ class MyFilter2State extends State<MyFilter2> {
   List<Widget> _webScreen(bool isSmallOrMedium){
     List<Widget> listWidget = _selectedValues.length == 0 ? [] : _selectedValues.map<Widget>((e) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Container(height: 43, child: _selectedFilterWidget(e)),
+      child: Container(height: 43, child: _selectedFilterWidget(e, isSmallOrMedium)),
     )).toList();
 
     // listWidget.insert(0, _leadingWidget());
