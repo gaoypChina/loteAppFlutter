@@ -80,8 +80,10 @@ class TransaccionService{
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
+    map["idUsuario"] = await Db.idUsuario();
+    map["idGrupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones/grupo?token=$jwt"), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones/v2/grupo?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

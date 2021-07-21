@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
@@ -40,7 +41,7 @@ class _BancasScreenState extends State<BancasScreen> {
   String _selectedOpcion;
 
   _init() async {
-    var parsed = await BancaService.index(context: context, retornarBancas: true);
+    var parsed = await BancaService.index(context: context, retornarBancas: true, idGrupo: await Db.idGrupo());
     listaData = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
     _streamController.add(listaData);
     print("BancasScreen _init: $parsed");
@@ -53,11 +54,13 @@ class _BancasScreenState extends State<BancasScreen> {
   _addDataToList(Banca data){
     if(data != null){
       int idx = listaData.indexWhere((element) => element.id == data.id);
-      if(idx != -1)
+      if(idx != -1){
+        print("BancasSCreen _addDataToList If: ${data.toJsonSave()}");
         listaData[idx] = data;
-      else
+      }else{
+        print("BancasSCreen _addDataToList Else: ${data.toJson()}");
         listaData.add(data);
-
+      }
       _streamController.add(listaData);
     }
   }

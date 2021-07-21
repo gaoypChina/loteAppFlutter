@@ -295,7 +295,7 @@ class TicketService{
     return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
   }
 
-  static Future<List<Venta>> monitoreoV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey}) async {
+  static Future<Map<String, dynamic>> monitoreoV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
@@ -304,10 +304,12 @@ class TicketService{
     map["fecha"] = (fecha != null) ? fecha.toString() : DateTime.now().toString();
     map["fechaFinal"] = (fechaFinal != null) ? fechaFinal.toString() : DateTime.now().toString();
     map["servidor"] = await Db.servidor();
+    map["retornarBancas"] = retornarBancas;
+    map["grupo"] = idGrupo;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -330,7 +332,7 @@ class TicketService{
 
     print("ticketservice monitoreo: $parsed");
 
-    return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
+    return parsed;
   }
 
 

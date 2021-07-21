@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
@@ -25,6 +26,7 @@ import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:unicons/unicons.dart';
@@ -58,6 +60,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   Banca _banca;
   Grupo _grupo;
   String _jugada;
+  List<int> listaLimite = [20, 30, 50];
   int _limite = 20;
   DateTimeRange _date;
   int _idGrupoDeEsteUsuario;
@@ -398,10 +401,22 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     });
   }
 
+  _showFilas(){
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        child: Column(
+          children: listaLimite.map((e) => CheckboxListTile(title: Text("$e filas"), controlAffinity: ListTileControlAffinity.leading, value: _limite == e, onChanged: (value){setState(() => _limite = e); _filtrar(); Navigator.pop(context);},)).toList(),
+        ),
+      )
+    );
+  }
+
 
   @override
   void initState() {
     // TODO: implement initState
+    initializeDateFormatting();
     _streamController = BehaviorSubject();
     _streamControllerLoteria = BehaviorSubject();
     _fechaInicial = DateTime.parse("${_fechaActual.year}-${Utils.toDosDigitos(_fechaActual.month.toString())}-${Utils.toDosDigitos(_fechaActual.day.toString())} 00:00");
@@ -424,6 +439,23 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
           subtitle: _subtitle(isSmallOrMedium),
           expandedHeight: isSmallOrMedium ? 105 : 60,
           actions: [
+            MySliverButton(
+              title: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                // width: 52,
+                // color: Colors.grey[100],
+                child: InkWell(
+                      onTap: _showFilas,
+                      child: Row(children: [
+                        Text("${_limite != null ? _limite.toString() + ' filas' : ''}", style: TextStyle(color: Colors.black),),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    ),
+              ),
+            ),
+              onTap: (){}
+            ),
             MySliverButton(
               showOnlyOnSmall: true,
               title: "Filtro", 
@@ -451,37 +483,48 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
                 itemCount: snapshot.data.length,
                 itemBuilder: (context, index){
                   var lista = listaJugada.where((element) => element.idSorteo == snapshot.data[index].id).toList();
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: lista.length,
-                    itemBuilder: (context, index2){
-                      return ListTile(
+                  return Column(
+                    children: lista.asMap().map((key, e){
+                      Widget listTile = ListTile(
                       leading: CircleAvatar(
                         backgroundColor: _drawsBackground(snapshot.data[index].descripcion) ,
                         child: Text(_loteria != null ? _loteria.descripcion.substring(0, 1) : "T", style: TextStyle(color: Colors.white),),
                       ),
                       trailing: 
-                      (lista[index2].premio <= 0)
+                      (e.premio <= 0)
                       ?
-                      Text(Utils.toCurrency(lista[index2].monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
+                      Text(Utils.toCurrency(e.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
                       :
                       Column(
                         children: [
-                          Text(Utils.toCurrency(lista[index2].monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                          Text(Utils.toCurrency(lista[index2].premio), style: TextStyle(color: Colors.pink, fontSize: 16),),
+                          Text(Utils.toCurrency(e.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
+                          Text(Utils.toCurrency(e.premio), style: TextStyle(color: Colors.pink, fontSize: 16),),
                         ],
                       ),
-                      title: Text("${Utils.agregarSignoYletrasParaImprimir(lista[index2].jugada, snapshot.data[index].descripcion)}", style: TextStyle(fontWeight: FontWeight.w700),),
+                      title: Text("${Utils.agregarSignoYletrasParaImprimir(e.jugada, snapshot.data[index].descripcion)}", style: TextStyle(fontWeight: FontWeight.w700),),
                       subtitle: RichText(text: TextSpan(
                         style: TextStyle(color: Colors.grey),
                         children: [
                           // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-                          TextSpan(text: "${lista[index2].cantidadVecesQueSeHaJugado != null ? 'Jugado ' + lista[index2].cantidadVecesQueSeHaJugado.toString() : ''} ${lista[index2].cantidadVecesQueSeHaJugado != null ? lista[index2].cantidadVecesQueSeHaJugado == 1 ? 'vez' : 'veces' : ''}"),
-                          TextSpan(text: "${lista[index2].cantidadVecesQueHaSalido != null ? '  |  Salido ' + lista[index2].cantidadVecesQueHaSalido.toString() : ''} ${lista[index2].cantidadVecesQueHaSalido != null ? lista[index2].cantidadVecesQueHaSalido == 1 ? 'vez' : 'veces' : ''}"),
+                          TextSpan(text: "${e.cantidadVecesQueSeHaJugado != null ? 'Jugado ' + e.cantidadVecesQueSeHaJugado.toString() : ''} ${e.cantidadVecesQueSeHaJugado != null ? e.cantidadVecesQueSeHaJugado == 1 ? 'vez' : 'veces' : ''}"),
+                          TextSpan(text: "${e.cantidadVecesQueHaSalido != null ? '  |  Salido ' + e.cantidadVecesQueHaSalido.toString() : ''} ${e.cantidadVecesQueHaSalido != null ? e.cantidadVecesQueHaSalido == 1 ? 'vez' : 'veces' : ''}"),
                         ]
                       )),
                     );
-                    }
+
+                    if(key == 0)
+                      return MapEntry<dynamic, Widget>(key, Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                            child: MySubtitle(title: snapshot.data[index].descripcion),
+                          ),
+                          listTile
+                        ],
+                      ));
+
+                      return MapEntry<dynamic, Widget>(key, listTile);
+                    }).values.toList(),
                   );
                 }
               ),

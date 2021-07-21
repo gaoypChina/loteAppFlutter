@@ -132,9 +132,9 @@ class _VentasScreenState extends State<VentasScreen> {
       int idBanca = await getIdBanca();
       print("_ventas getIdBanca: $idBanca");
       datos = await ReporteService.ventas(fecha: _date.start, fechaFinal: _date.end, idBanca: idBanca, context: context,);
-      print("_ventas fechaInicial: ${datos["fechaInicial"]}");
+      print("_ventas fechaInicial: ${datos["bancas"]}");
       if(_onCreate){
-        listaBanca = datos["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
+        listaBanca = datos["bancas"]  != null ? datos["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
         _streamControllerBancas.add(listaBanca);
         _seleccionarBancaPertenecienteAUsuario();
         _onCreate = false;
@@ -170,7 +170,7 @@ class _VentasScreenState extends State<VentasScreen> {
   // 
    Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
   if(banca != null && listaBanca != null){
-    var b = listaBanca.firstWhere((b) => b.id == banca.id);
+    var b = listaBanca.firstWhere((b) => b.id == banca.id, orElse: () => null);
     setState(() => _banca = (b != null) ? b : listaBanca.length > 0 ? listaBanca[0] : null);
   }else{
     if(_tienePermiso){

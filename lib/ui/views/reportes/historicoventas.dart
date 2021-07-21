@@ -173,6 +173,15 @@ _init() async {
       });
 
       if(listaGrupo.length > 0){
+      var filtro = MyFilterData2(child: "Filas", fixed: true != null, data: listaLimite.map((e) => MyFilterSubData2(child: "$e", value: e, type: "Filas")).toList());
+      listaFiltros.add(filtro);
+        var filtroSub = filtro.data[0];
+        if(filtroSub != null){
+          _selctedFilter.add(filtroSub);
+        }
+    }
+
+      if(listaGrupo.length > 0){
          filtroGrupo = MyFilterData2(child: "Grupo", fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, isMultiple: true, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e, type: "Grupo")).toList());
           listaFiltros.add(filtroGrupo);
       }
@@ -1433,18 +1442,18 @@ _monedaChanged(moneda){
 
   _titleScreen(bool isSmallOrMedium){
     return
-    isSmallOrMedium
-    ?
-    MyCollapseChanged(
-      actionWhenCollapse: MyCollapseAction.nothing,
-      child: Row(
-        children: [
-          Text("${_selectedOption != null ? _selectedOption : 'No hay opcion'}", style: TextStyle(color: Colors.black),),
-          Icon(Icons.arrow_drop_down, color: Colors.black54,)
-        ],
-      ),
-    )
-    :
+    // isSmallOrMedium
+    // ?
+    // MyCollapseChanged(
+    //   actionWhenCollapse: MyCollapseAction.nothing,
+    //   child: Row(
+    //     children: [
+    //       Text("${_selectedOption != null ? _selectedOption : 'No hay opcion'}", style: TextStyle(color: Colors.black),),
+    //       Icon(Icons.arrow_drop_down, color: Colors.black54,)
+    //     ],
+    //   ),
+    // )
+    // :
     "Historico ventas";
   }
 
@@ -1596,7 +1605,8 @@ _monedaChanged(moneda){
                       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
                         // border: Border.all(color: Colors.blue[900]),
-                        color: Colors.grey[200]
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(15)
                       ),
                       child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
                     ),
@@ -1629,6 +1639,8 @@ _monedaChanged(moneda){
                     _monedas.add(myFilterSubData2.value);
                   else if(myFilterSubData2.type == "Opcion")
                     _selectedOption = myFilterSubData2.value;
+                  else if(myFilterSubData2.type == "Filas")
+                    _limite = myFilterSubData2.value;
                 }
                 _historicoVentas();
               });

@@ -17,7 +17,7 @@ class DashboardService{
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
 
-    var response = await http.get(Uri.parse(Utils.URL + "/api/dashboard?token=" + jwt), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/dashboard/v2?token=" + jwt), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/graficaventas.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
+import 'package:loterias/ui/widgets/mybarchart.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -16,15 +18,15 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List<Moneda>> _streamControllerMonedas;
-  StreamController<List> _streamControllerGrafica;
-  List<Moneda> listaMoneda = List();
-  List listaVentasGrafica = List();
-  List listaVentasPorLoteria = List();
+  StreamController<List<GraficaVentas>> _streamControllerGrafica;
+  List<Moneda> listaMoneda = [];
+  List<GraficaVentas> listaVentasGrafica = [];
+  List listaVentasPorLoteria = [];
   double _totalVentasLoterias = 0;
   double _totalPremiosLoterias = 0;
-  List listaLoteriasJugadasDashboard = List();
-  List listaJugada = List();
-  List listaSorteo = List();
+  List listaLoteriasJugadasDashboard = [];
+  List listaJugada = [];
+  List listaSorteo = [];
   int _indexMoneda = 0;
   int _indexLoteriaJugadas = 0;
   int _indexSorteo = 0;
@@ -51,7 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() => _onCreate = false);
       }
 
-      listaVentasGrafica = List.from(datos["ventasGrafica"]);
+      listaVentasGrafica = datos["ventasGrafica"] != null ? datos["ventasGrafica"].map<GraficaVentas>((e) => GraficaVentas.fromMap(e)).toList() : [];
       listaVentasPorLoteria = List.from(datos["loterias"]);
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
@@ -205,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-            StreamBuilder<List>(
+            StreamBuilder<List<GraficaVentas>>(
               stream: _streamControllerGrafica.stream,
               builder: (context, snapshot){
                 if(snapshot.hasData){
@@ -214,6 +216,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return Column(
                     children: <Widget>[
                       Container( height: 200, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),),
+                      // Container( 
+                      //   height: 200, 
+                      //   child: MyBarchar(
+                      //     medium: 1,
+                      //     listOfBottomLabel: snapshot.data.map((e) => Text(e.dia)).toList(),
+                      //     leftLabelDivider: 5,
+                      //     listOfData: snapshot.data.map((e) => [MyBar(value: e.total, color: Colors.grey[50]), MyBar(value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink)]).toList(),
+                      //   ),
+                      // ),
                       Padding(
                           padding: const EdgeInsets.only(top: 20, bottom: 15),
                           child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
@@ -279,10 +290,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-static List<charts.Series<OrdinalSales, String>> datosGrafica(List listaVentasGrafica) {
+static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas> listaVentasGrafica) {
 
-  final desktopSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v["dia"].toString(), Utils.toDouble(v["total"].toString()))).toList();
-  final tableSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v["dia"].toString(), Utils.toDouble(v["neto"].toString()))).toList();
+  final desktopSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia, Utils.toDouble(v.total.toString()))).toList();
+  final tableSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia.toString(), Utils.toDouble(v.neto.toString()))).toList();
     
 
     return [

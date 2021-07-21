@@ -10,13 +10,14 @@ import 'dart:convert';
 
 
 class UsuarioService{
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     map["idUsuario"] = await Db.idUsuario();
+    map["idGrupo"] = idGrupo;
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Uri.parse(Utils.URL + "/api/usuarios?token=$jwt"), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/usuarios/v2?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -157,13 +158,14 @@ class UsuarioService{
 ;
   }
  
-  static Future<List<Sesion>> sesiones({@required BuildContext context, scaffoldKey, DateTimeRange fecha}) async {
+  static Future<List<Sesion>> sesiones({@required BuildContext context, scaffoldKey, DateTimeRange fecha, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // var jwt = await Utils.createJwtForTest(map);
     map = {
       "servidor" : await Db.servidor(),
       "fecha" : fecha.start.toString(),
+      "idGrupo" : idGrupo,
     };
     var jwt = await Utils.createJwt(map);
     

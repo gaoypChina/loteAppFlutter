@@ -13,6 +13,7 @@ class BancaService{
   static Future<List<Banca>> all({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey}) async {
     var map = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
+    map["grupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
     var response = await http.get(Uri.parse(Utils.URL + "/api/bancas?token=$jwt"), headers: Utils.header);
     int statusCode =response.statusCode;
@@ -44,7 +45,7 @@ class BancaService{
     return (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : List<Banca>();
   }
 
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, Banca data}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, Banca data, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // map["servidor"] = "valentin";
@@ -58,6 +59,8 @@ class BancaService{
       "retornarDias" : retornarDias,
       "retornarGrupos" : retornarGrupos,
       "servidor" : await Db.servidor(),
+      "idGrupo" : idGrupo,
+      "idUsuario" : await Db.idUsuario(),
       "data" : data != null ? data.toJsonSave() : null,
     };
     var jwt = await Utils.createJwt(map);

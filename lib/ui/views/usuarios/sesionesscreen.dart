@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/sesion.dart';
@@ -29,16 +30,18 @@ class _SesionesScreenState extends State<SesionesScreen> {
   DateTimeRange _date;
   MyDate _fecha;
   List<Sesion> listaData;
+  int _idGrupo;
 
   _sesiones() async {
      _streamController.add(null);
-     listaData = await UsuarioService.sesiones(context: context, fecha: _date);
+     listaData = await UsuarioService.sesiones(context: context, fecha: _date, idGrupo: _idGrupo);
      _streamController.add(listaData);
   }
 
   _init() async {
     _date = MyDate.getTodayDateRange();
-     listaData = await UsuarioService.sesiones(context: context, fecha: _date);
+     _idGrupo = await Db.idGrupo();
+     listaData = await UsuarioService.sesiones(context: context, fecha: _date, idGrupo: _idGrupo);
     _streamController.add(listaData);
   }
 

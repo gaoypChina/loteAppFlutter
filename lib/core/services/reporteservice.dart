@@ -120,13 +120,14 @@ class ReporteService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
     map["servidor"] = await Db.servidor();
+    map["grupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
     print("ReporteService ventas: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/ventas"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ventas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/moor_database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
@@ -66,7 +67,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
 
 
   _init() async {
-    var parsed = await UsuarioService.index(context: context);
+    var parsed = await UsuarioService.index(context: context, idGrupo: await Db.idGrupo());
     print("UsuariosScreen _init parsed: $parsed");
     listaData = (parsed["usuarios"] != null) ? parsed["usuarios"].map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];

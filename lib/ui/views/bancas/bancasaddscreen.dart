@@ -131,6 +131,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
     listaFrecuencia = (parsed["frecuencias"] != null) ? parsed["frecuencias"].map<Frecuencia>((json) => Frecuencia.fromMap(json)).toList() : [];
     listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
+    if(listaGrupo.length > 0)
+      listaGrupo.insert(0, Grupo(id: 0, descripcion: "Ninguno"));
+
     for (var item in listaUsuario) {
       print("id: ${item.id} usuario: ${item.usuario}");
     }
@@ -2194,7 +2197,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  value: _grupo,
                                  items: listaGrupo.map((e) => [e, "${e.descripcion}"]).toList(),
                                  onChanged: (data){
-                                   setState(() => _grupo = data);
+                                   setState(() => _grupo = data.id != 0 ? data : null);
                                  },
                                ),
                              ),

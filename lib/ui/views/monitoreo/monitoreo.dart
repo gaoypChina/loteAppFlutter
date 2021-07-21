@@ -30,6 +30,7 @@ class MonitoreoScreen extends StatefulWidget {
 
 class _MonitoreoScreenState extends State<MonitoreoScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  StreamController<List<Banca>> _streamControllerBanca;
   DateTime _fecha = DateTime.now();
   DateTimeRange _date;
   List<Banca> _bancas = [];
@@ -58,14 +59,12 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     // TODO: implement initState
     initializeDateFormatting();
   _streamControllerMonitoreo = BehaviorSubject();
+  _streamControllerBanca = BehaviorSubject();
   _tipoTicket = listaTipoTicket[0];
-
-    _date = _getDefaultDateRange();
-
+    _init();
     _getBanca();
-    listaBancaFuture = _futureBancas();
+    // listaBancaFuture = _futureBancas();
   _confirmarTienePermiso();
-  _getMonitoreo();
     super.initState();
   }
 
@@ -78,16 +77,37 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _banca = Banca.fromMap(await Db.getBanca());
   }
 
-  Future<bool> _futureBancas() async{
-    _bancas = await BancaService.all(scaffoldKey: _scaffoldKey);
-    _seleccionarBancaPertenecienteAUsuario();
-    return true;
-  }
+  // Future<bool> _futureBancas() async{
+  //   _bancas = await BancaService.all(scaffoldKey: _scaffoldKey);
+  //   _seleccionarBancaPertenecienteAUsuario();
+  //   return true;
+  // }
 
   _confirmarTienePermiso() async {
    _tienePermisoMonitoreo = await Db.existePermiso("Monitorear ticket");
    _tienePermisoJugarComoCualquierBanca = await Db.existePermiso("Jugar como cualquier banca");
    _tienePermisoCancelarCualquierMomento = await Db.existePermiso("Cancelar tickets en cualquier momento");
+  }
+
+  _init() async {
+   try{
+    //  setState(() => _cargando = true);
+    _date = MyDate.getTodayDateRange();
+    print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
+    print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: await Db.idBanca(), retornarBancas: true, idGrupo: await Db.idGrupo());
+    print("MonitoreoScreen _init parsed: ${parsed["bancas"]}");
+    _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
+    _bancas = parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
+    _seleccionarBancaPertenecienteAUsuario();
+    _tmpListaVenta = _listaVenta.map((v) => v).toList();;
+    _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
+    _streamControllerBanca.add(_bancas);
+    // setState(() => _cargando = false);
+   } on Exception catch(e){
+      // setState(() => _cargando = false);
+    _streamControllerMonitoreo.add([]);
+   }
   }
 
   _getMonitoreo() async {
@@ -96,7 +116,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _streamControllerMonitoreo.add(null);
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
-    _listaVenta = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
     // setState(() => _cargando = false);
@@ -112,7 +133,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   if(banca != null && _bancas != null){
     int idx = _bancas.indexWhere((b) => b.id == banca.id);
     // print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${_bancas.length}');
-    setState(() => _indexBanca = (idx != -1) ? idx : 0);
+    _indexBanca = (idx != -1) ? idx : 0;
   }else{
     setState(() =>_indexBanca = 0);
   }
@@ -552,11 +573,13 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _dropdownBancas(){
-    return FutureBuilder<bool>(
-        future: listaBancaFuture,
+    return StreamBuilder<List<Banca>>(
+        stream: _streamControllerBanca.stream,
         builder: (context, snapshot){
           // print("FutureBuilder: ${snapshot.connectionState}");
           // if(snapshot.hasData){
+            if(!snapshot.hasData)
+              return SizedBox.shrink();
 
              return GestureDetector(
                   onTap: _showBottomSheetBanca,
@@ -765,12 +788,17 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
               SliverAppBar(
                 leading: BackButton(color: Utils.colorPrimary,),
                 backgroundColor: Colors.white,
-                title: AnimatedCrossFade(
-                  firstChild: Text("Monitoreo", style: TextStyle(color: Colors.black),), 
-                  secondChild: _dropdownBancas(), 
-                  crossFadeState: !_tienePermisoJugarComoCualquierBanca ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
-                  duration: Duration(milliseconds: 200)
-                  ),
+                title: StreamBuilder<List<Banca>>(
+                  stream: _streamControllerBanca.stream,
+                  builder: (context, snapshot) {
+                    return AnimatedCrossFade(
+                      firstChild: Text("Monitoreo", style: TextStyle(color: Colors.black),), 
+                      secondChild: _dropdownBancas(), 
+                      crossFadeState: !_tienePermisoJugarComoCualquierBanca ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
+                      duration: Duration(milliseconds: 200)
+                      );
+                  }
+                ),
                 
                 expandedHeight: 120,
                 flexibleSpace: Align(
