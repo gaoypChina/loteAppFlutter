@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -19,14 +20,16 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   bool _cargando = false;
   bool _onCreate = true;
   bool _ckbTodasLasFechas = false;
-  List<Banca> listaBanca = List();
+  List<Banca> listaBanca = [];
   int _idBanca = 0;
   int _indexBanca = 0;
-  List lista = List();
+  List lista = [];
   StreamController<List<Banca>> _streamControllerBancas;
   StreamController<List> _streamControllerTabla;
   String _fechaString;
   DateTime _fechaActual = DateTime.now();
+  int _idGrupoDeEsteUsuario;
+  Banca _banca;
 
   @override
   void initState() {
@@ -34,7 +37,7 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTabla = BehaviorSubject();
     _fechaString = "${_fechaActual.year}-${_fechaActual.month}-${_fechaActual.day}";
-    _tickets();
+    _init();
     super.initState();
     SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeRight,
@@ -55,11 +58,35 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     super.dispose();
 
   }
+
+  _init() async {
+    try{
+      setState(() => _cargando = true);
+      _idGrupoDeEsteUsuario = await Db.idGrupo();
+      var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: await Db.idBanca(), scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo(), retornarBancas: true);
+      if(_onCreate && datos != null){
+        List list = List.from(datos["bancas"]);
+        listaBanca = list.map((b) => Banca.fromMap(b)).toList();
+        if(listaBanca.length > 0)
+          _idBanca = listaBanca[0].id;
+        _streamControllerBancas.add(listaBanca);
+        _onCreate = false;
+      }
+      lista = datos["ticketsPendientesDePago"];
+      _streamControllerTabla.add(lista);
+      setState(() => _cargando = false);
+    }on Exception catch(e){
+      setState(() => _cargando = false);
+    }
+  }
+
+  
+
   
   _tickets() async {
     try{
       setState(() => _cargando = true);
-      var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: _idBanca, scaffoldKey: _scaffoldKey);
+      var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
       if(_onCreate && datos != null){
         List list = List.from(datos["bancas"]);
         listaBanca = list.map((b) => Banca.fromMap(b)).toList();

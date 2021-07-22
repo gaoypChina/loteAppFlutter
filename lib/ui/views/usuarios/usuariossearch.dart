@@ -3,10 +3,12 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/usuarioservice.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 
 class UsuariosSearch extends SearchDelegate <Usuario>{
   final List<Usuario> data;
-  UsuariosSearch(this.data);
+  final int idGrupo;
+  UsuariosSearch(this.data, this.idGrupo);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
    _avatarScreen(String data){
@@ -18,6 +20,11 @@ class UsuariosSearch extends SearchDelegate <Usuario>{
   }
 
   _listView(List<Usuario> listData){
+    if(listData == null)
+      return Center(child: MyEmpty(title: "No hay resultados que coincida", titleButton: "No hay coincidencias", icon: Icons.search_off,));
+    if(listData.length == 0)
+      return Center(child: MyEmpty(title: "No hay resultados que coincida", titleButton: "No hay coincidencias", icon: Icons.search_off,));
+      
     return ListView.builder(
       itemCount: listData.length,
       itemBuilder: (context, index){
@@ -59,7 +66,7 @@ class UsuariosSearch extends SearchDelegate <Usuario>{
     // TODO: implement buildResults
     print("UsuarioSearch buildResults: $query");
     return FutureBuilder(
-      future: UsuarioService.search(context: context, search: query),
+      future: UsuarioService.search(context: context, search: query, idGrupo: idGrupo),
       builder: (context, snapshot){
         if(snapshot.connectionState != ConnectionState.done)
           return Center(child: CircularProgressIndicator());

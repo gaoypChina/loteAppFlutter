@@ -39,9 +39,11 @@ class _BancasScreenState extends State<BancasScreen> {
   List<Banca> listaData = [];
   List<String> opciones = ["Todos", "Activas", "Desactivadas"];
   String _selectedOpcion;
+  int _idGrupoDeEsteUsuario;
 
   _init() async {
-    var parsed = await BancaService.index(context: context, retornarBancas: true, idGrupo: await Db.idGrupo());
+    _idGrupoDeEsteUsuario = await Db.idGrupo();
+    var parsed = await BancaService.index(context: context, retornarBancas: true, idGrupo: _idGrupoDeEsteUsuario);
     listaData = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
     _streamController.add(listaData);
     print("BancasScreen _init: $parsed");
@@ -219,7 +221,7 @@ class _BancasScreenState extends State<BancasScreen> {
   Widget _mysearch(){
     return GestureDetector(
       onTap: () async {
-        var data = await showSearch(context: context, delegate: BancasSearch(listaData));
+        var data = await showSearch(context: context, delegate: BancasSearch(listaData, _idGrupoDeEsteUsuario));
         if(data == null)
           return;
 

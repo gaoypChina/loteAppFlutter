@@ -98,7 +98,10 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
     //   //   }
     //   // }
     // }
-    if(widget.value != null && widget.value != _value){
+    if(widget.value == null){
+      _value = null;
+    }
+    else if(widget.value != null && widget.value != _value){
       _value = widget.value;
     }
   }
@@ -149,7 +152,7 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
     if(oldWidget.items != widget.items){
       _init();
     }
-    if (oldWidget.initialValue != widget.initialValue) {
+    if (oldWidget.initialValue != widget.initialValue || oldWidget.value != widget.value) {
       // hint = widget.hint;
       _initialValue();
     }

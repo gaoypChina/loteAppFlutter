@@ -117,13 +117,14 @@ class UsuarioService{
     return parsed;
   }
 
-  static Future<List<Usuario>> search({@required BuildContext context, scaffoldKey, String search}) async {
+  static Future<List<Usuario>> search({@required BuildContext context, scaffoldKey, String search, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // var jwt = await Utils.createJwtForTest(map);
     map = {
       "servidor" : await Db.servidor(),
       "search" : search,
+      "idGrupo" : idGrupo,
     };
     var jwt = await Utils.createJwt(map);
     

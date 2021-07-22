@@ -64,10 +64,12 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   var developerImage;
   List<String> opciones = ["Todos", "Activos", "Desactivados"];
   String _selectedOpcion;
+  int _idGrupoDeEsteUsuario;
 
 
   _init() async {
-    var parsed = await UsuarioService.index(context: context, idGrupo: await Db.idGrupo());
+    _idGrupoDeEsteUsuario = await Db.idGrupo();
+    var parsed = await UsuarioService.index(context: context, idGrupo: _idGrupoDeEsteUsuario);
     print("UsuariosScreen _init parsed: $parsed");
     listaData = (parsed["usuarios"] != null) ? parsed["usuarios"].map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
@@ -839,7 +841,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
    Widget _mysearch(){
     return GestureDetector(
       onTap: () async {
-          Usuario usuario = await showSearch(context: context, delegate: UsuariosSearch(listaData));
+          Usuario usuario = await showSearch(context: context, delegate: UsuariosSearch(listaData, _idGrupoDeEsteUsuario));
           if(usuario == null)
             return;
     

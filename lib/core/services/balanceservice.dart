@@ -7,7 +7,7 @@ import 'dart:convert';
 
 
 class BalanceService{
-  static Future<List> bancas({BuildContext context, scaffoldKey, DateTime fechaHasta}) async {
+  static Future<List> bancas({BuildContext context, scaffoldKey, DateTime fechaHasta, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
@@ -16,10 +16,11 @@ class BalanceService{
     map["idUsuario"] = await Db.idUsuario();
     map["layout"] = "Principal";
     map["servidor"] = await Db.servidor();
+    map["idGrupo"] = idGrupo;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/balance/bancas"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/balance/v2/bancas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

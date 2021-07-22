@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/services/bancaservice.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 
 class BancasSearch extends SearchDelegate <Banca>{
   final List<Banca> data;
-  BancasSearch(this.data);
+  final int idGrupo;
+  BancasSearch(this.data, this.idGrupo);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
    _avatarScreen(String data){
@@ -17,6 +19,11 @@ class BancasSearch extends SearchDelegate <Banca>{
   }
 
   _listView(List<Banca> listData){
+    if(listData == null)
+      return Center(child: MyEmpty(title: "No hay resultados que coincida", titleButton: "No hay coincidencias", icon: Icons.search_off,));
+    if(listData.length == 0)
+      return Center(child: MyEmpty(title: "No hay resultados que coincida", titleButton: "No hay coincidencias", icon: Icons.search_off,));
+      
     return ListView.builder(
       itemCount: listData.length,
       itemBuilder: (context, index){
@@ -58,7 +65,7 @@ class BancasSearch extends SearchDelegate <Banca>{
     // TODO: implement buildResults
     print("BancasSearch buildResults: $query");
     return FutureBuilder(
-      future: BancaService.search(context: context, search: query),
+      future: BancaService.search(context: context, search: query, idGrupo: idGrupo),
       builder: (context, snapshot){
         if(snapshot.connectionState != ConnectionState.done)
           return Center(child: CircularProgressIndicator());

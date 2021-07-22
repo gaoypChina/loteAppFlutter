@@ -43,6 +43,7 @@ class Banca {
   List<Gasto> gastos;
   List<Dia> dias;
   double ventasDelDia;
+  double balance;
 
 
   Banca({this.id, this.descripcion, this.codigo, this.dueno, this.localidad, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.limiteVenta, this.balanceDesactivacion, this.minutosCancelarTicket, this.imprimirCodigoQr, this.usuario, this.grupo, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos, this.dias});
@@ -78,7 +79,8 @@ class Banca {
         pagosCombinaciones = (snapshot["pagosCombinaciones"] != null) ? pagosCombinacionesToMap(Utils.parsedToJsonOrNot(snapshot["pagosCombinaciones"])) : [],
         gastos = (snapshot["gastos"] != null) ? gastosToMap(Utils.parsedToJsonOrNot(snapshot["gastos"])) : [],
         dias = (snapshot["dias"] != null) ? diasToMap(Utils.parsedToJsonOrNot(snapshot["dias"])) : [],
-        ventasDelDia = Utils.toDouble(snapshot['ventasDelDia'].toString()) ?? 0.0
+        ventasDelDia = Utils.toDouble(snapshot['ventasDelDia'].toString()) ?? 0.0,
+        balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0.0
         ;
 
         static List<Loteria> loteriasToMap(loterias){

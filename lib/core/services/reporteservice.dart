@@ -243,18 +243,20 @@ class ReporteService{
     return parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
   }
 
-  static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca}) async {
+  static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca, int idGrupo, bool retornarBancas = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
     map["fecha"] = fechaString;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
+    map["idGrupo"] = idGrupo;
+    map["retornarBancas"] = retornarBancas;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ticketsPendientesDePagoIndex"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
