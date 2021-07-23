@@ -321,7 +321,7 @@ _opcionChanged(String opcion){
             if(snapshot.data.length == 0 && listaData.length == 0)
               return SliverFillRemaining(
                 child: Center(
-                    child: MyEmpty(title: "No hay loterias; registre nuevas loterias", icon: Icons.group_work_outlined, titleButton: "Crear nuevo grupo", onTap: _showDialogGuardar,)
+                    child: MyEmpty(title: "No hay loterias; registre nuevas loterias", icon: Icons.account_balance, titleButton: "Crear nuevo grupo", onTap: _showDialogGuardar,)
                   ),
               );
 

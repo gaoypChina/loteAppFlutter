@@ -117,16 +117,19 @@ class _RolScreenState extends State<RolScreen> {
   }
 
   Widget _myPermissionCheckbox(Permiso permiso){
-    return MyCheckBox(
-      // color: (permiso.esPermisoRol) ? Colors.green : null,
-      disable: permiso.esPermisoRol,
-      medium: 3,
-      title: "${permiso.descripcion}",
-      value: permiso.seleccionado,
-      onChanged: (bool value){
-        print("RolesScreen _myPermissionCheckbox: $value");                                 
-        setState(() => permiso.seleccionado = value);
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 6),
+      child: MyCheckBox(
+        // color: (permiso.esPermisoRol) ? Colors.green : null,
+        disable: permiso.esPermisoRol,
+        medium: 3,
+        title: "${permiso.descripcion}",
+        value: permiso.seleccionado,
+        onChanged: (bool value){
+          print("RolesScreen _myPermissionCheckbox: $value");                                 
+          setState(() => permiso.seleccionado = value);
+        },
+      ),
     );
   }
 
@@ -254,11 +257,12 @@ class _RolScreenState extends State<RolScreen> {
             MySliverButton(title: "Guardar", onTap: _guardar, color: Colors.green,)
           ],
         ), 
-        sliver: SliverList(delegate: SliverChildListDelegate([
-          Wrap(children: listaWidget),
+        sliver: 
+        // SliverList(delegate: SliverChildListDelegate([
+          SliverFillRemaining(child: SingleChildScrollView(child: Wrap(children: listaWidget))),
             
               
-        ]))
+        // ]))
       )
     );
   }

@@ -102,16 +102,19 @@ StreamController<List<Usuario>> _streamController;
     if(usuario == null)
       usuario = Usuario();
 
+
+    listaPermiso.where((element) => element.idTipo == 4).toList().forEach((element) {print("UsuariosAddScreen _fillEntityList: ${element.descripcion}");});
+
     var grupoPermisoUsuario = Grupopermiso(id: 1, descripcion: "Usuarios", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 1).toList() : []);
-    var grupoPermisoTickets = Grupopermiso(id: 1, descripcion: "Tickets", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 2).toList() : []);
-    var grupoPermisoBancas = Grupopermiso(id: 1, descripcion: "Bancas", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 3).toList() : []);
-    var grupoPermisoLoterias = Grupopermiso(id: 1, descripcion: "Loterias", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 4).toList() : []);
-    var grupoPermisoJugar = Grupopermiso(id: 1, descripcion: "Jugar", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 5).toList() : []);
-    var grupoPermisoVentas = Grupopermiso(id: 1, descripcion: "Ventas", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 6).toList() : []);
-    var grupoPermisoAccesoALSistema = Grupopermiso(id: 1, descripcion: "Acceso al sistema", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 7).toList() : []);
-    var grupoPermisoTransacciones = Grupopermiso(id: 1, descripcion: "Transacciones", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 8).toList() : []);
-    var grupoPermisoBalances = Grupopermiso(id: 1, descripcion: "Balances", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 9).toList() : []);
-    var grupoPermisoOtros = Grupopermiso(id: 1, descripcion: "Otros", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 10).toList() : []);
+    var grupoPermisoTickets = Grupopermiso(id: 2, descripcion: "Tickets", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 2).toList() : []);
+    var grupoPermisoBancas = Grupopermiso(id: 3, descripcion: "Bancas", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 3).toList() : []);
+    var grupoPermisoLoterias = Grupopermiso(id: 4, descripcion: "Loterias", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.descripcion == "Manejar horarios de loterias" || element.descripcion == "Manejar loterias").toList() : []);
+    var grupoPermisoJugar = Grupopermiso(id: 5, descripcion: "Jugar", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 4).toList() : []);
+    var grupoPermisoVentas = Grupopermiso(id: 6, descripcion: "Ventas", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 5).toList() : []);
+    var grupoPermisoAccesoALSistema = Grupopermiso(id: 7, descripcion: "Acceso al sistema", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 6).toList() : []);
+    var grupoPermisoTransacciones = Grupopermiso(id: 8, descripcion: "Transacciones", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 7).toList() : []);
+    var grupoPermisoBalances = Grupopermiso(id: 9, descripcion: "Balances", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 8).toList() : []);
+    var grupoPermisoOtros = Grupopermiso(id: 10, descripcion: "Otros", permisos: (listaPermiso.length > 0) ? listaPermiso.where((element) => element.idTipo == 9).toList() : []);
     listaGrupoPermiso.addAll([grupoPermisoUsuario, grupoPermisoTickets, grupoPermisoBancas, grupoPermisoLoterias, grupoPermisoJugar, grupoPermisoVentas, grupoPermisoAccesoALSistema, grupoPermisoTransacciones, grupoPermisoBalances, grupoPermisoOtros]);
     permisos = (usuario.permisos != null) ? (usuario.permisos.length > 0) ? usuario.permisos : null : null;
     // listaEntidad.forEach((element) {

@@ -130,7 +130,7 @@ class BloqueosService{
     return parsed;
   }
 
-  static Future<Map<String, dynamic>> guardarJugadas({@required BuildContext context, scaffoldKey, @required List<Banca> bancas, @required List<Loteria> loterias, @required List<Jugada> jugadas, @required Moneda moneda, @required bool ignorarDemasBloqueos, @required DateTimeRange date}) async {
+  static Future<Map<String, dynamic>> guardarJugadas({@required BuildContext context, scaffoldKey, @required List<Banca> bancas, @required List<Loteria> loterias, @required List<Jugada> jugadas, @required Moneda moneda, @required bool ignorarDemasBloqueos, @required DateTimeRange date, @required descontarDelBloqueoGeneral}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
@@ -140,6 +140,7 @@ class BloqueosService{
     map["jugadas"] = jugadas != null ? Jugada.jugadasToJson(jugadas) : [];
     map["idMoneda"] = moneda != null ? moneda.id : null;
     map["ignorarDemasBloqueos"] = ignorarDemasBloqueos;
+    map["descontarDelBloqueoGeneral"] = descontarDelBloqueoGeneral;
     map["servidor"] = await Db.servidor();
     map["fechaDesde"] = date.start.toString();
     map["fechaHasta"] = date.end.toString();

@@ -689,7 +689,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
    try {
       var parsed;
        if(_selectedTipo == "Por banca")
-        parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
+        parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date, descontarDelBloqueoGeneral: _descontarDelBloqueoGeneral);
       else
         parsed = await BloqueosService.guardarJugadasGeneral(context: context, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
 
