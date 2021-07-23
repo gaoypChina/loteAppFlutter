@@ -452,7 +452,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         await BluetoothChannel.printTicket(datos["ticket"], BluetoothChannel.TYPE_CANCELADO);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta(datos["ticket"]);
+                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
                         _back();
                       } on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);
@@ -463,7 +463,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         var datos = await TicketService.cancelar(scaffoldKey: _scaffoldKey, codigoBarra: venta.codigoBarra);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta(datos["ticket"]);
+                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
                         _back();
                       }on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);

@@ -441,7 +441,7 @@ class Realtime{
     List<Salesdetails> listSalesdetails = [];
     Usuario usuario;
     print("Realtime guardarVenta before date");
-    DateTime date = await NTP.now();
+    DateTime date = await NTP.now(timeout: Duration(seconds: 1));
     await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
     usuario = Usuario.fromMap(await Db.getUsuario(tx));

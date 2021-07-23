@@ -24,7 +24,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/cancelarMovil"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/v2/cancelarMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
