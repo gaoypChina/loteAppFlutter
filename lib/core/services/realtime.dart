@@ -353,6 +353,7 @@ class Realtime{
         print('dentro stocks: ${parsed['stocks']}');
 
           List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
+          print('Realtime sincronizarTodosDataBatch length stocks: ${lista.length}');
           for(Stock s in lista){
             // batch.insert("Stocks", s.toJson());
             batch.rawInsert(
@@ -363,6 +364,7 @@ class Realtime{
 
         if(parsed['blocksgenerals'] != null){
           List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksgenerals: ${listBlocksgenerals.length}');
           for(Blocksgenerals b in listBlocksgenerals){
             // batch.insert("Blocksgenerals", b.toJson());
             batch.rawInsert(
@@ -373,6 +375,7 @@ class Realtime{
 
         if(parsed['blockslotteries'] != null){
           List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
+          print('Realtime sincronizarTodosDataBatch length blockslotteries: ${listBlockslotteries.length}');
           for(Blockslotteries b in listBlockslotteries){
             //  batch.insert("Blockslotteries", b.toJson());
              batch.rawInsert(
@@ -383,6 +386,7 @@ class Realtime{
 
         if(parsed['blocksplays'] != null){
           List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksplays: ${listBlocksplays.length}');
           for(Blocksplays b in listBlocksplays){
             // batch.insert("Blocksplays", b.toJson());
             batch.rawInsert(
@@ -393,6 +397,7 @@ class Realtime{
 
         if(parsed['blocksplaysgenerals'] != null){
           List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksplaysgenerals: ${listBlocksplaysgenerals.length}');
           for(Blocksplaysgenerals b in listBlocksplaysgenerals){
             // batch.insert("Blocksplaysgenerals", b.toJson());
             batch.rawInsert(
