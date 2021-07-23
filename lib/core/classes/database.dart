@@ -249,6 +249,12 @@ class DBSqflite{
   static Future<Map<String, dynamic>> getSaleNoSubida([var transaction]) async {
       String queryStatemet = 'SELECT * FROM Sales WHERE subido != 1 ORDER BY ID ASC LIMIT 1';
       // String queryStatemet = 'SELECT * FROM Sales WHERE subido == ORDER BY ID ASC LIMIT 1';
+
+      // Verificamos de que la base de datos este abierta
+      if(transaction == null){
+        if(!database.isOpen) 
+          return null;
+      }
       var query = transaction == null ? await database.rawQuery(queryStatemet) : await transaction.rawQuery(queryStatemet);
       if(query.isEmpty){
         return null;
