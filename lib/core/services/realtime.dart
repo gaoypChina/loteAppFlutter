@@ -195,94 +195,46 @@ class Realtime{
 
    
 
-   static sincronizarTodos(GlobalKey<ScaffoldState> _scaffoldKey) async{
+   static sincronizarTodos(GlobalKey<ScaffoldState> _scaffoldKey, idBanca) async{
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
 
     map["idUsuario"] = await Db.idUsuario();
-    map["idBanca"] = await Db.idBanca();
+    map["idBanca"] = idBanca;
     map["servidor"] = await Db.servidor();
+    print("Realtime sincronizarTodos: $idBanca");
     var jwt = await Utils.createJwt(map);
     map2["datos"] =jwt;
     
-    final response = await http.post(Uri.parse(Utils.URL +"/api/realtime/todos"), body: json.encode(map2), headers: header );
+    final response = await http.post(Uri.parse(Utils.URL +"/api/realtime/v2/todos"), body: json.encode(map2), headers: header );
     int statusCode = response.statusCode;
 
-    if (statusCode < 200 || statusCode > 400 || json == null) {
-      //  print('sincronizarTodos error: ${response.body}');
-      throw Exception('Failed to load post');
-    } else {
-      // Si esta respuesta no fue OK, lanza un error.
-       //var parsed = json.decode(response.body).cast<String, dynamic>();
-       //print('sincronizarTodos: ${parsed}');
-      // insertarDatos(response.body, true);
-      // stockBox.
-      
-      // var parsed = json.decode(response.body).cast<String, dynamic>();
+    if(statusCode < 200 || statusCode > 400){
+      print("sincronizarTodos index: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
-        
-        // await c.add("maximoIdRealtime", parsed['maximoIdRealtime']);
-
-        print('fuera stocks version: ${parsed['version']}');
-      
-      // if(parsed["version"] != null){
-      //   await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
-      // }
-      // if(parsed["usuario"] != null){
-      //   await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
-      // }
-
-      //  if(parsed['stocks'] != null){
-      //   print('dentro stocks: ${parsed['stocks']}');
-
-      //     List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock.fromMap(json)).toList();
-      //     for(Stock s in lista){
-      //       await Db.insert("Stocks", s.toJson());
-      //     }
-      //  }
-
-      //   if(parsed['blocksgenerals'] != null){
-      //     List<Blocksgenerals> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
-      //     for(Blocksgenerals b in listBlocksgenerals){
-      //       await Db.insert("Blocksgenerals", b.toJson());
-      //     }
-      //   }
-
-      //   if(parsed['blockslotteries'] != null){
-      //     List<Blockslotteries> listBlockslotteries = parsed['blockslotteries'].map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
-      //     for(Blockslotteries b in listBlockslotteries){
-      //       await Db.insert("Blockslotteries", b.toJson());
-      //     }
-      //   }
-
-      //   if(parsed['blocksplays'] != null){
-      //     List<Blocksplays> listBlocksplays = parsed['blocksplays'].map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
-      //     for(Blocksplays b in listBlocksplays){
-      //       await Db.insert("Blocksplays", b.toJson());
-      //     }
-      //   }
-
-      //   if(parsed['blocksplaysgenerals'] != null){
-      //     List<Blocksplaysgenerals> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
-      //     for(Blocksplaysgenerals b in listBlocksplaysgenerals){
-      //       await Db.insert("Blocksplaysgenerals", b.toJson());
-      //     }
-      //   }
-
-      //   if(parsed['draws'] != null){
-      //     List<Draws> listDraws = parsed['draws'].map<Draws>((json) => Draws.fromMap(json)).toList();
-      //     for(Draws b in listDraws){
-      //       await Db.insert("Draws", b.toJson());
-      //     }
-      //   }
-        
-
-
-        await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed);
-        
-
-        // print('stocks insertar: ${parsed['draws']}');
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: _scaffoldKey);
+      throw Exception("Error del servidor sincronizarTodos: ${parsed["message"]}");
     }
+
+    
+    // var parsed = json.decode(response.body).cast<String, dynamic>();
+    var parsed = await compute(Utils.parseDatos, response.body);
+      
+      // await c.add("maximoIdRealtime", parsed['maximoIdRealtime']);
+
+      print('fuera stocks version: ${parsed['version']}');
+    
+    
+
+      if(parsed["errores"] == 1){
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: _scaffoldKey);
+        throw Exception("Error sincronizarTodos: ${parsed["mensaje"]}");
+      }
+      
+
+
+    await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed);
+
   }
 
   static sincronizarTodosData(_scaffoldKey, var parsed) async {

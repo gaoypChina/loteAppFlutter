@@ -833,7 +833,7 @@ Future<bool> _requestPermisionChannel() async {
       // socket.emit("message", ["Hello world!"]);
       _emitToGetNewIdTicket();
       _emitToGetVentasDelDia();
-      await Realtime.sincronizarTodos(_scaffoldKey);
+      await Realtime.sincronizarTodos(_scaffoldKey, await Db.idBanca());
       await _getPermisos();
       _socketContadorErrores = 0;
     });
@@ -1645,12 +1645,13 @@ AppBar _appBar(bool screenHeightIsSmall){
                                               hint: Text('sel. banca'),
                                               // isExpanded: true,
                                               value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                                              onChanged: (Banca banca){
+                                              onChanged: (Banca banca) async {
                                                 setState(() {
                                                 _indexBanca = listaBanca.indexOf(banca); 
                                                 _emitToGetNewIdTicket();
                                                 indexPost(false);
                                                 });
+                                                await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
                                               },
                                               items: listaBanca.map((b){
                                                 return DropdownMenuItem<Banca>(
