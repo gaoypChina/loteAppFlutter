@@ -118,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     height: 35,
                     child: Theme(
                       data: Theme.of(context).copyWith(accentColor: Colors.white),
-                      child: new CircularProgressIndicator(),
+                      child: new CircularProgressIndicator(color: Colors.white,),
                     ),
                   ),
               )

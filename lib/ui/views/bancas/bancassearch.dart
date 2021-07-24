@@ -10,11 +10,11 @@ class BancasSearch extends SearchDelegate <Banca>{
   BancasSearch(this.data, this.idGrupo);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
-   _avatarScreen(String data){
+    _avatarScreen(Banca data){
 
     return CircleAvatar(
-      backgroundColor: listaColor[Utils.generateNumber(0, 5)],
-      child: data != null ? Text(data.substring(0, 1).toUpperCase()) : null,
+      backgroundColor: data.status == 1 ? Colors.green : Colors.pink,
+      child: data.status == 1 ? Icon(Icons.done, color: Colors.green[100],) : Icon(Icons.unpublished, color: Colors.pink[100],),
     );
   }
 
@@ -28,7 +28,7 @@ class BancasSearch extends SearchDelegate <Banca>{
       itemCount: listData.length,
       itemBuilder: (context, index){
         return ListTile(
-            leading: _avatarScreen(listData[index].descripcion),
+            leading: _avatarScreen(listData[index]),
             title: Text("${listData[index].descripcion}"),
             isThreeLine: true,
             subtitle: Column(

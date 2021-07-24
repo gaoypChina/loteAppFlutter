@@ -97,6 +97,7 @@ String _montoPrueba = '0';
   bool _ckbLigarTripleta = false;
   bool _drawerIsOpen = false;
   bool _tienePermisoJugarFueraDeHorario = false;
+  bool _tienePermisoJugarSinDisponibilidad = false;
   bool _tienePermisoJugarMinutosExtras = false;
   bool _tienePermisoJugarComoCualquierBanca = false;
   bool _tienePermisoManejarResultados = false;
@@ -273,7 +274,7 @@ Future<bool> _requestPermisionChannel() async {
 
   _guardarLocal() async {
     try {
-      var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras);
+      var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       listaJugadas = [];
       _streamControllerJugada.add(listaJugadas);
       print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
@@ -636,8 +637,9 @@ Future<bool> _requestPermisionChannel() async {
     bool tienePermisoManejarManejarReglas = await Db.existePermiso("Manejar reglas");
     bool tienePermisoManejarManejarGrupos = await Db.existePermiso("Manejar grupos");
     bool tienePermisoVerVentasPorFecha = await Db.existePermiso("Ver ventas por fecha");
+    bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    print("_getPermisos tiene permiso ver ajustes: $permisoVerAjustes");
+    print("_getPermisos tiene permiso jugar sin disponibilidad: $tienePermisoJugarSinDisponibilidad");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -646,6 +648,7 @@ Future<bool> _requestPermisionChannel() async {
     setState((){
       _tienePermisoJugarComoCualquierBanca = permiso;
       _tienePermisoJugarFueraDeHorario = permisoJugarFueraDeHorario;
+      _tienePermisoJugarSinDisponibilidad = tienePermisoJugarSinDisponibilidad;
       _tienePermisoJugarMinutosExtras = permisoJugarMinutosExtras;
       _tienePermisoProgramador = permisoProgramador;
       _tienePermisoAdministrador = permisoAdministrador;
@@ -1485,7 +1488,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                 visible: _cargando,
                 child: Theme(
                   data: Theme.of(context).copyWith(accentColor: Colors.white),
-                  child: new CircularProgressIndicator(),
+                  child: new CircularProgressIndicator(color: Colors.white,),
                 ),
               ),
             ),
@@ -2324,132 +2327,7 @@ AppBar _appBar(bool screenHeightIsSmall){
 
                       },
                     ),
-                    Visibility(
-                      visible: _tienePermisoManejarUsuarios || _tienePermisoVerIniciosDeSesion,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.person_outline),
-                        title: Text("Usuarios"),
-                        children: [
-                           Visibility(
-                             visible: _tienePermisoManejarUsuarios,
-                             child: ListTile(
-                              title: Text('Usuarios'),
-                              leading: Icon(Icons.person),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/usuarios");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                                                     ),
-                           ),
-                           Visibility(
-                             visible: _tienePermisoVerIniciosDeSesion,
-                             child: ListTile(
-                              title: Text('Sesiones'),
-                              leading: Icon(Icons.dashboard),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/sesiones");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                                                     ),
-                           ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerReporteJugadas || _tienePermisoVerHistoricoVentas || _tienePermisoVerVentas || _tienePermisoVerVentasPorFecha,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.person_outline),
-                        title: Text("Reportes"),
-                        children: [
-                           Visibility(
-                            visible: _tienePermisoVerReporteJugadas,
-                            child: ListTile(
-                              title: Text('Reporte jugadas'),
-                              leading: Icon(Icons.receipt_long),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/reporteJugadas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerHistoricoVentas,
-                            child: ListTile(
-                              title: Text('Historico ventas'),
-                              leading: Icon(Icons.timeline),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/historicoVentas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerVentasPorFecha,
-                            child: ListTile(
-                              title: Text('Ventas por fecha'),
-                              leading: Icon(Icons.timeline),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/ventasPorFecha");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerVentas,
-                            child: ListTile(
-                              title: Text('Ventas'),
-                              leading: Icon(Icons.insert_chart),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/ventas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarBancas,
-                      child: ListTile(
-                        title: Text('Bancas'),
-                        leading: Icon(Icons.account_balance),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/bancas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarLoterias,
-                      child: ListTile(
-                        title: Text('Loterias'),
-                        leading: Icon(Icons.group_work_outlined),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/loterias");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarManejarGrupos,
-                      child: ListTile(
-                        title: Text('Grupos'),
-                        leading: Icon(Icons.group_work),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/grupos");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
+                    
                     Visibility(
                       visible: _tienePermisoVerDashboard,
                       child: ListTile(
@@ -2496,19 +2374,65 @@ AppBar _appBar(bool screenHeightIsSmall){
                         _scaffoldKey.currentState.openEndDrawer();},
                       ),
                     ),
-                    
                     Visibility(
-                      visible: _tienePermisoVerListaDeBalancesDeBancass,
-                      child: ListTile(
-                        title: Text('Balance bancas'),
-                        leading: Icon(Icons.account_balance),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/balanceBancas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
+                      visible: _tienePermisoVerReporteJugadas || _tienePermisoVerHistoricoVentas || _tienePermisoVerVentas || _tienePermisoVerVentasPorFecha,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.analytics),
+                        title: Text("Reportes"),
+                        children: [
+                           Visibility(
+                            visible: _tienePermisoVerReporteJugadas,
+                            child: ListTile(
+                              title: Text('Reporte jugadas'),
+                              leading: Icon(Icons.receipt_long),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/reporteJugadas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerHistoricoVentas,
+                            child: ListTile(
+                              title: Text('Historico ventas'),
+                              leading: Icon(Icons.timeline),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/historicoVentas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerVentasPorFecha,
+                            child: ListTile(
+                              title: Text('Ventas por fecha'),
+                              leading: Icon(Icons.event_available),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/ventasPorFecha");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerVentas,
+                            child: ListTile(
+                              title: Text('Ventas'),
+                              leading: Icon(Icons.insert_chart),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/ventas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    
+                    
                     Visibility(
                       visible: _tienePermisoAdministrador || _tienePermisoProgramador,
                       child: ListTile(
@@ -2577,6 +2501,89 @@ AppBar _appBar(bool screenHeightIsSmall){
                         ],
                       ),
                     ),
+                    Visibility(
+                      visible: _tienePermisoManejarUsuarios || _tienePermisoVerIniciosDeSesion,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.person_outline),
+                        title: Text("Usuarios"),
+                        children: [
+                           Visibility(
+                             visible: _tienePermisoManejarUsuarios,
+                             child: ListTile(
+                              title: Text('Usuarios'),
+                              leading: Icon(Icons.person),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/usuarios");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                                                     ),
+                           ),
+                           Visibility(
+                             visible: _tienePermisoVerIniciosDeSesion,
+                             child: ListTile(
+                              title: Text('Sesiones'),
+                              leading: Icon(Icons.sync_alt),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/sesiones");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                                                     ),
+                           ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoVerListaDeBalancesDeBancass,
+                      child: ListTile(
+                        title: Text('Balance bancas'),
+                        leading: Icon(Icons.account_balance_wallet),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/balanceBancas");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    
+                    Visibility(
+                      visible: _tienePermisoManejarBancas,
+                      child: ListTile(
+                        title: Text('Bancas'),
+                        leading: Icon(Icons.account_balance),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/bancas");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarLoterias,
+                      child: ListTile(
+                        title: Text('Loterias'),
+                        leading: Icon(Icons.group_work_outlined),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/loterias");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarManejarGrupos,
+                      child: ListTile(
+                        title: Text('Grupos'),
+                        leading: Icon(Icons.group_work),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/grupos");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    
                     Visibility(
                       visible: _tienePermisoVerAjustes,
                       child: ListTile(
@@ -4259,6 +4266,7 @@ _selectedBanca() async {
     int idSorteo = await getIdSorteo(jugada, loteria);
     String jugadaConSigno = jugada;
     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+    print("PrincipalView getMontoDisponible banca moneda: ${banca.descripcion}");
 
     if(idSorteo != 4){
       List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);

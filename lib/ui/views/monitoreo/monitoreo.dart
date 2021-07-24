@@ -279,7 +279,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
       }
       else{
         background = Colors.grey;
-        icon = Icons.timelapse_outlined;
+        icon = Icons.timer;
       }
     }
     else if(venta.status == 2){

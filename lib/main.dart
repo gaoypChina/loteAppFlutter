@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
           // Define the default TextTheme. Use this to specify the default
           // text styling for headlines, titles, bodies of text, and more.
           textTheme: TextTheme(
-            headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+            headline1: TextStyle(fontSize: !kIsWeb ? 30 : 72.0, fontWeight: FontWeight.bold),
             headline6: TextStyle(fontSize: 36.0),
             bodyText2: TextStyle(fontSize: 14.0),
           ),

@@ -12,21 +12,22 @@ import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:timezone/timezone.dart';
 
 class  Utils {
-  static final String URL = 'http://127.0.0.1:8000';
-  static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  // static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL_SOCKET = 'http://148.255.160.175:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  // static final String URL = 'https://loteriasdo.gq';
-  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  static final String URL = 'https://loteriasdo.gq';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -901,6 +902,234 @@ class  Utils {
 
     return nextMonth;
   }
+
+  static int getIdDia(){
+    DateTime fecha = DateTime.now();
+    //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
+    return fecha.weekday;
+  }
+
+  static Future<double> getMontoDisponible(String jugada, Loteria loteria, Banca banca, [Loteria loteriaSuperpale]) async {
+    
+    var montoDisponible = null;
+    
+   
+    int idDia = getIdDia();
+    int idSorteo = await getIdSorteo(jugada);
+    String jugadaConSigno = jugada;
+    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+    print("Utils getMontoDisponible banca moneda: ${banca.descripcion}");
+
+    if(idSorteo != 4){
+      List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);
+
+      if(query.isEmpty != true)
+        montoDisponible = query.first['monto'];
+        
+      
+      if(montoDisponible != null){
+        query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+        if(query.isEmpty != true){
+          montoDisponible = query.first['monto'];
+        }else{
+          
+          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+          query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            var first = query.first;
+            if(first["ignorarDemasBloqueos"] == 1)
+              montoDisponible = first["monto"];
+          }
+        }
+      }
+
+
+      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+      if(montoDisponible == null){
+          query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
+        if(query.isEmpty != true){
+          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+          var stock = query.first;
+          if(stock["ignorarDemasBloqueos"] == 0){
+            query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }else{
+              query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+              if(query.isEmpty != true){
+                montoDisponible = query.first["monto"];
+              }
+              else
+                montoDisponible = stock["monto"];
+            }
+          }else{
+            montoDisponible = stock["monto"];
+          }
+        }
+      }
+
+      
+
+      if(montoDisponible == null){
+        query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+        if(query.isEmpty != true){
+          var blocksplaysgenerals = query.first;
+          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+            montoDisponible = null;
+          }else{
+            montoDisponible = blocksplaysgenerals["monto"];
+          }
+        }
+
+// query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
+        // print("Monto disponible blocksplaysgenrals: $query");
+
+        if(montoDisponible == null){
+          query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            montoDisponible = query.first["monto"];
+          }else{
+            query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true)
+              montoDisponible = query.first["monto"];
+          }
+
+          if(montoDisponible == null){
+            query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          if(montoDisponible == null){
+            query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+        }
+      }
+    }else{
+      // MONTO SUPER PALE
+      // Debo ordenar de menor a mayor los idloteria y idloteriaSuperpale, 
+      // el idLoteria tendra el numero menor y el idLoteriaSuper tendra el numero mayor
+
+      if(loteria.id > loteriaSuperpale.id){
+        Loteria tmp = loteriaSuperpale;
+        loteriaSuperpale = loteria;
+        loteria = tmp;
+      }
+      List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, loteriaSuperpale.id, idSorteo, jugada, 0, banca.idMoneda]);
+      
+      print("getMontoDisponible super pale: $query");
+
+      if(query.isEmpty != true)
+        montoDisponible = query.first['monto'];
+        
+      
+      if(montoDisponible != null){
+        query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+        if(query.isEmpty != true){
+          montoDisponible = query.first['monto'];
+        }else{
+          
+          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+          query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            var first = query.first;
+            if(first["ignorarDemasBloqueos"] == 1)
+              montoDisponible = first["monto"];
+          }
+        }
+      }
+
+
+      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+      if(montoDisponible == null){
+          query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, banca.idMoneda]);
+        if(query.isEmpty != true){
+          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+          var stock = query.first;
+          if(stock["ignorarDemasBloqueos"] == 0){
+            query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }else{
+              query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+              if(query.isEmpty != true){
+                montoDisponible = query.first["monto"];
+              }
+              else
+                montoDisponible = stock["monto"];
+            }
+          }else{
+            montoDisponible = stock["monto"];
+          }
+        }
+      }
+
+      
+
+      if(montoDisponible == null){
+        query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+        if(query.isEmpty != true){
+          var blocksplaysgenerals = query.first;
+          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+            montoDisponible = null;
+          }else{
+            montoDisponible = blocksplaysgenerals["monto"];
+          }
+        }
+
+        if(montoDisponible == null){
+          query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            montoDisponible = query.first["monto"];
+          }else{
+            query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true)
+              montoDisponible = query.first["monto"];
+          }
+
+          if(montoDisponible == null){
+            query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          if(montoDisponible == null){
+            query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+        }
+      }
+    }
+
+    // setState(() {
+    //  _txtMontoDisponible.text = montoDisponible.toString(); 
+    // });
+    // print('montoDisponiblePrueba idSorteo: $montoDisponible');
+
+  
+    
+    
+    double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
+
+    return montoDisponibleFinal;
+   
+ }
+
 
  
 }

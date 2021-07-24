@@ -873,41 +873,52 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
     "Maneje todos sus usuarios con sus respectivos permisos";
   }
 
-  _avatarScreen(String data){
-    // List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
-    Color color;
-    IconData icon;
-    if(data == "Programador"){
-      color = Colors.lightGreenAccent;
-      icon = Icons.build;
-    }
-    else if(data == "Banquero"){
-      color = Colors.blueGrey;
-      icon = Icons.attach_money;
-    }
-    else if(data == "Supervisor"){
-      color = Colors.pink;
-      // icon = Icons.
-    }
-    else
-      color = MyColors.lightBlue;
+  // _avatarScreen(String data){
+  //   // List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
+  //   Color color;
+  //   IconData icon;
+  //   if(data == "Programador"){
+  //     color = Colors.lightGreenAccent;
+  //     icon = Icons.build;
+  //   }
+  //   else if(data == "Banquero"){
+  //     color = Colors.blueGrey;
+  //     icon = Icons.attach_money;
+  //   }
+  //   else if(data == "Supervisor"){
+  //     color = Colors.pink;
+  //     // icon = Icons.
+  //   }
+  //   else
+  //     color = MyColors.lightBlue;
 
+
+  //   return CircleAvatar(
+  //     backgroundColor: color,
+  //     // child: data != null ? data == "Programador" ? developerImage : Text(data.substring(0, 1).toUpperCase()) : null,
+  //     child: data != null ? Text(data.substring(0, 1).toUpperCase()) : null,
+  //   );
+  // }
+
+
+_avatarScreen(Usuario data){
 
     return CircleAvatar(
-      backgroundColor: color,
-      // child: data != null ? data == "Programador" ? developerImage : Text(data.substring(0, 1).toUpperCase()) : null,
-      child: data != null ? Text(data.substring(0, 1).toUpperCase()) : null,
+      backgroundColor: data.status == 1 ? Colors.green : Colors.pink,
+      child: data.status == 1 ? Icon(Icons.done, color: Colors.green[100],) : Icon(Icons.unpublished, color: Colors.pink[100],),
     );
   }
+
+
 
   _dataScreen(AsyncSnapshot<List<Usuario>> snapshot, bool isSmallOrMedium){
     if(isSmallOrMedium){
       return SingleChildScrollView(
         child: Column(
           children: snapshot.data.map((e) => ListTile(
-            leading: _avatarScreen(e.tipoUsuario.descripcion),
-            title: Text("${e.nombres}"),
-            subtitle: Text("${e.usuario}"),
+            leading: _avatarScreen(e),
+            title: Text("${e.nombres} • ${e.usuario}"),
+            subtitle: Text("${e.tipoUsuario.descripcion}"),
             onTap: (){_showDialogGuardar(data: e);},
             trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )).toList(),

@@ -104,7 +104,7 @@ _showSnackBar(String content){
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-  statusBarColor: Colors.blue, //or set color with: Color(0xFF0000FF)
+  statusBarColor: Colors.transparent, //or set color with: Color(0xFF0000FF)
 ));
 
     return AnnotatedRegion<SystemUiOverlayStyle>(

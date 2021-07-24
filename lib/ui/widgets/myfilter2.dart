@@ -235,6 +235,7 @@ class MyFilter2State extends State<MyFilter2> {
       showMyModalBottomSheet(
         context: context,
         myBottomSheet2: MyBottomSheet2(
+          height: myFilterData2.data.length > 3 ? 400 : myFilterData2.data.length == 3 ? 250 : 200,
           child: StatefulBuilder(
           builder: (context, setState) {
             _back(){

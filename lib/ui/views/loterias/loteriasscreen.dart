@@ -151,13 +151,14 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
       }
   }
 
-  _avatarScreen(String data){
+  _avatarScreen(Loteria data){
 
     return CircleAvatar(
-      backgroundColor: listaColor[Utils.generateNumber(0, 5)],
-      child: data != null ? Text(data.substring(0, 1).toUpperCase()) : null,
+      backgroundColor: data.status == 1 ? Colors.green : Colors.pink,
+      child: data.status == 1 ? Icon(Icons.done, color: Colors.green[100],) : Icon(Icons.unpublished, color: Colors.pink[100],),
     );
   }
+
 
   _sorteosString(List<Draws> sorteos){
     if(sorteos == null)
@@ -178,7 +179,7 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
       return SingleChildScrollView(
         child: Column(
           children: snapshot.data.map((e) => ListTile(
-            leading: _avatarScreen(e.descripcion),
+            leading: _avatarScreen(e),
             title: Text("${e.descripcion}"),
             isThreeLine: true,
             subtitle: Column(
