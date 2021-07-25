@@ -545,7 +545,7 @@ class Realtime{
             throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
         }
 
-        if(jugada.monto > await Utils.getMontoDisponible(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale)){
+        if(jugada.monto > await Utils.getMontoDisponible(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale, tx)){
             throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
         }
         
