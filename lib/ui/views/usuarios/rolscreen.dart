@@ -121,7 +121,7 @@ class _RolScreenState extends State<RolScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 6),
       child: MyCheckBox(
         // color: (permiso.esPermisoRol) ? Colors.green : null,
-        disable: permiso.esPermisoRol,
+        // disable: permiso.esPermisoRol,
         medium: 3,
         title: "${permiso.descripcion}",
         value: permiso.seleccionado,

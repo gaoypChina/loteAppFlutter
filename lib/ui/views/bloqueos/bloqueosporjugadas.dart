@@ -486,7 +486,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               height: 37,
               padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
               decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(10)
               ),
               child: StreamBuilder<List<Moneda>>(
@@ -533,7 +533,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Container(
                 width: 52,
-                // color: Colors.grey[100],
+                // color: Colors.grey[200],
                 child: StreamBuilder<List<Moneda>>(
                   stream: _streamControllerMoneda.stream,
                   builder: (context, snapshot) {
@@ -782,7 +782,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             // MySliverButton(
             //   title: Container(
             //     width: 52,
-            //     // color: Colors.grey[100],
+            //     // color: Colors.grey[200],
             //     child: StreamBuilder<List<Moneda>>(
             //       stream: _streamControllerMoneda.stream,
             //       builder: (context, snapshot) {
@@ -807,7 +807,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             //     height: 37,
             //     padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
             //     decoration: BoxDecoration(
-            //     color: Colors.grey[100],
+            //     color: Colors.grey[200],
             //       borderRadius: BorderRadius.circular(10)
             //     ),
             //     child: StreamBuilder<List<Moneda>>(
@@ -889,7 +889,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(vertical: 10),
                                           decoration: BoxDecoration(
-                                            color: Colors.grey[100],
+                                            color: Colors.grey[200],
                                             borderRadius: BorderRadius.circular(10)
                                           ),
                                           child: MyResizedContainer(
@@ -909,7 +909,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: Colors.grey[200],
                                         borderRadius: BorderRadius.circular(10)
                                       ),
                                       child: MyResizedContainer(
@@ -956,7 +956,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                       child: Container(
                                         padding: EdgeInsets.symmetric(vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[100],
+                                          color: Colors.grey[200],
                                           border: _jugadaOmonto ? Border.all(color: Colors.black, width: 1.5) : null,
                                           borderRadius: BorderRadius.circular(10)
                                         ),
@@ -978,7 +978,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                       child: Container(
                                         padding: EdgeInsets.symmetric(vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[100],
+                                          color: Colors.grey[200],
                                           borderRadius: BorderRadius.circular(10),
                                           border: !_jugadaOmonto ? Border.all(color: Colors.black, width: 1.5) : null,
                                         ),
@@ -1072,7 +1072,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: Colors.grey[200],
                                         borderRadius: BorderRadius.circular(10)
                                       ),
                                       child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),

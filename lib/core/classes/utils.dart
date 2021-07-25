@@ -77,11 +77,12 @@ class  Utils {
     }
   }
 
-  static toDouble(String caracter){
+  static toDouble(String caracter, {bool returnNullIfNotDouble = false}){
     try {
        return double.parse(caracter.replaceAll(",", ''));
     } catch (e) {
-      return 0.0;
+
+      return returnNullIfNotDouble ? null : 0.0;
     }
   }
   static toInt(String caracter){

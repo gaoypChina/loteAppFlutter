@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -18,6 +20,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:rxdart/rxdart.dart';
 
 class BloqueosPorLoteriasScreen extends StatefulWidget {
   const BloqueosPorLoteriasScreen({ Key key }) : super(key: key);
@@ -42,6 +45,15 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   List<Draws> _sorteos = [];
   bool _descontarDelBloqueoGeneral = true;
   var _cargandoNotify = ValueNotifier<bool>(false);
+  StreamController<List<Banca>> _streamController;
+  var _txtDirecto = TextEditingController();
+  var _txtPale = TextEditingController();
+  var _txtTripleta = TextEditingController();
+  var _txtSuperPale = TextEditingController();
+  var _txtPick3Straight = TextEditingController();
+  var _txtPick3Box = TextEditingController();
+  var _txtPick4Straight = TextEditingController();
+  var _txtPick4Box = TextEditingController();
 
 
   _init() async {
@@ -58,6 +70,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     if(listaDia.length > 0)
       _dias = List.from(listaDia);
 
+    _streamController.add(listaBanca);
     print("BloqueosPorLoteriaScreen: ${parsed}");
   }
 
@@ -79,6 +92,10 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       return;
     }
 
+    _sorteos.forEach((element) {print("BloqueosPorLoterias _guardar sorteo: ${element.descripcion}");});
+
+    return;
+
     _cargandoNotify.value = true;
 
     try {
@@ -96,6 +113,14 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
         for (var sorteo in listaSorteo) {
           sorteo.monto = null;
         }
+        _txtDirecto.text = "";
+        _txtPale.text = "";
+        _txtTripleta.text = "";
+        _txtSuperPale.text = "";
+        _txtPick3Box.text = "";
+        _txtPick3Straight.text = "";
+        _txtPick4Straight.text = "";
+        _txtPick4Box.text = "";
       });
       Utils.showAlertDialog(context: context, title: "Correctamente", content: "Se ha guardado correctamente");
       _cargandoNotify.value = false;
@@ -194,7 +219,9 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   @override
   void initState() {
     // TODO: implement initState
-    _future = _init();
+    _streamController = BehaviorSubject();
+    // _future = _init();
+    _init();
     super.initState();
   }
   @override
@@ -214,10 +241,14 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
             MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
           ],
         ), 
-        sliver: FutureBuilder<void>(
-          future: _future,
+        sliver: StreamBuilder<List<Banca>>(
+          stream: _streamController.stream,
           builder: (context, snapshot) {
-            if(snapshot.connectionState != ConnectionState.done)
+            // if(snapshot.connectionState != ConnectionState.done)
+            //   return SliverFillRemaining(
+            //     child: Center(child: CircularProgressIndicator(),),
+            //   );
+            if(snapshot.data == null)
               return SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator(),),
               );
@@ -391,26 +422,196 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                       ),
                     ),
                     Column(
-                      children: listaSorteo.map((e){
-                      var controller = TextEditingController();
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: MyTextFormField(
-                            medium: 1,
-                            small: 1,
-                            leading: isSmallOrMedium ? Text(_getSorteoAbreviatura(e.descripcion)) : null,
-                            isSideTitle: isSmallOrMedium ? false : true,
-                            title: isSmallOrMedium ? "" : e.descripcion,
-                            hint: isSmallOrMedium ? e.descripcion : "",
-                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                            controller: controller,
-                            isDigitOnly: true,
-                            onChanged: (data){
-                              e.monto = Utils.toDouble(data);
-                            },
-                          ),
-                      );
-                    }).toList(),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Directo")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Directo",
+                              hint: isSmallOrMedium ? "Directo" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtDirecto,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Directo");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pale")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Pale",
+                              hint: isSmallOrMedium ? "Pale" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtPale,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Pale");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Tripleta")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Tripleta",
+                              hint: isSmallOrMedium ? "Tripleta" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtTripleta,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Tripleta");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Super pale")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Super pale",
+                              hint: isSmallOrMedium ? "Super pale" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtSuperPale,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Super pale");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 3 Straight")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Pick 3 Straight",
+                              hint: isSmallOrMedium ? "Pick 3 Straight" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtPick3Straight,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Pick 3 Straight");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 3 Box")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Pick 3 Box",
+                              hint: isSmallOrMedium ? "Pick 3 Box" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtPick3Box,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Pick 3 Box");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 4 Straight")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Pick 4 Straight",
+                              hint: isSmallOrMedium ? "Pick 4 Straight" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtPick4Straight,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Pick 4 Straight");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: MyTextFormField(
+                              medium: 1,
+                              small: 1,
+                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 4 Box")) : null,
+                              isSideTitle: isSmallOrMedium ? false : true,
+                              title: isSmallOrMedium ? "" : "Pick 4 Box",
+                              hint: isSmallOrMedium ? "Pick 4 Box" : "",
+                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              controller: _txtPick4Box,
+                              isDigitOnly: true,
+                              onChanged: (data){
+                                int idx = listaSorteo.indexWhere((element) => element.descripcion == "Pick 4 Box");
+                                if(idx == -1)
+                                  return;
+
+                                listaSorteo[idx].monto = Utils.toDouble(data, returnNullIfNotDouble: true);
+                              },
+                            ),
+                        ),
+                      ]
+                    //   listaSorteo.map((e){
+                    //   var controller = TextEditingController();
+                    //   return Padding(
+                    //     padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    //     child: MyTextFormField(
+                    //         medium: 1,
+                    //         small: 1,
+                    //         leading: isSmallOrMedium ? Text(_getSorteoAbreviatura(e.descripcion)) : null,
+                    //         isSideTitle: isSmallOrMedium ? false : true,
+                    //         title: isSmallOrMedium ? "" : e.descripcion,
+                    //         hint: isSmallOrMedium ? e.descripcion : "",
+                    //         type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                    //         controller: controller,
+                    //         isDigitOnly: true,
+                    //         onChanged: (data){
+                    //           e.monto = Utils.toDouble(data);
+                    //         },
+                    //       ),
+                    //   );
+                    // }).toList(),
                     )
                   ],
                 )

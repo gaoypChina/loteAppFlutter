@@ -545,7 +545,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
             Widget _myPermissionCheckbox(Permiso permiso){
               return MyCheckBox(
                 // color: (permiso.esPermisoRol) ? Colors.green : null,
-                disable: permiso.esPermisoRol,
+                // disable: permiso.esPermisoRol,
                 medium: 3,
                 title: "${permiso.descripcion}",
                 value: permiso.seleccionado,

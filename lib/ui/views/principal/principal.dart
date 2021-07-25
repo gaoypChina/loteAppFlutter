@@ -2277,7 +2277,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[100],
+                                        color: Colors.grey[300],
                                         borderRadius: BorderRadius.circular(10)
                                       ),
                                       child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
