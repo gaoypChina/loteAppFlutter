@@ -92,9 +92,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       return;
     }
 
-    _sorteos.forEach((element) {print("BloqueosPorLoterias _guardar sorteo: ${element.descripcion}");});
+    // _sorteos.forEach((element) {print("BloqueosPorLoterias _guardar sorteo: ${element.descripcion}");});
 
-    return;
 
     _cargandoNotify.value = true;
 
