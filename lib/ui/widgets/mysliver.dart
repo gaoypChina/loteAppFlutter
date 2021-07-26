@@ -271,7 +271,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           return Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: EdgeInsets.only( bottom: isSmallOrMedium ? 10 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
+              padding: EdgeInsets.only( bottom: isSmallOrMedium ? 0 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,7 +310,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
             print("Holaaa sliver trigger");
             return;
           },
-          
+          // backgroundColor: Colors.blue,
           automaticallyImplyLeading: isSmallOrMedium,
           // automaticallyImplyLeading: false,
           // backgroundColor: Colors.white,

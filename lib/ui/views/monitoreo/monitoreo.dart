@@ -62,7 +62,6 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   _streamControllerBanca = BehaviorSubject();
   _tipoTicket = listaTipoTicket[0];
     _init();
-    _getBanca();
     // listaBancaFuture = _futureBancas();
   _confirmarTienePermiso();
     super.initState();
@@ -74,7 +73,18 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _getBanca() async {
-    _banca = Banca.fromMap(await Db.getBanca());
+    var banca = await Db.getBanca();
+    if(banca != null)
+      _banca = Banca.fromMap(banca);
+    else{
+      if(_bancas == null)
+        return;
+
+      if(_bancas.length == 0)
+        return;
+
+      _banca = _bancas[0];
+    }
   }
 
   // Future<bool> _futureBancas() async{
@@ -103,6 +113,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
     _streamControllerBanca.add(_bancas);
+    _getBanca();
+
     // setState(() => _cargando = false);
    } on Exception catch(e){
       // setState(() => _cargando = false);
@@ -116,6 +128,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _streamControllerMonitoreo.add(null);
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
+    int idBanca = (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca();
+    print("MonitoreoScreen _getMonitoreo idBanca: $idBanca");
     var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;

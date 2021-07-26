@@ -67,22 +67,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   int _idGrupoDeEsteUsuario;
   var _txtSearch = TextEditingController();
   List<MyFilterSubData2> _selctedFilter = [];
-  List<MyFilterData2> listaFiltros = [
-    MyFilterData2(
-        child: "Estado", 
-        isMultiple: true,
-        data: [
-          MyFilterSubData2(
-            child: "Activo",
-            value: 1,
-          ),
-          MyFilterSubData2(
-            child: "Desactivado",
-            value: 0,
-          )
-        ]
-      )
-  ];
+  List<MyFilterData2> listaFiltros = [];
 
   @override
   initState(){
@@ -1028,45 +1013,48 @@ _monedaChanged(moneda){
         padding: const EdgeInsets.only(top: 28.0),
         child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",)),
       );
+
+    // return Text("Klk");
     
-    return Container(
-          child: HorizontalDataTable(
-            leftHandSideColumnWidth: 120,
-            rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
-            isFixedHeader: true,
-            headerWidgets: _getTitleWidget(isSmallOrMedium),
-            leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
-            rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data, isSmallOrMedium),
-            itemCount: data.length + 1,
-            rowSeparatorWidget: const Divider(
-              color: Colors.transparent,
-              height: 0,
-              thickness: 0.0,
-            ),
-            leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
-            rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
-            verticalScrollbarStyle: const ScrollbarStyle(
-              isAlwaysShown: true,
-              thickness: 4.0,
-              radius: Radius.circular(5.0),
-            ),
-            horizontalScrollbarStyle: const ScrollbarStyle(
-              isAlwaysShown: true,
-              thickness: 4.0,
-              radius: Radius.circular(5.0),
-            ),
-            enablePullToRefresh: false,
-            refreshIndicator: const WaterDropHeader(),
-            refreshIndicatorHeight: 60,
-            // onRefresh: () async {
-            //   //Do sth
-            //   await Future.delayed(const Duration(milliseconds: 500));
-            //   _hdtRefreshController.refreshCompleted();
-            // },
-            // htdRefreshController: _hdtRefreshController,
+    return Stack(
+      children: [
+        HorizontalDataTable(
+          leftHandSideColumnWidth: 120,
+          rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
+          isFixedHeader: true,
+          headerWidgets: _getTitleWidget(isSmallOrMedium),
+          leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
+          rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data, isSmallOrMedium),
+          itemCount: data.length + 1,
+          rowSeparatorWidget: const Divider(
+            color: Colors.transparent,
+            height: 0,
+            thickness: 0.0,
           ),
-          height: MediaQuery.of(context).size.height,
-        );
+          leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
+          rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
+          // verticalScrollbarStyle: const ScrollbarStyle(
+          //   isAlwaysShown: true,
+          //   thickness: 4.0,
+          //   radius: Radius.circular(5.0),
+          // ),
+          // horizontalScrollbarStyle: const ScrollbarStyle(
+          //   isAlwaysShown: true,
+          //   thickness: 4.0,
+          //   radius: Radius.circular(5.0),
+          // ),
+          // enablePullToRefresh: false,
+          // refreshIndicator: const WaterDropHeader(),
+          // refreshIndicatorHeight: 60,
+          // onRefresh: () async {
+          //   //Do sth
+          //   await Future.delayed(const Duration(milliseconds: 500));
+          //   _hdtRefreshController.refreshCompleted();
+          // },
+          // htdRefreshController: _hdtRefreshController,
+        ),
+      ],
+    );
       
   }
 
@@ -1727,6 +1715,18 @@ _monedaChanged(moneda){
 
  
 
+ _showFilas(){
+    showMyModalBottomSheet(
+      context: context,
+      myBottomSheet2: MyBottomSheet2(
+        height: 270,
+        child: Column(
+          children: listaLimite.map((e) => CheckboxListTile(title: Text("$e filas"), controlAffinity: ListTileControlAffinity.leading, value: _limite == e, onChanged: (value){setState(() => _limite = e); _historicoVentas(); Navigator.pop(context);},)).toList(),
+        ),
+      )
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1740,8 +1740,25 @@ _monedaChanged(moneda){
         sliverAppBar: MySliverAppBar(
           title: _titleScreen(isSmallOrMedium),
           subtitle: _subtitle(isSmallOrMedium),
-          expandedHeight: isSmallOrMedium ? 110 : 85,
+          expandedHeight: isSmallOrMedium ? 95 : 85,
           actions: [
+            //  MySliverButton(
+            //   title: Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            //   child: Container(
+            //     // width: 52,
+            //     // color: Colors.grey[100],
+            //     child: InkWell(
+            //           onTap: _showFilas,
+            //           child: Row(children: [
+            //             Text("${_limite != null ? _limite.toString() + ' filas' : ''}", style: TextStyle(color: Colors.black),),
+            //             Icon(Icons.arrow_drop_down, color: Colors.black)
+            //           ],),
+            //         ),
+            //   ),
+            // ),
+            //   onTap: (){}
+            // ),
            _limiteButton(isSmallOrMedium),
            _coinButton(isSmallOrMedium),
            MySliverButton(title: "filtro", iconWhenSmallScreen: Icons.filter_alt_rounded, onTap: _filtroScreen, showOnlyOnSmall: true,),
@@ -1800,7 +1817,14 @@ _monedaChanged(moneda){
             if(snapshot.hasData && snapshot.data.length == 0 && isSmallOrMedium)
               return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
 
-            return SliverList(delegate: SliverChildListDelegate([
+            return 
+            isSmallOrMedium
+            ?
+            SliverFillRemaining(
+              child: _getBodyWidget(snapshot.data, isSmallOrMedium),
+            )
+            :
+            SliverList(delegate: SliverChildListDelegate([
               _myWebFilterScreen(isSmallOrMedium),
               MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
               

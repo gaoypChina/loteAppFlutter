@@ -147,7 +147,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _txtDueno.text = (_data != null) ? _data.dueno : '';
     _txtLocalidad.text = (_data != null) ? _data.localidad : '';
     _status = (_data != null) ? _data.status == 1 ? true : false : true;
-    _usuario = (_data != null) ? listaUsuario.firstWhere((element) => element.id == _data.usuario.id) : null;
+    _usuario = (_data != null) ? listaUsuario.firstWhere((element) => element.id == _data.usuario.id, orElse: () => null) : null;
     _moneda = (_data != null) ? listaMoneda.firstWhere((element) => element.id == _data.monedaObject.id) : null;
     _grupo = _data != null ? _data.grupo != null ? listaGrupo.firstWhere((element) => element.id == _data.grupo.id, orElse: () => null) : null : null;
 
