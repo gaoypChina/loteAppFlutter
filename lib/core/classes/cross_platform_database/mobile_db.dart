@@ -137,9 +137,9 @@ class MobileDB implements CrossDB{
   }
 
   @override
-  Future<Map<String, dynamic>> getNextTicket([var transaction]) {
+  Future<Map<String, dynamic>> getNextTicket(int idBanca, [var transaction]) {
     // TODO: implement getLastRow
-    return DBSqflite.getNextTicket(transaction);
+    return DBSqflite.getNextTicket(idBanca, transaction);
   }
 
   @override

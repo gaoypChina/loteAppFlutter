@@ -50,7 +50,7 @@ dependencies:
   jose: ^0.3.0
   moor: ^4.2.1
   moor_flutter: ^4.0.0
-  socket_io_client: ^1.0.0
+  socket_io_client: ^1.0.1
   file_picker: ^3.0.0
   syncfusion_flutter_datepicker: ^19.1.66-beta
   device_info_plus: ^2.0.1

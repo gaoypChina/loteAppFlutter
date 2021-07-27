@@ -448,10 +448,11 @@ StreamController<List<Usuario>> _streamController;
       usuario.nombres = _txtNombres.text;
       usuario.apellidos = _txtApellidos.text;
       usuario.usuario = _txtUsuario.text;
-      if(_txtPassword.text.isNotEmpty)
+      usuario.status = _status ? 1 : 0;
+      if(_txtPassword.text.isNotEmpty){
         usuario.password = _txtPassword.text;
-      if(usuario.id == null)
         usuario.confirmar = _txtConfirmarPassword.text;
+      }
       
       if(_txtEmail.text.isEmpty)
         usuario.email = "";

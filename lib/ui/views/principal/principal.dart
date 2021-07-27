@@ -56,6 +56,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:socket_io_client/socket_io_client.dart';
 import 'package:timezone/timezone.dart';
 
 class PrincipalApp extends StatefulWidget {
@@ -699,8 +700,8 @@ Future<bool> _requestPermisionChannel() async {
     if(socket == null)
       return;
       
+    // socket.dis
     socket.dispose();
-    socket = null;
   }
 
   _updateBranchesList(Map<String, dynamic> parsed) async {
@@ -738,7 +739,7 @@ Future<bool> _requestPermisionChannel() async {
       return;
 
     var idBanca = await getIdBanca();
-    print("_emitToGetNewIdTicket idBanca: ${listaBanca.length}");
+    print("_emitToGetNewIdTicket idBanca: $idBanca");
     if(idBanca != null)
       socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
   }
@@ -826,16 +827,22 @@ Future<bool> _requestPermisionChannel() async {
     //                   enableLogging: true,
     //                   // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
     //     ));       //TODO change the port  accordingly
-
+    print("initSOcket servidor beforeConnect ${await Db.servidor()}");
+    print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    // IO.
+    IO.cache.forEach((key, value) {print("initSocket cache $key : $value");});
     socket = IO.io(Utils.URL_SOCKET, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
+      'forceNew': true,
       'extraHeaders': {'foo': 'bar'}, // optional
       'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}"
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
     });
+
     socket.on('connect', (_) async {
-     print("connected...");
+     print("initSocket connected... servidor: ${await Db.servidor()}");
       // print(data);
       // socket.emit("message", ["Hello world!"]);
       _emitToGetNewIdTicket();
@@ -844,6 +851,7 @@ Future<bool> _requestPermisionChannel() async {
       await _getPermisos();
       _socketContadorErrores = 0;
     });
+    socket.onConnect((data) => print("PrincipalView initSocket onConnect: $data"));
 
     // socket.onConnect((data) async {
     //   print("connected...");
@@ -875,7 +883,9 @@ Future<bool> _requestPermisionChannel() async {
     if(kIsWeb == false){
       socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
         // var parsed = data.cast<String, dynamic>();
+        print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent primero parsed: $data");
         var parsed = await compute(Utils.parseDatosDynamic, data);
+        print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent parsed: $parsed");
         await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
       });
       socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
@@ -916,9 +926,9 @@ Future<bool> _requestPermisionChannel() async {
         print("Socket ticket from server after: $data");
       });
       socket.on("recibirVenta", (data){
-        print("Socket ticket from server before: $data");
+        print("Socket recibirVenta from server before: $data");
         Realtime.setVentaToSubido(data);
-        print("Socket ticket from server after: $data");
+        print("Socket recibirVenta from server after: $data");
       });
       socket.on("obtenerVentasDelDia", (data){
         print("Socket obtenerVentasDelDia 1: $data");
@@ -2765,7 +2775,11 @@ AppBar _appBar(bool screenHeightIsSmall){
                       leading: Icon(Icons.clear),
                       onTap: () async {
                         
-                        Principal.cerrarSesion(context);
+                        // socket.close();
+                        // socket.dispose();
+                        _disconnectSocket();
+                        await Principal.cerrarSesion(context);
+                        print("Cerra sesion after _disconnectSocket");
                         await stopSocketNoticacionInForeground();
                       },
                     )

@@ -745,13 +745,18 @@ class Principal{
 
  static cerrarSesion(BuildContext context, [bool salir = true]) async {
    var c = await DB.create();
+   try {
+      await Db.deleteDB();
+   } catch (e) {
+   }
+
    if(c != null){
      await c.delete("administrador");
       await c.delete("apiKey");
       await c.delete("tipoUsuario");
-      await Db.deleteDB();
-      if(salir){
         await c.delete("banca");
+      // await Db.deleteDB();
+      if(salir){
         await c.add("recordarme", false);
         await c.delete("usuario");
         await c.delete("password");

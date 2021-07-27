@@ -307,9 +307,9 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
           SizedBox.shrink() 
           : "Agregar loteria",
           subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus loterias.",
-          // actions: [
-          //   MySliverButton(title: "Guardar", onTap: _guardar)
-          // ],
+          actions: [
+            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
+          ],
         ), 
         sliver: FutureBuilder<void>(
           future: _future,

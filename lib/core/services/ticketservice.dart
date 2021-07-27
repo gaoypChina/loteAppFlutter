@@ -29,7 +29,8 @@ class TicketService{
 
     if(statusCode < 200 || statusCode > 400){
       print("ticketService cancelar: ${response.body}");
-      Utils.showSnackBar(content: "Error del servidor ticketService cancelar", scaffoldKey: scaffoldKey);
+      var parsed = await compute(Utils.parseDatos, response.body);
+      Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
       throw Exception("Error del servidor ticketService cancelar");
     }
 

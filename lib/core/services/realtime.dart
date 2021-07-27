@@ -70,11 +70,14 @@ class Realtime{
         stocks.forEach((s) async {
           List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"id" = ?', whereArgs: [s.id]);
           if(query.isEmpty == false){
+            print("Realtime addStocks parsed actualizar: ${s.toJson()}");
+
             if(eliminar)
               await Db.delete('Stocks', s.id);
             else
               await Db.update('Stocks', s.toJson(), s.id);
           }else{
+            print("Realtime addStocks parsed insertart: ${s.toJson()}");
             if(eliminar)
               await Db.delete('Stocks', s.id);
             else
@@ -398,11 +401,11 @@ class Realtime{
     List<Salesdetails> listSalesdetails = [];
     Usuario usuario;
     print("Realtime guardarVenta before date");
-    DateTime date = await NTP.now(timeout: Duration(seconds: 1));
+    DateTime date = await NTP.now(timeout: Duration(seconds: 2));
     await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
     usuario = Usuario.fromMap(await Db.getUsuario(tx));
-    Ticket ticket = Ticket.fromMap(await Db.getNextTicket(tx));
+    Ticket ticket = Ticket.fromMap(await Db.getNextTicket(banca.id, tx));
     double total = 0;
     print("Realtime guardarVenta after ticket");
       
