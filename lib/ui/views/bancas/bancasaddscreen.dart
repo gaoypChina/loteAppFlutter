@@ -976,6 +976,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                             isSideTitle: isSmallOrMedium ? false : true,
                             type: isSmallOrMedium ? MyType.noBorder : MyType.border,
                             controller: _txtDirecto,
+                            isDigitOnly: true,
                             title: !isSmallOrMedium ? "Quiniela" : "",
                             hint: "Quiniela",
                             medium: 1,
@@ -998,6 +999,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Pale",
                         medium: 1,
                         onChanged: _comisionPaleChanged,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1014,6 +1016,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Tripleta",
                         medium: 1,
                         onChanged: _comisionTripletaChanged,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1030,6 +1033,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Super pale",
                         onChanged: _comisionSuperpaleChanged,
                         medium: 1,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1047,6 +1051,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Pick 3 box",
                         medium: 1,
                         onChanged: _comisionPick3BoxChanged,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1064,6 +1069,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Pick 3 straight",
                         medium: 1,
                         onChanged: _comisionPick3StraightChanged,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1080,6 +1086,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Pick 4 box",
                         medium: 1,
                         onChanged: _comisionPick4BoxChanged,
+                        isDigitOnly: true,
                       ),
                   ),
                    ),
@@ -1096,6 +1103,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                         hint: "Pick 4 straight",
                         medium: 1,
                         onChanged: _comisionPick4StraightChanged,
+                        isDigitOnly: true,
                       ),
                     ),
                   ),
@@ -1118,9 +1126,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].primera = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].primera = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.primera = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.primera = Utils.toDouble(data);});
       }
     }
 
@@ -1134,9 +1142,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].segunda = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].segunda = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.segunda = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.segunda = Utils.toDouble(data);});
       }
     }
 
@@ -1150,9 +1158,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].tercera = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].tercera = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.tercera = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.tercera = Utils.toDouble(data);});
       }
     }
 
@@ -1166,9 +1174,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].primeraSegunda = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].primeraSegunda = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.primeraSegunda = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.primeraSegunda = Utils.toDouble(data);});
       }
     }
 
@@ -1182,9 +1190,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].primeraTercera = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].primeraTercera = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.primeraTercera = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.primeraTercera = Utils.toDouble(data);});
       }
     }
 
@@ -1198,9 +1206,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].segundaTercera = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].segundaTercera = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.segundaTercera = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.segundaTercera = Utils.toDouble(data);});
       }
     }
 
@@ -1214,9 +1222,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].tresNumeros = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].tresNumeros = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.tresNumeros = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.tresNumeros = Utils.toDouble(data);});
       }
     }
 
@@ -1230,9 +1238,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].dosNumeros = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].dosNumeros = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.dosNumeros = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.dosNumeros = Utils.toDouble(data);});
       }
     }
 
@@ -1246,9 +1254,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].primerPago = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].primerPago = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.primerPago = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.primerPago = Utils.toDouble(data);});
       }
     }
 
@@ -1262,9 +1270,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick3TodosEnSecuencia = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick3TodosEnSecuencia = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick3TodosEnSecuencia = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick3TodosEnSecuencia = Utils.toDouble(data);});
       }
     }
 
@@ -1278,9 +1286,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick33Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick33Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick33Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick33Way = Utils.toDouble(data);});
       }
     }
 
@@ -1294,9 +1302,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick36Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick36Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick36Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick36Way = Utils.toDouble(data);});
       }
     }
 
@@ -1310,9 +1318,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick4TodosEnSecuencia = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick4TodosEnSecuencia = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick4TodosEnSecuencia = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick4TodosEnSecuencia = Utils.toDouble(data);});
       }
     }
 
@@ -1326,9 +1334,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick44Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick44Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick44Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick44Way = Utils.toDouble(data);});
       }
     }
 
@@ -1342,9 +1350,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick46Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick46Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick46Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick46Way = Utils.toDouble(data);});
       }
 
     }
@@ -1358,9 +1366,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick412Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick412Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick412Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick412Way = Utils.toDouble(data);});
       }
     }
 
@@ -1374,9 +1382,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(index == -1)
           return;
 
-        _pagosCombinaciones[index].pick424Way = double.tryParse(data) != null ? double.tryParse(data) : null;
+        _pagosCombinaciones[index].pick424Way = Utils.toDouble(data) != null ? Utils.toDouble(data) : null;
       }else{
-        _pagosCombinaciones.forEach((element) {element.pick424Way = double.tryParse(data);});
+        _pagosCombinaciones.forEach((element) {element.pick424Way = Utils.toDouble(data);});
       }
     }
 
@@ -1465,6 +1473,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 6.0),
                             child: MyTextFormField(
+                              
                               leading: isSmallOrMedium ? Text("1ra") : null,
                               isMoneyFormat: true,
                               isSideTitle: isSmallOrMedium ? false : true,
@@ -2352,7 +2361,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  isSideTitle: isSmallOrMedium ? false : true,
                                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
                                  controller: _txtPiePagina1,
-                                 isDigitOnly: true,
+                                //  isDigitOnly: true,
                                  title: !isSmallOrMedium ? "Pie de pagina 1" : "",
                                  hint: "Pie de pagina 1",
                                  medium: 1,
@@ -2375,7 +2384,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  isSideTitle: isSmallOrMedium ? false : true,
                                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
                                  controller: _txtPiePagina2,
-                                 isDigitOnly: true,
+                                //  isDigitOnly: true,
                                  title: !isSmallOrMedium ? "Pie de pagina 2" : "",
                                  hint: "Pie de pagina 2",
                                  medium: 1,
@@ -2397,7 +2406,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  isSideTitle: isSmallOrMedium ? false : true,
                                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
                                  controller: _txtPiePagina3,
-                                 isDigitOnly: true,
+                                //  isDigitOnly: true,
                                  title: !isSmallOrMedium ? "Pie de pagina 3" : "",
                                  hint: "Pie de pagina 3",
                                  medium: 1,
@@ -2419,7 +2428,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  isSideTitle: isSmallOrMedium ? false : true,
                                  type: isSmallOrMedium ? MyType.noBorder : MyType.border,
                                  controller: _txtPiePagina4,
-                                 isDigitOnly: true,
+                                //  isDigitOnly: true,
                                  title: !isSmallOrMedium ? "Pie de pagina 4" : "",
                                  hint: "Pie de pagina 4",
                                  medium: 1,

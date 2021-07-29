@@ -279,6 +279,7 @@ Future<bool> _requestPermisionChannel() async {
       setState(() => _cargando = true);
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       setState(() => _cargando = false);
+     _seleccionarPrimeraLoteria();
       listaJugadas = [];
       _streamControllerJugada.add(listaJugadas);
       print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
@@ -289,7 +290,6 @@ Future<bool> _requestPermisionChannel() async {
         ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
         // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
       }
-     
     } on Exception catch (e) {
       setState(() => _cargando = false);
       Utils.showAlertDialog(context: context, content: "$e", title: "Error");
@@ -788,6 +788,25 @@ Future<bool> _requestPermisionChannel() async {
     socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
   }
 
+  _addVentaSubidaToListVenta(var parsed) async {
+    if(Utils.isNumber(parsed) == false)
+      return;
+    var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
+    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+
+    if(sale == null)
+      return;
+
+    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+    Ticket ticket = Ticket.fromMap(ticketMap);
+    sale.ticket = ticket;
+
+    if(listaVenta.indexWhere((element) => element.idTicket == sale.idTicket) == -1){
+      listaVenta.add(Venta(idTicket: sale.idTicket, total: sale.total, codigoBarra: sale.ticket != null ? sale.ticket.codigoBarra : ''));
+      _streamControllerVenta.add(true);
+    }
+  }
+
   initSocket() async {
     // var builder = new JWTBuilder();
     // var token = builder
@@ -925,9 +944,10 @@ Future<bool> _requestPermisionChannel() async {
         Realtime.createTicketIfNotExists(data);
         print("Socket ticket from server after: $data");
       });
-      socket.on("recibirVenta", (data){
+      socket.on("recibirVenta", (data) async {
         print("Socket recibirVenta from server before: $data");
-        Realtime.setVentaToSubido(data);
+        await Realtime.setVentaToSubido(data);
+        await _addVentaSubidaToListVenta(data);
         print("Socket recibirVenta from server after: $data");
       });
       socket.on("obtenerVentasDelDia", (data){

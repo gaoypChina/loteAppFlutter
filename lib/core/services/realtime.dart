@@ -722,8 +722,8 @@ class Realtime{
 
       
 
-      var ventas = await Db.query("Sales");
-      print("Realtime setVentaToSubido: ${ventas}");
+      // var ventas = await Db.query("Sales");
+      // print("Realtime setVentaToSubido: ${ventas}");
       print("Realtime setVentaToSubido tookParameter: ${parsed}");
 
       if(parsed == null)

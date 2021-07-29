@@ -66,7 +66,8 @@ class MyTextFormField extends StatefulWidget {
   final bool isRequired;
   final bool autofocus;
   final TextAlign textAlign;
-  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start}) : super(key: key);
+  final Function onTap;
+  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -199,6 +200,10 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       controller: widget.controller,
       maxLines: widget.maxLines,
       autofocus: widget.autofocus,
+      onTap: (){
+        if(widget.onTap != null)
+          widget.onTap();
+      },
       style: TextStyle(fontSize: 15),
         decoration: InputDecoration(
           prefixText: _getPrefixText(),
