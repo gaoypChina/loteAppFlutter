@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/principal.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/models/ajuste.dart';
@@ -40,7 +39,7 @@ class AjustesService{
     print("AjustesService guardar: ${mapDatos.toString()}");
     // return listaLoteria;
 
-    var response = await http.post(Utils.URL + "/api/ajustes", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/ajustes"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -85,7 +84,7 @@ class AjustesService{
     var jwt = await Utils.createJwtForTest(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/ajustes/guardar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/ajustes/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -129,7 +128,7 @@ class AjustesService{
     print("AjustesService borrar: ${mapDatos.toString()}");
     // return listaLoteria;
 
-    var response = await http.post(Utils.URL + "/api/premios/erase", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/premios/erase"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

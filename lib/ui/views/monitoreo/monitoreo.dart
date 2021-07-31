@@ -1,20 +1,26 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
 import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
+import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
-import 'package:loterias/ui/widgets/my_filter.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
+import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MonitoreoScreen extends StatefulWidget {
@@ -24,6 +30,7 @@ class MonitoreoScreen extends StatefulWidget {
 
 class _MonitoreoScreenState extends State<MonitoreoScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  StreamController<List<Banca>> _streamControllerBanca;
   DateTime _fecha = DateTime.now();
   DateTimeRange _date;
   List<Banca> _bancas = [];
@@ -52,14 +59,11 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     // TODO: implement initState
     initializeDateFormatting();
   _streamControllerMonitoreo = BehaviorSubject();
+  _streamControllerBanca = BehaviorSubject();
   _tipoTicket = listaTipoTicket[0];
-
-    _date = _getDefaultDateRange();
-
-    _getBanca();
-    listaBancaFuture = _futureBancas();
+    _init();
+    // listaBancaFuture = _futureBancas();
   _confirmarTienePermiso();
-  _getMonitoreo();
     super.initState();
   }
 
@@ -69,19 +73,53 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _getBanca() async {
-    _banca = Banca.fromMap(await Db.getBanca());
+    var banca = await Db.getBanca();
+    if(banca != null)
+      _banca = Banca.fromMap(banca);
+    else{
+      if(_bancas == null)
+        return;
+
+      if(_bancas.length == 0)
+        return;
+
+      _banca = _bancas[0];
+    }
   }
 
-  Future<bool> _futureBancas() async{
-    _bancas = await BancaService.all(scaffoldKey: _scaffoldKey);
-    _seleccionarBancaPertenecienteAUsuario();
-    return true;
-  }
+  // Future<bool> _futureBancas() async{
+  //   _bancas = await BancaService.all(scaffoldKey: _scaffoldKey);
+  //   _seleccionarBancaPertenecienteAUsuario();
+  //   return true;
+  // }
 
   _confirmarTienePermiso() async {
    _tienePermisoMonitoreo = await Db.existePermiso("Monitorear ticket");
    _tienePermisoJugarComoCualquierBanca = await Db.existePermiso("Jugar como cualquier banca");
    _tienePermisoCancelarCualquierMomento = await Db.existePermiso("Cancelar tickets en cualquier momento");
+  }
+
+  _init() async {
+   try{
+    //  setState(() => _cargando = true);
+    _date = MyDate.getTodayDateRange();
+    print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
+    print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: await Db.idBanca(), retornarBancas: true, idGrupo: await Db.idGrupo());
+    print("MonitoreoScreen _init parsed: ${parsed["bancas"]}");
+    _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
+    _bancas = parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
+    _seleccionarBancaPertenecienteAUsuario();
+    _tmpListaVenta = _listaVenta.map((v) => v).toList();;
+    _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
+    _streamControllerBanca.add(_bancas);
+    _getBanca();
+
+    // setState(() => _cargando = false);
+   } on Exception catch(e){
+      // setState(() => _cargando = false);
+    _streamControllerMonitoreo.add([]);
+   }
   }
 
   _getMonitoreo() async {
@@ -90,7 +128,10 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     _streamControllerMonitoreo.add(null);
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
-    _listaVenta = await TicketService.monitoreo(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    int idBanca = (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca();
+    print("MonitoreoScreen _getMonitoreo idBanca: $idBanca");
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: (_tienePermisoJugarComoCualquierBanca && _bancas != null) ? _bancas[_indexBanca].id : await Db.idBanca());
+    _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
     // setState(() => _cargando = false);
@@ -106,7 +147,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   if(banca != null && _bancas != null){
     int idx = _bancas.indexWhere((b) => b.id == banca.id);
     // print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${_bancas.length}');
-    setState(() => _indexBanca = (idx != -1) ? idx : 0);
+    _indexBanca = (idx != -1) ? idx : 0;
   }else{
     setState(() =>_indexBanca = 0);
   }
@@ -252,7 +293,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
       }
       else{
         background = Colors.grey;
-        icon = Icons.timelapse_outlined;
+        icon = Icons.timer;
       }
     }
     else if(venta.status == 2){
@@ -359,21 +400,44 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
             _compartirTicket() async {
               try{
                     setState(() => _cargandoCompartirTicket = true);
-                    var datos = await TicketService.ticket(context: context, idTicket: venta.idTicket);
-                    ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id);
+                    Sale sale = parsed["sale"] != null ? Sale.fromMap(parsed["sale"]) : null;
+                    if(sale == null)
+                      return;
+
+                    print("_compartirTicket datos: ${parsed}");
+                    List<Salesdetails> salesdetails = (parsed["salesdetails"] != null) ? parsed["salesdetails"].map<Salesdetails>((json) => Salesdetails.fromMap(json)).toList() : [];
+                    Uint8List image = await TicketImage.create(sale, salesdetails);
+
+                    // ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
+                    ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: image, codigoQr: sale.ticket.codigoBarra, sms_o_whatsapp: true);
                     setState(() => _cargandoCompartirTicket = false);
                     _back();
                   } on Exception catch(e){
+                    Utils.showAlertDialog(context: context, content: "$e", title: "Error");
                     setState(() => _cargandoCompartirTicket = false);
                   }
             }
 
-            _updateStreamControllerVenta(){
+            _updateStreamControllerVenta(ventaMap){
+              if(ventaMap == null)
+                return;
+
+              print("_updateStreamControllerVenta validation1 passed: ${ventaMap.runtimeType}");
+              // if(!(ventaMap is Map<String, dynamic>))
+              //   return;
+
+                print("_updateStreamControllerVenta validation2 passed");
               var index = _listaVenta.indexWhere((element) => element.id == venta.id);
               if(index == -1)
                 return;
 
+                print("_updateStreamControllerVenta validation3 passed");
+
               _listaVenta[index].status = 0;
+              _listaVenta[index].usuarioCancelacion = ventaMap["usuarioCancelacion"];
+              _listaVenta[index].fechaCancelacion = ventaMap["fechaCancelacion"] != null ? DateTime.parse(ventaMap["fechaCancelacion"]) : null;
+                print("_updateStreamControllerVenta before _stremaController");
               _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
             }
 
@@ -402,7 +466,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         await BluetoothChannel.printTicket(datos["ticket"], BluetoothChannel.TYPE_CANCELADO);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta();
+                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
                         _back();
                       } on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);
@@ -413,7 +477,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         var datos = await TicketService.cancelar(scaffoldKey: _scaffoldKey, codigoBarra: venta.codigoBarra);
                         setState(() => _cargandoCancelarTicket = false);
                         Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta();
+                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
                         _back();
                       }on Exception catch(e){
                         setState(() => _cargandoCancelarTicket = false);
@@ -523,11 +587,13 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _dropdownBancas(){
-    return FutureBuilder<bool>(
-        future: listaBancaFuture,
+    return StreamBuilder<List<Banca>>(
+        stream: _streamControllerBanca.stream,
         builder: (context, snapshot){
           // print("FutureBuilder: ${snapshot.connectionState}");
           // if(snapshot.hasData){
+            if(!snapshot.hasData)
+              return SizedBox.shrink();
 
              return GestureDetector(
                   onTap: _showBottomSheetBanca,
@@ -736,12 +802,17 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
               SliverAppBar(
                 leading: BackButton(color: Utils.colorPrimary,),
                 backgroundColor: Colors.white,
-                title: AnimatedCrossFade(
-                  firstChild: Text("Monitoreo", style: TextStyle(color: Colors.black),), 
-                  secondChild: _dropdownBancas(), 
-                  crossFadeState: !_tienePermisoJugarComoCualquierBanca ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
-                  duration: Duration(milliseconds: 200)
-                  ),
+                title: StreamBuilder<List<Banca>>(
+                  stream: _streamControllerBanca.stream,
+                  builder: (context, snapshot) {
+                    return AnimatedCrossFade(
+                      firstChild: Text("Monitoreo", style: TextStyle(color: Colors.black),), 
+                      secondChild: _dropdownBancas(), 
+                      crossFadeState: !_tienePermisoJugarComoCualquierBanca ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
+                      duration: Duration(milliseconds: 200)
+                      );
+                  }
+                ),
                 
                 expandedHeight: 120,
                 flexibleSpace: Align(

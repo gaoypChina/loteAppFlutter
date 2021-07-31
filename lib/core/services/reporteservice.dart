@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
@@ -9,15 +9,18 @@ import 'dart:convert';
 
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
+import 'package:loterias/core/models/ventaporfecha.dart';
 
 
 class ReporteService{
 
-   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, Moneda moneda, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, bool retornarMonedas = false, int limite = 20}) async {
+   static Future<Map<String, dynamic>> jugadas({BuildContext context, scaffoldKey, Loteria loteria, Draws sorteo, Moneda moneda, Banca banca, DateTime fechaInicial, DateTime fechaFinal, String jugada, bool retornarLoterias = false, bool retornarSorteos = false, bool retornarMonedas = false, bool retornarBancas = false, bool retornarGrupos = false, int idGrupo, int limite = 20}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
+    map["retornarGrupos"] = retornarGrupos;
+    map["retornarBancas"] = retornarBancas;
     map["retornarLoterias"] = retornarLoterias;
     map["retornarSorteos"] = retornarSorteos;
     map["retornarMonedas"] = retornarMonedas;
@@ -27,16 +30,18 @@ class ReporteService{
     map["loteria"] = (loteria != null) ? loteria.toJson() : null;
     map["jugada"] = (jugada != null) ? jugada : null;
     map["moneda"] = (moneda != null) ? moneda.toJson() : null;
+    map["banca"] = (banca != null) ? banca.toJson() : null;
+    map["grupo"] = idGrupo;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    print("ReporteService historico: ${mapDatos.toString()}");
+    print("ReporteService jugadas: ${map.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/reporteJugadas", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/reporteJugadas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -61,34 +66,36 @@ class ReporteService{
   }
   
 
-  static Future<Map<String, dynamic>> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, Moneda moneda, int limite = 20}) async {
+  static Future<Map<String, dynamic>> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, List<int> idMonedas, int limite = 20, List<int> idGrupos}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
 
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
-    map["moneda"] = (moneda != null) ? moneda.toJson() : null;
+    map["monedas"] = idMonedas;
     map["opcion"] = opcion;
     map["limite"] = limite;
     map["idUsuario"] = await Db.idUsuario();
+    map["grupos"] = idGrupos;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    print("ReporteService historico: ${mapDatos.toString()}");
+    print("ReporteService historico: ${map.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/historico", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/historico"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService historico: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor ReporteService historico", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor ReporteService historico", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor ReporteService historico");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ReporteService historico:  ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -113,22 +120,24 @@ class ReporteService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
     map["servidor"] = await Db.servidor();
+    map["grupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
     print("ReporteService ventas: ${mapDatos.toString()}");
     // return listaBanca;
 
-    var response = await http.post(Utils.URL + "/api/reportes/ventas", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ventas"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService ventas: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor ReporteService ventas", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor ReporteService ventas", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor ReporteService ventas");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -143,19 +152,111 @@ class ReporteService{
 
     return parsed;
   }
+  static Future<Map<String, dynamic>> ventasPorFecha({BuildContext context, scaffoldKey, DateTimeRange date, List<int> idGrupos, List<int> idBancas, List<int> idMonedas, bool retornarMonedas = false, bool retornarBancas = false, bool retornarGrupos = false}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
 
-  static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca}) async {
+    map["fechaDesde"] = date.start.toString();
+    map["fechaHasta"] = date.end.toString();
+    map["idUsuario"] = await Db.idUsuario();
+    map["bancas"] = idBancas != null ? idBancas.length > 0 ? idBancas : [] : [];
+    map["monedas"] = idMonedas != null ? idMonedas.length > 0 ? idMonedas : [] : [];
+    map["grupos"] = idGrupos != null ? idGrupos.length > 0 ? idGrupos : [] : [];
+    map["retornarBancas"] = retornarBancas;
+    map["retornarMonedas"] = retornarMonedas;
+    map["retornarGrupos"] = retornarMonedas;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService ventas: ${map["bancas"]}");
+    // return listaBanca;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ventasPorfecha"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService ventas: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    print("reporteservice ventas datos: ${parsed.toString()}");
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ReporteService ventas: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+  static Future<List<VentaPorFecha>> ventasPorFechaTest({BuildContext context, scaffoldKey, DateTimeRange date, List<Banca> bancas, Moneda moneda, bool retornarMonedas = false, bool retornarBancas = false}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
+
+    map["fechaDesde"] = date.start.toString();
+    map["fechaHasta"] = date.end.toString();
+    map["idUsuario"] = "1";
+    map["bancas"] = bancas != null ? Banca.bancasToJson(bancas) : [];
+    map["moneda"] = moneda != null ? moneda.toJson() : null;
+    map["retornarBancas"] = retornarBancas;
+    map["retornarMonedas"] = retornarMonedas;
+    map["servidor"] = "valentin";
+    var jwt = await Utils.createJwtForTest(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService ventas: ${mapDatos.toString()}");
+    // return listaBanca;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ventasPorfecha"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService ventas: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    print("reporteservice ventas datos: ${parsed.toString()}");
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ReporteService ventas: ${parsed["mensaje"]}");
+    }
+
+    return parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
+  }
+
+  static Future<Map<String, dynamic>> ticketsPendientesPago({BuildContext context, scaffoldKey, String fechaString, int idBanca, int idGrupo, bool retornarBancas = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
     map["fecha"] = fechaString;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = idBanca;
+    map["idGrupo"] = idGrupo;
+    map["retornarBancas"] = retornarBancas;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/reportes/ticketsPendientesDePagoIndex", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/ticketsPendientesDePagoIndex"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

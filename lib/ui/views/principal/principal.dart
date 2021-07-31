@@ -1,32 +1,37 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:adhara_socket_io/options.dart';
-import 'package:adhara_socket_io/adhara_socket_io.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:jiffy/jiffy.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/cross_device_info.dart';
+import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
+// import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
-import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/notificacion.dart';
+import 'package:loterias/core/models/sale.dart';
+import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
-import 'package:loterias/ui/login/login.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
-import 'package:loterias/ui/views/principal/principalshimmerscreen.dart';
+import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+
 
 
 // import 'package:socket_io_client/socket_io_client.dart' as IO;
 
-import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +56,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:timezone/timezone.dart' as tz;
+import 'package:socket_io_client/socket_io_client.dart';
+import 'package:timezone/timezone.dart';
 
 class PrincipalApp extends StatefulWidget {
   final bool callThisScreenFromLogin;
@@ -61,6 +67,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  IO.Socket socket;
   var _scrollController = ItemScrollController();
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
@@ -92,6 +99,7 @@ String _montoPrueba = '0';
   bool _ckbLigarTripleta = false;
   bool _drawerIsOpen = false;
   bool _tienePermisoJugarFueraDeHorario = false;
+  bool _tienePermisoJugarSinDisponibilidad = false;
   bool _tienePermisoJugarMinutosExtras = false;
   bool _tienePermisoJugarComoCualquierBanca = false;
   bool _tienePermisoManejarResultados = false;
@@ -104,6 +112,14 @@ String _montoPrueba = '0';
   bool _tienePermisoVerReporteJugadas = false;
   bool _tienePermisoTransacciones = false;
   bool _tienePermisoVerAjustes = false;
+  bool _tienePermisoManejarBancas = false;
+  bool _tienePermisoManejarUsuarios = false;
+  bool _tienePermisoVerBalanceBancas = false;
+  bool _tienePermisoManejarLoterias = false;
+  bool _tienePermisoManejarManejarReglas = false;
+  bool _tienePermisoManejarManejarGrupos = false;
+  bool _tienePermisoVerIniciosDeSesion = false;
+  bool _tienePermisoVerVentasPorFecha = false;
   static bool _tienePermisoAdministrador = false;
   static bool _tienePermisoProgramador = false;
   StreamController<bool> _streamControllerBanca;
@@ -118,6 +134,7 @@ String _montoPrueba = '0';
   bool _txtMontoPrimerCaracter = true;
   List<Loteria> _selectedLoterias;
   Timer _timer;
+  Timer _timerSaveVentaNoSubidas;
 
   static const platform = const MethodChannel('flutter.loterias');
   Usuario _usuario;
@@ -137,9 +154,11 @@ MaterialColor colorCustom = MaterialColor(0xFF0990D0, Utils.color);
 var _colorPrimary = Utils.fromHex("#1db7bd");
 var _colorSegundary = Utils.colorInfo;
 FocusNode focusNode;
-static SocketIOManager manager;
-SocketIO socket;
-static SocketIO socketNotificaciones;
+// static SocketIOManager manager;
+static var manager;
+// SocketIO socket;
+// static SocketIO socketNotificaciones;
+static var socketNotificaciones;
 String initSocketNotificationTask = "initSocketNotificationTask";
 
 Future<bool> _requestPermisionChannel() async {
@@ -157,6 +176,7 @@ Future<bool> _requestPermisionChannel() async {
 
 
   getIdBanca() async {
+    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")} : ${listaBanca.length}");
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca].id;
     else
@@ -166,8 +186,11 @@ Future<bool> _requestPermisionChannel() async {
   Future<Banca> getBanca() async {
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca];
-    else
-      return Banca.fromMap(await Db.getBanca());
+    else{
+      var bancaTmp = Banca.fromMap(await Db.getBanca());
+      Banca banca = listaBanca.firstWhere((element) => element.id == bancaTmp.id, orElse: () => null);
+      return banca;
+    }
   }
 
   indexPost(bool seleccionarBancaPertenecienteAUsuario) async {
@@ -175,12 +198,14 @@ Future<bool> _requestPermisionChannel() async {
     
     try{
       setState(() => _cargando = true);
-      var datos = await TicketService.indexPost(idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      var banca = await getIdBanca();
+      var datos = await TicketService.indexPost(idUsuario: await Db.idUsuario(), idBanca: banca, scaffoldKey: _scaffoldKey);
       
       setState((){
         _cargando = false;
         _idVenta = datos['idVenta'];
         listaBanca = datos["bancas"];
+        print("indexPost listaBanca: ${listaBanca.length}");
         listaVenta = datos["ventas"];
         _streamControllerBanca.add(true);
         _streamControllerVenta.add(true);
@@ -188,6 +213,7 @@ Future<bool> _requestPermisionChannel() async {
         _streamControllerLoteria.add(datos['loterias']);
         _seleccionarPrimeraLoteria();
         (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null;
+        // _emitToGetNewIdTicket();
       });
     } on Exception catch(e){
       setState(() => _cargando = false);
@@ -218,6 +244,9 @@ Future<bool> _requestPermisionChannel() async {
       return;
     }
 
+    _guardarLocal();
+    return;
+
     try{
       setState(() => _cargando = true);
       var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
@@ -236,11 +265,34 @@ Future<bool> _requestPermisionChannel() async {
         _seleccionarPrimeraLoteria();
         _cargando = false;
         listaEstadisticaJugada.clear();
-        (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
+        // (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
       
       });
     } on Exception catch(e){
       setState(() => _cargando = false);
+    }
+  }
+
+
+  _guardarLocal() async {
+    try {
+      setState(() => _cargando = true);
+      var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+      setState(() => _cargando = false);
+     _seleccionarPrimeraLoteria();
+      listaJugadas = [];
+      _streamControllerJugada.add(listaJugadas);
+      print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
+      if(_ckbPrint)
+        BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
+      else{
+        var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
+        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
+      }
+    } on Exception catch (e) {
+      setState(() => _cargando = false);
+      Utils.showAlertDialog(context: context, content: "$e", title: "Error");
     }
   }
 
@@ -393,7 +445,7 @@ Future<bool> _requestPermisionChannel() async {
       _txtMontoDisponible.text = null;
       });
 
-     http.post(Utils.URL +"/api/principal/montodisponible", body: json.encode(map2), headers: header ).then((http.Response resp){
+     http.post(Uri.parse(Utils.URL +"/api/principal/montodisponible"), body: json.encode(map2), headers: header ).then((http.Response resp){
       final int statusCode = resp.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {
         print('futuro: ${resp.body}');
@@ -436,7 +488,8 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _getCurrentTimeZone() async {
-    currentTimeZone = await FlutterNativeTimezone.getLocalTimezone();
+    var crossPlatform = CrossTimezone();
+    currentTimeZone = await crossPlatform.getCurrentTimezone();
   }
 
   @override
@@ -447,12 +500,14 @@ Future<bool> _requestPermisionChannel() async {
     ]);
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
-      _requestPermisionChannel();
+      if(kIsWeb == false)
+        _requestPermisionChannel();
+
       indexPost(true);
       _getPermisos();
       _getUsuarioYBanca();
       // indexPost(true);
-      manager = SocketIOManager();
+      // manager = SocketIOManager();
       initSocket();
       // // initSocketNoticacion();
       // // initSocketNoticacionInForeground();
@@ -467,11 +522,12 @@ Future<bool> _requestPermisionChannel() async {
         return;
         
         _getCurrentTimeZone();
-         _requestPermisionChannel();
+        if(kIsWeb == false)
+          _requestPermisionChannel();
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
-        manager = SocketIOManager();
+        // manager = SocketIOManager();
         initSocket();
         // initSocketNoticacion();
         // initSocketNoticacionInForeground();
@@ -492,6 +548,8 @@ Future<bool> _requestPermisionChannel() async {
     
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
+      if(!kIsWeb)
+        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 5), (Timer t) => _emitToSaveTicketsNoSubidos());
     
     
     focusNode = FocusNode();
@@ -504,12 +562,22 @@ Future<bool> _requestPermisionChannel() async {
 
   }
 
+  _initMobileFunction(){
+
+  }
+
   _getUsuarioYBanca() async {
     var usuario = await Db.getUsuario();
+    var banca = await Db.getBanca();
     print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
     if(usuario != null){
       _usuario = Usuario.fromMap(usuario);
-      _banca = Banca.fromMap(await Db.getBanca());
+      if(banca != null)
+        _banca = Banca.fromMap(banca);
+      else{
+        if(listaBanca.length > 0)
+          _banca = listaBanca[0];
+      }
     }else{
       await Principal.cerrarSesion(context);
       print("PrincipalScreen _getUsuarioYBanca null: ${usuario}");
@@ -528,6 +596,10 @@ Future<bool> _requestPermisionChannel() async {
     // _txtLoteriasSeleccionadasParaLigar.dispose();
     // _txtMontoLigar.dispose();
     _timer.cancel();
+    if(!kIsWeb){
+      if(_timerSaveVentaNoSubidas != null)
+        _timerSaveVentaNoSubidas.cancel();
+    }
     focusNode.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _streamControllerBanca.close();
@@ -535,7 +607,8 @@ Future<bool> _requestPermisionChannel() async {
     _streamControllerLoteria.close();
     print("dispose desconectar socket");
     print("Desconectando socket desde dispose de la ventana principal");
-    await manager.clearInstance(socket);
+    // await manager.clearInstance(socket);
+    await _disconnectSocket();
     
   }
 
@@ -561,8 +634,17 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
     bool permisoVerReporteJugadas  = await Db.existePermiso("Ver reporte jugadas");
     bool permisoVerAjustes  = await Db.existePermiso("Ver ajustes");
+    bool tienePermisoManejarBancas = await Db.existePermiso("Manejar bancas");
+    bool tienePermisoManejarUsuarios = await Db.existePermiso("Manejar usuarios");
+    bool tienePermisoVerIniciosDeSesion = await Db.existePermiso("Ver inicios de sesion");
+    bool tienePermisoVerBalanceBancas = await Db.existePermiso("Ver lista de balances de bancas");
+    bool tienePermisoManejarLoterias = await Db.existePermiso("Manejar loterias");
+    bool tienePermisoManejarManejarReglas = await Db.existePermiso("Manejar reglas");
+    bool tienePermisoManejarManejarGrupos = await Db.existePermiso("Manejar grupos");
+    bool tienePermisoVerVentasPorFecha = await Db.existePermiso("Ver ventas por fecha");
+    bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    print("_getPermisos tiene permiso ver ajustes: $permisoVerAjustes");
+    print("_getPermisos tiene permiso jugar sin disponibilidad: $tienePermisoJugarSinDisponibilidad");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -571,6 +653,7 @@ Future<bool> _requestPermisionChannel() async {
     setState((){
       _tienePermisoJugarComoCualquierBanca = permiso;
       _tienePermisoJugarFueraDeHorario = permisoJugarFueraDeHorario;
+      _tienePermisoJugarSinDisponibilidad = tienePermisoJugarSinDisponibilidad;
       _tienePermisoJugarMinutosExtras = permisoJugarMinutosExtras;
       _tienePermisoProgramador = permisoProgramador;
       _tienePermisoAdministrador = permisoAdministrador;
@@ -584,13 +667,24 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
       _tienePermisoVerReporteJugadas = permisoVerReporteJugadas;
       _tienePermisoVerAjustes = permisoVerAjustes;
+
+      _tienePermisoManejarBancas = tienePermisoManejarBancas;
+      _tienePermisoManejarUsuarios = tienePermisoManejarUsuarios;
+      _tienePermisoVerIniciosDeSesion = tienePermisoVerIniciosDeSesion;
+      _tienePermisoVerBalanceBancas = tienePermisoVerBalanceBancas;
+      _tienePermisoManejarLoterias = tienePermisoManejarLoterias;
+      _tienePermisoManejarManejarReglas = tienePermisoManejarManejarReglas;
+      _tienePermisoManejarManejarGrupos = tienePermisoManejarManejarGrupos;
+
+      _tienePermisoVerVentasPorFecha = tienePermisoVerVentasPorFecha;
       // initSocketNoticacionInForeground();
     });
   }
 
   Future _desconectarYConectarNuevamente() async {
     print("_desconectarYConectarNuevamente desconectar socket y conectar");
-    await manager.clearInstance(socket);
+    // await manager.clearInstance(socket);
+    await _disconnectSocket();
     _socketContadorErrores = 0;
     initSocket();
   }
@@ -602,53 +696,192 @@ Future<bool> _requestPermisionChannel() async {
     initSocketNoticacion();
   }
 
-  initSocket() async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
-      ..getToken(); // returns token without signature
+  _disconnectSocket(){
+    if(socket == null)
+      return;
+      
+    // socket.dis
+    socket.dispose();
+  }
 
-    var signer = new JWTHmacSha256Signer('quierocomerpopola');
-    var signedToken = builder.getSignedToken(signer);
-    print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+  _updateBranchesList(Map<String, dynamic> parsed) async {
+    print("Dentro principal view _updateBranchesList 1:");
+    if(parsed["branch"] == null)
+      return;
+    print("Dentro principal view _updateBranchesList paso parsed != null _administrador: $_tienePermisoJugarComoCualquierBanca");
+    
+    print("Dentro principal view _updateBranchesList 2");
+
+      try {
+        Banca banca = Banca.fromMap(parsed["branch"]);
+        if(_tienePermisoJugarComoCualquierBanca){
+          int idx = listaBanca.indexWhere((element) => element.id == banca.id);
+          print("Dentro principal view _updateBranchesList 3: $idx");
+          print("Dentro principal view _updateBranchesList 4 la primera pertenece: ${banca.loterias.indexWhere((element) => element.descripcion == "La Primera") == -1}");
+
+          if(idx != -1 && idx == _indexBanca)
+            listaBanca[idx] = banca;
+        }
+        
+
+        if(await Db.idBanca() == banca.id){
+          await Db.delete("Branches");
+          await Db.insert('Branches', banca.toJson());
+        }
+        
+      } catch (e) {
+        print("Principal view _updateBranchesList error: $e");
+      }
+  }
+
+  _emitToGetNewIdTicket() async {
+    if(kIsWeb)
+      return;
+
+    var idBanca = await getIdBanca();
+    print("_emitToGetNewIdTicket idBanca: $idBanca");
+    if(idBanca != null)
+      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : false}));
+  }
+  _emitToGetVentasDelDia() async {
+    if(kIsWeb)
+      return;
+
+    var idBanca = await getIdBanca();
+    print("_emitToGetVentasDelDia idBanca: ${idBanca}");
+    if(idBanca != null)
+      socket.emit("obtenerVentasDelDia", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca}));
+  }
+
+  _emitToSaveTicketsNoSubidos() async {
+    if(kIsWeb)
+      return;
+
+    if(socket == null)
+      return;
+
+    if(!socket.connected)
+      return;
+
+    var saleMap = await Db.getSaleNoSubida();
+    // var saleMapAll = await Db.query("Sales");
+
+    print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
+    // print("_emitToSaveTicketsNoSubidos before validate, saleMapAll: ${saleMapAll}");
+    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+    if(sale == null)
+      return;
+
+    if(sale.subido != 0)
+      return;
+
+    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+    Ticket ticket = Ticket.fromMap(ticketMap);
+    sale.ticket = ticket;
+
+    var salesdetailsListMap = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
+    List<Salesdetails> salesdetails = salesdetailsListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
+    print("_emitToSaveTicketsNoSubidos idBanca: ${ticketMap}");
+    
+    // return;
+
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
+  }
+
+  _addVentaSubidaToListVenta(var parsed) async {
+    if(Utils.isNumber(parsed) == false)
+      return;
+    var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
+    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+
+    if(sale == null)
+      return;
+
+    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+    Ticket ticket = Ticket.fromMap(ticketMap);
+    sale.ticket = ticket;
+
+    if(listaVenta.indexWhere((element) => element.idTicket == sale.idTicket) == -1){
+      listaVenta.add(Venta(idTicket: sale.idTicket, total: sale.total, codigoBarra: sale.ticket != null ? sale.ticket.codigoBarra : ''));
+      _streamControllerVenta.add(true);
+    }
+  }
+
+  initSocket() async {
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+    //   ..getToken(); // returns token without signature
+
+    // var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    // var signedToken = builder.getSignedToken(signer);
+    // print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
   // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     // manager = SocketIOManager();
-    socket = await manager.createInstance(SocketOptions(
-                    //Socket IO server URI
-                      // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
-                      // '10.0.0.11:3000',
-                      Utils.URL_SOCKET,
-                      nameSpace: "/",
-                      //Query params - can be used for authentication
-                      // query: {
-                      //   "query": 'auth_token=${signedToken}'
-                      // },
-                      query: {
-                        "auth_token": '${signedToken.toString()}',
-                        "room" : await Db.servidor()
-                      },
+    var signedToken = await Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
+    
+    // socket = await manager.createInstance(SocketOptions(
+    //                 //Socket IO server URI
+    //                   // 'http://pruebass.ml:3000',
+    //                   // 'http://192.168.43.63:3000',
+    //                   // '10.0.0.11:3000',
+    //                   Utils.URL_SOCKET,
+    //                   nameSpace: "/",
+    //                   //Query params - can be used for authentication
+    //                   // query: {
+    //                   //   "query": 'auth_token=${signedToken}'
+    //                   // },
+    //                   query: {
+    //                     "auth_token": '${signedToken.toString()}',
+    //                     "room" : await Db.servidor()
+    //                   },
 
-                      //Enable or disable platform channel logging
-                      enableLogging: true,
-                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
-        ));       //TODO change the port  accordingly
-    socket.onConnect((data) async {
-      print("connected...");
-      print(data);
-      socket.emit("message", ["Hello world!"]);
-      await Realtime.sincronizarTodos(_scaffoldKey);
+    //                   //Enable or disable platform channel logging
+    //                   enableLogging: true,
+    //                   // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+    //     ));       //TODO change the port  accordingly
+    print("initSOcket servidor beforeConnect ${await Db.servidor()}");
+    print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    // IO.
+    IO.cache.forEach((key, value) {print("initSocket cache $key : $value");});
+    socket = IO.io(Utils.URL_SOCKET, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+      'forceNew': true,
+      'extraHeaders': {'foo': 'bar'}, // optional
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}"
+      // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
+    });
+
+    socket.on('connect', (_) async {
+     print("initSocket connected... servidor: ${await Db.servidor()}");
+      // print(data);
+      // socket.emit("message", ["Hello world!"]);
+      _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
+      await Realtime.sincronizarTodos(_scaffoldKey, await Db.idBanca());
       await _getPermisos();
       _socketContadorErrores = 0;
-    // _listaMensajes.add("initSocket onConnect ${DateTime.now().hour}:${DateTime.now().minute}");
-
     });
+    socket.onConnect((data) => print("PrincipalView initSocket onConnect: $data"));
+
+    // socket.onConnect((data) async {
+    //   print("connected...");
+    //   print(data);
+    //   socket.emit("message", ["Hello world!"]);
+    //   await Realtime.sincronizarTodos(_scaffoldKey);
+    //   await _getPermisos();
+    //   _socketContadorErrores = 0;
+    // // _listaMensajes.add("initSocket onConnect ${DateTime.now().hour}:${DateTime.now().minute}");
+
+    // });
     //  socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
     //   // var parsed = Utils.parseDatos(data);
     //   var parsed = data.cast<String, dynamic>();
@@ -666,33 +899,69 @@ Future<bool> _requestPermisionChannel() async {
     //     await Realtime.addStocks(parsed['stocks']);
     //   }
     // });
+    if(kIsWeb == false){
+      socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
+        // var parsed = data.cast<String, dynamic>();
+        print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent primero parsed: $data");
+        var parsed = await compute(Utils.parseDatosDynamic, data);
+        print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent parsed: $parsed");
+        await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("BlocksplaysgeneralsEvent: $parsed");
+        await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      });
+      socket.on("blocksdirtygenerals:App\\Events\\BlocksdirtygeneralsEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("Principalview blocksdirtygenerals: $parsed");
+        await Realtime.addBlocksdirtygeneralsDatosNuevos(parsed['blocksdirtygenerals'], (parsed['action'] == 'delete') ? true : false);
+      });
+      socket.on("blocksdirty:App\\Events\\BlocksdirtyEvent", (data) async {   //sample event
+        var parsed = data.cast<String, dynamic>();
+        print("Principalview blocksdirty: $parsed");
+        await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
+      });
 
-    socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
-      // var parsed = data.cast<String, dynamic>();
-      var parsed = await compute(Utils.parseDatosDynamic, data);
-      await Realtime.addStocks(parsed['stocks'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksgenerals:App\\Events\\BlocksgeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlocksgeneralsDatosNuevos(parsed['blocksgenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlockslotteriesDatosNuevos(parsed['blockslotteries'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Realtime.addBlocksplaysDatosNuevos(parsed['blocksplays'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("BlocksplaysgeneralsEvent: $parsed");
-      await Realtime.addBlocksplaysgeneralsDatosNuevos(parsed['blocksplaysgenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
-    });
+      socket.on("ticket", (data){
+        print("Socket ticket from server before: $data");
+        Realtime.createTicketIfNotExists(data);
+        print("Socket ticket from server after: $data");
+      });
+      socket.on("recibirVenta", (data) async {
+        print("Socket recibirVenta from server before: $data");
+        await Realtime.setVentaToSubido(data);
+        await _addVentaSubidaToListVenta(data);
+        print("Socket recibirVenta from server after: $data");
+      });
+      socket.on("obtenerVentasDelDia", (data){
+        print("Socket obtenerVentasDelDia 1: $data");
+        if(data == null)
+          return;
+
+        var parsed = data.cast<String, dynamic>();
+        print("Socket obtenerVentasDelDia 2: $data");
+        _updateBranchesList(parsed);
+        print("Socket obtenerVentasDelDia 3: $data");
+      });
+    }
+    
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
       // var parsed = data.cast<String, dynamic>();
       var parsed = await compute(Utils.parseDatosDynamic, data);
@@ -705,40 +974,34 @@ Future<bool> _requestPermisionChannel() async {
       quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed);
       // print("lotteriesevent: $parsed");
     });
-    socket.on("blocksdirtygenerals:App\\Events\\BlocksdirtygeneralsEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("Principalview blocksdirtygenerals: $parsed");
-      await Realtime.addBlocksdirtygeneralsDatosNuevos(parsed['blocksdirtygenerals'], (parsed['action'] == 'delete') ? true : false);
-    });
-    socket.on("blocksdirty:App\\Events\\BlocksdirtyEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
-      print("Principalview blocksdirty: $parsed");
-      await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
-    });
+    
     socket.on("settings:App\\Events\\SettingsEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       Realtime.ajustes(parsed);
       // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
+    socket.on("branches:App\\Events\\BranchesEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      _updateBranchesList(parsed);
+      // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+    });
     socket.on("error", (data){   //sample event
       print("onError: $data");
-    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
-
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
-
-      // print(data);
     });
-    socket.onConnectError((er) async {
-      _socketContadorErrores++;
-      if(_socketContadorErrores == 4)
-        await _desconectarYConectarNuevamente();
-      print("onConnectError: $er");
-    _listaMensajes.add("initSocket onConnectError ${DateTime.now().hour}:${DateTime.now().minute}");
+    socket.on('connect_error', (data) => print(data));
+    socket.on('error', (data) => print("errr: ${data}"));
+    socket.onDisconnect((data) => print("onDisconnect principalview: ${data}"));
+  //   socket.onConnectError((er) async {
+  //     _socketContadorErrores++;
+  //     if(_socketContadorErrores == 4)
+  //       await _desconectarYConectarNuevamente();
+  //     print("onConnectError: $er");
+  //   _listaMensajes.add("initSocket onConnectError ${DateTime.now().hour}:${DateTime.now().minute}");
 
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "onConnectError start socket");
+  // // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "onConnectError start socket");
 
-    });
-    socket.onError((e) => print(e));
+  //   });
+  //   socket.onError((e) => print(e));
     socket.connect();
 
 
@@ -761,85 +1024,89 @@ Future<bool> _requestPermisionChannel() async {
 
   //Socket notificacion
   static initSocketNoticacion() async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('data', {'id': 836, 'username' : "john.doe"})
-      ..getToken(); // returns token without signature
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('data', {'id': 836, 'username' : "john.doe"})
+    //   ..getToken(); // returns token without signature
 
-    var signer = new JWTHmacSha256Signer('quierocomerpopola');
-    var signedToken = builder.getSignedToken(signer);
-    print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+    // var signer = new JWTHmacSha256Signer('quierocomerpopola');
+    // var signedToken = builder.getSignedToken(signer);
+    // print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
   // Utils.showAlertDialog(context: context, title: "Principal initSocket", content: "Before start socket");
     
     // _listaMensajes.add("Before initSocket ${DateTime.now().hour}:${DateTime.now().minute}");
     
+    var signedToken = Utils.createJwtForSocket(data: {'id': 836, 'username' : "john.doe"}, key: 'quierocomerpopola');
     
 
 
 
 print("Inside socketNotificaciones");
 
-    socketNotificaciones = await manager.createInstance(SocketOptions(
-                    //Socket IO server URI
-                      // 'http://pruebass.ml:3000',
-                      // 'http://192.168.43.63:3000',
-                      // '10.0.0.11:3000',
-                      Utils.URL_SOCKET,
-                      nameSpace: "/",
-                      //Query params - can be used for authentication
-                      // query: {
-                      //   "query": 'auth_token=${signedToken}'
-                      // },
-                      query: {
-                        "auth_token": '${signedToken.toString()}',
-                        "room" : await Db.servidor()
-                      },
+  //   socketNotificaciones = await manager.createInstance(SocketOptions(
+  //                   //Socket IO server URI
+  //                     // 'http://pruebass.ml:3000',
+  //                     // 'http://192.168.43.63:3000',
+  //                     // '10.0.0.11:3000',
+  //                     Utils.URL_SOCKET,
+  //                     nameSpace: "/",
+  //                     //Query params - can be used for authentication
+  //                     // query: {
+  //                     //   "query": 'auth_token=${signedToken}'
+  //                     // },
+  //                     query: {
+  //                       "auth_token": '${signedToken.toString()}',
+  //                       "room" : await Db.servidor()
+  //                     },
 
-                      //Enable or disable platform channel logging
-                      enableLogging: true,
-                      // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
-        )); 
-    socketNotificaciones.onConnect((data) async {
-      _socketNotificacionContadorErrores = 0;
-      print("socketNotificaciones connected...");
-      print(data);
-      // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
-    });
-    socketNotificaciones.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
-      var parsed = data.cast<String, dynamic>();
+  //                     //Enable or disable platform channel logging
+  //                     enableLogging: true,
+  //                     // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
+  //       )); 
+  //   socketNotificaciones.onConnect((data) async {
+  //     _socketNotificacionContadorErrores = 0;
+  //     print("socketNotificaciones connected...");
+  //     print(data);
+  //     // socketNotificaciones.emit("message", ["Hello world Notificaciones!"]);
+  //   });
+  //   socketNotificaciones.on("notification:App\\Events\\NotificationEvent", (data) async {   //sample event
+  //     var parsed = data.cast<String, dynamic>();
       
-      if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
-        var notificacion = Notificacion.fromMap(parsed["notification"]);
-        print("Principalview NotificationEvent Mostrar notificacion: ${notificacion.toJson()}");
-        MyNotification.show(route: "/notificaciones", title: notificacion.titulo, subtitle: notificacion.subtitulo, content: notificacion.contenido);
-      }
-      print("Principalview NotificationEvent: $parsed");
-    });
-    socketNotificaciones.onConnectError((er) async {
-      _socketNotificacionContadorErrores++;
-      if(_socketNotificacionContadorErrores == 4)
-        await _desconectarYConectarNuevamenteSocketNotificacion();
-      print("onConnectError: $er");
-    });
-    socketNotificaciones.on("error", (data){   //sample event
-      print("onErrorNoti: $data");
-    // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
+  //     if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true){
+  //       var notificacion = Notificacion.fromMap(parsed["notification"]);
+  //       print("Principalview NotificationEvent Mostrar notificacion: ${notificacion.toJson()}");
+  //       MyNotification.show(route: "/notificaciones", title: notificacion.titulo, subtitle: notificacion.subtitulo, content: notificacion.contenido);
+  //     }
+  //     print("Principalview NotificationEvent: $parsed");
+  //   });
+  //   socketNotificaciones.onConnectError((er) async {
+  //     _socketNotificacionContadorErrores++;
+  //     if(_socketNotificacionContadorErrores == 4)
+  //       await _desconectarYConectarNuevamenteSocketNotificacion();
+  //     print("onConnectError: $er");
+  //   });
+  //   socketNotificaciones.on("error", (data){   //sample event
+  //     print("onErrorNoti: $data");
+  //   // _listaMensajes.add("initSocket OnError ${DateTime.now().hour}:${DateTime.now().minute}");
 
-  // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
+  // // Utils.showAlertDialog(context: context, title: "Principal initSocket error", content: "onError start socket");
 
-      // print(data);
-    });
-    socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
-    socketNotificaciones.connect();
+  //     // print(data);
+  //   });
+  //   socketNotificaciones.onError((e) => print("SocketNotificaciones error $e"));
+  //   socketNotificaciones.connect();
 
     print("inside NotificationEvent:");
   }
 
 _showIntentNotificationIfExists() async {
+  if(kIsWeb)
+    return;
+    
   var notificacion = await MyNotification.getIntentDataNotification();
   
   if(notificacion != null){
@@ -885,6 +1152,9 @@ _showIntentNotificationIfExists() async {
   _duplicar(Map<String, dynamic> datos) async {
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    if(loteriasAduplicar == null)
+      return;
+
     loteriasAduplicar.forEach((l) async {
       for(Map<String, dynamic> jugada in datos["jugadas"]){
         if(l["id"] == jugada["idLoteria"]){
@@ -900,7 +1170,9 @@ _showIntentNotificationIfExists() async {
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
+                  print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
                   jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
@@ -997,7 +1269,8 @@ _showIntentNotificationIfExists() async {
         // usuario.servidor = servidor;
         // await Db.update("Users", usuario.toJson(), usuario.id);
         print("_cambiarServidor entrooooooooooooooooo");
-        await manager.clearInstance(socket);
+        // await manager.clearInstance(socket);
+        await _disconnectSocket();
         futureUsuario = Db.getUsuario();
         await indexPost(true);
         await initSocket();
@@ -1229,7 +1502,9 @@ AppBar _appBar(bool screenHeightIsSmall){
     double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
     double _iconPaddingHorizontal = 12;
     return AppBar(
-              
+      backgroundColor: Utils.colorMaterialCustom,
+      iconTheme: IconThemeData(color: Colors.white),
+      actionsIconTheme: IconThemeData(color: Colors.white),
       title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 17))) : Text('Principal'),
       // leading: SizedBox(),
       // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
@@ -1247,7 +1522,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                 visible: _cargando,
                 child: Theme(
                   data: Theme.of(context).copyWith(accentColor: Colors.white),
-                  child: new CircularProgressIndicator(),
+                  child: new CircularProgressIndicator(color: Colors.white,),
                 ),
               ),
             ),
@@ -1407,11 +1682,13 @@ AppBar _appBar(bool screenHeightIsSmall){
                                               hint: Text('sel. banca'),
                                               // isExpanded: true,
                                               value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                                              onChanged: (Banca banca){
+                                              onChanged: (Banca banca) async {
                                                 setState(() {
                                                 _indexBanca = listaBanca.indexOf(banca); 
+                                                _emitToGetNewIdTicket();
                                                 indexPost(false);
                                                 });
+                                                await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
                                               },
                                               items: listaBanca.map((b){
                                                 return DropdownMenuItem<Banca>(
@@ -1610,6 +1887,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                   GestureDetector(
                                     onTap: (){
                                       // _showMultiSelect(context);
+                                      changeMontoDisponibleFromTxtMontoDisponible();
                                       setState(() => _jugadaOmonto = false);
                                     },
                                     child: Padding(
@@ -1865,7 +2143,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         child: Row(
                                           children: <Widget>[
                                             IconButton(
-                                              icon: Icon(Icons.print, color: Colors.blue, size: 38),
+                                              icon: Icon(Icons.copy, color: Colors.blue, size: 38),
                                               onPressed: () async {
                                                 if(listaVenta.isNotEmpty){
                                                   var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
@@ -1982,37 +2260,188 @@ AppBar _appBar(bool screenHeightIsSmall){
   }
   
   _myJugadasScreen(){
-    return Column(
-                children: <Widget>[
-                  SizedBox(height: 8,),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: RaisedButton(
-                      child: Text('Eliminar todas'),
-                      onPressed: (){
-                        setState((){
-                          listaJugadas.clear();
-                          listaEstadisticaJugada.clear();
-                        });
-                      },
-                    ),
-                  ),
-                  StreamBuilder<List<Jugada>>(
-                    stream: _streamControllerJugada.stream,
-                    builder: (context, snapshot){
-                      if(snapshot.hasData){
-                      listaJugadas = snapshot.data;
+    // return Column(
+    //             children: <Widget>[
+    //               SizedBox(height: 8,),
+    //               SizedBox(
+    //                 width: MediaQuery.of(context).size.width,
+    //                 child: RaisedButton(
+    //                   child: Text('Eliminar todas'),
+    //                   onPressed: (){
+    //                     setState((){
+    //                       listaJugadas.clear();
+    //                       listaEstadisticaJugada.clear();
+    //                     });
+    //                   },
+    //                 ),
+    //               ),
+    //               StreamBuilder<List<Jugada>>(
+    //                 stream: _streamControllerJugada.stream,
+    //                 builder: (context, snapshot){
+    //                   if(snapshot.hasData){
+    //                   listaJugadas = snapshot.data;
 
-                        return _buildTable(listaJugadas);
-                      }else{
-                        return _buildTable([]);
-                      }
+    //                     return _buildTable(listaJugadas);
+    //                   }else{
+    //                     return _buildTable([]);
+    //                   }
                       
-                    },
-                  ),
-                ],
-              );
-            
+    //                 },
+    //               ),
+    //             ],
+    //           );
+
+    return Column(
+                          children: [
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+                                child: MyResizedContainer(
+                                  small: 1,
+                                  medium: 1,
+                                  child: InkWell(
+                                    onTap: (){
+                                      setState(() => listaJugadas = []);
+                                      _streamControllerJugada.add(listaJugadas);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(10)
+                                      ),
+                                      child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: StreamBuilder<List<Jugada>>(
+                                stream: _streamControllerJugada.stream,
+                                builder: (context, snapshot) {
+                                  if(snapshot.data == null)
+                                    return SizedBox.shrink();
+                                  if(snapshot.data.length == 0)
+                                    return SizedBox.shrink();
+
+                                  return ListView.builder(
+                                    itemCount: snapshot.data.length,
+                                    itemBuilder: (context, index){
+                                      if(index == 0)
+                                      return Wrap(
+                                        children: [
+                                          Wrap(
+                                            children: [
+                                              MyResizedContainer(
+                                                small: 3.8,
+                                                child: Center(child: Text("Loteria", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Text("Jugada", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Text("Monto", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 5,
+                                                child: Center(child: Text("Borrar", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                              ),
+                                            ],
+                                          ),
+                                          Wrap(
+                                            children: [
+                                              MyResizedContainer(
+                                                small: 3.8,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 4,
+                                                child: Center(child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                                )),
+                                              ),
+                                              MyResizedContainer(
+                                                small: 5,
+                                                child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
+                                              ),
+                                            ],
+                                          ),
+                                        
+                                          // Wrap(
+                                          //   children: [
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Loteria")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Jugada")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Monto")),
+                                          //     ),
+                                          //     MyResizedContainer(
+                                          //       small: 3,
+                                          //       child: Center(child: Text("Borrar")),
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                        
+                                        ],
+                                      );
+                              
+                                      return Wrap(
+                                        children: [
+                                          MyResizedContainer(
+                                            small: 3.8,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 4,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 4,
+                                            child: Center(child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                            )),
+                                          ),
+                                          MyResizedContainer(
+                                            small: 5,
+                                            child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  );
+                                }
+                              ),
+                            )
+                          ],
+                        );
+                             
   }
   @override
   build(BuildContext context) {
@@ -2023,245 +2452,383 @@ AppBar _appBar(bool screenHeightIsSmall){
       :
       DefaultTabController(
           length: 2,
-          child: Scaffold(
-            key: _scaffoldKey,
-          drawer: SafeArea(
-            child: Drawer(
-              child: 
-              ListView(
-                children: <Widget>[
-                  ListTile(
-                    title: FutureBuilder<Map<String, dynamic>>(
-                      future: futureBanca,
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                        }
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              // For Android.
+              // Use [light] for white status bar and [dark] for black status bar.
+              statusBarIconBrightness: Brightness.light,
+              // For iOS.
+              // Use [dark] for white status bar and [light] for black status bar.
+              statusBarBrightness: Brightness.light,
+              // statusBarColor: Colors.transparent
+              statusBarColor: Colors.transparent
+            ),
+            child: Scaffold(
+              key: _scaffoldKey,
+            drawer: SafeArea(
+              child: Drawer(
+                child: 
+                ListView(
+                  children: <Widget>[
+                    ListTile(
+                      title: FutureBuilder<Map<String, dynamic>>(
+                        future: futureBanca,
+                        builder: (context, snapshot){
+                          if(snapshot.hasData){
+                            return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                          }
 
-                        return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                      }
-                    ),
-                    subtitle: FutureBuilder<Map<String, dynamic>>(
-                      future: futureUsuario,
-                      builder: (context, snapshot){
-                        if(snapshot.hasData){
-                          return Text('${snapshot.data["servidor"]}');
+                          return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
                         }
+                      ),
+                      subtitle: FutureBuilder<Map<String, dynamic>>(
+                        future: futureUsuario,
+                        builder: (context, snapshot){
+                          if(snapshot.hasData){
+                            return Text('${snapshot.data["servidor"]}');
+                          }
 
-                        return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                      }
-                    ),
-                    leading: Container(
-                      width: 30,
-                      height: 30,
-                      child:  ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            widthFactor: 0.75,
-                            heightFactor: 0.75,
-                            child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                          return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                        }
+                      ),
+                      leading: Container(
+                        width: 30,
+                        height: 30,
+                        child:  ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            child: Align(
+                              alignment: Alignment.topLeft,
+                              widthFactor: 0.75,
+                              heightFactor: 0.75,
+                              child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    onTap: () async {
-                      _cambiarServidor();
-                      _scaffoldKey.currentState.openEndDrawer();
+                      onTap: () async {
+                        _cambiarServidor();
+                        _scaffoldKey.currentState.openEndDrawer();
 
-                    },
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerDashboard,
-                    child: ListTile(
-                      title: Text('Dashboard'),
-                      leading: Icon(Icons.dashboard),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/dashboard");
-                        _scaffoldKey.currentState.openEndDrawer();
                       },
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoTransacciones,
-                    child: ListTile(
-                      title: Text('Transacciones'),
-                      leading: Icon(Icons.transfer_within_a_station),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/transacciones");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
+                    
+                    Visibility(
+                      visible: _tienePermisoVerDashboard,
+                      child: ListTile(
+                        title: Text('Dashboard'),
+                        leading: Icon(Icons.dashboard),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/dashboard");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoMonitorearTicket,
-                    child: ListTile(
-                      title: Text('Monitoreo'),
-                      leading: Icon(Icons.donut_large),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/monitoreo");
-                      _scaffoldKey.currentState.openEndDrawer();},
+                    Visibility(
+                      visible: _tienePermisoTransacciones,
+                      child: ListTile(
+                        title: Text('Transacciones'),
+                        leading: Icon(Icons.transfer_within_a_station),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/transacciones");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoManejarResultados,
-                    child: ListTile(
-                      title: Text('Registrar premios'),
-                      leading: Icon(Icons.format_list_numbered),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/registrarPremios");
-                      _scaffoldKey.currentState.openEndDrawer();},
+                    Visibility(
+                      visible: _tienePermisoMonitorearTicket,
+                      child: ListTile(
+                        title: Text('Monitoreo'),
+                        leading: Icon(Icons.donut_large),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/monitoreo");
+                        _scaffoldKey.currentState.openEndDrawer();},
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerReporteJugadas,
-                    child: ListTile(
-                      title: Text('Reporte jugadas'),
-                      leading: Icon(Icons.receipt_long),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/reporteJugadas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
+                    Visibility(
+                      visible: _tienePermisoManejarResultados,
+                      child: ListTile(
+                        title: Text('Registrar premios'),
+                        leading: Icon(Icons.format_list_numbered),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/registrarPremios");
+                        _scaffoldKey.currentState.openEndDrawer();},
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerHistoricoVentas,
-                    child: ListTile(
-                      title: Text('Historico ventas'),
-                      leading: Icon(Icons.timeline),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/historicoVentas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
+                    Visibility(
+                      visible: _tienePermisoVerReporteJugadas || _tienePermisoVerHistoricoVentas || _tienePermisoVerVentas || _tienePermisoVerVentasPorFecha,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.analytics),
+                        title: Text("Reportes"),
+                        children: [
+                           Visibility(
+                            visible: _tienePermisoVerReporteJugadas,
+                            child: ListTile(
+                              title: Text('Reporte jugadas'),
+                              leading: Icon(Icons.receipt_long),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/reporteJugadas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerHistoricoVentas,
+                            child: ListTile(
+                              title: Text('Historico ventas'),
+                              leading: Icon(Icons.timeline),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/historicoVentas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerVentasPorFecha,
+                            child: ListTile(
+                              title: Text('Ventas por fecha'),
+                              leading: Icon(Icons.event_available),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/ventasPorFecha");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerVentas,
+                            child: ListTile(
+                              title: Text('Ventas'),
+                              leading: Icon(Icons.insert_chart),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/ventas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerVentas,
-                    child: ListTile(
-                      title: Text('Ventas'),
-                      leading: Icon(Icons.insert_chart),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/ventas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
+                    
+                    
+                    Visibility(
+                      visible: _tienePermisoAdministrador || _tienePermisoProgramador,
+                      child: ListTile(
+                        title: Text('Pendientes de pago'),
+                        leading: Icon(Icons.attach_money),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/pendientesPago");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerListaDeBalancesDeBancass,
-                    child: ListTile(
-                      title: Text('Balance bancas'),
-                      leading: Icon(Icons.account_balance),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/balanceBancas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoAdministrador || _tienePermisoProgramador,
-                    child: ListTile(
-                      title: Text('Pendientes de pago'),
-                      leading: Icon(Icons.attach_money),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/pendientesPago");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Duplicar'),
-                    leading: Icon(Icons.scatter_plot),
-                    dense: true,
-                    onTap: () async {
-                      Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
-                      _scaffoldKey.currentState.openEndDrawer();
-                      if(datos.isNotEmpty){
-                        await _duplicar(datos);
-                      }
-                      // print("prueba alertdialog: $prueba");
-                    },
-                  ),
-                  Visibility(
-                    visible: _tienePermisoMarcarTicketComoPagado,
-                    child: ListTile(
-                      title: Text("Pagar"),
-                      leading: Icon(Icons.payment),
+                    ListTile(
+                      title: Text('Duplicar'),
+                      leading: Icon(Icons.scatter_plot),
                       dense: true,
                       onTap: () async {
-                        dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                        Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
                         _scaffoldKey.currentState.openEndDrawer();
                         if(datos.isNotEmpty){
-                          print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
-                          Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+                          await _duplicar(datos);
                         }
+                        // print("prueba alertdialog: $prueba");
                       },
                     ),
-                  ),
-                  Visibility(
-                    visible: _tienePermisoVerAjustes,
-                    child: ListTile(
-                      title: Text('Ajustes'),
-                      leading: Icon(Icons.settings),
+                    Visibility(
+                      visible: _tienePermisoMarcarTicketComoPagado,
+                      child: ListTile(
+                        title: Text("Pagar"),
+                        leading: Icon(Icons.payment),
+                        dense: true,
+                        onTap: () async {
+                          dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
+                          _scaffoldKey.currentState.openEndDrawer();
+                          if(datos.isNotEmpty){
+                            print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
+                            Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+                          }
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarManejarReglas,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.block),
+                        title: Text("Bloqueos"),
+                        children: [
+                           ListTile(
+                            title: Text('Por loterias'),
+                            leading: Icon(Icons.group_work_outlined),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/bloqueosporloteria");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                           ListTile(
+                            title: Text('Por jugadas'),
+                            leading: Icon(Icons.pin),
+                            dense: true,
+                            onTap: (){
+                              Navigator.of(context).pushNamed("/bloqueosporjugadas");
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarUsuarios || _tienePermisoVerIniciosDeSesion,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.person_outline),
+                        title: Text("Usuarios"),
+                        children: [
+                           Visibility(
+                             visible: _tienePermisoManejarUsuarios,
+                             child: ListTile(
+                              title: Text('Usuarios'),
+                              leading: Icon(Icons.person),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/usuarios");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                                                     ),
+                           ),
+                           Visibility(
+                             visible: _tienePermisoVerIniciosDeSesion,
+                             child: ListTile(
+                              title: Text('Sesiones'),
+                              leading: Icon(Icons.sync_alt),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/sesiones");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                                                     ),
+                           ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoVerListaDeBalancesDeBancass,
+                      child: ListTile(
+                        title: Text('Balance bancas'),
+                        leading: Icon(Icons.account_balance_wallet),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/balanceBancas");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    
+                    Visibility(
+                      visible: _tienePermisoManejarBancas,
+                      child: ListTile(
+                        title: Text('Bancas'),
+                        leading: Icon(Icons.account_balance),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/bancas");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarLoterias,
+                      child: ListTile(
+                        title: Text('Loterias'),
+                        leading: Icon(Icons.group_work_outlined),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/loterias");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarManejarGrupos,
+                      child: ListTile(
+                        title: Text('Grupos'),
+                        leading: Icon(Icons.group_work),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/grupos");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    
+                    Visibility(
+                      visible: _tienePermisoVerAjustes,
+                      child: ListTile(
+                        title: Text('Ajustes'),
+                        leading: Icon(Icons.settings),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/ajustes");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Version'),
                       dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/ajustes");
-                        _scaffoldKey.currentState.openEndDrawer();
+                      leading: Icon(Icons.assignment),
+                      onTap: () async {
+                      Principal.showVersion(context: context);
                       },
                     ),
-                  ),
-                  ListTile(
-                    title: Text('Version'),
-                    dense: true,
-                    leading: Icon(Icons.assignment),
-                    onTap: () async {
-                    Principal.showVersion(context: context);
-                    },
-                  ),
-                  ListTile(
-                    title: Text('Cerrar sesion'),
-                    dense: true,
-                    leading: Icon(Icons.clear),
-                    onTap: () async {
-                      
-                      Principal.cerrarSesion(context);
-                      await stopSocketNoticacionInForeground();
-                    },
-                  )
-                ],
-              ),
+                    ListTile(
+                      title: Text('Cerrar sesion'),
+                      dense: true,
+                      leading: Icon(Icons.clear),
+                      onTap: () async {
+                        
+                        // socket.close();
+                        // socket.dispose();
+                        _disconnectSocket();
+                        await Principal.cerrarSesion(context);
+                        print("Cerra sesion after _disconnectSocket");
+                        await stopSocketNoticacionInForeground();
+                      },
+                    )
+                  ],
+                ),
 
+              ),
             ),
-          ),
-          appBar: MediaQuery.of(context).size.height > 630
-          ?
-          // _appBar(false)
-          PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
-            child: _appBar(false),
-          )
-          :
-          PreferredSize(
-            preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
-            child: _appBar(true),
-          ),
-          body: TabBarView(
-            children: <Widget>[
-              _myPrincipalScreen(),
-              // Center(child: Text("KLkl mi pana")),
-              _myJugadasScreen()
-            ],
-          ),
+            appBar: MediaQuery.of(context).size.height > 630
+            ?
+            // _appBar(false)
+            PreferredSize(
+              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+              child: _appBar(false),
+            )
+            :
+            PreferredSize(
+              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
+              child: _appBar(true),
+            ),
+            body: TabBarView(
+              children: <Widget>[
+                _myPrincipalScreen(),
+                // Center(child: Text("KLkl mi pana")),
+                _myJugadasScreen()
+              ],
+            ),
         ),
+          ),
       
       );
     
@@ -2280,16 +2847,16 @@ void _getTime() {
   }
 
   DateTime _convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone(Loteria loteria) {
-    var santoDomingo = tz.getLocation('America/Santo_Domingo');
-    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.now(santoDomingo);
     var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
-    // var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+    // var fechaFinalRd = TZDateTime.now(santoDomingo);
 
     
-    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
-    // var currentTimeZoneFechaActual = tz.TZDateTime.now(currentTimeZoneLocation);
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+    // var currentTimeZoneFechaActual = TZDateTime.now(currentTimeZoneLocation);
     // var fechaLoteriaCurrentTimeZone = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre}");
-    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
+    var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
     print("_convertirHoraCierreLoteria currentTImeZone: $currentTimeZone");
     print("hora actual currentTimeZone: ${fechaLoteriaCurrentTimeZone.toString()} santoDomingo: ${fechaLoteriaRD.toString()}");
 
@@ -2297,8 +2864,10 @@ void _getTime() {
   }
 
   DateTime _horaCierreLoteriaToCurrentTimeZone(Loteria loteria) {
-    var santoDomingo = tz.getLocation('America/Santo_Domingo');
-    var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+    if(currentTimeZone == null)
+      return DateTime.now();
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.now(santoDomingo);
     var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre != null ? loteria.horaCierre : '00:00'}");
     
     int horasASumar = (fechaLoteriaRD.hour - fechaActualRd.hour);
@@ -2309,8 +2878,8 @@ void _getTime() {
     fechaLoteriaConvertidaAFormatoRD = fechaActualRd.add(Duration(hours: horasASumar, minutes: minutosASumar));
     fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
 
-    var currentTimeZoneLocation = tz.getLocation(currentTimeZone);
-    var fechaLoteriaCurrentTimeZone = tz.TZDateTime.from(fechaLoteriaConvertidaAFormatoRD, currentTimeZoneLocation);
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+    var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaConvertidaAFormatoRD, currentTimeZoneLocation);
 
     return fechaLoteriaCurrentTimeZone;
   }
@@ -2529,7 +3098,7 @@ void _getTime() {
     if(caracter == 'ENTER'){
       if(_jugadaOmonto){
         setState((){
-          montoDisponible();
+          changeMontoDisponibleFromTxtMontoDisponible();
           _jugadaOmonto = !_jugadaOmonto;
           _txtMontoPrimerCaracter = true;
         });
@@ -2907,7 +3476,7 @@ void _getTime() {
   }
 
   _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto){
-    var listaJugadasLigadas = List<String>();
+    List<String> listaJugadasLigadas = [];
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
     var listaJugadaDirectos = listaJugadas.where((e) => e.jugada.length == 2).toList();
@@ -2977,7 +3546,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + '+';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -2990,7 +3559,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + '-';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -3007,7 +3576,7 @@ void _getTime() {
     
     _txtJugada.text = _txtJugada.text + 's';
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    montoDisponible();
+    changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -3019,7 +3588,7 @@ void _getTime() {
       return;
     
     setState(() => _jugadaOmonto = !_jugadaOmonto);
-    await montoDisponible();
+    await changeMontoDisponibleFromTxtMontoDisponible();
     _txtJugada.text = _txtJugada.text + '.';
   }
 
@@ -3028,17 +3597,19 @@ void _getTime() {
     if(jugada.length < 2)
       return;
 
-    if(montoDisponible.isEmpty)
-      return;
+    // if(montoDisponible.isEmpty)
+    //   return;
 
-    if((Utils.toDouble(montoDisponible) == 0 || Utils.toDouble(montoDisponible) < 0) || Utils.toDouble(montoDisponible) < Utils.toDouble(monto)){
-      if(montoDisponible != 'X' && selectedLoterias.length < 2){
-        if(Utils.toDouble(monto) > Utils.toDouble(montoDisponible)){
-          _showSnackBar('No hay monto suficiente');
-            return;
-        }
-      }
-    }
+    // if((Utils.toDouble(montoDisponible) == 0 || Utils.toDouble(montoDisponible) < 0) || Utils.toDouble(montoDisponible) < Utils.toDouble(monto)){
+    //   if(montoDisponible != 'X' && selectedLoterias.length < 2){
+    //     // VALIDAMOS OTRA VEZ EL MONTO DISPONIBLE
+    //     var montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca());
+    //     if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+    //       _showSnackBar('No hay monto suficiente');
+    //         return;
+    //     }
+    //   }
+    // }
     
 
     if(Utils.toDouble(monto) == 0){
@@ -3057,87 +3628,16 @@ void _getTime() {
     }
 
     if(loteriaMap != null){
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteriaMap["id"]) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria ${loteriaMap["descripcion"]} desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: loteriaMap["id"],
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: loteriaMap["descripcion"],
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
-
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
-
       insertarJugadaDuplicar(loteriaMap, jugadaMap);
-
     }
     else if(selectedLoterias.length == 1){
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == selectedLoterias[0].id) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria ${selectedLoterias[0].descripcion} desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: selectedLoterias[0].id,
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: selectedLoterias[0].descripcion,
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
 
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
+      // VALIDAMOS EL MONTO DISPONIBLE
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
+      if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
+          return;
+      }
 
       insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto);
       _streamControllerJugada.add(listaJugadas);
@@ -3147,60 +3647,24 @@ void _getTime() {
       // setState(() => _jugadaOmonto = true);
     }
     else if(_selectedLoterias.length >= 2 && Utils.esSuperpale(jugada)){
-      // Loteria loteria = selectedLoterias[0];
-      // Loteria loteriaSuperpale = selectedLoterias[1];
-      // if(loteria.id > loteriaSuperpale.id){
-      //   Loteria tmp = loteriaSuperpale;
-      //   loteriaSuperpale = loteria;
-      //   loteria = tmp;
-      // }
+     
 
-      // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
-      // if(idx != -1){
-      //   showDialog(
-      //     context: context,
-      //     builder: (context){
-      //       return AlertDialog(
-      //         title: Text('Jugada existe'),
-      //         content: Text('La jugada ${jugada} existe en la loteria Super pale(${loteria.descripcion}/${loteriaSuperpale.descripcion}) desea agregar?'),
-      //         actions: <Widget>[
-      //           FlatButton(child: Text("Cancelar"), onPressed: (){
-      //           Navigator.of(context).pop();
-      //           },),
-      //           FlatButton(child: Text("Agregar"), onPressed: (){
-      //               Navigator.of(context).pop();
-      //               listaJugadas[idx].monto += Utils.toDouble(monto);
-      //               _streamControllerJugada.add(listaJugadas);
-      //               _txtJugada.text = '';
-      //               _txtMontoDisponible.text = '';
-      //             // });
-      //             },
-      //           )
-      //         ],
-      //       );
-      //     }
-      //   );
-      // }else{
-      //   listaJugadas.add(Jugada(
-      //     jugada: jugada,
-      //     idLoteria: loteria.id,
-      //     idLoteriaSuperpale: loteriaSuperpale.id,
-      //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-      //     descripcion: loteria.descripcion,
-      //     descripcionSuperpale: loteriaSuperpale.descripcion,
-      //     abreviatura: loteria.abreviatura,
-      //     abreviaturaSuperpale: loteriaSuperpale.abreviatura,
-      //     idBanca: 0
-      //   ));
-      //   _streamControllerJugada.add(listaJugadas);
-
-      //   _txtJugada.text = '';
-      //   _txtMontoDisponible.text = '';
-      // }
-
-      
+      var banca = await _selectedBanca();
       //Ordenamos las loterias seleccionadas de menor a mayor basedo en su id
       _selectedLoterias.sort((a, b) => a.id.compareTo(b.id));
+
+      // VALIDAMOS DE QUE HAYA MONTO DISPONIBLE
+      for(int i=0; i < _selectedLoterias.length; i++){
+        for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
+          double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, _selectedLoterias[i2]);
+          if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+            _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
+              return;
+          }
+        }
+      }
+
+      // INSERTAMOS LOS SUPER PALE
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto);
@@ -3211,43 +3675,23 @@ void _getTime() {
       _txtMontoDisponible.text = '';
     }
     else{
-      selectedLoterias.forEach((l){
-        // int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == l.id) : -1;
-        // if(idx != -1){
-        //   showDialog(
-        //     context: context,
-        //     builder: (context){
-        //       return AlertDialog(
-        //         title: Text('Jugada existe'),
-        //         content: Text('La jugada ${jugada} existe en la loteria ${l.descripcion} desea agregar?'),
-        //         actions: <Widget>[
-        //           FlatButton(child: Text("Cancelar"), onPressed: (){
-        //           Navigator.of(context).pop();
-        //           },),
-        //           FlatButton(child: Text("Agregar"), onPressed: (){
-        //               Navigator.of(context).pop();
-        //               listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(monto), 2);
-        //             // });
-        //             },
-        //           )
-        //         ],
-        //       );
-        //     }
-        //   );
-        // }
-        // else{
-        //   listaJugadas.add(Jugada(
-        //     jugada: jugada,
-        //     idLoteria: l.id,
-        //     monto: Utils.redondear(Utils.toDouble(monto), 2),
-        //     descripcion: l.descripcion,
-        //     idBanca: 0
-        //   ));
-        // }
 
+      // OBTENEMOS LA BANCA
+      var banca = await _selectedBanca();
+
+      // VALIDAMOS LOS MONTOS DISPONIBLES
+      for (var l in selectedLoterias) {
+        double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
+        if(Utils.toDouble(monto) > montoDisponibleOtraVez){
+          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
+            return;
+        }
+      }
+
+      // INSERTAMOS LAS LOTERIAS
+      for (var l in selectedLoterias) {
         insertarJugada(jugada: jugada, loteria: l, monto: monto);
-        
-      });
+      }
 
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
@@ -3378,6 +3822,7 @@ void _getTime() {
           idLoteria: loteria.id,
           monto: Utils.redondear(Utils.toDouble(monto), 2),
           descripcion: loteria.descripcion,
+          loteria: loteria,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3430,6 +3875,8 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
+          loteria: loteria,
+          loteriaSuperPale: loteriaSuperpale,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3441,6 +3888,14 @@ void _getTime() {
 
   insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada) async {
     if(jugada["idSorteo"] != 4){
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
+      if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
+          return;
+      }
+
+      print("insertarJugadaDuplicar jugada: ${jugada}");
+
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteriaMap["id"]) : -1;
       if(idx != -1){
         showDialog(
@@ -3467,10 +3922,12 @@ void _getTime() {
           }
         );
       }else{
+
         Draws _sorteo = await getSorteo(jugada["jugada"]);
         listaJugadas.add(Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteriaMap["id"],
+          loteria: Loteria.fromMap(loteriaMap),
           monto: Utils.redondear(Utils.toDouble(jugada["monto"]), 2),
           descripcion: loteriaMap["descripcion"],
           idBanca: 0,
@@ -3493,6 +3950,13 @@ void _getTime() {
         loteria = tmp;
       }
 
+      double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), loteria, await _selectedBanca(), loteriaSuperpale);
+      if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
+        _showSnackBar('No hay monto suficiente para el super pale ${jugada["jugada"]} en las loterias ${loteria.descripcion}/${loteriaSuperpale.descripcion}');
+          return;
+      }
+
+      print("insertarJugadaDuplicar jugadaSuperpale: ${jugada["jugada"]}");
       print("insertarJugadaDuplicar superpale: ${loteriaSuperpale.toJson()}");
       print("insertarJugadaDuplicar normal: ${loteria.toJson()}");
 
@@ -3532,6 +3996,8 @@ void _getTime() {
           descripcionSuperpale: loteriaSuperpale.descripcion,
           abreviatura: loteria.abreviatura,
           abreviaturaSuperpale: loteriaSuperpale.abreviatura,
+          loteria: loteria,
+          loteriaSuperPale: loteriaSuperpale,
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion
@@ -3706,7 +4172,7 @@ void _getTime() {
     if(listaLoteria.length == 0)
       return;
 
-    _selectedLoterias = List();
+    _selectedLoterias = [];
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);
   }
@@ -3748,15 +4214,25 @@ void _getTime() {
 _seleccionarBancaPertenecienteAUsuario() async {
   var bancaMap = await Db.getBanca();
   Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
+  // print("_seleccionarBancaPertenecienteAUsuario bancaMap: ${bancaMap}");
   if(banca != null){
     int idx = listaBanca.indexWhere((b) => b.id == banca.id);
     print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
-    setState(() => _indexBanca = (idx != -1) ? idx : 0);
+    setState(() {
+      _indexBanca = (idx != -1) ? idx : 0;
+      _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
+    });
   }else{
-    setState(() =>_indexBanca = 0);
+    setState(() {
+      _indexBanca = 0;
+      print("_seleccionarBancaPertenecienteAUsuario listaBanca: ${listaBanca.length}");
+      _emitToGetNewIdTicket();
+      _emitToGetVentasDelDia();
+    });
   }
 
-  print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
+  // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
 }
 
 _selectedBanca() async {
@@ -3932,7 +4408,12 @@ _selectedBanca() async {
    return descuento;
  }
 
- montoDisponible() async {
+ changeMontoDisponibleFromTxtMontoDisponible() async {
+   if(_txtJugada.text.isEmpty){
+     _txtMontoDisponible.text = "0";
+     return;
+   }
+
    double montoDisponible = 0;
    if(_selectedLoterias.length == 1){
      montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca());
@@ -3955,15 +4436,26 @@ _selectedBanca() async {
      _showSnackBar("Debe seleccionar una loteria");
    }
  }
+ 
 
  Future<double> getMontoDisponible(String jugada, Loteria loteria, Banca banca, [Loteria loteriaSuperpale]) async {
     
     var montoDisponible = null;
     
-    
+    if(socket == null){
+      Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+      return 0;
+    }
+    if(!socket.connected){
+      Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+      return 0;
+    }
+
     int idDia = getIdDia();
     int idSorteo = await getIdSorteo(jugada, loteria);
+    String jugadaConSigno = jugada;
     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+    print("PrincipalView getMontoDisponible banca moneda: ${banca.descripcion}");
 
     if(idSorteo != 4){
       List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);
@@ -4165,11 +4657,12 @@ _selectedBanca() async {
   
     int idx = -1;
     if(idSorteo == 4)
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugada);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugadaConSigno);
     else
-      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugada);
+      idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugadaConSigno);
       // _selectedLoterias[0].id
     // double montoDisponibleFinal = montoDisponible.toDouble();
+    
     double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
     if(idx != -1){
       print("encontrado: ${listaJugadas[idx].monto}");
@@ -4316,6 +4809,10 @@ _selectedBanca() async {
   int getIdDia(){
     DateTime fecha = DateTime.now();
     //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
     return fecha.weekday;
   }
  
@@ -4470,10 +4967,10 @@ Future quitarLoteriasCerradasViejo()
   try {
       listaLoteria.forEach((l) {
       // print("quitarloteriasCerradas: ${l.descripcion}");
-      var santoDomingo = tz.getLocation('America/Santo_Domingo');
-      var fechaActualRd = tz.TZDateTime.now(santoDomingo);
+      var santoDomingo = getLocation('America/Santo_Domingo');
+      var fechaActualRd = TZDateTime.now(santoDomingo);
       var fechaLoteria = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${l.horaCierre}");
-      var fechaFinalRd = tz.TZDateTime.now(santoDomingo);
+      var fechaFinalRd = TZDateTime.now(santoDomingo);
       // print("principalview quitarLoteriasCerradas ${fechaFinalRd.hour} : ${fechaFinalRd.minute}");
       if(fechaFinalRd.isAfter(fechaLoteria)){
         if(!_tienePermisoJugarFueraDeHorario){

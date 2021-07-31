@@ -1,5 +1,4 @@
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/tipos.dart';
 
 class Ajuste {

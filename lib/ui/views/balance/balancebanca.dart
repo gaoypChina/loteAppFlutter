@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/services/balanceservice.dart';
@@ -16,8 +17,8 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List<Banca>> _streamControllerBancas;
   StreamController<List> _streamControllerTabla;
-  List<Banca> listaBanca = List();
-  List listaDinamicaBanca = List();
+  List<Banca> listaBanca = [];
+  List<Banca> listaDinamicaBanca = [];
   int _indexBanca = 0;
   bool _cargando = false;
   bool _onCreate = true;
@@ -54,14 +55,14 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
   _bancas() async {
     try{
       setState(() => _cargando = true);
-      List lista = await BalanceService.bancas(fechaHasta: _fechaHasta, scaffoldKey: _scaffoldKey);
+      List lista = await BalanceService.bancas(fechaHasta: _fechaHasta, scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo());
       if(_onCreate && lista != null){
         listaBanca = lista.map((b) => Banca.fromMap(b)).toList();
         listaBanca.insert(0, Banca(id: 0, descripcion: "Todas las bancas"));
         _streamControllerBancas.add(listaBanca);
         _onCreate = false;
       }
-      listaDinamicaBanca = lista;
+      listaDinamicaBanca = lista.map((b) => Banca.fromMap(b)).toList();;
       _streamControllerTabla.add(listaDinamicaBanca);
       _filterTable();
       setState(() => _cargando = false);
@@ -74,10 +75,10 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
     if(listaBanca[_indexBanca].descripcion == "Todas las bancas")
       _streamControllerTabla.add(listaDinamicaBanca);
     else
-      _streamControllerTabla.add(listaDinamicaBanca.where((b) => b["descripcion"] == listaBanca[_indexBanca].descripcion).toList());
+      _streamControllerTabla.add(listaDinamicaBanca.where((b) => b.descripcion == listaBanca[_indexBanca].descripcion).toList());
   }
 
-  Widget _buildTableBancas(List map){
+  Widget _buildTableBancas(List<Banca> map){
    var tam = (map != null) ? map.length : 0;
    List<TableRow> rows;
    if(tam == 0){
@@ -93,23 +94,23 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
+                    child: InkWell(onTap: (){}, child: Text(b.descripcion, style: TextStyle(fontSize: 16, decoration: TextDecoration.underline)))
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["usuario"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b.usuario.usuario}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["dueno"]}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b.dueno}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
-                  color: (b["balance"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
-                  child: Center(child: Text("${Utils.toCurrency(b["balance"])}", style: TextStyle(fontSize: 16)))
+                  color: (b.balance >= 0) ? Utils.colorInfoClaro : Utils.colorRosa, 
+                  child: Center(child: Text("${Utils.toCurrency(b.balance)}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
@@ -149,6 +150,42 @@ class _BalanceBancaScreenState extends State<BalanceBancaScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
                     child: Center(child: Text('Prestamo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Center(child: Text('Borrar', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),),
+                  // ),
+                ]
+              )
+              );
+
+    var total = map.map((e) => e.balance).toList().reduce((value, element) => value + element);
+    rows.add(
+              TableRow(
+                // decoration: BoxDecoration(color: Utils.colorPrimary),
+                children: [
+                  // buildContainer(Colors.blue, 50.0),
+                  // buildContainer(Colors.red, 50.0),
+                  // buildContainer(Colors.blue, 50.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('Totales', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('${Utils.toCurrency(total)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: total >= 0 ? Utils.colorPrimary : Colors.pink)),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 4.0, right: 4.0),
+                    child: Center(child: Text('${Utils.toCurrency(0)}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.colorPrimary)),),
                   ),
                   // Padding(
                   //   padding: const EdgeInsets.all(8.0),

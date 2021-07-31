@@ -3,10 +3,10 @@ import 'package:get_it/get_it.dart';
 
 
 
-GetIt locator = GetIt();
+// GetIt locator = GetIt();
 
 void setupLocator() {
-  locator.allowReassignment = true;
+  // locator.allowReassignment = true;
   // locator.registerLazySingleton(() => Api('products'));
   // locator.registerLazySingleton(() => CRUDModel()) ;
   // locator.registerLazySingleton(() => UnidadCRUD()) ;

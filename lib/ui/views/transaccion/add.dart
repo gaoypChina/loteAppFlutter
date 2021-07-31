@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:loterias/core/classes/database.dart';
-import 'package:loterias/core/classes/decimaltextinputformatter.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/entidades.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
+import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AddTransaccionesScreen extends StatefulWidget {
@@ -32,20 +32,22 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
   bool _txtDebitoEnabled = true;
   bool _txtCreditoEnabled = true;
   bool _cargando = false;
-  List<Banca> listaBanca = List();
-  List<Entidad> listaEntidad = List();
-  List<Tipo> listaTipo = List();
+  List<Banca> listaBanca = [];
+  List<Entidad> listaEntidad = [];
+  List<Tipo> listaTipo = [];
   List listaTipoTransaccion = [
       {'idTipoBloqueo' : 1, 'descripcion' : 'Normal'}, 
       {'idTipoBloqueo' : 2, 'descripcion' : 'Programada'}
     ];
-  List listaTransaccion = List();
+  List listaTransaccion =[];
   int _indexTipoTransaccion = 0;
   int _indexBanca = 0;
   int _indexEntidad = 0;
   int _indexTipo = 0;
   DateTime _fecha = DateTime.now();
   bool _esProgramada = false;
+  Banca _banca;
+  Entidad _entidad;
 
   @override
   void initState() {
@@ -65,9 +67,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       // _initListaTipoTransaccion();
       listaTipo = datos["tipos"].map<Tipo>((t) => Tipo.fromMap(t)).toList();
       listaBanca = datos["bancas"].map<Banca>((t) => Banca.fromMap(t)).toList();
-      listaBanca.insert(0, Banca(descripcion: "Selecc.", id: 0));
       listaEntidad = datos["entidades"].map<Entidad>((t) => Entidad.fromMap(t)).toList();
-      listaEntidad.insert(0, Entidad(id: 0, nombre: "Selecc."));
       _streamControllerTipo.add(listaTipo);
       _streamControllerBanca.add(listaBanca);
       _streamControllerEntidad.add(listaEntidad);
@@ -133,17 +133,26 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
     }
   }
 
-  _bancaChange() async {
+  _bancaChange(Banca banca) async {
     try{
       _txtDebito.text = "";
       _txtCredito.text = "";
       _txtBalanceFinalEntidad1.text = "";
       _txtBalanceFinalEntidad2.text = "";
-      setState(() => _cargando = true);
-      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: listaBanca[_indexBanca].id);
+      setState((){
+        _banca = banca;
+        _cargando = true;
+      });
+      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: banca.id);
       _txtBalanceEntidad1.text = datos["saldo_inicial"].toString();
       print("datos _bancaChange: ${datos["saldo_inicial"]}");
-      setState(() => _cargando = false);
+
+      
+      _streamControllerEntidad.add(listaEntidad.where((element) => element.idMoneda == banca.idMoneda).toList());
+      setState((){
+        _cargando = false;
+        _entidad = null;
+      });
     }catch(e){
       setState((){
         _indexBanca = 0;
@@ -153,14 +162,17 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
     }
   }
 
-  _entidadChange() async {
+  _entidadChange(Entidad entidad) async {
     try{
       _txtDebito.text = "";
       _txtCredito.text = "";
       _txtBalanceFinalEntidad1.text = "";
       _txtBalanceFinalEntidad2.text = "";
-      setState(() => _cargando = true);
-      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: listaEntidad[_indexEntidad].id, esBanca: false);
+      setState((){
+        _entidad = entidad;
+        _cargando = true;
+      });
+      var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: entidad.id, esBanca: false);
       _txtBalanceEntidad2.text = datos["saldo_inicial"].toString();
       print("datos _entidadChange: ${datos["saldo_inicial"]}");
       setState(() => _cargando = false);
@@ -310,23 +322,23 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
  }
 
  _addTransaccion() async {
-   if(listaBanca[_indexBanca].id == 0){
+   if(_banca == null){
      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Debe seleccionar una banca");
      return;
    }
 
-   if(listaEntidad[_indexEntidad].id == 0){
+   if(_entidad == null){
      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Debe seleccionar un banco");
      return;
    }
 
-    int idx = listaTransaccion.indexWhere((t) => t["entidad1"]["descripcion"] == listaBanca[_indexBanca].descripcion && t["tipo"]["descripcion"] == listaTipo[_indexTipo].descripcion);
+    int idx = listaTransaccion.indexWhere((t) => t["entidad1"]["descripcion"] == _banca.descripcion && t["tipo"]["descripcion"] == listaTipo[_indexTipo].descripcion);
     if(idx == -1)
     {
       Map<String, dynamic> map = {
       "tipo" : listaTipo[_indexTipo].toJson(),
-      "entidad1" : listaBanca[_indexBanca].toJson(),
-      "entidad2" : listaEntidad[_indexEntidad].toJson(),
+      "entidad1" : _banca.toJson(),
+      "entidad2" : _entidad.toJson(),
       "entidad1_saldo_inicial" : Utils.toDouble(_txtBalanceEntidad1.text),
       "entidad2_saldo_inicial" : Utils.toDouble(_txtBalanceEntidad2.text),
       "debito" : Utils.toDouble(_txtDebito.text),
@@ -363,6 +375,8 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
    setState((){
      _indexEntidad = 0;
      _indexBanca = 0;
+     _banca = null;
+     _entidad = null;
    });
  }
 
@@ -379,7 +393,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                 TextSpan(text: "La transaccion de tipo "),
                 TextSpan(text: listaTipo[_indexTipo].descripcion, style: TextStyle(fontWeight: FontWeight.bold)),
                 TextSpan(text: " para la banca "),
-                TextSpan(text: listaBanca[_indexBanca].descripcion, style: TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(text: _banca.descripcion, style: TextStyle(fontWeight: FontWeight.bold)),
                 TextSpan(text: " ya existe, desea actualizar?"),
               ]
             ),
@@ -562,22 +576,30 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                     stream: _streamControllerBanca.stream,
                                     builder: (context, snapshot) {
                                       if(snapshot.hasData){
-                                        return DropdownButton<Banca>(
-                                          // isExpanded: true,
-                                          value: listaBanca[_indexBanca],
-                                          items: listaBanca.map<DropdownMenuItem<Banca>>((t) => DropdownMenuItem<Banca>(
-                                            value: t,
-                                            child: Text(t.descripcion),
-                                          )).toList(),
-                                          onChanged: (banca){
-                                            int idx = listaBanca.indexWhere((t) => t.descripcion == banca.descripcion);
-                                            if(idx != -1){
-                                              setState((){
-                                                 _indexBanca = idx;
-                                                 _bancaChange();
-                                              });
-                                            }
-                                          },
+                                        // return DropdownButton<Banca>(
+                                        //   // isExpanded: true,
+                                        //   value: listaBanca[_indexBanca],
+                                        //   items: listaBanca.map<DropdownMenuItem<Banca>>((t) => DropdownMenuItem<Banca>(
+                                        //     value: t,
+                                        //     child: Text(t.descripcion),
+                                        //   )).toList(),
+                                        //   onChanged: (banca){
+                                        //     int idx = listaBanca.indexWhere((t) => t.descripcion == banca.descripcion);
+                                        //     if(idx != -1){
+                                        //       setState((){
+                                        //          _indexBanca = idx;
+                                        //          _bancaChange();
+                                        //       });
+                                        //     }
+                                        //   },
+                                        // );
+                                        return MyDropdownButton(
+                                          hint: "Selec. banca",
+                                          value: _banca,
+                                          items: snapshot.data.map((e) => [e, e.descripcion]).toList(),
+                                          onChanged: (value){
+                                            _bancaChange(value);
+                                          }
                                         );
                                       }
                                       return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
@@ -602,26 +624,34 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
                                Expanded(
                                  child: Padding(
                                    padding: const EdgeInsets.only(left: 20.0, top: 15.0),
-                                   child: StreamBuilder<List<Banca>>(
-                                    stream: _streamControllerBanca.stream,
+                                   child: StreamBuilder<List<Entidad>>(
+                                    stream: _streamControllerEntidad.stream,
                                     builder: (context, snapshot) {
                                       if(snapshot.hasData){
-                                        return DropdownButton<Entidad>(
-                                          // isExpanded: true,
-                                          value: listaEntidad[_indexEntidad],
-                                          items: listaEntidad.map<DropdownMenuItem<Entidad>>((t) => DropdownMenuItem<Entidad>(
-                                            value: t,
-                                            child: Text(t.nombre),
-                                          )).toList(),
-                                          onChanged: (entidad){
-                                            int idx = listaEntidad.indexWhere((t) => t.nombre == entidad.nombre);
-                                            if(idx != -1){
-                                              setState((){
-                                                 _indexEntidad = idx;
-                                                 _entidadChange();
-                                              });
-                                            }
-                                          },
+                                        // return DropdownButton<Entidad>(
+                                        //   // isExpanded: true,
+                                        //   value: snapshot.data[_indexEntidad],
+                                        //   items: listaEntidad.map<DropdownMenuItem<Entidad>>((t) => DropdownMenuItem<Entidad>(
+                                        //     value: t,
+                                        //     child: Text(t.nombre),
+                                        //   )).toList(),
+                                        //   onChanged: (entidad){
+                                        //     int idx = listaEntidad.indexWhere((t) => t.nombre == entidad.nombre);
+                                        //     if(idx != -1){
+                                        //       setState((){
+                                        //          _indexEntidad = idx;
+                                        //          _entidadChange();
+                                        //       });
+                                        //     }
+                                        //   },
+                                        // );
+                                        return MyDropdownButton(
+                                          hint: "Selec. banco",
+                                          value: _entidad,
+                                          items: snapshot.data.map((e) => [e, e.nombre]).toList(),
+                                          onChanged: (value){
+                                            _entidadChange(value);
+                                          }
                                         );
                                       }
                                       return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);

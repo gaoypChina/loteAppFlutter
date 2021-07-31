@@ -1,14 +1,22 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:corsac_jwt/corsac_jwt.dart';
+// import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:loterias/core/classes/database.dart';
+import 'package:jose/jose.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/loterias.dart';
+import 'package:timezone/timezone.dart';
 
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000';
@@ -69,11 +77,12 @@ class  Utils {
     }
   }
 
-  static toDouble(String caracter){
+  static toDouble(String caracter, {bool returnNullIfNotDouble = false}){
     try {
-       return double.parse(caracter);
+       return double.parse(caracter.replaceAll(",", ''));
     } catch (e) {
-      return 0.0;
+
+      return returnNullIfNotDouble ? null : 0.0;
     }
   }
   static toInt(String caracter){
@@ -84,11 +93,15 @@ class  Utils {
     }
   }
 
-  static isNumber(String caracter){
+  static isNumber(dynamic caracter){
     try {
-      double.parse(caracter);
+      if(caracter == null)
+        return;
+
+      double.parse(caracter.toString());
       return true;
     } catch (e) {
+      print("Utils isNumber error: ${e.toString()}");
       return false;
     }
   }
@@ -119,9 +132,11 @@ class  Utils {
     // return parsed.map<Banca>((json) => Banca.fromMap(json)).toList();
     // return true;
   }
+  
 
-  static Map<String, dynamic> parsedToJsonOrNot(dynamic responseBody) {
-    return (responseBody is String) ? json.decode(responseBody).cast<String, dynamic>() : responseBody;
+  static parsedToJsonOrNot(dynamic responseBody) {
+    // return (responseBody is String) ? json.decode(responseBody).cast<String, dynamic>() : responseBody;
+    return (responseBody is String) ? jsonDecode(responseBody) : responseBody;
   }
 
   static Map<String, dynamic> parseDatosDynamic(dynamic responseBodyDynamic) {
@@ -153,10 +168,14 @@ class  Utils {
     return pad.substring(0, pad.length - value.toString().length) + value.toString();
   }
 
-  static Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
-    var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+  static Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo, [var transaction]) async {
+    var query;
+    if(transaction == null)
+      query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+    else
+      query = await transaction.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
     String sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
-    if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box')
+    if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box'  || sorteo == 'Super pale')
       jugada = jugada.substring(0, jugada.length - 1);
     
     return jugada;
@@ -269,14 +288,34 @@ class  Utils {
   }
 
   static removeDuplicateJugadasFromList(List<Jugada> lista){
-  // print("BEFORE DELETE");
-  for(var l in lista)
-     print(l);
-  final ids = lista.map((e) => e.jugada).toSet();
-  lista.retainWhere((x) => ids.remove(x.jugada));
-  // print("AFTER DELETE");
-  return lista;
-}
+    // print("BEFORE DELETE");
+    final ids = lista.map((e) => e.jugada).toSet();
+    lista.retainWhere((x) => ids.remove(x.jugada));
+    // print("AFTER DELETE");
+    return lista;
+  }
+
+  static List removeDuplicateLoteriasFromList(List lista){
+    // print("BEFORE DELETE");
+    final ids = lista.map((e) => e.idLoteria).toSet();
+    lista.retainWhere((x) => ids.remove(x.idLoteria));
+    // print("AFTER DELETE");
+    return lista;
+  }
+
+  static List removeDuplicateLoteriasSuperPaleFromList(List lista){
+    // print("BEFORE DELETE");
+    // var listaSuperpale = lista.where((element) => element.idLoteriaSuperpale != 0 && element.idLoteriaSuperpale != null).toList();
+    var listaSuperpale = lista.where((element) => element.idSorteo == 4).toList();
+    print("removeDuplicateLoteriasSuperPaleFromList listaSUperpale lenght: ${listaSuperpale.length}");
+    if(listaSuperpale.length == 0)
+      return [];
+
+    final ids = listaSuperpale.map((e) => e.idLoteriaSuperpale).toSet();
+    listaSuperpale.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
+    // print("AFTER DELETE");
+    return listaSuperpale;
+  }
 
 
   static Color colorGanadorPerdedorPendiente(int status, double premio){
@@ -295,52 +334,161 @@ class  Utils {
       return Colors.transparent;
   }
 
+  // static Future<String> createJwt(Map<String, dynamic> data) async {
+  //   var builder = new JWTBuilder();
+  //   var token = builder
+  //     // ..issuer = 'https://api.foobar.com'
+  //     // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+  //     ..setClaim('datosMovil', 
+  //     // {'id': 836, 'username' : "john.doe"}
+  //     data
+  //     )
+  //     ..getToken(); // returns token without signature
+
+  //   // var signer = new JWTHmacSha256Signer('culo');
+  //   var c = await DB.create();
+  //   var apiKey = await c.getValue("apiKey");
+  //   print("Before error: $apiKey");
+  //   var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+  //   var signedToken = builder.getSignedToken(signer);
+  //   //print(signedToken); // prints encoded JWT
+  //   var stringToken = signedToken.toString();
+
+  //   return stringToken;
+  // }
+  // 
   static Future<String> createJwt(Map<String, dynamic> data) async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('datosMovil', 
-      // {'id': 836, 'username' : "john.doe"}
-      data
-      )
-      ..getToken(); // returns token without signature
+    
+    
+    // create a builder
+  var builder = JsonWebSignatureBuilder();
 
-    // var signer = new JWTHmacSha256Signer('culo');
-    var c = await DB.create();
-    var apiKey = await c.getValue("apiKey");
-    print("Before error: $apiKey");
-    var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
-    var signedToken = builder.getSignedToken(signer);
-    //print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"datosMovil" : data};
 
-    return stringToken;
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  var c = await DB.create();
+  builder.addRecipient(
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': Utils.toBase64(await c.getValue("apiKey"))
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
   }
+
+ static String base64Urlencode(String secret) {
+    var stringToBase64Url = utf8.fuse(base64Url);
+    return stringToBase64Url.encode(secret);
+  }
+
+  static Future<String> createJwtForSocket({@required Map<String, dynamic> data, @required key}) async {
+  
+  
+     // create a builder
+  var builder = JsonWebSignatureBuilder();
+
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"data" : data};
+
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  if(key == null){
+    var c = await DB.create();
+    key = await c.getValue("apiKey");
+  }
+  
+
+  builder.addRecipient(
+    // JsonWebKey.fromPem(key),
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': base64Urlencode('$key')
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
+  }
+
 
   static Future<String> createJwtForTest(Map<String, dynamic> data) async {
-    var builder = new JWTBuilder();
-    var token = builder
-      // ..issuer = 'https://api.foobar.com'
-      // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
-      ..setClaim('datosMovil', 
-      // {'id': 836, 'username' : "john.doe"}
-      data
-      )
-      ..getToken(); // returns token without signature
+    // var builder = new JWTBuilder();
+    // var token = builder
+    //   // ..issuer = 'https://api.foobar.com'
+    //   // ..expiresAt = new DateTime.now().add(new Duration(minutes: 1))
+    //   ..setClaim('datosMovil', 
+    //   // {'id': 836, 'username' : "john.doe"}
+    //   data
+    //   )
+    //   ..getToken(); // returns token without signature
 
-    // var signer = new JWTHmacSha256Signer('culo');
-    // var c = await DB.create();
-    // var apiKey = await c.getValue("apiKey");
-    // print("Before error: $apiKey");
-    // var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
-    var signer = new JWTHmacSha256Signer("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2");
-    var signedToken = builder.getSignedToken(signer);
-    //print(signedToken); // prints encoded JWT
-    var stringToken = signedToken.toString();
+    // // var signer = new JWTHmacSha256Signer('culo');
+    // // var c = await DB.create();
+    // // var apiKey = await c.getValue("apiKey");
+    // // print("Before error: $apiKey");
+    // // var signer = new JWTHmacSha256Signer(await c.getValue("apiKey"));
+    // var signer = new JWTHmacSha256Signer("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2");
+    // var signedToken = builder.getSignedToken(signer);
+    // //print(signedToken); // prints encoded JWT
+    // var stringToken = signedToken.toString();
 
-    return stringToken;
+    // return stringToken;
+    
+
+    var builder = JsonWebSignatureBuilder();
+
+  // set the content
+  builder.stringContent = 'It is me';
+  builder.jsonContent = {"datosMovil" : data};
+
+  // set some protected header
+  // builder.setProtectedHeader('createdAt', DateTime.now().toIso8601String());
+
+  // add a key to sign, you can add multiple keys for different recipients
+  // var c = await DB.create();
+  builder.addRecipient(
+      JsonWebKey.fromJson({
+        'kty': 'oct',
+        'k': Utils.toBase64("7g654GPrRCrZPbJTiuDtELvaY1WJlHz2")
+      }),
+      algorithm: 'HS256');
+
+  // build the jws
+  var jws = builder.build();
+
+  // output the compact serialization
+  print('jws compact serialization: ${jws.toCompactSerialization()}');
+
+  // output the json serialization
+  print('jws json serialization: ${jws.toJson()}');
+  return jws.toCompactSerialization();
   }
+
+
 
   static String ordenarMenorAMayor(String jugada){
     if(jugada.length == 4){
@@ -371,6 +519,27 @@ class  Utils {
         jugada = segundoParNumeros + primerParNumeros;
         return jugada + ultimoCaracter;
       }
+    }
+    else if(jugada.length == 6){
+      if(!Utils.isNumber(jugada))
+        return jugada;
+
+      String primerParNumeros = jugada.substring(0, 2);
+      String segundoParNumeros = jugada.substring(2, 4);
+      String tercerParNumeros = jugada.substring(4, 6);
+
+      List<String> list = [];
+      list.addAll([primerParNumeros, segundoParNumeros, tercerParNumeros]);
+      for(int i=0; i < list.length ; i++){
+        for(int i2 = i + 1; i2 < list.length; i2++){
+          if(double.parse(list[i]) > double.parse(list[i2])){
+            var tmpMayor = list[i];
+            list[i] = list[i2];
+            list[i2] = tmpMayor;
+          }
+        }
+      }
+      return list.join("");
     }
 
     return jugada;
@@ -431,21 +600,21 @@ class  Utils {
     return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
   }
 
-  static toPrintCurrency(var number, [quitarSignoDolar = true, quitarDosCeros = true]){
-    final formatCurrency = new NumberFormat.simpleCurrency();
-    number = Utils.toDouble(number.toString());
-    var data = formatCurrency.format(number);
-    data = (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
+  // static toPrintCurrency(var number, [quitarSignoDolar = true, quitarDosCeros = true]){
+  //   final formatCurrency = new NumberFormat.simpleCurrency();
+  //   number = Utils.toDouble(number.toString());
+  //   var data = formatCurrency.format(number);
+  //   data = (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
 
-    if(quitarDosCeros){
-      // if(data.length == 6)
-      //   data = data.replaceFirst(".00", ".0");
-      // else if(data.length > 6)
-        data = data.replaceFirst(".00", "");
-    }
-    // var data = formatCurrency.format(number);
-    return data;
-  }
+  //   if(quitarDosCeros){
+  //     // if(data.length == 6)
+  //     //   data = data.replaceFirst(".00", ".0");
+  //     // else if(data.length > 6)
+  //       data = data.replaceFirst(".00", "");
+  //   }
+  //   // var data = formatCurrency.format(number);
+  //   return data;
+  // }
 
   static tieneDecimales(var number){
     return (number.toString().indexOf(".") != -1) ? true : false;
@@ -466,6 +635,525 @@ class  Utils {
     return DateTime(fecha.year, fecha.month + 1, 0).day;
   }
 
+  static bool isSmallOrMedium(double size){
+    return (ScreenSize.isMedium(size) || ScreenSize.isSmall(size));
+  }
+
+  static int generateNumber(int min, int max){
+    final _random = Random();
+    return min + _random.nextInt(max - min);
+  }
+
+  static Container getWidgetUploadFoto(dynamic sucursal, {size: 130.0, radius: 10.0}) {
+    if(sucursal.foto != null ){
+      return Container(
+          // color: Colors.blue,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              // color: Colors.blue,
+              child: Image.memory(sucursal.foto)
+            ),
+          ),
+        );
+      //  return Image.memory(await Utils.blobfileToUint(cliente.foto));
+    }else if(sucursal.nombreFoto != null){
+      return Container(
+          // color: Colors.red,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              child: FadeInImage(
+                image: NetworkImage(
+                    '${Utils.URL}/assets/perfil/${sucursal.nombreFoto}'),
+                placeholder: AssetImage('assets/images/profile2.jpg'),
+              )
+            ),
+          ),
+        );
+    }else{
+      return Container(
+          // color: Colors.red,
+          width: size,
+          height: size,
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              child: Image(image: AssetImage('assets/images/profile2.jpg'), )
+            ),
+          ),
+        );
+    }
+
+    
+    // return  Image(image: AssetImage('images/profile2.jpg'), );
+  }
+
+  static String dateTimeToDate(DateTime date, String hour){
+    return (date == null) ? "" : "${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())}${hour != null ? ' ' + hour : ''}";
+  }
+
+  static dateTimeToMilisenconds(DateTime date){
+    return date.toUtc().millisecondsSinceEpoch;
+  }
+
+  static int getIdDiaActual(){
+    DateTime fecha = DateTime.now();
+    //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
+    return fecha.weekday;
+  }
+
+  static DateTime horaLoteriaToCurrentTimeZone(String hora, DateTime currentDateTime) {
+    if(currentDateTime == null)
+      return DateTime.now();
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.from(currentDateTime, santoDomingo);
+    var fechaLoteriaRD = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${hora != null ? hora : '00:00'}");
+    
+    // Optenemos las diferencias en las horas, minutos y segundos de la fechaActualRD y de
+    int horasASumar = (fechaLoteriaRD.hour - fechaActualRd.hour);
+    int minutosASumar = (fechaLoteriaRD.minute - fechaActualRd.minute);
+    int segundosARestar = fechaActualRd.second;
+    
+    TZDateTime fechaLoteriaConvertidaAFormatoRD;
+    fechaLoteriaConvertidaAFormatoRD = fechaActualRd.add(Duration(hours: horasASumar, minutes: minutosASumar));
+    fechaLoteriaConvertidaAFormatoRD = fechaLoteriaConvertidaAFormatoRD.subtract(Duration(seconds: segundosARestar));
+
+    int horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime = (currentDateTime.hour - fechaActualRd.hour);
+    int minutosASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime = (currentDateTime.minute - fechaActualRd.minute);
+    segundosARestar = currentDateTime.second;
+    var fechaLoteriaCurrentTimeZone = fechaLoteriaConvertidaAFormatoRD.add(Duration(hours: horasASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime, minutes: minutosASumarDeDiferenciaEntreLaHoraActualDeRDYCurrentDateTime));
+    fechaLoteriaCurrentTimeZone.subtract(Duration(seconds: segundosARestar));
+    
+    return fechaLoteriaCurrentTimeZone;
+  }
+
+  static DateTime dateTimeToCurrentTimeZoneExactDateTime(DateTime datetime, currentTimeZone) {
+    if(currentTimeZone == null)
+      return DateTime.now();
+    var currentTimeZoneLocation = getLocation(currentTimeZone);
+
+    var fechaActualCurrent = TZDateTime.now(currentTimeZoneLocation);
+
+    return fechaActualCurrent;
+  }
+
+  static DateTime dateTimeToRD(DateTime fecha) {
+    var santoDomingo = getLocation('America/Santo_Domingo');
+    var fechaActualRd = TZDateTime.from(fecha, santoDomingo);
+    
+    return fechaActualRd;
+  }
+
+
+  static List<int> uint8ListToListIn(Uint8List uint8list){
+    return new List.from(uint8list);
+  }
+
+  static jugadaFormatToJugada(String jugada){
+   if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
+     return jugada.substring(0, 2) + '-' + jugada.substring(2, 4);
+   }
+   else if(jugada.length == 3){
+     return "${jugada.substring(0, 3)}S";
+   }
+   else if(jugada.length == 4 && jugada.indexOf('+') != -1){
+     return "${jugada.substring(0, 3)}B";
+   }
+   else if(jugada.length == 5 && jugada.indexOf('+') != -1){
+     return "${jugada.substring(0, 4)}B";
+   }
+   else if(jugada.length == 5 && jugada.indexOf('-') != -1){
+     return "${jugada.substring(0, 4)}S";
+   }
+  else if(jugada.length == 6){
+     return jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6);
+  }
+
+   return jugada;
+ }
+
+
+ static toPrintCurrency(var number, [quitarSignoDolar = true, quitarDosCeros = true]){
+    final formatCurrency = new NumberFormat.simpleCurrency();
+    number = Utils.toDouble(number.toString());
+    var data = formatCurrency.format(number);
+    data = (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
+
+    if(quitarDosCeros){
+      // if(data.length == 6)
+      //   data = data.replaceFirst(".00", ".0");
+      // else if(data.length > 6)
+        data = data.replaceFirst(".00", "");
+    }
+    // var data = formatCurrency.format(number);
+    return data;
+  }
+
+  static isPar(int value){
+    return (value % 2 != 0);
+  }
+
   
+  static Future<int> getIdSorteo(String jugada, [var transaction]) async {
+   int idSorteo = 0;
+
+   var db = transaction != null ? transaction : Db.database;
+
+   if(jugada.length == 2)
+    idSorteo = 1;
+  else if(jugada.length == 3){
+    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+    var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+  }
+  else if(jugada.length == 4){
+    if(jugada.indexOf("+") != -1){
+      var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }else{
+      idSorteo = 2;
+      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+      //   idSorteo = 4;
+      // }else{
+      //   idSorteo = 2;
+      // }
+    }
+  }
+  else if(jugada.length == 5){
+    if(jugada.indexOf("+") != -1){
+      var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+    else if(jugada.indexOf("-") != -1){
+       var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+    else if(jugada.indexOf("s") != -1){
+       var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+    }
+  }
+  else if(jugada.length == 6)
+    idSorteo = 3;
+
+  return idSorteo;
+ }
+
+  static Future<Draws> getSorteo(String jugada) async {
+    Draws sorteo;
+
+   if(jugada.length == 2){
+     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
+     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+   }
+  else if(jugada.length == 3){
+    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+  else if(jugada.length == 4){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }else{
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+      //   idSorteo = 4;
+      // }else{
+      //   idSorteo = 2;
+      // }
+    }
+  }
+  else if(jugada.length == 5){
+    if(jugada.indexOf("+") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("-") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("s") != -1){
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+  }
+  else if(jugada.length == 6){
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+
+  return sorteo;
+ }
+
+ static DateTime getLastDayOfMonth(DateTime date){
+    if(date == null)
+    date = new DateTime.now();
+    // Find the last day of the month.
+    var lastDayDateTime = (date.month < 12) ? new DateTime(date.year, date.month + 1, 0) : new DateTime(date.year + 1, 1, 0);
+
+    // print(lastDayDateTime.day); // 28 for February
+    return lastDayDateTime;
+  }
+
+ static DateTime getNextMonth(DateTime date, {int dayOfTheMonth, int monthsToAdd = 1}){
+    DateTime nextMonth;
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (date.day > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+    }
+    else
+      nextMonth = new DateTime(date.year, date.month + monthsToAdd, date.day);
+
+    return nextMonth;
+  }
+
+  static int getIdDia(){
+    DateTime fecha = DateTime.now();
+    //para wday se usa este return (fecha.weekday == 7) ? 0 : fecha.weekday;
+    //La propiedad weekday de la clase DateTime, empieza con el valor 1 que es lunes y termina con el valor 7 que es domingo
+    //Entonces en la tabla Days en mi base de datos los dias empiezan desde el lunes id == 1 y terminan con el domingo id == 7
+    //asi que La propiedad weekday es igual a los id de los dias de mi tabla Days, por eso cuando quiero el idDia de hoy pues simplemente
+    //retorno La propiedad 
+    return fecha.weekday;
+  }
+
+  static Future<double> getMontoDisponible(String jugada, Loteria loteria, Banca banca, [Loteria loteriaSuperpale, var transaction]) async {
+    
+    var montoDisponible = null;
+    
+   
+    int idDia = getIdDia();
+    int idSorteo = await getIdSorteo(jugada, transaction);
+    String jugadaConSigno = jugada;
+    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo, transaction);
+    print("Utils getMontoDisponible banca moneda: ${banca.descripcion}");
+
+    if(idSorteo != 4){
+      List<Map<String, dynamic>> query = await transaction.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);
+
+      if(query.isEmpty != true)
+        montoDisponible = query.first['monto'];
+        
+      
+      if(montoDisponible != null){
+        query = await transaction.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+        if(query.isEmpty != true){
+          montoDisponible = query.first['monto'];
+        }else{
+          
+          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+          query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            var first = query.first;
+            if(first["ignorarDemasBloqueos"] == 1)
+              montoDisponible = first["monto"];
+          }
+        }
+      }
+
+
+      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+      if(montoDisponible == null){
+          query = await transaction.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
+        if(query.isEmpty != true){
+          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+          var stock = query.first;
+          if(stock["ignorarDemasBloqueos"] == 0){
+            query = await transaction.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }else{
+              query = await transaction.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+              if(query.isEmpty != true){
+                montoDisponible = query.first["monto"];
+              }
+              else
+                montoDisponible = stock["monto"];
+            }
+          }else{
+            montoDisponible = stock["monto"];
+          }
+        }
+      }
+
+      
+
+      if(montoDisponible == null){
+        query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+        if(query.isEmpty != true){
+          var blocksplaysgenerals = query.first;
+          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+            montoDisponible = null;
+          }else{
+            montoDisponible = blocksplaysgenerals["monto"];
+          }
+        }
+
+// query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
+        // print("Monto disponible blocksplaysgenrals: $query");
+
+        if(montoDisponible == null){
+          query = await transaction.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            montoDisponible = query.first["monto"];
+          }else{
+            query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true)
+              montoDisponible = query.first["monto"];
+          }
+
+          if(montoDisponible == null){
+            query = await transaction.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          if(montoDisponible == null){
+            query = await transaction.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+        }
+      }
+    }else{
+      // MONTO SUPER PALE
+      // Debo ordenar de menor a mayor los idloteria y idloteriaSuperpale, 
+      // el idLoteria tendra el numero menor y el idLoteriaSuper tendra el numero mayor
+
+      if(loteria.id > loteriaSuperpale.id){
+        Loteria tmp = loteriaSuperpale;
+        loteriaSuperpale = loteria;
+        loteria = tmp;
+      }
+      List<Map<String, dynamic>> query = await transaction.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, loteriaSuperpale.id, idSorteo, jugada, 0, banca.idMoneda]);
+      
+      print("getMontoDisponible super pale: $query");
+
+      if(query.isEmpty != true)
+        montoDisponible = query.first['monto'];
+        
+      
+      if(montoDisponible != null){
+        query = await transaction.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+        if(query.isEmpty != true){
+          montoDisponible = query.first['monto'];
+        }else{
+          
+          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+          query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            var first = query.first;
+            if(first["ignorarDemasBloqueos"] == 1)
+              montoDisponible = first["monto"];
+          }
+        }
+      }
+
+
+      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+      if(montoDisponible == null){
+          query = await transaction.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, banca.idMoneda]);
+        if(query.isEmpty != true){
+          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+          var stock = query.first;
+          if(stock["ignorarDemasBloqueos"] == 0){
+            query = await transaction.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }else{
+              query = await transaction.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+              if(query.isEmpty != true){
+                montoDisponible = query.first["monto"];
+              }
+              else
+                montoDisponible = stock["monto"];
+            }
+          }else{
+            montoDisponible = stock["monto"];
+          }
+        }
+      }
+
+      
+
+      if(montoDisponible == null){
+        query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+        if(query.isEmpty != true){
+          var blocksplaysgenerals = query.first;
+          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+            montoDisponible = null;
+          }else{
+            montoDisponible = blocksplaysgenerals["monto"];
+          }
+        }
+
+        if(montoDisponible == null){
+          query = await transaction.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+          if(query.isEmpty != true){
+            montoDisponible = query.first["monto"];
+          }else{
+            query = await transaction.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+            if(query.isEmpty != true)
+              montoDisponible = query.first["monto"];
+          }
+
+          if(montoDisponible == null){
+            query = await transaction.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          if(montoDisponible == null){
+            query = await transaction.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+            if(query.isEmpty != true){
+              montoDisponible = query.first["monto"];
+            }
+          }
+
+          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+        }
+      }
+    }
+
+    // setState(() {
+    //  _txtMontoDisponible.text = montoDisponible.toString(); 
+    // });
+    // print('montoDisponiblePrueba idSorteo: $montoDisponible');
+
   
+    
+    
+    double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
+    print("Utils.getMontoDisponible: $montoDisponibleFinal");
+
+    return montoDisponibleFinal;
+   
+ }
+
+
+ 
 }

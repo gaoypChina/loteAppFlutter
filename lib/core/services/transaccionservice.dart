@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/bancas.dart';
 import 'dart:convert';
 
 class TransaccionService{
@@ -12,7 +11,7 @@ class TransaccionService{
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Utils.URL + "/api/transacciones?token=$jwt", headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -53,7 +52,7 @@ class TransaccionService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/transacciones/buscarTransaccion", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/transacciones/buscarTransaccion"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -81,8 +80,10 @@ class TransaccionService{
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
+    map["idUsuario"] = await Db.idUsuario();
+    map["idGrupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Utils.URL + "/api/transacciones/grupo?token=$jwt", headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones/v2/grupo?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -116,7 +117,7 @@ class TransaccionService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/transacciones/saldo", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/transacciones/saldo"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -150,7 +151,7 @@ class TransaccionService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Utils.URL + "/api/transacciones/guardar", body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/transacciones/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

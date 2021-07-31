@@ -1,5 +1,7 @@
 import 'package:loterias/core/classes/utils.dart';
 
+import 'loterias.dart';
+
 class Jugada {
   BigInt id;
   BigInt idVenta;
@@ -20,6 +22,8 @@ class Jugada {
   int status;
   int cantidadVecesQueSeHaJugado;
   int cantidadVecesQueHaSalido;
+  Loteria loteria;
+  Loteria loteriaSuperPale;
 
   Jugada({this.id, 
         this.idVenta, 
@@ -40,6 +44,8 @@ class Jugada {
         this.status,
         this.cantidadVecesQueSeHaJugado,
         this.cantidadVecesQueHaSalido,
+        this.loteria,
+        this.loteriaSuperPale
       });
 
   Jugada.fromMap(Map snapshot) :
@@ -62,6 +68,18 @@ class Jugada {
         status = snapshot['status'] ?? 1,
         cantidadVecesQueSeHaJugado = snapshot['cantidadVecesQueSeHaJugado'] ?? null,
         cantidadVecesQueHaSalido = snapshot['cantidadVecesQueHaSalido'] ?? null;
+
+      
+  static List jugadasToJson(List<Jugada> lista) {
+    List jsonList = [];
+    if(lista == null)
+      return jsonList;
+      
+    lista.map((u)=>
+      jsonList.add(u.toJson())
+    ).toList();
+    return jsonList;
+  }
 
   toJson() {
     return {

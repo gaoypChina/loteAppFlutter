@@ -2,12 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'package:loterias/ui/login/login.dart';
+import 'package:loterias/ui/screensizetest.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
+import 'package:loterias/ui/views/bancas/bancasaddscreen.dart';
+import 'package:loterias/ui/views/bancas/bancasscreen.dart';
+import 'package:loterias/ui/views/bloqueos/bloqueosporjugadas.dart';
+import 'package:loterias/ui/views/bloqueos/bloqueosporloteriasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
+import 'package:loterias/ui/views/grupos/gruposaddscreen.dart';
+import 'package:loterias/ui/views/grupos/gruposscreen.dart';
+import 'package:loterias/ui/views/loterias/loteriasaddscreen.dart';
+import 'package:loterias/ui/views/loterias/loteriasscreen.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
@@ -16,18 +25,25 @@ import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/principal/probarnullsafety.dart';
 import 'package:loterias/ui/views/principal/probartiemporestante.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
+import 'package:loterias/ui/views/prueba/pruebatimezone.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/reportejugadasscreen.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
+import 'package:loterias/ui/views/reportes/ventasporfechascreen.dart';
 import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
+import 'package:loterias/ui/views/usuarios/sesionesscreen.dart';
+import 'package:loterias/ui/views/usuarios/usuariosscreen.dart';
 
 
 class MyRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/' :
+        // return  MaterialPageRoute(
+        //   builder: (_)=> PruebaTimeZone()
+        // );
         return  MaterialPageRoute(
           builder: (_)=> PrincipalApp(callThisScreenFromLogin: (settings.arguments != null) ? settings.arguments : false,)
         );
@@ -112,6 +128,54 @@ class MyRouter {
         case '/ajustes' :
           return MaterialPageRoute(
             builder: (_)=> AjustesScreen()
+          ) ;
+        case '/grupos' :
+          return MaterialPageRoute(
+            builder: (_)=> GrupoScreen()
+          ) ;
+        case '/grupos/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> GruposAddScreen(grupo: settings.arguments,)
+          ) ;
+        case '/usuarios' :
+          return MaterialPageRoute(
+            builder: (_)=> UsuarioScreen()
+          ) ;
+        case '/sesiones' :
+          return MaterialPageRoute(
+            builder: (_)=> SesionesScreen()
+          ) ;
+          case '/loterias' :
+          return MaterialPageRoute(
+            builder: (_)=> LoteriasScreen()
+          ) ;
+        case '/loterias/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> LoteriasAddScreen(loteria: settings.arguments,)
+          ) ;
+        case '/bancas' :
+          return MaterialPageRoute(
+            builder: (_)=> BancasScreen()
+          ) ;
+        case '/bancas/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> BancasAddScreen(data: settings.arguments,)
+          ) ;
+        case '/screensizetest' :
+          return MaterialPageRoute(
+            builder: (_)=> ScreenSizeTest()
+          ) ;
+        case '/ventasPorFecha' :
+          return MaterialPageRoute(
+            builder: (_)=> VentasPorFechaScreen()
+          ) ;
+        case '/bloqueosporloteria' :
+          return MaterialPageRoute(
+            builder: (_)=> BloqueosPorLoteriasScreen()
+          ) ;
+        case '/bloqueosporjugadas' :
+          return MaterialPageRoute(
+            builder: (_)=> BloqueosPorJugadas()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(
