@@ -40,14 +40,17 @@ class TicketImage {
             border: pw.Border.all(width: 3, color: PdfColor.fromHex("#1170ec")),
             color: PdfColor.fromHex("#ffffff")
           ),
-          child:  pw.Column(
-            children: [
-              header,
-              _ticketContent(sale, listSalesdetails),
-              _ticketFooter(sale, listSalesdetails),
-              // _receiptNumberAndDate(),
-              // _receiptContent()
-            ]
+          child: pw.Padding(
+            padding: pw.EdgeInsets.only(bottom: 260),
+            child: pw.Column(
+              children: [
+                header,
+                _ticketContent(sale, listSalesdetails),
+                _ticketFooter(sale, listSalesdetails),
+                // _receiptNumberAndDate(),
+                // _receiptContent()
+              ]
+            )
           )
         );
     })); 
@@ -87,8 +90,8 @@ class TicketImage {
         nombreConsorcio,
         pw.Text("${sale.banca.descripcion}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
         pw.Text("** ${original ? 'ORIGINAL' : 'COPIA'} **", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
-        pw.Text("TICKET: ${Utils.toSecuencia('', sale.idTicket, false)}", style: pw.TextStyle(fontSize: 30)),
-        pw.Text("FECHA: ${DateFormat('EEE, MMM d yyy jms').format(sale.created_at)}", style: pw.TextStyle(fontSize: 30)),
+        pw.Text("TICKET: ${Utils.toSecuencia('', sale.idTicket, false)}", style: pw.TextStyle(fontSize: 50)),
+        pw.Text("FECHA: ${DateFormat('EEE, MMM d yyy jm').format(sale.created_at)}", style: pw.TextStyle(fontSize: 50)),
         pw.SizedBox(height: 20),
         pw.Text("${sale.ticket.codigoBarra}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)),
         pw.SizedBox(height: 20),
@@ -261,13 +264,13 @@ class TicketImage {
     var descuentoMontoWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Descuento: ${Utils.toCurrency(sale.descuentoMonto)}", style: pw.TextStyle(fontSize: 30)) : pw.SizedBox();
     var totalWidget = sale.hayDescuento == 1 && sale.descuentoMonto > 0 ? pw.Text("Total: ${Utils.toCurrency(sale.total - sale.descuentoMonto)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50)) : pw.Text("Total: ${Utils.toCurrency(sale.total)}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 50));
     
-    var piepagina1Widget = sale.banca.piepagina1 != null ? sale.banca.piepagina1.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina1}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
-    var piepagina2Widget = sale.banca.piepagina2 != null ? sale.banca.piepagina2.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina2}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
-    var piepagina3Widget = sale.banca.piepagina3 != null ? sale.banca.piepagina3.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina3}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
-    var piepagina4Widget = sale.banca.piepagina4 != null ? sale.banca.piepagina4.isNotEmpty ? pw.Text("Descuento: ${sale.banca.piepagina4}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina1Widget = sale.banca.piepagina1 != null ? sale.banca.piepagina1.isNotEmpty ? pw.Text("${sale.banca.piepagina1}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina2Widget = sale.banca.piepagina2 != null ? sale.banca.piepagina2.isNotEmpty ? pw.Text("${sale.banca.piepagina2}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina3Widget = sale.banca.piepagina3 != null ? sale.banca.piepagina3.isNotEmpty ? pw.Text("${sale.banca.piepagina3}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
+    var piepagina4Widget = sale.banca.piepagina4 != null ? sale.banca.piepagina4.isNotEmpty ? pw.Text("${sale.banca.piepagina4}", style: pw.TextStyle(fontSize: 25)) : pw.SizedBox() : pw.SizedBox();
     
     return  pw.Padding(
-      padding: pw.EdgeInsets.only(bottom: 260),
+      padding: pw.EdgeInsets.only(bottom: 50),
       child: pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.center,
       children: [

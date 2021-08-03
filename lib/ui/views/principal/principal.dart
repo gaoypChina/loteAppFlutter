@@ -72,6 +72,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<String> _listaMensajes = List();
   static int _socketContadorErrores = 0;
   static int _socketNotificacionContadorErrores = 0;
+  var _connectionNotify = ValueNotifier<bool>(false);
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _formLigarKey = GlobalKey<FormState>();
   bool _jugadaOmonto = true;
@@ -847,14 +848,17 @@ Future<bool> _requestPermisionChannel() async {
     //                   // transports: [Transports.WEB_SOCKET/*, Transports.POLLING*/] //Enable required transport
     //     ));       //TODO change the port  accordingly
     print("initSOcket servidor beforeConnect ${await Db.servidor()}");
+    print("initSOcket servidor beforeConnect builder ${OptionBuilder().setTimeout(2000).build()}");
     print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
-    print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    // print("initSOcket servidor beforeConnect builder ${OptionBuilder().}");
     // IO.
     IO.cache.forEach((key, value) {print("initSocket cache $key : $value");});
     socket = IO.io(Utils.URL_SOCKET, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
       'forceNew': true,
+      // 'timeout': 1000,
+      // 'reconnectionDelay': 1000,
       'extraHeaders': {'foo': 'bar'}, // optional
       'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}"
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
@@ -866,11 +870,13 @@ Future<bool> _requestPermisionChannel() async {
       // socket.emit("message", ["Hello world!"]);
       _emitToGetNewIdTicket();
       _emitToGetVentasDelDia();
+      _connectionNotify.value = false;
       await Realtime.sincronizarTodos(_scaffoldKey, await Db.idBanca());
+      _connectionNotify.value = true;
       await _getPermisos();
       _socketContadorErrores = 0;
     });
-    socket.onConnect((data) => print("PrincipalView initSocket onConnect: $data"));
+    // socket.onConnect((data) => print("PrincipalView initSocket onConnect: $data"));
 
     // socket.onConnect((data) async {
     //   print("connected...");
@@ -939,8 +945,18 @@ Future<bool> _requestPermisionChannel() async {
         await Realtime.addBlocksdirtyDatosNuevos(parsed['blocksdirty'], (parsed['action'] == 'delete') ? true : false);
       });
 
-      socket.on("ticket", (data){
+      socket.on("ticket", (data) async {
         print("Socket ticket from server before: $data");
+        if(data != null){
+          Ticket ticket = Ticket.fromMap(data);
+            print("Socket ticket from server before validation ticket: ${ticket.toJson()}");
+            print("Socket ticket from server before validation banca: ${await getIdBanca()}");
+          if(ticket.idBanca != await getIdBanca()){
+            _emitToGetNewIdTicket();
+            print("Socket ticket from server inside validation: $data");
+            return;
+          }
+        }
         Realtime.createTicketIfNotExists(data);
         print("Socket ticket from server after: $data");
       });
@@ -986,11 +1002,33 @@ Future<bool> _requestPermisionChannel() async {
       // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
     socket.on("error", (data){   //sample event
+      _connectionNotify.value = false;
       print("onError: $data");
     });
-    socket.on('connect_error', (data) => print(data));
-    socket.on('error', (data) => print("errr: ${data}"));
-    socket.onDisconnect((data) => print("onDisconnect principalview: ${data}"));
+    socket.on('connect_error', (data) {
+      _connectionNotify.value = false;
+      print(data);
+    });
+    socket.on('error', (data) {
+      _connectionNotify.value = false;
+      print("errr: ${data}");
+    });
+    socket.onDisconnect((data){
+      _connectionNotify.value = false;
+      print("principalview onDisconnect: ${data}");
+    });
+    //  socket.onConnecting((data){
+    //   // _connectionNotify.value = false;
+    //   print("principalview onConnecting: ${data}");
+    // });
+    //  socket.onReconnecting((data){
+    //   // _connectionNotify.value = false;
+    //   print("principalview onReconnecting: ${data}");
+    // });
+    //  socket.onConnectError((data){
+    //   // _connectionNotify.value = false;
+    //   print("principalview onConnectError: ${data}");
+    // });
   //   socket.onConnectError((er) async {
   //     _socketContadorErrores++;
   //     if(_socketContadorErrores == 4)
@@ -1505,7 +1543,42 @@ AppBar _appBar(bool screenHeightIsSmall){
       backgroundColor: Utils.colorMaterialCustom,
       iconTheme: IconThemeData(color: Colors.white),
       actionsIconTheme: IconThemeData(color: Colors.white),
-      title: screenHeightIsSmall ? Padding(padding: EdgeInsets.only(top: 5), child: Text('Principal', style: TextStyle(fontSize: 17))) : Text('Principal'),
+      title: screenHeightIsSmall 
+        ? 
+        Padding(
+          padding: EdgeInsets.only(top: 5), 
+          child: Stack(
+            children: [
+              Text('Principal', style: TextStyle(fontSize: 17)),
+              Positioned(child: Icon(Icons.language, color: Colors.green))
+            ],
+          )
+        ) 
+        : 
+        // Text('Principal'),
+        Row(
+          children: [
+            Text('Principal'),
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _connectionNotify,
+                builder: (context, value, __) {
+                  if(value)
+                    return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 18), onTap: () async {
+                      Banca banca = await getBanca();
+                      print("PrincipalView cloud_done banca: ${banca.id}");
+                      var ticket = await Db.getNextTicket(banca.id);
+                      print("PrincipalView cloud_done ticket: ${ticket}");
+                      
+                    },);
+
+                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+                }
+              ),
+            )
+          ],
+        ) ,
       // leading: SizedBox(),
       // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
       //   _scaffoldKey.currentState.openDrawer();
@@ -1656,543 +1729,58 @@ AppBar _appBar(bool screenHeightIsSmall){
                     children: <Widget>[
                       Container(
                         constraints: BoxConstraints(maxHeight: (boxConstraints.maxHeight > 300) ? boxConstraints.maxHeight : 500),
-                        child: AbsorbPointer(
-                          absorbing: _cargando,
-                          child: Column(
-                            children: <Widget>[
-                              
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: _connectionNotify,
+                          builder: (context, value, __) {
+                            return AbsorbPointer(
+                              absorbing: _cargando || !value,
+                              child: Column(
                                 children: <Widget>[
-                                  !_tienePermisoJugarComoCualquierBanca
-                                  ?
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text("${_banca != null ? _banca.descripcion : 'Banca'}"),
-                                  )
-                                  :
-                                  StreamBuilder(
-                                    stream: _streamControllerBanca.stream,
-                                    builder: (context, snapshot){
-                                      
-                                      if(snapshot.hasData){
-                                        return Padding(
-                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                        child: DropdownButton(
-                                              hint: Text('sel. banca'),
-                                              // isExpanded: true,
-                                              value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                                              onChanged: (Banca banca) async {
-                                                setState(() {
-                                                _indexBanca = listaBanca.indexOf(banca); 
-                                                _emitToGetNewIdTicket();
-                                                indexPost(false);
-                                                });
-                                                await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
-                                              },
-                                              items: listaBanca.map((b){
-                                                return DropdownMenuItem<Banca>(
-                                                  value: b,
-                                                  child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                );
-                                              }).toList(),
-                                            ),
-                                      
-                                      );
-                                      }else{
-                                        return Padding(
-                                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                          child: DropdownButton(
-                                              hint: Text('Sin datos...'),
-                                              value:  'Sin datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "Sin datos",
-                                                  child: Text('Sin datos',),
-                                                )
-                                              ]
-                                            ),
-                                        );
-                                        
-                                      }
-                                        
-                                      return Padding(
-                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                        child: DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  listaBanca[_indexBanca],
-                                              onChanged: (Banca banca){
-                                                setState(() {
-                                                _indexBanca = listaBanca.indexOf(banca); 
-                                                });
-                                              },
-                                              items: listaBanca.map((b){
-                                                return DropdownMenuItem<Banca>(
-                                                  value: b,
-                                                  child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                );
-                                              }).toList(),
-                                            ),
-                                      
-                                      );
-                                    },
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                    child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
-                                  ),
-                                ],
-                              ),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                              //   child: GestureDetector(
-                              //     onTap: (){
-                              //       _showMultiSelect(context);
-                              //     },
-                              //       child: Container(
-                              //       width: MediaQuery.of(context).size.width,
-                              //       padding: EdgeInsets.only(top: 13, bottom: 13),
-                              //       decoration: BoxDecoration(
-                              //         border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                              //       ),
-                              //       child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
-                              //     ),
-                              //   ),
-                              // ),
-
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                child: GestureDetector(
-                                  onTap: (){
-                                    _showMultiSelect(context);
-                                  },
-                                    child: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    height: MediaQuery.of(context).size.height * 0.058,
-                                    // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                    ),
-                                    // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
-                                    child: Center(child: _getSelectedLoteriaStream(),),
-                                  ),
-                                ),
-                              ),
-                              
-                              SizedBox(height: 8,),
-                              Row(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                      setState(() => _jugadaOmonto = true);
-                                    },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: Container(
-                                          // duration: Duration(milliseconds: 50),
-                                            width: MediaQuery.of(context).size.width / 3,
-                                            height: (MediaQuery.of(context).size.height * 0.0688),
-                                            // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
-                                            ),
-                                            child: Center(
-                                              child: TextField(
-                                                controller: _txtJugada,
-                                                enabled: false,
-                                                style: TextStyle(fontSize: 20, color: Colors.black),
-                                                decoration: InputDecoration(
-                                                  contentPadding: EdgeInsets.all(0),
-                                                  isDense: true,
-                                                  alignLabelWithHint: true,
-                                                  border: InputBorder.none,
-                                                  hintText: 'Jugada',
-                                                  fillColor: Colors.transparent,
-                                                  // filled: true,
-                                                  hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                                ),
-                                                textAlign: TextAlign.center,
-                                                // expands: false,
-                                              ),
-                                            ),
-                                        ),
-                                      ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                    },
-                                    child: Container(
-                                      width: (MediaQuery.of(context).size.width / 3) - 16,
-                                      height: (MediaQuery.of(context).size.height * 0.0688),
-                                      // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                      ),
-                                      child: Center(
-                                        child: 
-                                        TextField(
-                                          controller: _txtMontoDisponible,
-                                          enabled: false,
-                                          style: TextStyle(fontSize: 20),
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.all(0),
-                                            isDense: true,
-                                            border: InputBorder.none,
-                                            hintText: '0',
-                                            fillColor: Colors.transparent,
-                                            filled: true,
-                                            hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
-                                        // FutureBuilder<String>(
-                                        // future: _montoFuture,
-                                        //   builder: (context, snapshot){
-                                        //     if (snapshot.hasData) {
-                                        //         // setState(() {
-                                        //         //  _cargando = false; 
-                                        //         // });
-                                        //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
-                                        //       } else if (snapshot.hasError) {
-                                        //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
-                                        //       }
-
-                                        //       return Text('', style: TextStyle(fontSize: 25));
-                                        //   },
-                                        // )
-                                        // TextField(
-                                        //   controller: _txtMontoDisponible,
-                                        //   enabled: false,
-                                        //   style: TextStyle(fontSize: 20),
-                                        //   decoration: InputDecoration(
-                                        //     border: InputBorder.none,
-                                        //     hintText: '0',
-                                        //     fillColor: Colors.transparent,
-                                        //     filled: true,
-                                        //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                        //   ),
-                                        //   textAlign: TextAlign.center,
-                                        // ),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      // _showMultiSelect(context);
-                                      changeMontoDisponibleFromTxtMontoDisponible();
-                                      setState(() => _jugadaOmonto = false);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: Container(
-                                          width: MediaQuery.of(context).size.width / 3,
-                                          height: (MediaQuery.of(context).size.height * 0.0688),
-                                          // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
-                                          ),
-                                          child: Center(
-                                            child: TextField(
-                                              controller: _txtMonto,
-                                              enabled: false,
-                                              style: TextStyle(fontSize: 20),
-                                              decoration: InputDecoration(
-                                                contentPadding: EdgeInsets.all(0),
-                                                isDense: true,
-                                                border: InputBorder.none,
-                                                hintText: 'Monto',
-                                                fillColor: Colors.transparent,
-                                                filled: true,
-                                                hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 8,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12))),
-                                  FutureBuilder(
-                                    future: _calcularDescuento(),
-                                    builder: (context, snapshot){
-                                      if(snapshot.hasData){
-                                        return Flexible(child: Text('Des: ${snapshot.data}\$', style: TextStyle(fontSize: 12),));
-                                      }
-                                      return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
-                                    }
-                                  ),
-                                  GestureDetector(
-                                    onTap: (){
-                                      setState(() => _ckbDescuento = !_ckbDescuento);
-                                    },
-                                    child: Container(
-                                      // color: Colors.red,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                        child: Row(
-                                          children: <Widget>[
-                                            //MyCheckbox
-                                            // MyCheckbox(
-                                            //   useTapTarget: false,
-                                            //   value: _ckbDescuento,
-                                            //   onChanged: (newValue){
-                                            //     setState(() {
-                                            //     _ckbDescuento = newValue; 
-                                            //     });
-                                            //   },
-                                            // ),
-                                            SizedBox(
-                                              width: 10,
-                                              height: 8,
-                                              child: Checkbox(
-                                                // useTapTarget: false,
-                                                value: _ckbDescuento,
-                                                onChanged: _ckbDescuentoChanged,
-                                              ),
-                                            ),
-                                            // Checkbox(
-                                            //   // useTapTarget: false,
-                                            //   value: _ckbDescuento,
-                                            //   onChanged: (newValue){
-                                            //     setState(() {
-                                            //     _ckbDescuento = newValue; 
-                                            //     });
-                                            //   },
-                                            // ),
-                                            SizedBox(width: 5,),
-                                            GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                   
-                                  GestureDetector(
-                                    onTap: (){
-
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                      child: Row(
-                                        children: <Widget>[
-                                          // MyCheckbox(
-                                          //   useTapTarget: false,
-                                          //   value: _ckbPrint,
-                                          //   onChanged: _ckbPrintChanged,
-                                          // ),
-                                          SizedBox(
-                                            width: 10,
-                                            height: 8,
-                                            child: Checkbox(
-                                              // useTapTarget: false,
-                                              value: _ckbPrint,
-                                              onChanged: _ckbPrintChanged,
-                                            ),
-                                          ),
-                                          SizedBox(width: 5,),
-                                          GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
-                                        ],
-                                      ),
-                                    ),
-                                  ),
                                   Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      // MyCheckbox(
-                                      //   useTapTarget: false,
-                                      //   value: _ckbMessage,
-                                      //   onChanged: _ckbMessageChanged,
-                                      // ),
-                                      SizedBox(
-                                        width: 10,
-                                        height: 8,
-                                        child: Checkbox(
-                                          // useTapTarget: false,
-                                          value: _ckbMessage,
-                                          onChanged: _ckbMessageChanged,
-                                        ),
-                                      ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      // MyCheckbox(
-                                      //   useTapTarget: false,
-                                      //   value: _ckbWhatsapp,
-                                      //   onChanged: _ckbWhatsappChanged,
-                                      // ),
-                                      SizedBox(
-                                        width: 10,
-                                        height: 8,
-                                        child: Checkbox(
-                                          // useTapTarget: false,
-                                          value: _ckbWhatsapp,
-                                          onChanged: _ckbWhatsappChanged,
-                                        ),
-                                      ),
-                                      // PreferredSize(
-                                      //   preferredSize: Size.fromWidth(5),
-                                      //   child: Checkbox(
-                                      //     // useTapTarget: false,
-                                      //     materialTapTargetSize: MaterialTapTargetSize.padded,
-                                      //     value: _ckbWhatsapp,
-                                      //     onChanged: _ckbWhatsappChanged,
-                                      //     visualDensity: VisualDensity.lerp(VisualDensity.compact, VisualDensity.compact, VisualDensity.minimumDensity),
-                                      //   ),
-                                      // ),
-                                      SizedBox(width: 5,),
-                                      GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
-                                    ],
-                                  ),
-                                
-                                        
-                                      
-                                ],
-                              ),
-                              
-                              SizedBox(height: 8,),
-                              Expanded(
-                                // flex: 3,
-                                flex: 3,
-                                child: Container(
-                                  // color: Colors.red,
-                                  child: LayoutBuilder(
-                                  builder: (BuildContext context, BoxConstraints constraints) {
-                                    return Column(
-                                      children: <Widget>[
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('S', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                            // SizedBox(
-                                            //   width: MediaQuery.of(context).size.width / 4,
-                                            //   height: constraints.maxHeight / 5,
-                                            //   child: RaisedButton(
-                                            //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
-                                            //     elevation: 0,
-                                            //     color: Utils.fromHex("#FFEDEBEB"),
-                                            //     onPressed: (){},
-                                            //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
-                                            //   ),
-                                            // )
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                            _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
-                                            _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
-                                          ],
-                                        )
-                                      ],
-                                    );
-                                  }
-                                ),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Row(
-                                    
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: <Widget>[
-                                      Container(
-                                        child: Row(
-                                          children: <Widget>[
-                                            IconButton(
-                                              icon: Icon(Icons.copy, color: Colors.blue, size: 38),
-                                              onPressed: () async {
-                                                if(listaVenta.isNotEmpty){
-                                                  var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
-                                                  BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA );
-                                                }
-                                              },
-                                            ),
-                                            IconButton(
-                                              icon: Icon(Icons.delete, color: Colors.red, size: 38,),
-                                              onPressed: () async {
-                                                if(listaVenta.isNotEmpty){
-                                                  var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra, scaffoldKey: _scaffoldKey);
-                                                  listaVenta.removeAt(_indexVenta);
-                                                  _indexVenta = 0;
-                                                  _streamControllerVenta.add(true);
-                                                  BluetoothChannel.printTicket(r["ticket"], BluetoothChannel.TYPE_CANCELADO);
-                                                  Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: r["mensaje"]);
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    StreamBuilder(
-                                      stream: _streamControllerVenta.stream,
-                                      builder: (context, snapshot){
-                                        if(snapshot.hasData){
-                                          if(listaVenta.length != 0){
-                                            return DropdownButton(
-                                              hint: Text('seleccionar ticket'),
-                                              value: listaVenta[_indexVenta],
-                                              onChanged: (Venta ticket){
-                                                setState(() {
-                                                _indexVenta = listaVenta.indexOf(ticket); 
-                                                });
-                                              },
-                                              items: listaVenta.map((t){
-                                                return DropdownMenuItem(
-                                                  value: t,
-                                                  child: Text(t.idTicket.toString()),
-                                                );
-                                              }).toList(),
-                                            );
+                                      !_tienePermisoJugarComoCualquierBanca
+                                      ?
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text("${_banca != null ? _banca.descripcion : 'Banca'}"),
+                                      )
+                                      :
+                                      StreamBuilder(
+                                        stream: _streamControllerBanca.stream,
+                                        builder: (context, snapshot){
+                                          
+                                          if(snapshot.hasData){
+                                            return Padding(
+                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                            child: DropdownButton(
+                                                  hint: Text('sel. banca'),
+                                                  // isExpanded: true,
+                                                  value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
+                                                  onChanged: (Banca banca) async {
+                                                    setState(() {
+                                                    _indexBanca = listaBanca.indexOf(banca); 
+                                                    _emitToGetNewIdTicket();
+                                                    indexPost(false);
+                                                    });
+                                                    await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
+                                                  },
+                                                  items: listaBanca.map((b){
+                                                    return DropdownMenuItem<Banca>(
+                                                      value: b,
+                                                      child: Text(b.descripcion, textAlign: TextAlign.center,),
+                                                    );
+                                                  }).toList(),
+                                                ),
+                                          
+                                          );
                                           }else{
                                             return Padding(
                                               padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                               child: DropdownButton(
-                                                  hint: Text('Seleccionar ticket'),
-                                                  value:  'No hay tickets',
+                                                  hint: Text('Sin datos...'),
+                                                  value:  'Sin datos',
                                                   onChanged: (String banca){
                                                     setState(() {
                                                     
@@ -2200,56 +1788,546 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                   },
                                                   items: [
                                                     DropdownMenuItem<String>(
-                                                      value: "No hay tickets",
-                                                      child: Text('No hay tickets',),
+                                                      value: "Sin datos",
+                                                      child: Text('Sin datos',),
                                                     )
                                                   ]
                                                 ),
                                             );
-                                          }
-
-                                          return DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
-                                                )
-                                              ]
-                                            );
                                             
-                                        }
-                                        else{
-                                          return DropdownButton(
-                                              hint: Text('Seleccionar banca'),
-                                              value:  'No hay datos',
-                                              onChanged: (String banca){
-                                                setState(() {
-                                                
-                                                });
-                                              },
-                                              items: [
-                                                DropdownMenuItem<String>(
-                                                  value: "No hay datos",
-                                                  child: Text('No hay datos',),
-                                                )
-                                              ]
-                                            );
-                                        }
-                                      },
-                                    )
+                                          }
+                                            
+                                          return Padding(
+                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                            child: DropdownButton(
+                                                  hint: Text('Seleccionar banca'),
+                                                  value:  listaBanca[_indexBanca],
+                                                  onChanged: (Banca banca){
+                                                    setState(() {
+                                                    _indexBanca = listaBanca.indexOf(banca); 
+                                                    });
+                                                  },
+                                                  items: listaBanca.map((b){
+                                                    return DropdownMenuItem<Banca>(
+                                                      value: b,
+                                                      child: Text(b.descripcion, textAlign: TextAlign.center,),
+                                                    );
+                                                  }).toList(),
+                                                ),
+                                          
+                                          );
+                                        },
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                        child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
+                                      ),
                                     ],
                                   ),
-                                )
-                              )
-                            ],
-                          ),
+                                  // Padding(
+                                  //   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                  //   child: GestureDetector(
+                                  //     onTap: (){
+                                  //       _showMultiSelect(context);
+                                  //     },
+                                  //       child: Container(
+                                  //       width: MediaQuery.of(context).size.width,
+                                  //       padding: EdgeInsets.only(top: 13, bottom: 13),
+                                  //       decoration: BoxDecoration(
+                                  //         border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+                                  //       ),
+                                  //       child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                        
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        _showMultiSelect(context);
+                                      },
+                                        child: Container(
+                                        width: MediaQuery.of(context).size.width,
+                                        height: MediaQuery.of(context).size.height * 0.058,
+                                        // padding: EdgeInsets.only(top: 13, bottom: 13),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+                                        ),
+                                        // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+                                        child: Center(child: _getSelectedLoteriaStream(),),
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                  SizedBox(height: 8,),
+                                  Row(
+                                    children: <Widget>[
+                                      GestureDetector(
+                                        onTap: (){
+                                          // _showMultiSelect(context);
+                                          setState(() => _jugadaOmonto = true);
+                                        },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 8),
+                                            child: Container(
+                                              // duration: Duration(milliseconds: 50),
+                                                width: MediaQuery.of(context).size.width / 3,
+                                                height: (MediaQuery.of(context).size.height * 0.0688),
+                                                // padding: EdgeInsets.only(top: 13, bottom: 13),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
+                                                ),
+                                                child: Center(
+                                                  child: TextField(
+                                                    controller: _txtJugada,
+                                                    enabled: false,
+                                                    style: TextStyle(fontSize: 20, color: Colors.black),
+                                                    decoration: InputDecoration(
+                                                      contentPadding: EdgeInsets.all(0),
+                                                      isDense: true,
+                                                      alignLabelWithHint: true,
+                                                      border: InputBorder.none,
+                                                      hintText: 'Jugada',
+                                                      fillColor: Colors.transparent,
+                                                      // filled: true,
+                                                      hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    // expands: false,
+                                                  ),
+                                                ),
+                                            ),
+                                          ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: (){
+                                          // _showMultiSelect(context);
+                                        },
+                                        child: Container(
+                                          width: (MediaQuery.of(context).size.width / 3) - 16,
+                                          height: (MediaQuery.of(context).size.height * 0.0688),
+                                          // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+                                          ),
+                                          child: Center(
+                                            child: 
+                                            TextField(
+                                              controller: _txtMontoDisponible,
+                                              enabled: false,
+                                              style: TextStyle(fontSize: 20),
+                                              decoration: InputDecoration(
+                                                contentPadding: EdgeInsets.all(0),
+                                                isDense: true,
+                                                border: InputBorder.none,
+                                                hintText: '0',
+                                                fillColor: Colors.transparent,
+                                                filled: true,
+                                                hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
+                                            // FutureBuilder<String>(
+                                            // future: _montoFuture,
+                                            //   builder: (context, snapshot){
+                                            //     if (snapshot.hasData) {
+                                            //         // setState(() {
+                                            //         //  _cargando = false; 
+                                            //         // });
+                                            //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
+                                            //       } else if (snapshot.hasError) {
+                                            //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
+                                            //       }
+                        
+                                            //       return Text('', style: TextStyle(fontSize: 25));
+                                            //   },
+                                            // )
+                                            // TextField(
+                                            //   controller: _txtMontoDisponible,
+                                            //   enabled: false,
+                                            //   style: TextStyle(fontSize: 20),
+                                            //   decoration: InputDecoration(
+                                            //     border: InputBorder.none,
+                                            //     hintText: '0',
+                                            //     fillColor: Colors.transparent,
+                                            //     filled: true,
+                                            //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                            //   ),
+                                            //   textAlign: TextAlign.center,
+                                            // ),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: (){
+                                          // _showMultiSelect(context);
+                                          changeMontoDisponibleFromTxtMontoDisponible();
+                                          setState(() => _jugadaOmonto = false);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: 8),
+                                          child: Container(
+                                              width: MediaQuery.of(context).size.width / 3,
+                                              height: (MediaQuery.of(context).size.height * 0.0688),
+                                              // padding: EdgeInsets.only(top: 13, bottom: 13),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
+                                              ),
+                                              child: Center(
+                                                child: TextField(
+                                                  controller: _txtMonto,
+                                                  enabled: false,
+                                                  style: TextStyle(fontSize: 20),
+                                                  decoration: InputDecoration(
+                                                    contentPadding: EdgeInsets.all(0),
+                                                    isDense: true,
+                                                    border: InputBorder.none,
+                                                    hintText: 'Monto',
+                                                    fillColor: Colors.transparent,
+                                                    filled: true,
+                                                    hintStyle: TextStyle(fontWeight: FontWeight.bold)
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: <Widget>[
+                                      Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12))),
+                                      FutureBuilder(
+                                        future: _calcularDescuento(),
+                                        builder: (context, snapshot){
+                                          if(snapshot.hasData){
+                                            return Flexible(child: Text('Des: ${snapshot.data}\$', style: TextStyle(fontSize: 12),));
+                                          }
+                                          return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
+                                        }
+                                      ),
+                                      GestureDetector(
+                                        onTap: (){
+                                          setState(() => _ckbDescuento = !_ckbDescuento);
+                                        },
+                                        child: Container(
+                                          // color: Colors.red,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
+                                            child: Row(
+                                              children: <Widget>[
+                                                //MyCheckbox
+                                                // MyCheckbox(
+                                                //   useTapTarget: false,
+                                                //   value: _ckbDescuento,
+                                                //   onChanged: (newValue){
+                                                //     setState(() {
+                                                //     _ckbDescuento = newValue; 
+                                                //     });
+                                                //   },
+                                                // ),
+                                                SizedBox(
+                                                  width: 10,
+                                                  height: 8,
+                                                  child: Checkbox(
+                                                    // useTapTarget: false,
+                                                    value: _ckbDescuento,
+                                                    onChanged: _ckbDescuentoChanged,
+                                                  ),
+                                                ),
+                                                // Checkbox(
+                                                //   // useTapTarget: false,
+                                                //   value: _ckbDescuento,
+                                                //   onChanged: (newValue){
+                                                //     setState(() {
+                                                //     _ckbDescuento = newValue; 
+                                                //     });
+                                                //   },
+                                                // ),
+                                                SizedBox(width: 5,),
+                                                GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      
+                                      GestureDetector(
+                                        onTap: (){
+                        
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
+                                          child: Row(
+                                            children: <Widget>[
+                                              // MyCheckbox(
+                                              //   useTapTarget: false,
+                                              //   value: _ckbPrint,
+                                              //   onChanged: _ckbPrintChanged,
+                                              // ),
+                                              SizedBox(
+                                                width: 10,
+                                                height: 8,
+                                                child: Checkbox(
+                                                  // useTapTarget: false,
+                                                  value: _ckbPrint,
+                                                  onChanged: _ckbPrintChanged,
+                                                ),
+                                              ),
+                                              SizedBox(width: 5,),
+                                              GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          // MyCheckbox(
+                                          //   useTapTarget: false,
+                                          //   value: _ckbMessage,
+                                          //   onChanged: _ckbMessageChanged,
+                                          // ),
+                                          SizedBox(
+                                            width: 10,
+                                            height: 8,
+                                            child: Checkbox(
+                                              // useTapTarget: false,
+                                              value: _ckbMessage,
+                                              onChanged: _ckbMessageChanged,
+                                            ),
+                                          ),
+                                          SizedBox(width: 5,),
+                                          GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
+                                        ],
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          // MyCheckbox(
+                                          //   useTapTarget: false,
+                                          //   value: _ckbWhatsapp,
+                                          //   onChanged: _ckbWhatsappChanged,
+                                          // ),
+                                          SizedBox(
+                                            width: 10,
+                                            height: 8,
+                                            child: Checkbox(
+                                              // useTapTarget: false,
+                                              value: _ckbWhatsapp,
+                                              onChanged: _ckbWhatsappChanged,
+                                            ),
+                                          ),
+                                          // PreferredSize(
+                                          //   preferredSize: Size.fromWidth(5),
+                                          //   child: Checkbox(
+                                          //     // useTapTarget: false,
+                                          //     materialTapTargetSize: MaterialTapTargetSize.padded,
+                                          //     value: _ckbWhatsapp,
+                                          //     onChanged: _ckbWhatsappChanged,
+                                          //     visualDensity: VisualDensity.lerp(VisualDensity.compact, VisualDensity.compact, VisualDensity.minimumDensity),
+                                          //   ),
+                                          // ),
+                                          SizedBox(width: 5,),
+                                          GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
+                                        ],
+                                      ),
+                                    
+                                            
+                                          
+                                    ],
+                                  ),
+                                  
+                                  SizedBox(height: 8,),
+                                  Expanded(
+                                    // flex: 3,
+                                    flex: 3,
+                                    child: Container(
+                                      // color: Colors.red,
+                                      child: LayoutBuilder(
+                                      builder: (BuildContext context, BoxConstraints constraints) {
+                                        return Column(
+                                          children: <Widget>[
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('S', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                // SizedBox(
+                                                //   width: MediaQuery.of(context).size.width / 4,
+                                                //   height: constraints.maxHeight / 5,
+                                                //   child: RaisedButton(
+                                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+                                                //     elevation: 0,
+                                                //     color: Utils.fromHex("#FFEDEBEB"),
+                                                //     onPressed: (){},
+                                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
+                                                //   ),
+                                                // )
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
+                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
+                                              ],
+                                            )
+                                          ],
+                                        );
+                                      }
+                                    ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child: Row(
+                                        
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: <Widget>[
+                                          Container(
+                                            child: Row(
+                                              children: <Widget>[
+                                                IconButton(
+                                                  icon: Icon(Icons.copy, color: Colors.blue, size: 38),
+                                                  onPressed: () async {
+                                                    if(listaVenta.isNotEmpty){
+                                                      var resultado = await TicketService.ticket(idTicket: listaVenta[_indexVenta].idTicket, scaffoldKey: _scaffoldKey);
+                                                      BluetoothChannel.printTicket(resultado["ticket"], BluetoothChannel.TYPE_COPIA );
+                                                    }
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.delete, color: Colors.red, size: 38,),
+                                                  onPressed: () async {
+                                                    if(listaVenta.isNotEmpty){
+                                                      var r = await TicketService.cancelar(codigoBarra: listaVenta[_indexVenta].codigoBarra, scaffoldKey: _scaffoldKey);
+                                                      listaVenta.removeAt(_indexVenta);
+                                                      _indexVenta = 0;
+                                                      _streamControllerVenta.add(true);
+                                                      BluetoothChannel.printTicket(r["ticket"], BluetoothChannel.TYPE_CANCELADO);
+                                                      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: r["mensaje"]);
+                                                    }
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        StreamBuilder(
+                                          stream: _streamControllerVenta.stream,
+                                          builder: (context, snapshot){
+                                            if(snapshot.hasData){
+                                              if(listaVenta.length != 0){
+                                                return DropdownButton(
+                                                  hint: Text('seleccionar ticket'),
+                                                  value: listaVenta[_indexVenta],
+                                                  onChanged: (Venta ticket){
+                                                    setState(() {
+                                                    _indexVenta = listaVenta.indexOf(ticket); 
+                                                    });
+                                                  },
+                                                  items: listaVenta.map((t){
+                                                    return DropdownMenuItem(
+                                                      value: t,
+                                                      child: Text(t.idTicket.toString()),
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              }else{
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                                  child: DropdownButton(
+                                                      hint: Text('Seleccionar ticket'),
+                                                      value:  'No hay tickets',
+                                                      onChanged: (String banca){
+                                                        setState(() {
+                                                        
+                                                        });
+                                                      },
+                                                      items: [
+                                                        DropdownMenuItem<String>(
+                                                          value: "No hay tickets",
+                                                          child: Text('No hay tickets',),
+                                                        )
+                                                      ]
+                                                    ),
+                                                );
+                                              }
+                        
+                                              return DropdownButton(
+                                                  hint: Text('Seleccionar banca'),
+                                                  value:  'No hay datos',
+                                                  onChanged: (String banca){
+                                                    setState(() {
+                                                    
+                                                    });
+                                                  },
+                                                  items: [
+                                                    DropdownMenuItem<String>(
+                                                      value: "No hay datos",
+                                                      child: Text('No hay datos',),
+                                                    )
+                                                  ]
+                                                );
+                                                
+                                            }
+                                            else{
+                                              return DropdownButton(
+                                                  hint: Text('Seleccionar banca'),
+                                                  value:  'No hay datos',
+                                                  onChanged: (String banca){
+                                                    setState(() {
+                                                    
+                                                    });
+                                                  },
+                                                  items: [
+                                                    DropdownMenuItem<String>(
+                                                      value: "No hay datos",
+                                                      child: Text('No hay datos',),
+                                                    )
+                                                  ]
+                                                );
+                                            }
+                                          },
+                                        )
+                                        ],
+                                      ),
+                                    )
+                                  )
+                                ],
+                              ),
+                            );
+                          }
                         ),
                       ),
                     ],

@@ -12,7 +12,7 @@ class Ticket {
         codigoBarra = snapshot['codigoBarra'] ?? '',
         usado = snapshot['usado'] ?? 0,
         uuid = (snapshot['uuid'] != null) ? snapshot["uuid"] : '',
-        idBanca = snapshot['idBanca'] ?? 1
+        idBanca = snapshot['idBanca'] ?? -1
         // permisos = permisosToMap(snapshot['permisos']) ?? List()
         ;
 

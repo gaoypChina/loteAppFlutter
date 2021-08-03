@@ -79,7 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() => _onCreate = false);
       }
 
-      listaVentasGrafica = List.from(datos["ventasGrafica"]);
+      listaVentasGrafica = datos["ventasGrafica"] != null ? datos["ventasGrafica"].map<GraficaVentas>((e) => GraficaVentas.fromMap(e)).toList() : [];
       listaVentasPorLoteria = List.from(datos["loterias"]);
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());

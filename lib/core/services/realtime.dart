@@ -434,6 +434,12 @@ class Realtime{
 
     print("Realtime guardarVenta after bancas");
 
+    if(banca.id != ticket.idBanca){
+      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+      await Future.delayed(Duration(seconds: 2), (){print("Error idTicket incorrecto");});
+      throw Exception("No se puede hacer la venta id incorrecto");
+    }
+
 
     // socket.emit("idTicket", 1234567);
 
@@ -708,7 +714,7 @@ class Realtime{
       if(ticketParsed.id == BigInt.zero)
         return;
 
-      // print("Realtime createTicketIfNotExists: ${ticketParsed.toJson()}");
+      print("Realtime createTicketIfNotExists: ${parsed}");
       if(ticketDB != null){
         if(ticketDB.id != ticketParsed.id)
           Db.insert("Tickets", ticketParsed.toJson());
