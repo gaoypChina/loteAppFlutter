@@ -66,7 +66,7 @@ class Banca {
         deCada = Utils.toDouble(snapshot['deCada'].toString()) ?? 0.0,
         limiteVenta = Utils.toDouble(snapshot['limiteVenta'].toString()) ?? 0.0,
         balanceDesactivacion = Utils.toDouble(snapshot['balanceDesactivacion'].toString()) ?? 0.0,
-        minutosCancelarTicket = Utils.toInt(snapshot['minutosCancelarTicket'].toString()) ?? 0,
+        minutosCancelarTicket = snapshot['minutosCancelarTicket'] != null ? Utils.toDouble(snapshot['minutosCancelarTicket'].toString()).toInt() : 0,
         imprimirCodigoQr = snapshot['imprimirCodigoQr'] ?? 1,
         piepagina1 = snapshot['piepagina1'] ?? '',
         piepagina2 = snapshot['piepagina2'] ?? '',

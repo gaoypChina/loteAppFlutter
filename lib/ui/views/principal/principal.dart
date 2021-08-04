@@ -245,6 +245,7 @@ Future<bool> _requestPermisionChannel() async {
       return;
     }
 
+
     _guardarLocal();
     return;
 
@@ -277,6 +278,11 @@ Future<bool> _requestPermisionChannel() async {
 
   _guardarLocal() async {
     try {
+      if(_connectionNotify.value == false){
+        Utils.showAlertDialog(context: context, title: "Sin conexión", content: 'No tiene conexión a internet');
+        return;
+      }
+
       setState(() => _cargando = true);
       var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       setState(() => _cargando = false);
@@ -1729,11 +1735,8 @@ AppBar _appBar(bool screenHeightIsSmall){
                     children: <Widget>[
                       Container(
                         constraints: BoxConstraints(maxHeight: (boxConstraints.maxHeight > 300) ? boxConstraints.maxHeight : 500),
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: _connectionNotify,
-                          builder: (context, value, __) {
-                            return AbsorbPointer(
-                              absorbing: _cargando || !value,
+                        child: AbsorbPointer(
+                              absorbing: _cargando,
                               child: Column(
                                 children: <Widget>[
                                   
@@ -2183,7 +2186,22 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                 _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
                                                 _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
                                                 _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(
+                                                  ValueListenableBuilder(
+                                                    valueListenable: _connectionNotify, 
+                                                    builder: (context, value, __){
+                                                      if(value)
+                                                        return Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),);
+                                                      else
+                                                        return Icon(Icons.cloud_off, size: 20, color: Theme.of(context).primaryColor);
+                                                    }
+                                                  ),
+                                                  Utils.fromHex("#FFEDEBEB"), 
+                                                  constraints.maxHeight , 
+                                                  4, 
+                                                  5,
+                                                  value: '-'
+                                                ),
                                               ],
                                             ),
                                             Row(
@@ -2326,9 +2344,8 @@ AppBar _appBar(bool screenHeightIsSmall){
                                   )
                                 ],
                               ),
-                            );
-                          }
-                        ),
+                            )
+                          ,
                       ),
                     ],
                   );
@@ -3134,7 +3151,7 @@ void _getTime() {
 
   
 
-  SizedBox _buildButton(Widget text_or_icon, var color, double height, int countWidth, int countHeight){
+  SizedBox _buildButton(Widget text_or_icon, var color, double height, int countWidth, int countHeight, {dynamic value}){
     return SizedBox(
         width: MediaQuery.of(context).size.width / countWidth,
         height: height / countHeight,
@@ -3145,10 +3162,10 @@ void _getTime() {
           onPressed: (){
             if(text_or_icon is Text){
               print('es tipo: ${text_or_icon.data}');
-              _escribir(text_or_icon.data);
+              _escribir(value != null ? value : text_or_icon.data);
             }else{
               print('Nooo es tipo');
-              _escribir('backspace');
+              _escribir(value != null ? value : 'backspace');
             }
           },
           child: Center(child: text_or_icon),

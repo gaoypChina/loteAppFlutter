@@ -77,7 +77,7 @@ class  Utils {
     }
   }
 
-  static toDouble(String caracter, {bool returnNullIfNotDouble = false}){
+  static double toDouble(String caracter, {bool returnNullIfNotDouble = false}){
     try {
        return double.parse(caracter.replaceAll(",", ''));
     } catch (e) {
