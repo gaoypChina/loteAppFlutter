@@ -1553,12 +1553,35 @@ AppBar _appBar(bool screenHeightIsSmall){
         ? 
         Padding(
           padding: EdgeInsets.only(top: 5), 
-          child: Stack(
-            children: [
-              Text('Principal', style: TextStyle(fontSize: 17)),
-              Positioned(child: Icon(Icons.language, color: Colors.green))
-            ],
-          )
+          child: Row(
+          children: [
+            Text('Principal', style: TextStyle(fontSize: 17)),
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _connectionNotify,
+                builder: (context, value, __) {
+                  if(value)
+                    return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
+                      Banca banca = await getBanca();
+                      print("PrincipalView cloud_done banca: ${banca.id}");
+                      var ticket = await Db.getNextTicket(banca.id);
+                      print("PrincipalView cloud_done ticket: ${ticket}");
+                      
+                    },);
+
+                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+                }
+              ),
+            )
+          ],
+        ) ,
+          // Stack(
+          //   children: [
+          //     Text('Principal', style: TextStyle(fontSize: 17)),
+          //     Positioned(child: Icon(Icons.language, color: Colors.green))
+          //   ],
+          // )
         ) 
         : 
         // Text('Principal'),
