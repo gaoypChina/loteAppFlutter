@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
@@ -990,7 +991,9 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     //${DateFormat('EEEE').format(fecha)} 
     // map[map.length] = _getMapNuevo(text:"${mapVenta["created_at"]}\n", cmd: CMD.p);
     map[map.length] = _getMapNuevo(text:"Ticket:" + Utils.toSecuencia(sale.banca.codigo, sale.idTicket) + "\n", cmd: CMD.p);
-    map[map.length] = _getMapNuevo(text:"Fecha: ${sale.created_at.toString()}\n", cmd: CMD.p);
+    // map[map.length] = _getMapNuevo(text:"Fecha: ${sale.created_at.toString()}\n", cmd: CMD.p);
+    // map[map.length] = _getMapNuevo(text:"Fecha: ${DateFormat('EEE, MMM d yyy hh:mm a', 'es').format(sale.created_at)}\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"FECHA: ${DateFormat('EEE', 'Es').format(sale.created_at).toUpperCase()} ${DateFormat('d/MM/yyyy').add_jm().format(sale.created_at)}\n", cmd: CMD.p);
     if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
       map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
     
@@ -1199,7 +1202,8 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
     //${DateFormat('EEEE').format(fecha)} 
     // map[map.length] = _getMapNuevo(text:"${mapVenta["created_at"]}\n", cmd: CMD.p);
     map[map.length] = _getMapNuevo(text:"TICKET:" + Utils.toSecuencia(sale.banca.codigo, sale.idTicket) + "\n", cmd: CMD.p);
-    map[map.length] = _getMapNuevo(text:"FECHA: ${sale.created_at.toString()}\n", cmd: CMD.p);
+    // map[map.length] = _getMapNuevo(text:"FECHA: ${DateFormat('EEE, MMM d yyy hh:mm a', 'es').format(sale.created_at)}\n", cmd: CMD.p);
+    map[map.length] = _getMapNuevo(text:"FECHA: ${DateFormat('EEE', 'Es').format(sale.created_at).toUpperCase()} ${DateFormat('d/MM/yyyy').add_jm().format(sale.created_at)}\n", cmd: CMD.p);
     // if(typeTicket == TYPE_ORIGINAL || typeTicket == TYPE_PAGADO)
     //   map[map.length] = _getMapNuevo(text:"${mapVenta["codigoBarra"]}\n", cmd: CMD.h1);
     

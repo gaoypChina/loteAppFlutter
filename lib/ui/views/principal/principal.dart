@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
@@ -501,6 +502,7 @@ Future<bool> _requestPermisionChannel() async {
 
   @override
   void initState() {
+    initializeDateFormatting();
     SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitDown,
         DeviceOrientation.portraitUp,
@@ -3226,7 +3228,7 @@ void _getTime() {
           setState(() => _jugadaOmonto = !_jugadaOmonto);
         }
         else{
-          addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+          await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
         }
       }
       return;
@@ -3293,7 +3295,7 @@ void _getTime() {
     }
   }
 
-  _combinarJugadas(){
+  _combinarJugadas() async {
     List<String> combinacionesJugadas = Utils.generarCombinaciones(_txtJugada.text.substring(0, _txtJugada.text.length - 1));
     // print("Combinaciones retornadas: ${combinacionesJugadas.length}");
     double montoJugada = Utils.toDouble(_txtMonto.text);
@@ -3307,7 +3309,7 @@ void _getTime() {
       //   }
       // }
 
-      addJugada(jugada: Utils.ordenarMenorAMayor((combinacionesJugadas[i])), montoDisponible: montoJugada.toString(), monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+      await addJugada(jugada: Utils.ordenarMenorAMayor((combinacionesJugadas[i])), montoDisponible: montoJugada.toString(), monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
       // print("Combinaciones retornadas for despues: ${combinacionesJugadas[i]}");
     
     }
@@ -3548,7 +3550,7 @@ void _getTime() {
     );
   }
 
-  _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto){
+  _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto) async {
     var listaJugadasLigadas = List<String>();
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
@@ -3588,12 +3590,12 @@ void _getTime() {
 
     //Agregamos las jugadas ligadas
     for(int i=0; i < listaJugadasLigadas.length; i++){
-      addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
+      await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
     }
 
   }
 
-  _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto){
+  _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto) async {
     List<String> listaJugadasLigadas = [];
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
@@ -3638,7 +3640,7 @@ void _getTime() {
 
     //Agregamos las jugadas ligadas
     for(int i=0; i < listaJugadasLigadas.length; i++){
-      addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
+      await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
     }
 
   }
