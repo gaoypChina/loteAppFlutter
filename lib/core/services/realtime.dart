@@ -51,7 +51,7 @@ class Realtime{
     static Future<Null> _isWorkingBlocksgenerals = null;
 
 
-    static addStocks(var parsed, bool eliminar) async {
+    static addStocks(List<Stock> stocks, bool eliminar) async {
       // if (_isWorkingStock != null) {
       //   await _isWorkingStock; // wait for future complete
       //   return addStocks(parsed);
@@ -61,9 +61,8 @@ class Realtime{
       var completer = new Completer<Null>();
       _isWorkingStock = completer.future;
 
-      if(parsed == null)
+      if(stocks == null)
         return;
-      List<Stock> stocks = parsed.map<Stock>((json) => Stock.fromMap(json)).toList();
       if(stocks.length == 0)
         return;
         
@@ -92,10 +91,9 @@ class Realtime{
         return true;
     }
 
-    static addBlocksgeneralsDatosNuevos(var parsed, bool eliminar) async {
-      if(parsed == null)
+    static addBlocksgeneralsDatosNuevos(var blocksgenerals, bool eliminar) async {
+      if(blocksgenerals == null)
         return;
-      List<Blocksgenerals> blocksgenerals = parsed.map<Blocksgenerals>((json) => Blocksgenerals.fromMap(json)).toList();
       if(blocksgenerals.length == 0)
         return;
         

@@ -14,8 +14,9 @@ class Blocksplays{
    int ignorarDemasBloqueos;
    int status;
    int idMoneda;
+   int descontarDelBloqueoGeneral;
 
-  Blocksplays(this.id, this.idBanca, this.idLoteria, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.fechaDesde, this.fechaHasta, this.ignorarDemasBloqueos, this.status, this.idMoneda);
+  Blocksplays(this.id, this.idBanca, this.idLoteria, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.fechaDesde, this.fechaHasta, this.ignorarDemasBloqueos, this.status, this.idMoneda, this.descontarDelBloqueoGeneral);
 
 Blocksplays.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,
@@ -30,7 +31,8 @@ Blocksplays.fromMap(Map snapshot) :
         created_at = DateTime.parse(snapshot['created_at']) ?? null,
         ignorarDemasBloqueos = snapshot['ignorarDemasBloqueos'] ?? 0,
         status = snapshot['status'] ?? 0,
-        idMoneda = snapshot['idMoneda'] ?? 0
+        idMoneda = snapshot['idMoneda'] ?? 0,
+        descontarDelBloqueoGeneral =  snapshot['descontarDelBloqueoGeneral'] != null ? snapshot['descontarDelBloqueoGeneral'] is bool ? snapshot['descontarDelBloqueoGeneral'] == true ? 1 : 0 : snapshot['descontarDelBloqueoGeneral'] : 0
         ;
 
   toJson() {
@@ -48,11 +50,12 @@ Blocksplays.fromMap(Map snapshot) :
       "ignorarDemasBloqueos": ignorarDemasBloqueos,
       "status": status,
       "idMoneda": idMoneda,
+      "descontarDelBloqueoGeneral": descontarDelBloqueoGeneral,
     };
   }
 
   static List blocksplaysToJson(List<Blocksplays> lista) {
-    List jsonList = List();
+    List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())
     ).toList();

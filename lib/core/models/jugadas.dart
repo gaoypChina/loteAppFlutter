@@ -1,4 +1,5 @@
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/stocks.dart';
 
 import 'loterias.dart';
 
@@ -24,6 +25,7 @@ class Jugada {
   int cantidadVecesQueHaSalido;
   Loteria loteria;
   Loteria loteriaSuperPale;
+  Stock stock;
 
   Jugada({this.id, 
         this.idVenta, 
@@ -45,7 +47,8 @@ class Jugada {
         this.cantidadVecesQueSeHaJugado,
         this.cantidadVecesQueHaSalido,
         this.loteria,
-        this.loteriaSuperPale
+        this.loteriaSuperPale,
+        this.stock
       });
 
   Jugada.fromMap(Map snapshot) :
