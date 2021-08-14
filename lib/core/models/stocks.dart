@@ -16,7 +16,7 @@ class Stock{
    int idMoneda;
    int descontarDelBloqueoGeneral;
 
-  Stock({this.id, this.idBanca, this.idLoteria, this.idLoteriaSuperpale, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.esBloqueoJugada, this.esGeneral, this.ignorarDemasBloqueos, this.idMoneda, this.descontarDelBloqueoGeneral});
+  Stock({this.id, this.idBanca, this.idLoteria, this.idLoteriaSuperpale, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.esBloqueoJugada = 0, this.esGeneral, this.ignorarDemasBloqueos, this.idMoneda, this.descontarDelBloqueoGeneral});
 
 Stock.fromMap(Map snapshot) :
         id = snapshot['id'] ?? 0,

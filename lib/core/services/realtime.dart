@@ -120,15 +120,16 @@ class Realtime{
         return true;
     }
 
-     static addBlockslotteriesDatosNuevos(var parsed, bool eliminar) async {
-      if(parsed == null)
+     static addBlockslotteriesDatosNuevos(List<Blockslotteries> blockslotteries, bool eliminar) async {
+      if(blockslotteries == null)
         return;
-      List<Blockslotteries> blockslotteries = parsed.map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList();
+      print("PrincipalClass addBlockslotteriesDatosNuevos: $blockslotteries");
       if(blockslotteries.length == 0)
         return;
 
         blockslotteries.forEach((s) async {
           List<Map<String, dynamic>> query = await Db.database.query('Blockslotteries' , where: '"id" = ?', whereArgs: [s.id]);
+          print("PrincipalClass addBlockslotteriesDatosNuevos: ${s.toJson()}");
           if(query.isEmpty == false){
             if(eliminar)
               await Db.delete('Blockslotteries', s.id);
@@ -145,10 +146,9 @@ class Realtime{
     }
 
 
-    static addBlocksplaysDatosNuevos(var parsed, bool eliminar) async {
-      if(parsed == null)
+    static addBlocksplaysDatosNuevos(List<Blocksplays> blocksplays, bool eliminar) async {
+      if(blocksplays == null)
         return;
-      List<Blocksplays> blocksplays = parsed.map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList();
       if(blocksplays.length == 0)
         return;
         
@@ -170,10 +170,9 @@ class Realtime{
     }
 
 
-    static addBlocksplaysgeneralsDatosNuevos(var parsed, bool eliminar) async {
-      if(parsed == null)
+    static addBlocksplaysgeneralsDatosNuevos(List<Blocksplaysgenerals> blocksplaysgenerals, bool eliminar) async {
+      if(blocksplaysgenerals == null)
         return;
-      List<Blocksplaysgenerals> blocksplaysgenerals = parsed.map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList();
       if(blocksplaysgenerals.length == 0)
         return;
         blocksplaysgenerals.forEach((s) async {

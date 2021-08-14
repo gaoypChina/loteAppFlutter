@@ -532,7 +532,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Container(
-                width: 52,
+                width: 62,
                 // color: Colors.grey[200],
                 child: StreamBuilder<List<Moneda>>(
                   stream: _streamControllerMoneda.stream,

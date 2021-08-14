@@ -31,6 +31,8 @@ Blocksplaysgenerals.fromMap(Map snapshot) :
         idMoneda = snapshot['idMoneda'] ?? 0
         ;
 
+  static List<Blocksplaysgenerals> fromMapList(var parsed) => parsed != null ? parsed.map<Blocksplaysgenerals>((json) => Blocksplaysgenerals.fromMap(json)).toList() : [];
+
   toJson() {
     return {
       "id": id,

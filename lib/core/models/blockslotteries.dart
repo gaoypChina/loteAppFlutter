@@ -25,6 +25,9 @@ Blockslotteries.fromMap(Map snapshot) :
         descontarDelBloqueoGeneral =  snapshot['descontarDelBloqueoGeneral'] != null ? snapshot['descontarDelBloqueoGeneral'] is bool ? snapshot['descontarDelBloqueoGeneral'] == true ? 1 : 0 : snapshot['descontarDelBloqueoGeneral'] : 0
         ;
 
+  static List<Blockslotteries> fromMapList(var parsed) => parsed != null ? parsed.map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList() : [];
+
+  
   toJson() {
     return {
       "id": id,
