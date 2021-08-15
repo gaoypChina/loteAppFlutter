@@ -411,7 +411,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
     _qrScreen(isSmallOrMedium){
       if(isSmallOrMedium)
-        return MySwitch(leading: Icon(Icons.check_box), medium: 1, title: "Mostrar codigo qr", value: _status, onChanged: _qrChanged);
+        return MySwitch(leading: Icon(Icons.check_box), medium: 1, title: "Mostrar codigo qr", value: _imprimirCodigoQr, onChanged: _qrChanged);
       
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
@@ -424,6 +424,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
 
     _qrChanged(data){
+      print("BancasAddScreen _qrChanged: $data");
       setState(() => _imprimirCodigoQr = data);
     }
 

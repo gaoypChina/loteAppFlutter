@@ -9,6 +9,7 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
 import 'package:loterias/core/classes/ticketimage.dart';
+import 'package:loterias/core/classes/ticketimagev2.dart';
 import 'package:loterias/core/models/BlocksgeneralsJugada.dart';
 import 'package:loterias/core/models/BlockslotteriesJugada.dart';
 import 'package:loterias/core/models/blocksplaysgeneralsjugadas.dart';
@@ -33,7 +34,7 @@ import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
-
+import 'package:screenshot/screenshot.dart';
 
 
 
@@ -300,9 +301,12 @@ Future<bool> _requestPermisionChannel() async {
       if(_ckbPrint)
         BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
       else{
-        var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
-        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
+        // var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
+        // ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
         // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
+        // ScreenshotController screenshotController = ScreenshotController();
+        var ticketImage = await TicketImageV2.create(listaDatos[0], listaDatos[1]);
+        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
       }
     } on Exception catch (e) {
       setState(() => _cargando = false);

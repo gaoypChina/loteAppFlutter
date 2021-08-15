@@ -58,6 +58,7 @@ dependencies:
   pdf: ^3.4.2
   printing: ^5.4.1
   qr_flutter: ^4.0.0
+  screenshot: ^1.2.3
   flutter:
     sdk: flutter
 
