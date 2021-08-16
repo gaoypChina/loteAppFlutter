@@ -26,6 +26,7 @@ class Jugada {
   Loteria loteria;
   Loteria loteriaSuperPale;
   Stock stock;
+  bool stockEliminado;
 
   Jugada({this.id, 
         this.idVenta, 
@@ -48,7 +49,8 @@ class Jugada {
         this.cantidadVecesQueHaSalido,
         this.loteria,
         this.loteriaSuperPale,
-        this.stock
+        this.stock,
+        this.stockEliminado = false
       });
 
   Jugada.fromMap(Map snapshot) :

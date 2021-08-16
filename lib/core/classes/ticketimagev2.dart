@@ -27,18 +27,21 @@ class TicketImageV2 {
           padding: EdgeInsets.only(left: 20, right: 20, top: 10),
           decoration: BoxDecoration(
             border: Border.all(width: 3, color: Utils.fromHex("#1170ec")),
-            color: Colors.blue
+            color: Colors.white
           ),
           child: Padding(
             padding: EdgeInsets.only(bottom: 260),
-            child: Column(
-              children: [
-                header,
-                _ticketContent(sale, listSalesdetails),
-                _ticketFooter(sale, listSalesdetails),
-                // _receiptNumberAndDate(),
-                // _receiptContent()
-              ]
+            child: DefaultTextStyle(
+              style: TextStyle(color: Colors.black),
+              child: Column(
+                children: [
+                  header,
+                  _ticketContent(sale, listSalesdetails),
+                  _ticketFooter(sale, listSalesdetails),
+                  // _receiptNumberAndDate(),
+                  // _receiptContent()
+                ]
+              ),
             )
           )
         );

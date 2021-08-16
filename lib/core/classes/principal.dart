@@ -956,13 +956,14 @@ class Principal{
    );
  }
 
- static updateMontoStockFromJugadas(StockJugada stockJugada){
+ static List<Jugada> updateMontoStockFromJugadas(StockJugada stockJugada){
    if(stockJugada.jugadas == null)
-    return;
+    return [];
 
    if(stockJugada.jugadas.length == 0)
-    return;
+    return [];
   
+   List<Jugada> jugadasActualizadasARetornar = [];
    List<Jugada> loteriasFromJugadas = Utils.removeDuplicateLoteriasFromList(List<Jugada>.from(stockJugada.jugadas));
    List<Stock> loteriasFromStock = [];
    for (var loteriaJugada in loteriasFromJugadas) {
@@ -972,7 +973,7 @@ class Principal{
    }
 
    if(loteriasFromStock.length == 0)
-    return;
+    return [];
 
    for (var stock in loteriasFromStock) {
      if(stock.idSorteo != 4){
@@ -981,30 +982,33 @@ class Principal{
         print("PrincipalClasses esGeneral == 1 && ignorarDemasBloqueos == 1: ${stock.toJson()}");
         int idx = stockJugada.jugadas.indexWhere((element) => element.loteria.id == stock.idLoteria && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
+          continue;
 
           stockJugada.jugadas[idx].stock.monto = stock.monto;
           stockJugada.jugadas[idx].stock.esGeneral = 1;
           stockJugada.jugadas[idx].stock.ignorarDemasBloqueos = 1;
+          jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
       }
       else if(stock.esGeneral == 1){
         print("PrincipalClasses esGeneral == 1: ${stock.toJson()}");
         int idx = stockJugada.jugadas.indexWhere((element) => element.stock.esGeneral == 1 && element.stock.ignorarDemasBloqueos == 0 && element.loteria.id == stock.idLoteria && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
+          continue;
 
 
           stockJugada.jugadas[idx].stock.monto = stock.monto;
+          jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
         print("PrincipalClasses esGeneral == 1 index: ${stockJugada.jugadas[idx].stock.monto}");
       }
       else{
         print("PrincipalClasses esGeneral == 0: ${stock.toJson()}");
         int idx = stockJugada.jugadas.indexWhere((element) => element.stock.idBanca == stock.idBanca && element.stock.ignorarDemasBloqueos != 1 && element.loteria.id == stock.idLoteria && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
+          continue;
 
           stockJugada.jugadas[idx].stock.monto = stock.monto;
           stockJugada.jugadas[idx].stock.esGeneral = 0;
+          jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
       }
      }
      else{
@@ -1012,43 +1016,48 @@ class Principal{
           print("PrincipalClasses esGeneral == 1 && ignorarDemasBloqueos == 1: ${stock.toJson()}");
           int idx = stockJugada.jugadas.indexWhere((element) => element.loteria.id == stock.idLoteria && element.loteriaSuperPale.id == stock.idLoteriaSuperpale && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
           if(idx == -1)
-            return;
+            continue;
 
             stockJugada.jugadas[idx].stock.monto = stock.monto;
             stockJugada.jugadas[idx].stock.esGeneral = 1;
             stockJugada.jugadas[idx].stock.ignorarDemasBloqueos = 1;
+            jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
         }
         else if(stock.esGeneral == 1){
           print("PrincipalClasses esGeneral == 1: ${stock.toJson()}");
           int idx = stockJugada.jugadas.indexWhere((element) => element.stock.esGeneral == 1 && element.stock.ignorarDemasBloqueos == 0 && element.loteria.id == stock.idLoteria && element.loteriaSuperPale.id == stock.idLoteriaSuperpale && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
           if(idx == -1)
-            return;
+            continue;
 
 
             stockJugada.jugadas[idx].stock.monto = stock.monto;
+            jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
           print("PrincipalClasses esGeneral == 1 index: ${stockJugada.jugadas[idx].stock.monto}");
         }
         else{
           print("PrincipalClasses esGeneral == 0: ${stock.toJson()}");
           int idx = stockJugada.jugadas.indexWhere((element) => element.stock.idBanca == stock.idBanca && element.stock.ignorarDemasBloqueos != 1 && element.loteria.id == stock.idLoteria && element.loteriaSuperPale.id == stock.idLoteriaSuperpale && element.stock.jugada == stock.jugada && element.stock.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda);
           if(idx == -1)
-            return;
+            continue;
 
             stockJugada.jugadas[idx].stock.monto = stock.monto;
             stockJugada.jugadas[idx].stock.esGeneral = 0;
+            jugadasActualizadasARetornar.add(stockJugada.jugadas[idx]);
         }
      }
    }
+   return jugadasActualizadasARetornar;
  }
 
- static updateMontoBlocksgeneralsFromJugadas(BlocksgeneralsJugada blocksgeneralsJugada){
+ static List<Jugada> updateMontoBlocksgeneralsFromJugadas(BlocksgeneralsJugada blocksgeneralsJugada){
    if(blocksgeneralsJugada.jugadas == null)
-    return;
+    return [];
 
    if(blocksgeneralsJugada.jugadas.length == 0)
-    return;
+    return [];
   
-  int idDia = Utils.getIdDia();
+   List<Jugada> jugadasActualizadasARetornar = [];
+   int idDia = Utils.getIdDia();
    List<Jugada> loteriasFromJugadas = Utils.removeDuplicateLoteriasFromList(List<Jugada>.from(blocksgeneralsJugada.jugadas));
    List<Blocksgenerals> loteriasFromBlocksgenerals = [];
    for (var loteriaJugada in loteriasFromJugadas) {
@@ -1058,27 +1067,31 @@ class Principal{
    }
 
    if(loteriasFromBlocksgenerals.length == 0)
-    return;
+    return [];
 
    for (var stock in loteriasFromBlocksgenerals) {
      List<Jugada> jugadas = blocksgeneralsJugada.jugadas.where((element) => element.stock.esGeneral == 1 && element.stock.ignorarDemasBloqueos != 1 && element.stock.esBloqueoJugada != 1 && element.loteria.id == stock.idLoteria && element.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda).toList();
      for (var jugada in jugadas) {
-       if(stock.monto != jugada.stock.monto){
+       if(stock.monto != jugada.stock.monto || blocksgeneralsJugada.eliminar){
          print("PrincipalClass updateMontoBlocksgeneralsFromJugadas: ${stock.monto}");
         jugada.stock.monto = stock.monto;
+        jugada.stockEliminado = blocksgeneralsJugada.eliminar;
+        jugadasActualizadasARetornar.add(jugada);
       }
      }
    }
+   return jugadasActualizadasARetornar;
  }
 
- static updateMontoBlockslotteriesFromJugadas(BlockslotteriesJugada blockslotteriesJugada){
+ static List<Jugada> updateMontoBlockslotteriesFromJugadas(BlockslotteriesJugada blockslotteriesJugada){
    if(blockslotteriesJugada.jugadas == null)
-    return;
+    return [];
 
    if(blockslotteriesJugada.jugadas.length == 0)
-    return;
+    return [];
   
-  int idDia = Utils.getIdDia();
+   List<Jugada> jugadasActualizadasARetornar = [];
+   int idDia = Utils.getIdDia();
    List<Jugada> loteriasFromJugadas = Utils.removeDuplicateLoteriasFromList(List<Jugada>.from(blockslotteriesJugada.jugadas));
    List<Blockslotteries> loteriasFromBlockslotteries = [];
    for (var loteriaJugada in loteriasFromJugadas) {
@@ -1088,28 +1101,33 @@ class Principal{
    }
 
    if(loteriasFromBlockslotteries.length == 0)
-    return;
+    return [];
 
    for (var stock in loteriasFromBlockslotteries) {
          print("PrincipalClass updateMontoBlockslotteriesFromJugadas before findJugadas: ${stock.monto}");
      List<Jugada> jugadas = blockslotteriesJugada.jugadas.where((element) => element.stock.idBanca == stock.idBanca && element.stock.esBloqueoJugada != 1 && element.stock.ignorarDemasBloqueos != 1 && element.loteria.id == stock.idLoteria && element.idSorteo == stock.idSorteo && element.stock.idMoneda == stock.idMoneda).toList();
      for (var jugada in jugadas) {
-       if(stock.monto != jugada.stock.monto){
+       if(stock.monto != jugada.stock.monto || blockslotteriesJugada.eliminar){
          print("PrincipalClass updateMontoBlockslotteriesFromJugadas: ${stock.monto}");
         jugada.stock.monto = stock.monto;
         jugada.stock.esGeneral= 0;
+        jugada.stockEliminado = blockslotteriesJugada.eliminar;
+        jugadasActualizadasARetornar.add(jugada);
       }
      }
    }
+
+   return jugadasActualizadasARetornar;
  }
 
- static updateMontoBlocksplaysgeneralsFromJugadas(BlocksplaysgeneralsJugada blocksplaysgeneralsJugada){
+ static List<Jugada> updateMontoBlocksplaysgeneralsFromJugadas(BlocksplaysgeneralsJugada blocksplaysgeneralsJugada){
    if(blocksplaysgeneralsJugada.jugadas == null)
-    return;
+    return [];
 
    if(blocksplaysgeneralsJugada.jugadas.length == 0)
-    return;
+    return [];
   
+   List<Jugada> jugadasActualizadasARetornar = [];
    List<Jugada> loteriasFromJugadas = Utils.removeDuplicateLoteriasFromList(List<Jugada>.from(blocksplaysgeneralsJugada.jugadas));
    List<Blocksplaysgenerals> loteriasFromBlocksplaysgenerals = [];
    for (var loteriaJugada in loteriasFromJugadas) {
@@ -1119,41 +1137,47 @@ class Principal{
    }
 
    if(loteriasFromBlocksplaysgenerals.length == 0)
-    return;
+    return [];
 
    for (var stock in loteriasFromBlocksplaysgenerals) {
      if(stock.ignorarDemasBloqueos == 0){
         int idx = blocksplaysgeneralsJugada.jugadas.indexWhere((element) => element.stock.esGeneral == 1 && element.stock.ignorarDemasBloqueos == 0 && element.loteria.id == stock.idLoteria && element.idSorteo == stock.idSorteo && element.stock.jugada == stock.jugada && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
-        if(stock.monto != blocksplaysgeneralsJugada.jugadas[idx].stock.monto){
+          continue;
+        if(stock.monto != blocksplaysgeneralsJugada.jugadas[idx].stock.monto || blocksplaysgeneralsJugada.eliminar){
           print("PrincipalClass updateMontoBlocksplaysgeneralsFromJugadas: ${stock.monto}");
           blocksplaysgeneralsJugada.jugadas[idx].stock.monto = stock.monto; 
           blocksplaysgeneralsJugada.jugadas[idx].stock.esBloqueoJugada = 1; 
+          blocksplaysgeneralsJugada.jugadas[idx].stockEliminado = blocksplaysgeneralsJugada.eliminar;
+          jugadasActualizadasARetornar.add(blocksplaysgeneralsJugada.jugadas[idx]);
         }
      }
      else if(stock.ignorarDemasBloqueos == 1){
         int idx = blocksplaysgeneralsJugada.jugadas.indexWhere((element) => element.loteria.id == stock.idLoteria && element.idSorteo == stock.idSorteo && element.stock.jugada == stock.jugada && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
-        if(stock.monto != blocksplaysgeneralsJugada.jugadas[idx].stock.monto){
+          continue;
+        if(stock.monto != blocksplaysgeneralsJugada.jugadas[idx].stock.monto || blocksplaysgeneralsJugada.eliminar){
           print("PrincipalClass updateMontoBlocksplaysgeneralsFromJugadas: ${stock.monto}");
           blocksplaysgeneralsJugada.jugadas[idx].stock.monto = stock.monto;
           blocksplaysgeneralsJugada.jugadas[idx].stock.esGeneral = 1; 
           blocksplaysgeneralsJugada.jugadas[idx].stock.esBloqueoJugada = 1; 
           blocksplaysgeneralsJugada.jugadas[idx].stock.ignorarDemasBloqueos = 1; 
+          blocksplaysgeneralsJugada.jugadas[idx].stockEliminado = blocksplaysgeneralsJugada.eliminar;
+          jugadasActualizadasARetornar.add(blocksplaysgeneralsJugada.jugadas[idx]);
         }
      }
    }
+   return jugadasActualizadasARetornar;
  }
 
- static updateMontoBlocksplaysFromJugadas(BlocksplaysJugada blocksplaysJugada){
+ static List<Jugada> updateMontoBlocksplaysFromJugadas(BlocksplaysJugada blocksplaysJugada){
    if(blocksplaysJugada.jugadas == null)
-    return;
+    return [];
 
    if(blocksplaysJugada.jugadas.length == 0)
-    return;
+    return [];
   
+   List<Jugada> jugadasActualizadasARetornar = [];
    List<Jugada> loteriasFromJugadas = Utils.removeDuplicateLoteriasFromList(List<Jugada>.from(blocksplaysJugada.jugadas));
    List<Blocksplays> loteriasFromBlocksplays = [];
    for (var loteriaJugada in loteriasFromJugadas) {
@@ -1163,19 +1187,22 @@ class Principal{
    }
 
    if(loteriasFromBlocksplays.length == 0)
-    return;
+    return [];
 
    for (var stock in loteriasFromBlocksplays) {
         int idx = blocksplaysJugada.jugadas.indexWhere((element) => element.stock.idBanca == stock.idBanca && element.stock.ignorarDemasBloqueos != 1 && element.loteria.id == stock.idLoteria && element.idSorteo == stock.idSorteo && element.stock.jugada == stock.jugada && element.stock.idMoneda == stock.idMoneda);
         if(idx == -1)
-          return;
-        if(stock.monto != blocksplaysJugada.jugadas[idx].stock.monto){
+          continue;
+        if(stock.monto != blocksplaysJugada.jugadas[idx].stock.monto || blocksplaysJugada.eliminar){
           print("PrincipalClass updateMontoBlocksplaysFromJugadas: ${stock.monto}");
           blocksplaysJugada.jugadas[idx].stock.monto = stock.monto;
           blocksplaysJugada.jugadas[idx].stock.esGeneral = 0; 
           blocksplaysJugada.jugadas[idx].stock.esBloqueoJugada = 1; 
+          blocksplaysJugada.jugadas[idx].stockEliminado = blocksplaysJugada.eliminar;
+          jugadasActualizadasARetornar.add(blocksplaysJugada.jugadas[idx]);
         }
    }
+   return jugadasActualizadasARetornar;
  }
 
 

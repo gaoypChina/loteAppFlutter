@@ -826,6 +826,64 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
+  Future updateMontoStockFromJugadas(var parsed) async {
+    var stocks = await compute(Stock.fromMapList, parsed['stocks']);
+    var jugadas = await compute(Principal.updateMontoStockFromJugadas, StockJugada(stocks: stocks, jugadas: listaJugadas));
+    for (var jugada in jugadas) {
+      var j = listaJugadas.firstWhere((element) => element.loteria.id == jugada.loteria.id && element.idSorteo == jugada.idSorteo && element.jugada == jugada.jugada);
+      if(j.idSorteo != 4){
+        j.stock = jugada.stock;
+        j.stockEliminado = jugada.stockEliminado;
+      }else{
+        if(j.loteriaSuperPale.id == jugada.loteriaSuperPale.id){
+          j.stock = jugada.stock;
+          j.stockEliminado = jugada.stockEliminado;
+        }
+      }
+    }
+  }
+
+  Future updateMontoBlocksgeneralsFromJugadas(var parsed) async {
+    var blocksgenerals = await compute(Blocksgenerals.fromMapList, parsed['blocksgenerals']);
+    var jugadas = await compute(Principal.updateMontoBlocksgeneralsFromJugadas, BlocksgeneralsJugada(blocksgenerals: blocksgenerals, jugadas: listaJugadas));
+    for (var jugada in jugadas) {
+      var j = listaJugadas.firstWhere((element) => element.loteria.id == jugada.loteria.id && element.idSorteo == jugada.idSorteo && element.jugada == jugada.jugada);
+      j.stock = jugada.stock;
+      j.stockEliminado = jugada.stockEliminado;
+    }
+  }
+
+  Future updateMontoBlockslotteriesFromJugadas(var parsed) async {
+    var blockslotteries = await compute(Blockslotteries.fromMapList, parsed['blockslotteries']);
+    var jugadas = await compute(Principal.updateMontoBlockslotteriesFromJugadas, BlockslotteriesJugada(blockslotteries: blockslotteries, jugadas: listaJugadas));
+    for (var jugada in jugadas) {
+      var j = listaJugadas.firstWhere((element) => element.loteria.id == jugada.loteria.id && element.idSorteo == jugada.idSorteo && element.jugada == jugada.jugada);
+      j.stock = jugada.stock;
+      j.stockEliminado = jugada.stockEliminado;
+    }
+  }
+
+  Future updateMontoBlocksplaysFromJugadas(var parsed) async {
+    var blocksplays = await compute(Blocksplays.fromMapList, parsed['blocksplays']);
+
+    var jugadas = await compute(Principal.updateMontoBlocksplaysFromJugadas, BlocksplaysJugada(blocksplays: blocksplays, jugadas: listaJugadas));
+    for (var jugada in jugadas) {
+      var j = listaJugadas.firstWhere((element) => element.loteria.id == jugada.loteria.id && element.idSorteo == jugada.idSorteo && element.jugada == jugada.jugada);
+      j.stock = jugada.stock;
+      j.stockEliminado = jugada.stockEliminado;
+    }
+  }
+
+  Future updateMontoBlocksplaysgeneralsFromJugadas(var parsed) async {
+    var blocksplaysgenerals = await compute(Blocksplaysgenerals.fromMapList, parsed['blocksplaysgenerals']);
+    var jugadas = await compute(Principal.updateMontoBlocksplaysgeneralsFromJugadas, BlocksplaysgeneralsJugada(blocksplaysgenerals: blocksplaysgenerals, jugadas: listaJugadas));
+    for (var jugada in jugadas) {
+      var j = listaJugadas.firstWhere((element) => element.loteria.id == jugada.loteria.id && element.idSorteo == jugada.idSorteo && element.jugada == jugada.jugada);
+      j.stock = jugada.stock;
+      j.stockEliminado = jugada.stockEliminado;
+    }
+  }
+
   initSocket() async {
     // var builder = new JWTBuilder();
     // var token = builder
@@ -878,7 +936,7 @@ Future<bool> _requestPermisionChannel() async {
       // 'timeout': 1000,
       // 'reconnectionDelay': 1000,
       'extraHeaders': {'foo': 'bar'}, // optional
-      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}"
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}"
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
     });
 
@@ -888,11 +946,38 @@ Future<bool> _requestPermisionChannel() async {
       // socket.emit("message", ["Hello world!"]);
       _emitToGetNewIdTicket();
       _emitToGetVentasDelDia();
-      _connectionNotify.value = false;
-      await Realtime.sincronizarTodos(_scaffoldKey, await Db.idBanca());
+
+      // _connectionNotify.value = false;
+      // await Realtime.sincronizarTodos(_scaffoldKey, await Db.idBanca());
+      // print("PrincipalView initSocket after connect");
+      // _connectionNotify.value = true;
+      // await _getPermisos();
+
+      _socketContadorErrores = 0;
+    });
+    socket.on("sincronizarTodos", (data) async {
+      print("PrincipalView initSocket sincronizarTodos from server before: $data");
+      var parsed = await compute(Utils.parseDatosDynamic, data);
+      if(parsed["error"] == 1)
+        return;
+
+      _connectionNotify.value = true;
+      if(listaJugadas.length > 0){
+        await updateMontoBlocksgeneralsFromJugadas(data["datos"]);
+        await updateMontoBlocksplaysgeneralsFromJugadas(data["datos"]);
+        await updateMontoBlockslotteriesFromJugadas(data["datos"]);
+        await updateMontoBlocksplaysFromJugadas(data["datos"]);
+        await updateMontoStockFromJugadas(data["datos"]);
+      }
+      await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["datos"]);
       _connectionNotify.value = true;
       await _getPermisos();
-      _socketContadorErrores = 0;
+      print("PrincipalView initSocket sincronizarTodos from server after: $data");
+    });
+    socket.on("initLoteriasOrdenadasPorHoraCierre", (data) async {
+      print("PrincipalView initSocket initLoteriasOrdenadasPorHoraCierre from server after: $data");
+      var parsed = await compute(Utils.parseDatosDynamic, data);
+      quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed["datos"]);
     });
     // socket.onConnect((data) => print("PrincipalView initSocket onConnect: $data"));
 
@@ -939,28 +1024,28 @@ Future<bool> _requestPermisionChannel() async {
         var blocksgenerals = await compute(Blocksgenerals.fromMapList, parsed['blocksgenerals']);
         print("blocksgeneralsEvent: $parsed");
         // await compute(Principal.updateMontoBlocksgeneralsFromJugadas, BlocksgeneralsJugada(blocksgenerals: blocksgenerals, jugadas: listaJugadas));
-        Principal.updateMontoBlocksgeneralsFromJugadas(BlocksgeneralsJugada(blocksgenerals: blocksgenerals, jugadas: listaJugadas));
+        Principal.updateMontoBlocksgeneralsFromJugadas(BlocksgeneralsJugada(blocksgenerals: blocksgenerals, jugadas: listaJugadas, eliminar: (parsed['action'] == 'delete') ? true : false));
         await Realtime.addBlocksgeneralsDatosNuevos(blocksgenerals, (parsed['action'] == 'delete') ? true : false);
       });
       socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
         var parsed = data.cast<String, dynamic>();
         print("PrincipalViewo initSocket blockslotteries: $parsed");
         var blockslotteries = await compute(Blockslotteries.fromMapList, parsed['blockslotteries']);
-        Principal.updateMontoBlockslotteriesFromJugadas(BlockslotteriesJugada(blockslotteries: blockslotteries, jugadas: listaJugadas));
+        Principal.updateMontoBlockslotteriesFromJugadas(BlockslotteriesJugada(blockslotteries: blockslotteries, jugadas: listaJugadas, eliminar: (parsed['action'] == 'delete') ? true : false));
         await Realtime.addBlockslotteriesDatosNuevos(blockslotteries, (parsed['action'] == 'delete') ? true : false);
       });
       socket.on("blocksplays:App\\Events\\BlocksplaysEvent", (data) async {   //sample event
         var parsed = data.cast<String, dynamic>();
         print("BlocksplaysEvent: $parsed");
         var blocksplays = await compute(Blocksplays.fromMapList, parsed['blocksplays']);
-        Principal.updateMontoBlocksplaysFromJugadas(BlocksplaysJugada(blocksplays: blocksplays, jugadas: listaJugadas));
+        Principal.updateMontoBlocksplaysFromJugadas(BlocksplaysJugada(blocksplays: blocksplays, jugadas: listaJugadas, eliminar: (parsed['action'] == 'delete') ? true : false));
         await Realtime.addBlocksplaysDatosNuevos(blocksplays, (parsed['action'] == 'delete') ? true : false);
       });
       socket.on("blocksplaysgenerals:App\\Events\\BlocksplaysgeneralsEvent", (data) async {   //sample event
         var parsed = data.cast<String, dynamic>();
         print("BlocksplaysgeneralsEvent: $parsed");
         var blocksplaysgenerals = await compute(Blocksplaysgenerals.fromMapList, parsed['blocksplaysgenerals']);
-        Principal.updateMontoBlocksplaysgeneralsFromJugadas(BlocksplaysgeneralsJugada(blocksplaysgenerals: blocksplaysgenerals, jugadas: listaJugadas));
+        Principal.updateMontoBlocksplaysgeneralsFromJugadas(BlocksplaysgeneralsJugada(blocksplaysgenerals: blocksplaysgenerals, jugadas: listaJugadas, eliminar: (parsed['action'] == 'delete') ? true : false));
         await Realtime.addBlocksplaysgeneralsDatosNuevos(blocksplaysgenerals, (parsed['action'] == 'delete') ? true : false);
       });
       socket.on("versions:App\\Events\\VersionsEvent", (data) async {   //sample event
@@ -1815,6 +1900,16 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                     _indexBanca = listaBanca.indexOf(banca); 
                                                     _emitToGetNewIdTicket();
                                                     indexPost(false);
+                                                    for (var jugada in listaJugadas) {
+                                                      print("jugada before bancaChanged: ${jugada.stock.idBanca}");
+                                                    }
+                                                    for (var jugada in listaJugadas) {
+                                                      jugada.stockEliminado = true;
+                                                      jugada.stock.idBanca = banca.id;
+                                                    }
+                                                    for (var jugada in listaJugadas) {
+                                                      print("jugada after bancaChanged: ${jugada.stock.idBanca}");
+                                                    }
                                                     });
                                                     await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
                                                   },

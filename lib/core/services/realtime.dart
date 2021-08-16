@@ -551,9 +551,17 @@ class Realtime{
             throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
         }
 
-        // if(jugada.monto > await Utils.getMontoDisponible(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale, tx)){
-        //     throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
-        // }
+        if(jugada.stockEliminado){
+          print("Realtime guardarVenta validarMonto con getMontoDisponible");
+          if(jugada.monto > await Utils.getMontoDisponible(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale, tx)){
+            throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
+          }
+        }else{
+          print("Realtime guardarVenta validarMonto normal");
+          if(jugada.monto > jugada.stock.monto){
+            throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
+          }
+        }
         
         var salesdetails = Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, sorteoDescripcion: jugada.sorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
         await Db.insert('Salesdetails', salesdetails.toJson(), tx);
