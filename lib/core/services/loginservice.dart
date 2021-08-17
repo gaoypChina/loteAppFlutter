@@ -36,6 +36,7 @@ class LoginService{
         Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
         throw Exception('Failed to load usuario datos incorrectos');
       }
+      
       // print('parsed ${parsed['usuario']}');
       // _usuario = Usuario.fromMap(parsed['usuario']);
       // _banca = Banca.fromMap(parsed['bancaObject']);
