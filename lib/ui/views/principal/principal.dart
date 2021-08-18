@@ -568,7 +568,7 @@ Future<bool> _requestPermisionChannel() async {
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
       if(!kIsWeb)
-        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 5), (Timer t) => _emitToSaveTicketsNoSubidos());
+        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
     
     
     focusNode = FocusNode();
@@ -783,6 +783,7 @@ Future<bool> _requestPermisionChannel() async {
       return;
 
     var saleMap = await Db.getSaleNoSubida();
+    print("PrincipalView _emitToSaveTicketsNoSubidos: ${saleMap}");
     // var saleMapAll = await Db.query("Sales");
 
     // print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
@@ -791,20 +792,28 @@ Future<bool> _requestPermisionChannel() async {
     if(sale == null)
       return;
 
+    print("PrincipalView _emitToSaveTicketsNoSubidos servidor: ${saleMap["servidor"]}");
+
     if(sale.subido != 0)
       return;
 
     var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
     Ticket ticket = Ticket.fromMap(ticketMap);
     sale.ticket = ticket;
+    if(sale.servidor == null)
+      throw Exception("PrincipalView El servidor es nulo");
+    if(sale.servidor == '')
+      throw Exception("PrincipalView El servidor es nulo");
+      
 
     var salesdetailsListMap = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
     List<Salesdetails> salesdetails = salesdetailsListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
-    // print("_emitToSaveTicketsNoSubidos idBanca: ${ticketMap}");
+    print("PrincipalView _emitToSaveTicketsNoSubidos ticket: ${ticketMap}");
+    print("PrincipalView _emitToSaveTicketsNoSubidos sale: ${saleMap}");
     
     // return;
 
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : sale.servidor, "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
   }
 
   _addVentaSubidaToListVenta(var parsed) async {
@@ -1676,7 +1685,18 @@ AppBar _appBar(bool screenHeightIsSmall){
                   if(value)
                     return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
                       listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-                      
+                      var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+    print("Database.deleteDb after delete stocks: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
+    print("Database.deleteDb after delete users: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
+    print("Database.deleteDb after delete Branches: ${query}");
+   query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+    print("Database.deleteDb after delete sales: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+    print("Database.deleteDb after delete Salesdetails: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+    print("Database.deleteDb after delete tickets: ${query}");
                     },);
 
                   return Icon(Icons.cloud_off, color: Colors.white, size: 18);
@@ -1709,7 +1729,18 @@ AppBar _appBar(bool screenHeightIsSmall){
                       // var ticket = await Db.getNextTicket(banca.id);
                       // print("PrincipalView cloud_done ticket: ${ticket}");
                       listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-
+var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+    print("Database.deleteDb after delete stocks: ${query}");
+    query = await Db.database.rawQuery('SELECT * FROM Users');
+    print("Database.deleteDb after delete users: ${query}");
+    query = await Db.database.rawQuery('SELECT * FROM Branches');
+    print("Database.deleteDb after delete Branches: ${query}");
+   query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+    print("Database.deleteDb after delete sales: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+    print("Database.deleteDb after delete Salesdetails: ${query}");
+    query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+    print("Database.deleteDb after delete tickets: ${query}");
                       
                     },);
 

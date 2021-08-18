@@ -9,7 +9,7 @@ class DBSqflite{
   static Future create() async {
     var databasesPath = await getDatabasesPath();
     _path = join(databasesPath, 'demo.db');
-    await deleteDatabase(_path);
+    // await deleteDatabase(_path);
   }
 
   static Future open() async {
@@ -22,7 +22,7 @@ class DBSqflite{
       
       
     // open the database
-     database = await openDatabase(_path, version: 1,
+     database = await openDatabase(_path, version: 2,
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
       await db.execute('CREATE TABLE Stocks (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idLoteriaSuperpale INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMERIC, monto NUMERIC, created_at TEXT, esBloqueoJugada INTEGER, esGeneral INTEGER, ignorarDemasBloqueos INTEGER, idMoneda INTEGER, descontarDelBloqueoGeneral INTEGER)');
@@ -41,7 +41,7 @@ class DBSqflite{
       await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER)');
       await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
-      await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
+      await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER, servidor TEXT)');
       await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idLoteria INTEGER, idSorteo INTEGER, sorteoDescripcion TEXT, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
     });
   }
@@ -182,7 +182,49 @@ class DBSqflite{
   }
 
   static Future deleteDB() async {
-      await deleteDatabase(_path);
+    var query = await database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+    print("Database.deleteDb before delete stocks: ${query}");
+    query = await database.rawQuery('SELECT * FROM Users');
+    print("Database.deleteDb before delete users: ${query}");
+    query = await database.rawQuery('SELECT * FROM Branches');
+    print("Database.deleteDb before delete Branches: ${query}");
+    query = await database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+    print("Database.deleteDb before delete sales: ${query}");
+    query = await database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+    print("Database.deleteDb before delete Salesdetails: ${query}");
+    query = await database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+    print("Database.deleteDb before delete Tickets: ${query}");
+    
+    var batch = database.batch();
+    batch.rawQuery("DELETE FROM Stocks");
+    batch.rawQuery("DELETE FROM Blocksgenerals");
+    batch.rawQuery("DELETE FROM Blockslotteries");
+    batch.rawQuery("DELETE FROM Blocksplays");
+    batch.rawQuery("DELETE FROM Blocksplaysgenerals");
+    batch.rawQuery("DELETE FROM Draws");
+    batch.rawQuery("DELETE FROM Permissions");
+    batch.rawQuery("DELETE FROM Users");
+    batch.rawQuery("DELETE FROM Branches");
+    batch.rawQuery("DELETE FROM Servers");
+    batch.rawQuery("DELETE FROM Blocksdirty");
+    batch.rawQuery("DELETE FROM Blocksdirtygenerals");
+    batch.rawQuery("DELETE FROM Settings");
+    batch.rawQuery("DELETE FROM Lotteries");
+    batch.rawQuery("DELETE FROM Days");
+    await batch.commit(noResult: true);
+    query = await database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+    print("Database.deleteDb after delete stocks: ${query}");
+    query = await database.rawQuery('SELECT * FROM Users');
+    print("Database.deleteDb after delete users: ${query}");
+    query = await database.rawQuery('SELECT * FROM Branches');
+    print("Database.deleteDb after delete Branches: ${query}");
+   query = await database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+    print("Database.deleteDb after delete sales: ${query}");
+    query = await database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+    print("Database.deleteDb after delete Salesdetails: ${query}");
+    query = await database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+    print("Database.deleteDb after delete tickets: ${query}");
+      // await deleteDatabase(_path);
   }
 
   static Future<Map<String, dynamic>> ajustes() async {

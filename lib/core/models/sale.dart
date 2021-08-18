@@ -11,6 +11,7 @@ class Sale {
   BigInt id;
   int compartido;
   int idUsuario;
+  String servidor;
 
   int idBanca;
   double total;
@@ -32,7 +33,7 @@ class Sale {
   Ticket ticket;
   
 
-  Sale({this.id, this.compartido, this.idUsuario, this.idBanca, this.total, this.subTotal, this.descuentoMonto, this.hayDescuento, this.idTicket, this.created_at, this.updated_at, this.status, this.loterias, this.jugadas, this.banca, this.usuario, this.ticket, this.subido});
+  Sale({this.id, this.compartido, this.idUsuario, this.idBanca, this.total, this.subTotal, this.descuentoMonto, this.hayDescuento, this.idTicket, this.created_at, this.updated_at, this.status, this.loterias, this.jugadas, this.banca, this.usuario, this.ticket, this.subido, this.servidor});
 
   Sale.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
@@ -92,6 +93,7 @@ List jugadasToJson() {
       "updated_at": updated_at != null ? updated_at.toString() : null,
       "status": status,
       "subido": subido != null ? subido : 0,
+      "servidor": servidor,
     };
   }
   toJsonFull() {
@@ -112,6 +114,7 @@ List jugadasToJson() {
       "ticket": ticket != null ? ticket.toJson() : null,
       "banca": banca != null ? banca.toJson() : null,
       "usuario": usuario != null ? usuario.toJson() : null,
+      "servidor": servidor,
     };
   }
 }
