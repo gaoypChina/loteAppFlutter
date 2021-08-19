@@ -518,7 +518,7 @@ class Realtime{
 
 
     print("Realtime guardarVenta before insert sales idTicket: ${ticket.id.toInt()}");
-    await Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, servidor: await Db.servidor(tx), idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: DateTime.now()).toJson(), tx);
+    await Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, servidor: await Db.servidor(tx), idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: date).toJson(), tx);
     var saleMap = await Db.queryBy("Sales", "idTicket", ticket.id.toInt(), tx);
     print("Realtime guardarVenta after insert sales saleMap: ${saleMap}");
     sale = saleMap != null ? Sale.fromMap(saleMap) : null;

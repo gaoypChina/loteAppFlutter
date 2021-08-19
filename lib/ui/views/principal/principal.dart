@@ -32,6 +32,7 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:screenshot/screenshot.dart';
@@ -793,6 +794,7 @@ Future<bool> _requestPermisionChannel() async {
       return;
 
     print("PrincipalView _emitToSaveTicketsNoSubidos servidor: ${saleMap["servidor"]}");
+    print("PrincipalView _emitToSaveTicketsNoSubidos saleObject: ${sale.toJson()}");
 
     if(sale.subido != 0)
       return;
@@ -893,6 +895,34 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
+  Future deleteSubidaYesterdaysSale() async {
+    try {
+      DateTime today = await NTP.now(timeout: Duration(seconds: 2));
+      DateTime yesterday = today.subtract(Duration(days: 1));
+      DateTime cincoDiasAtras = yesterday.subtract(Duration(days: 5));
+      print("PricipalView deleteSubidaYesterdaysSale today: ${today.toString()}");
+      print("PricipalView deleteSubidaYesterdaysSale yesterday: ${yesterday.toString()}");
+      print("PricipalView deleteSubidaYesterdaysSale cincoDiasAtras: ${cincoDiasAtras.toString()}");
+      
+      String query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
+      await Db.database.rawQuery(query);
+    } on Exception catch (e) {
+      print("PrincipalView deleteSubidaYesterdaysSale error: ${e.toString()}");
+      // TODO
+    }
+
+    // String query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}' ORDER BY ID ASC";
+    // var sales = await Db.database.rawQuery(query);
+    // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: ${sales.length}");
+    // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: $sales");
+    // query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
+    // sales = await Db.database.rawQuery(query);
+    // query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(today, "00:00")}' AND '${Utils.dateTimeToDate(today, "23:59")}' ORDER BY ID ASC";
+    // sales = await Db.database.rawQuery(query);
+    // print("PricipalView deleteSubidaYesterdaysSale todaySale: ${sales.length}");
+    // print("PricipalView deleteSubidaYesterdaysSale todaySale: $sales");
+  }
+
   initSocket() async {
     // var builder = new JWTBuilder();
     // var token = builder
@@ -981,6 +1011,7 @@ Future<bool> _requestPermisionChannel() async {
       await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["datos"]);
       _connectionNotify.value = true;
       await _getPermisos();
+      deleteSubidaYesterdaysSale();
       print("PrincipalView initSocket sincronizarTodos from server after: $data");
     });
     socket.on("initLoteriasOrdenadasPorHoraCierre", (data) async {
@@ -1685,18 +1716,21 @@ AppBar _appBar(bool screenHeightIsSmall){
                   if(value)
                     return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
                       listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-                      var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-    print("Database.deleteDb after delete stocks: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
-    print("Database.deleteDb after delete users: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
-    print("Database.deleteDb after delete Branches: ${query}");
-   query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-    print("Database.deleteDb after delete sales: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-    print("Database.deleteDb after delete Salesdetails: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-    print("Database.deleteDb after delete tickets: ${query}");
+  //                     var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+  //   print("Database.deleteDb after delete stocks: ${query}");
+  //   query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
+  //   print("Database.deleteDb after delete users: ${query}");
+  //   query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
+  //   print("Database.deleteDb after delete Branches: ${query}");
+  //  query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+  //   print("Database.deleteDb after delete sales: ${query}");
+  //   query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+  //   print("Database.deleteDb after delete Salesdetails: ${query}");
+  //   query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+  //   print("Database.deleteDb after delete tickets: ${query}");
+
+                      
+
                     },);
 
                   return Icon(Icons.cloud_off, color: Colors.white, size: 18);
@@ -1729,22 +1763,25 @@ AppBar _appBar(bool screenHeightIsSmall){
                       // var ticket = await Db.getNextTicket(banca.id);
                       // print("PrincipalView cloud_done ticket: ${ticket}");
                       listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-    print("Database.deleteDb after delete stocks: ${query}");
-    query = await Db.database.rawQuery('SELECT * FROM Users');
-    print("Database.deleteDb after delete users: ${query}");
-    query = await Db.database.rawQuery('SELECT * FROM Branches');
-    print("Database.deleteDb after delete Branches: ${query}");
-   query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-    print("Database.deleteDb after delete sales: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-    print("Database.deleteDb after delete Salesdetails: ${query}");
-    query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-    print("Database.deleteDb after delete tickets: ${query}");
+// var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+//     print("Database.deleteDb after delete stocks: ${query}");
+//     query = await Db.database.rawQuery('SELECT * FROM Users');
+//     print("Database.deleteDb after delete users: ${query}");
+//     query = await Db.database.rawQuery('SELECT * FROM Branches');
+//     print("Database.deleteDb after delete Branches: ${query}");
+//    query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+//     print("Database.deleteDb after delete sales: ${query}");
+//     query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+//     print("Database.deleteDb after delete Salesdetails: ${query}");
+//     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+//     print("Database.deleteDb after delete tickets: ${query}");
+
+                      deleteSubidaYesterdaysSale();
+
                       
                     },);
 
-                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+                  return IconButton(icon: Icon(Icons.cloud_off, color: Colors.white, size: 18), onPressed: deleteSubidaYesterdaysSale,);
                 }
               ),
             )
@@ -4453,13 +4490,25 @@ void _getTime() {
       ));
   }
 
-  _seleccionarPrimeraLoteria(){
+  _seleccionarPrimeraLoteria({bool quitarSoloLoteriasCerradas = false}){
     if(listaLoteria == null)
       return;
 
     if(listaLoteria.length == 0)
       return;
 
+    if(_selectedLoterias != null){
+      if(_selectedLoterias.length > 0){
+        if(quitarSoloLoteriasCerradas){
+          for (var loteria in _selectedLoterias) {
+            var idx = listaLoteria.indexWhere((element) => element.id == loteria.id);
+            if(idx == -1)
+              _selectedLoterias.removeWhere((element) => element.id == loteria.id);
+          }
+          return;
+        }
+      }
+    }
     _selectedLoterias = [];
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);
@@ -5263,7 +5312,7 @@ Future quitarLoteriasCerradas()
             if(now.isAfter(fechaLoteriaMinutosExtras)){
               setState(() {
                 listaLoteria.remove(l);
-                _seleccionarPrimeraLoteria();
+                _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
               });
 
             }
@@ -5271,7 +5320,7 @@ Future quitarLoteriasCerradas()
           else{
             setState(() {
                 listaLoteria.remove(l);
-              _seleccionarPrimeraLoteria();
+              _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
               });
 
           }
@@ -5368,7 +5417,7 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
   setState((){
     listaLoteria = listaLoteriaEvent;
     _streamControllerLoteria.add(listaLoteriaEvent);
-    _seleccionarPrimeraLoteria();
+    _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
   });
 }
 

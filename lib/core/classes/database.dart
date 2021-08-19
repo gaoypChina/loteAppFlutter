@@ -19,10 +19,22 @@ class DBSqflite{
     //   database = await openDatabase(_path);
     //   return;
     // }
+
+    const migrationScripts = [
+      [],
+      [],
+      [],
+      [
+        'ALTER TABLE Stocks ADD COLUMN descontarDelBloqueoGeneral INTEGER',
+        'ALTER TABLE Blockslotteries ADD COLUMN descontarDelBloqueoGeneral INTEGER',
+        'ALTER TABLE Blocksplays ADD COLUMN descontarDelBloqueoGeneral INTEGER',
+        'ALTER TABLE Sales ADD COLUMN servidor TEXT',
+      ],
+    ]; // Migration sql scripts, containing an array of statements per migration
       
       
     // open the database
-     database = await openDatabase(_path, version: 2,
+     database = await openDatabase(_path, version: migrationScripts.length,
         onCreate: (Database db, int version) async {
       // When creating the db, create the table
       await db.execute('CREATE TABLE Stocks (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idLoteriaSuperpale INTEGER, idSorteo INTEGER, jugada TEXT, montoInicial NUMERIC, monto NUMERIC, created_at TEXT, esBloqueoJugada INTEGER, esGeneral INTEGER, ignorarDemasBloqueos INTEGER, idMoneda INTEGER, descontarDelBloqueoGeneral INTEGER)');
@@ -43,7 +55,18 @@ class DBSqflite{
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
       await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER, servidor TEXT)');
       await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idLoteria INTEGER, idSorteo INTEGER, sorteoDescripcion TEXT, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
-    });
+    },
+    onUpgrade: (Database db, int oldVersion, int newVersion) async {
+          print("onUpgrade oldVersion-newVersion: $oldVersion-$newVersion");
+        for (var i = oldVersion - 1; i <= newVersion - 1; i++) {
+          print("Databaae.dart version: $i");
+          for (var scripts in migrationScripts[i]) {
+            print("Database.dart onUpgrade script: $scripts");
+            await db.execute(scripts);
+          }
+        }  
+      }
+    );
   }
 
   static Future<void> insert(String table, Map<String, dynamic> dataToMap, [var transaction]) async {

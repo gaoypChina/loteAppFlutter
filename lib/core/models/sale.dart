@@ -52,7 +52,8 @@ class Sale {
         banca = (snapshot["banca"] != null) ? Banca.fromMap(Utils.parsedToJsonOrNot(snapshot['banca'])) : null,
         usuario = (snapshot["usuario"] != null) ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null,
         ticket = (snapshot["ticket"] != null) ? Ticket.fromMap(Utils.parsedToJsonOrNot(snapshot['ticket'])) : null,
-        subido = snapshot['subido'] ?? 0
+        subido = snapshot['subido'] ?? 0,
+        servidor = snapshot['servidor'] ?? null
         ;
 
 List jugadasToJson() {
