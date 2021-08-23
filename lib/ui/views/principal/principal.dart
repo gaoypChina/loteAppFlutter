@@ -4497,18 +4497,18 @@ void _getTime() {
     if(listaLoteria.length == 0)
       return;
 
-    if(_selectedLoterias != null){
-      if(_selectedLoterias.length > 0){
-        if(quitarSoloLoteriasCerradas){
-          for (var loteria in _selectedLoterias) {
-            var idx = listaLoteria.indexWhere((element) => element.id == loteria.id);
-            if(idx == -1)
-              _selectedLoterias.removeWhere((element) => element.id == loteria.id);
-          }
-          return;
-        }
-      }
-    }
+    // if(_selectedLoterias != null){
+    //   if(_selectedLoterias.length > 0){
+    //     if(quitarSoloLoteriasCerradas){
+    //       for (var loteria in _selectedLoterias) {
+    //         var idx = listaLoteria.indexWhere((element) => element.id == loteria.id);
+    //         if(idx == -1)
+    //           _selectedLoterias.removeWhere((element) => element.id == loteria.id);
+    //       }
+    //       return;
+    //     }
+    //   }
+    // }
     _selectedLoterias = [];
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);

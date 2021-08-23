@@ -585,6 +585,8 @@ class Realtime{
     ticket.usado = 1;
     await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
 
+    print("Realtime guardarVenta ticket: ${ticket.toJson()}");
+
     if(!socket.connected)
       throw Exception("No esta conectado a internet.");
 
