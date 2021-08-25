@@ -6,6 +6,7 @@ import 'package:loterias/core/models/loterias.dart';
 class Salesdetails {
   BigInt id;
   BigInt idVenta;
+  BigInt idTicket;
   int idLoteria;
 
   int idSorteo;
@@ -27,11 +28,12 @@ class Salesdetails {
   Draws sorteo;
 
 
-  Salesdetails({this.id, this.idVenta, this.idLoteria, this.idSorteo, this.jugada, this.monto, this.premio, this.comision, this.idStock, this.created_at, this.updated_at, this.idLoteriaSuperpale, this.status, this.loteria, this.loteriaSuperPale, this.sorteo, this.sorteoDescripcion});
+  Salesdetails({this.id, this.idVenta, this.idTicket, this.idLoteria, this.idSorteo, this.jugada, this.monto, this.premio, this.comision, this.idStock, this.created_at, this.updated_at, this.idLoteriaSuperpale, this.status, this.loteria, this.loteriaSuperPale, this.sorteo, this.sorteoDescripcion});
 
   Salesdetails.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
         idVenta = snapshot['idVenta'] != null ? BigInt.from(snapshot['idVenta']) : BigInt.zero,
+        idTicket = snapshot['idTicket'] != null ? BigInt.from(snapshot['idTicket']) : BigInt.zero,
         idLoteria = snapshot['idLoteria'] ?? 0,
         idSorteo = snapshot['idSorteo'] ?? 0,
         jugada = snapshot['jugada'] ?? '',
@@ -63,6 +65,7 @@ class Salesdetails {
     return {
       "id": id != null ? id.toInt() : null,
       "idVenta": idVenta != null ? idVenta.toInt() : null,
+      "idTicket": idTicket != null ? idTicket.toInt() : null,
       "idLoteria": idLoteria,
       "idSorteo": idSorteo,
       "jugada": jugada,
@@ -80,6 +83,7 @@ class Salesdetails {
     return {
       "id": id,
       "idVenta": idVenta != null ? idVenta.toInt() : null,
+      "idTicket": idTicket != null ? idTicket.toInt() : null,
       "idLoteria": idLoteria,
       "idSorteo": idSorteo,
       "monto": monto,

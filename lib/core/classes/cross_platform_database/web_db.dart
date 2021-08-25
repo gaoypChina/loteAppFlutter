@@ -207,7 +207,7 @@ class WebMoor implements CrossDB{
   }
 
   @override
-  Future<Map<String, dynamic>> getNextTicket(int idBanca) {
+  Future<Map<String, dynamic>> getNextTicket(int idBanca, String servidor) {
     // TODO: implement getNextTicket
     throw UnimplementedError("WebDatabase Uninplemented getNextTicket");
   }

@@ -24,7 +24,7 @@ abstract class CrossDB {
   Future deleteDB();
   Future<Map<String, dynamic>> ajustes();
   Future<Map<String, dynamic>> getLastRow(String table);
-  Future<Map<String, dynamic>> getNextTicket(int idBanca);
+  Future<Map<String, dynamic>> getNextTicket(int idBanca, String servidor);
   Future<Map<String, dynamic>> queryBy(String table, String by, dynamic value);
   Future<List<Map<String, dynamic>>> queryListBy(String table, String by, dynamic value);
   Future<Map<String, dynamic>> getSaleNoSubida();

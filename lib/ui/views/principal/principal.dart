@@ -810,12 +810,21 @@ Future<bool> _requestPermisionChannel() async {
 
     var salesdetailsListMap = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
     List<Salesdetails> salesdetails = salesdetailsListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
+
+    var salesdetailsOfThisSaleListMap = await Db.database.rawQuery("SELECT * FROM Salesdetails WHERE idVenta = ${sale.id.toInt()} AND idTicket = ${sale.idTicket.toInt()}");
+    List<Salesdetails> salesdetails2 = salesdetailsOfThisSaleListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
+
     print("PrincipalView _emitToSaveTicketsNoSubidos ticket: ${ticketMap}");
     print("PrincipalView _emitToSaveTicketsNoSubidos sale: ${saleMap}");
+    salesdetailsListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails: $e"));
+    print("");
+    print("");
+    print("");
+    salesdetailsOfThisSaleListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails222: $e"));
     
     // return;
 
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : sale.servidor, "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails)}));
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : sale.servidor, "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails2)}));
   }
 
   _addVentaSubidaToListVenta(var parsed) async {
@@ -1776,7 +1785,15 @@ AppBar _appBar(bool screenHeightIsSmall){
 //     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
 //     print("Database.deleteDb after delete tickets: ${query}");
 
-                      deleteSubidaYesterdaysSale();
+
+                      // deleteSubidaYesterdaysSale();
+
+                      var query = await Db.database.rawQuery("SELECT * FROM Sales");
+                      query.forEach((e) => print("PrincipalView cloud sale: $e"));
+                      query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
+                      query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
+
+                      print("PrincipalView cloud: $query");
 
                       
                     },);

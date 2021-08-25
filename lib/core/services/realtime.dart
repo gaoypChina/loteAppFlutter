@@ -402,7 +402,8 @@ class Realtime{
     await Db.database.transaction((tx) async {
     // Batch batch = tx.batch();
     usuario = Usuario.fromMap(await Db.getUsuario(tx));
-    Ticket ticket = Ticket.fromMap(await Db.getNextTicket(banca.id, tx));
+    var ticketMap = await Db.getNextTicket(banca.id, await Db.servidor(tx), tx);
+    Ticket ticket = ticketMap != null ? Ticket.fromMap(ticketMap) : Ticket();
     double total = 0;
     print("Realtime guardarVenta after ticket");
       
@@ -431,8 +432,8 @@ class Realtime{
 
     print("Realtime guardarVenta after bancas");
 
-    if(banca.id != ticket.idBanca){
-      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    if(banca.id != ticket.idBanca || usuario.servidor != ticket.servidor){
+      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
       await Future.delayed(Duration(seconds: 2), (){print("Error idTicket incorrecto");});
       throw Exception("No se puede hacer la venta id incorrecto");
     }
@@ -563,7 +564,7 @@ class Realtime{
           }
         }
         
-        var salesdetails = Salesdetails(idVenta: sale.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, sorteoDescripcion: jugada.sorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
+        var salesdetails = Salesdetails(idVenta: sale.id, idTicket: sale.ticket.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, sorteoDescripcion: jugada.sorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
         await Db.insert('Salesdetails', salesdetails.toJson(), tx);
         listSalesdetails.add(salesdetails);
         print("Realtime guardarVenta for jugadas: ${listSalesdetails.length}");
@@ -598,7 +599,7 @@ class Realtime{
   });
     print("Realtime guardarventa after transaction: ${listSalesdetails.length}");
     socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
     return [sale, listSalesdetails];
   }
   
@@ -722,11 +723,34 @@ class Realtime{
         return;
 
       print("Realtime createTicketIfNotExists: ${parsed}");
+      ticketParsed.servidor = await Db.servidor();
+      print("Realtime createTicketIfNotExists ticket: ${ticketParsed.toJson()}");
+      if(ticketParsed.servidor == null)
+        return;
+
       if(ticketDB != null){
-        if(ticketDB.id != ticketParsed.id)
-          Db.insert("Tickets", ticketParsed.toJson());
+        if(ticketDB.id != ticketParsed.id && ticketDB.servidor == ticketParsed.servidor){
+         await Db.insert("Tickets", ticketParsed.toJson());
+          // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
+          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+          print("createTicketIfNotExists query: $query");
+          var tickets = await Db.database.rawQuery(query);
+          print("createTicketIfNotExists ticketInsertado: $tickets");
+        }else{
+          await Db.insert("Tickets", ticketParsed.toJson());
+          // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
+          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+          print("createTicketIfNotExists query: $query");
+          var tickets = await Db.database.rawQuery(query);
+          print("createTicketIfNotExists ticketInsertado: $tickets");
+        }
       }else
-        Db.insert("Tickets", ticketParsed.toJson());
+        await Db.insert("Tickets", ticketParsed.toJson());
+        // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
+          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+          print("createTicketIfNotExists query: $query");
+        var tickets = await Db.database.rawQuery(query);
+        print("createTicketIfNotExists ticketInsertado: $tickets");
     }
 
     static setVentaToSubido(var parsed) async {

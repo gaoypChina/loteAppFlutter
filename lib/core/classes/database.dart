@@ -30,6 +30,8 @@ class DBSqflite{
         'ALTER TABLE Blocksplays ADD COLUMN descontarDelBloqueoGeneral INTEGER',
         'ALTER TABLE Sales ADD COLUMN servidor TEXT',
       ],
+      ['ALTER TABLE Tickets ADD COLUMN servidor TEXT'],
+      ['ALTER TABLE Salesdetails ADD COLUMN idTicket INTEGER'],
     ]; // Migration sql scripts, containing an array of statements per migration
       
       
@@ -50,15 +52,15 @@ class DBSqflite{
       await db.execute('CREATE TABLE Blocksdirty (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksdirtygenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Settings (id INTEGER PRIMARY KEY, consorcio TEXT, imprimirNombreConsorcio INTEGER, idTipoFormatoTicket INTEGER, descripcionTipoFormatoTicket Text, cancelarTicketWhatsapp INTEGER, imprimirNombreBanca INTEGER, pagarTicketEnCualquierBanca INTEGER)');
-      await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER)');
+      await db.execute('CREATE TABLE Tickets (id INTEGER PRIMARY KEY, codigoBarra TEXT, uuid TEXT, idBanca INTEGER, usado INTEGER, servidor TEXT)');
       await db.execute('CREATE TABLE Lotteries (id INTEGER PRIMARY KEY, descripcion TEXT, abreviatura TEXT, status INTEGER)');
       await db.execute('CREATE TABLE Days (id INTEGER PRIMARY KEY, descripcion TEXT, created_at TEXT, wday INTEGER, horaApertura TEXT, horaCierre TEXT)');
       await db.execute('CREATE TABLE Sales (id INTEGER PRIMARY KEY, compartido INTEGER, idUsuario INTEGER, idBanca INTEGER, total NUMERIC, subtotal NUMERIC, descuentoMonto NUMERIC, hayDescuento INTEGER, idTicket INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER, servidor TEXT)');
-      await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idLoteria INTEGER, idSorteo INTEGER, sorteoDescripcion TEXT, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
+      await db.execute('CREATE TABLE Salesdetails (id INTEGER PRIMARY KEY, idVenta INTEGER, idTicket INTEGER, idLoteria INTEGER, idSorteo INTEGER, sorteoDescripcion TEXT, jugada TEXT, monto NUMERIC, premio NUMERIC, comision NUMERIC, idStock INTEGER, idLoteriaSuperpale INTEGER, created_at TEXT, updated_at TEXT, status INTEGER, subido INTEGER)');
     },
     onUpgrade: (Database db, int oldVersion, int newVersion) async {
           print("onUpgrade oldVersion-newVersion: $oldVersion-$newVersion");
-        for (var i = oldVersion - 1; i <= newVersion - 1; i++) {
+        for (var i = oldVersion; i < newVersion; i++) {
           print("Databaae.dart version: $i");
           for (var scripts in migrationScripts[i]) {
             print("Database.dart onUpgrade script: $scripts");
@@ -277,8 +279,8 @@ class DBSqflite{
       }
   }
 
-  static Future<Map<String, dynamic>> getNextTicket(int idBanca, [var transaction]) async {
-      String queryStatemet = 'SELECT * FROM Tickets WHERE usado = 0 AND idBanca = $idBanca ORDER BY ID ASC LIMIT 1';
+  static Future<Map<String, dynamic>> getNextTicket(int idBanca, String servidor, [var transaction]) async {
+      String queryStatemet = "SELECT * FROM Tickets WHERE usado = 0 AND idBanca = $idBanca AND servidor = '$servidor' ORDER BY ID ASC LIMIT 1";
       var query = transaction == null ? await database.rawQuery(queryStatemet) : await transaction.rawQuery(queryStatemet);
       if(query.isEmpty){
         return null;
