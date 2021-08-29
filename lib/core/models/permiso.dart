@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Permiso{
    int id;
    String descripcion;
@@ -12,10 +14,10 @@ class Permiso{
   Permiso(this.id, this.descripcion, this.status, this.created_at, this.seleccionado, this.idTipo);
 
 Permiso.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
-        status = snapshot['status'] ?? 0,
-        idTipo = snapshot['idTipo'] ?? 0,
+        status = Utils.toInt(snapshot['status']) ?? 0,
+        idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         seleccionado = snapshot['seleccionado']?? false,
         esPermisoRol = snapshot['esPermisoRol']?? false

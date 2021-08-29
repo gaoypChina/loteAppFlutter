@@ -9,7 +9,7 @@ class Grupopermiso {
   Grupopermiso({this.id, this.descripcion, this.permisos});
 
   Grupopermiso.fromMap(Map snapshot) :
-        id = Utils.toInt(snapshot['id'].toString()) ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         permisos = permisosToMap(snapshot['permisos'] is String ? Utils.parseDatos(snapshot["permisos"]) :snapshot['permisos']) ?? []
         ;

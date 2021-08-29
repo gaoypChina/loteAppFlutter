@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Entidad{
    int id;
    String nombre;
@@ -12,12 +14,12 @@ class Entidad{
   Entidad({this.id, this.nombre, this.renglon, this.status, this.idTipo, this.idMoneda, this.created_at});
 
 Entidad.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         nombre = snapshot['nombre'] ?? '',
         renglon = snapshot['renglon'] ?? '',
-        status = snapshot['status'] ?? 0,
-        idTipo = snapshot['idTipo'] ?? 0,
-        idMoneda = snapshot['idMoneda'] ?? 0,
+        status = Utils.toInt(snapshot['status']) ?? 0,
+        idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
+        idMoneda = Utils.toInt(snapshot['idMoneda']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 
@@ -34,7 +36,7 @@ Entidad.fromMap(Map snapshot) :
   }
 
   static List entidadToJson(List<Entidad> lista) {
-    List jsonList = List();
+    List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())
     ).toList();

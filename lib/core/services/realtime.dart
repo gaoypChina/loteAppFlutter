@@ -289,7 +289,7 @@ class Realtime{
           }
         }
   }
-  static sincronizarTodosDataBatch(_scaffoldKey, var parsed) async {
+  static Future sincronizarTodosDataBatch(_scaffoldKey, var parsed) async {
     if(kIsWeb)
       return;
       
@@ -604,12 +604,14 @@ class Realtime{
   }
   
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
+    print("Realtime usuario() usuario: ${usuario["status"]}");
     int idUsuario = await Db.idUsuario();
     if(idUsuario != usuario["id"])
       return;
-    else if(usuario["status"] != 1)
+    else if(Utils.toInt(usuario["status"]) != 1){
+      print("Realtime usuario() usuarioCerrarSesio: ${usuario["status"]}");
       await Principal.cerrarSesion(context);
-    else{
+    }else{
       await Db.delete("Permissions");
       await Db.delete("Users");
 

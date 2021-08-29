@@ -24,8 +24,8 @@ class Historico {
   Historico({this.idBanca, this.codigo, this.ventas, this.descuentos, this.comisiones, this.premios, this.balanceActual, this.caidaAcumulada, this.totalNeto, this.balance, this.tickets, this.pendientes, this.ganadores, this.perdedores});
 
   Historico.fromMap(Map snapshot) :
-        idBanca = snapshot['idBanca'] ?? 0,
-        idMoneda = snapshot['idMoneda'] ?? 0,
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
+        idMoneda = Utils.toInt(snapshot['idMoneda']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         codigo = snapshot['codigo'] ?? '',
         ventas = Utils.toDouble(snapshot['ventas'].toString()) ?? 0,
@@ -36,10 +36,10 @@ class Historico {
         caidaAcumulada = Utils.toDouble(snapshot['caidaAcumulada'].toString()) ?? 0,
         totalNeto = Utils.toDouble(snapshot['totalNeto'].toString()) ?? 0,
         balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0,
-        tickets = Utils.toInt(snapshot['tickets'].toString()) ?? 0,
-        pendientes = Utils.toInt(snapshot['pendientes'].toString()) ?? 0,
-        ganadores = Utils.toInt(snapshot['ganadores'].toString()) ?? 0,
-        perdedores = Utils.toInt(snapshot['perdedores'].toString()) ?? 0
+        tickets = Utils.toInt(snapshot['tickets']) ?? 0,
+        pendientes = Utils.toInt(snapshot['pendientes']) ?? 0,
+        ganadores = Utils.toInt(snapshot['ganadores']) ?? 0,
+        perdedores = Utils.toInt(snapshot['perdedores']) ?? 0
         ;
 
 

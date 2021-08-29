@@ -1,3 +1,5 @@
+import 'package:loterias/core/classes/utils.dart';
+
 class Ticket {
   BigInt id;
   String codigoBarra;
@@ -11,9 +13,9 @@ class Ticket {
   Ticket.fromMap(Map snapshot) :
         id = snapshot['id'] != null ? BigInt.from(snapshot['id']) : BigInt.zero,
         codigoBarra = snapshot['codigoBarra'] ?? '',
-        usado = snapshot['usado'] ?? 0,
+        usado = Utils.toInt(snapshot['usado']) ?? 0,
         uuid = (snapshot['uuid'] != null) ? snapshot["uuid"] : '',
-        idBanca = snapshot['idBanca'] ?? -1,
+        idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : -1,
         servidor = snapshot['servidor'] ?? null
         // permisos = permisosToMap(snapshot['permisos']) ?? List()
         ;

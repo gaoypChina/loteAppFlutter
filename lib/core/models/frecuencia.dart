@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Frecuencia{
    int id;
    String descripcion;
@@ -9,7 +11,7 @@ class Frecuencia{
   Frecuencia(this.id, this.descripcion, this.observacion, this.created_at);
 
 Frecuencia.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         observacion = snapshot['observacion'] ?? '',
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null

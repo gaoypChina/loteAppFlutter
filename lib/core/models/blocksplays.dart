@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Blocksplays{
    int id;
    int idBanca;
@@ -19,20 +21,20 @@ class Blocksplays{
   Blocksplays(this.id, this.idBanca, this.idLoteria, this.idSorteo, this.jugada, this.montoInicial, this.monto, this.created_at, this.fechaDesde, this.fechaHasta, this.ignorarDemasBloqueos, this.status, this.idMoneda, this.descontarDelBloqueoGeneral);
 
 Blocksplays.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
-        idSorteo = snapshot['idSorteo'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
+        idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : 0,
+        idLoteria = snapshot['idLoteria'] != null ? Utils.toInt(snapshot['idLoteria']) : 0,
+        idSorteo = snapshot['idSorteo'] != null ? Utils.toInt(snapshot['idSorteo']) : 0,
         jugada = snapshot['jugada'] ?? '',
         montoInicial = double.parse(snapshot['montoInicial'].toString()) ?? 0,
         monto = double.parse(snapshot['monto'].toString()) ?? 0,
         fechaDesde = DateTime.parse(snapshot['fechaDesde']) ?? null,
         fechaHasta = DateTime.parse(snapshot['fechaHasta']) ?? null,
         created_at = DateTime.parse(snapshot['created_at']) ?? null,
-        ignorarDemasBloqueos = snapshot['ignorarDemasBloqueos'] ?? 0,
-        status = snapshot['status'] ?? 0,
-        idMoneda = snapshot['idMoneda'] ?? 0,
-        descontarDelBloqueoGeneral =  snapshot['descontarDelBloqueoGeneral'] != null ? snapshot['descontarDelBloqueoGeneral'] is bool ? snapshot['descontarDelBloqueoGeneral'] == true ? 1 : 0 : snapshot['descontarDelBloqueoGeneral'] : 0
+        ignorarDemasBloqueos = snapshot['ignorarDemasBloqueos'] != null ? Utils.toInt(snapshot['ignorarDemasBloqueos']) : 0,
+        status = snapshot['status'] != null ? Utils.toInt(snapshot['status']) : 0,
+        idMoneda = snapshot['idMoneda'] != null ? Utils.toInt(snapshot['idMoneda']) : 0,
+        descontarDelBloqueoGeneral =  Utils.toInt(snapshot['descontarDelBloqueoGeneral'])
         ;
 
   static List<Blocksplays> fromMapList(var parsed) => parsed != null ? parsed.map<Blocksplays>((json) => Blocksplays.fromMap(json)).toList() : [];

@@ -21,9 +21,9 @@ class Comision{
   Comision({this.id, this.idBanca, this.idLoteria, this.loteria, this.directo, this.pale, this.tripleta, this.superPale, this.pick3Straight, this.pick3Box, this.pick4Straight, this.pick4Box, this.created_at,});
 
 Comision.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
+        idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : 0,
+        idLoteria = snapshot['idLoteria'] != null ? Utils.toInt(snapshot['idLoteria']) : 0,
         loteria = snapshot['loteria'] != null ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteria'])) : null,
         directo = double.tryParse(snapshot['directo'].toString()) ?? 0,
         pale = double.tryParse(snapshot['pale'].toString()) ?? 0,

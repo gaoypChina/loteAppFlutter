@@ -37,22 +37,22 @@ class Sale {
 
   Sale.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.zero,
-        compartido = snapshot['compartido'] ?? 0,
-        idUsuario = snapshot['idUsuario'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
+        compartido = Utils.toInt(snapshot['compartido']) ?? 0,
+        idUsuario = Utils.toInt(snapshot['idUsuario']) ?? 0,
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
         total = Utils.toDouble(snapshot['total'].toString()) ?? 0,
         subTotal = Utils.toDouble(snapshot['subTotal'].toString()) ?? 0,
-        descuentoMonto = Utils.toInt(snapshot['descuentoMonto'].toString()) ?? 0,
-        hayDescuento = Utils.toInt(snapshot['hayDescuento'].toString()) ?? 0,
+        descuentoMonto = Utils.toInt(snapshot['descuentoMonto']) ?? 0,
+        hayDescuento = Utils.toInt(snapshot['hayDescuento']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         idTicket = (snapshot['idTicket'] != null) ? BigInt.from(snapshot['idTicket']) : BigInt.zero ,
-        status = snapshot['status'] ?? 1,
+        status = Utils.toInt(snapshot['status']) ?? 1,
         jugadas = jugadasToMap(snapshot['jugadas']) ?? [],
         loterias = loteriasToMap(snapshot['loterias']) ?? [],
         banca = (snapshot["banca"] != null) ? Banca.fromMap(Utils.parsedToJsonOrNot(snapshot['banca'])) : null,
         usuario = (snapshot["usuario"] != null) ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null,
         ticket = (snapshot["ticket"] != null) ? Ticket.fromMap(Utils.parsedToJsonOrNot(snapshot['ticket'])) : null,
-        subido = snapshot['subido'] ?? 0,
+        subido = Utils.toInt(snapshot['subido']) ?? 0,
         servidor = snapshot['servidor'] ?? null
         ;
 

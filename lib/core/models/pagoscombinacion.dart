@@ -33,9 +33,9 @@ class Pagoscombinacion{
   this.segundaTercera = 0, this.tresNumeros = 0, this.dosNumeros = 0, this.primerPago = 0, this.pick3TodosEnSecuencia = 0, this.pick33Way = 0, this.pick36Way = 0, this.pick4TodosEnSecuencia = 0, this.pick44Way = 0, this.pick46Way = 0, this.pick412Way = 0, this.pick424Way = 0, this.created_at});
 
 Pagoscombinacion.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
+        idLoteria = Utils.toInt(snapshot['idLoteria']) ?? 0,
         loteria = snapshot['loteria'] != null ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteria'])) : null,
         primera = double.tryParse(snapshot['primera'].toString()) ?? 0,
         segunda = double.tryParse(snapshot['segunda'].toString()) ?? 0,

@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Tipo{
    int id;
    String descripcion;
@@ -10,10 +12,10 @@ class Tipo{
   Tipo(this.id, this.descripcion, this.renglon, this.status, this.created_at);
 
 Tipo.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         renglon = snapshot['renglon'] ?? '',
-        status = snapshot['status'] ?? 0,
+        status = Utils.toInt(snapshot['status']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 

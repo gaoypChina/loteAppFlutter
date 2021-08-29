@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Moneda{
    int id;
    String descripcion;
@@ -11,11 +13,11 @@ class Moneda{
   Moneda(this.id, this.descripcion, this.abreviatura, this.color, this.pordefecto, this.created_at);
 
 Moneda.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         abreviatura = snapshot['abreviatura'] ?? '',
         color = snapshot['color'] ?? '',
-        pordefecto = snapshot['pordefecto'] ?? 0,
+        pordefecto = Utils.toInt(snapshot['pordefecto']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 

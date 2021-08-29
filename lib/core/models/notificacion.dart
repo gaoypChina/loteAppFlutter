@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Notificacion{
    int id;
    String titulo;
@@ -11,11 +13,11 @@ class Notificacion{
   Notificacion({this.id, this.titulo, this.subtitulo, this.contenido, this.estado, this.created_at});
 
 Notificacion.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         titulo = snapshot['titulo'] ?? '',
         subtitulo = snapshot['subtitulo'] ?? '',
         contenido = snapshot['contenido'] ?? '',
-        estado = snapshot['estado'] ?? 0,
+        estado = Utils.toInt(snapshot['estado']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 

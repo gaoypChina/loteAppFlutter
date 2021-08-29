@@ -57,10 +57,10 @@ class Jugada {
         id = (snapshot['id'] != null) ? BigInt.from(snapshot['id']) : BigInt.from(0),
         idVenta = (snapshot['idVenta'] != null) ? BigInt.from(snapshot['idVenta']) : BigInt.from(0),
         jugada = snapshot['jugada'] ?? '',
-        idBanca = snapshot['idBanca'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
-        idLoteriaSuperpale = snapshot['idLoteriaSuperpale'] ?? 0,
-        idSorteo = snapshot['idSorteo'] ?? 0,
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
+        idLoteria = Utils.toInt(snapshot['idLoteria']) ?? 0,
+        idLoteriaSuperpale = Utils.toInt(snapshot['idLoteriaSuperpale']) ?? 0,
+        idSorteo = Utils.toInt(snapshot['idSorteo']) ?? 0,
         monto = Utils.toDouble(snapshot['monto'].toString()) ?? 0,
         premio = Utils.toDouble(snapshot['premio'].toString()) ?? 0,
         pagado = Utils.toDouble(snapshot['pagado'].toString()) ?? 0,
@@ -70,9 +70,9 @@ class Jugada {
         descripcionSuperpale = snapshot['descripcionSuperpale'] ?? '',
         abreviatura = snapshot['abreviatura'] ?? '',
         abreviaturaSuperpale = snapshot['abreviaturaSuperpale'] ?? '',
-        status = snapshot['status'] ?? 1,
-        cantidadVecesQueSeHaJugado = snapshot['cantidadVecesQueSeHaJugado'] ?? null,
-        cantidadVecesQueHaSalido = snapshot['cantidadVecesQueHaSalido'] ?? null;
+        status = Utils.toInt(snapshot['status']) ?? 1,
+        cantidadVecesQueSeHaJugado = Utils.toInt(snapshot['cantidadVecesQueSeHaJugado']) ?? null,
+        cantidadVecesQueHaSalido = Utils.toInt(snapshot['cantidadVecesQueHaSalido']) ?? null;
 
       
   static List jugadasToJson(List<Jugada> lista) {

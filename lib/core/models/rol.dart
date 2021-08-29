@@ -13,7 +13,7 @@ class TipoUsuario {
   TipoUsuario({this.id, this.descripcion, this.permisos});
 
   TipoUsuario.fromMap(Map snapshot) :
-        id = Utils.toInt(snapshot['id'].toString()) ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         permisosString = snapshot['permisosString'] ?? '',
         permisos = (snapshot['permisos'] == null) ? [] : permisosToMap(snapshot['permisos'] is String ? Utils.parseDatos(snapshot["permisos"]) :snapshot['permisos']) ?? []

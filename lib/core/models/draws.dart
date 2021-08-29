@@ -14,11 +14,11 @@ class Draws{
   Draws(this.id, this.descripcion, this.bolos, this.cantidadNumeros, this.status, this.created_at);
 
 Draws.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
         descripcion = snapshot['descripcion'] ?? '',
-        bolos = snapshot['bolos'] ?? 0,
-        cantidadNumeros = snapshot['cantidadNumeros'] ?? 0,
-        status = snapshot['status'] ?? 0,
+        bolos = snapshot['bolos'] != null ? Utils.toInt(snapshot['bolos']) : 0,
+        cantidadNumeros = snapshot['cantidadNumeros'] != null ? Utils.toInt(snapshot['cantidadNumeros']) : 0,
+        status = snapshot['status'] != null ? Utils.toInt(snapshot['status']) : 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         monto = snapshot['monto'] != null ? Utils.toDouble(snapshot['monto']) : null
         ;

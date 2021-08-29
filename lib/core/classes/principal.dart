@@ -865,6 +865,7 @@ class Principal{
 
  static cerrarSesion(BuildContext context, [bool salir = true]) async {
    var c = await DB.create();
+   print("Principal.cerrarSesion");
    try {
       await Db.deleteDB();
    } catch (e) {

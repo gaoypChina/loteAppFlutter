@@ -13,9 +13,9 @@ class Dia{
   Dia({this.id, this.descripcion, this.wday, this.created_at, this.horaApertura, this.horaCierre});
 
   Dia.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
         descripcion = snapshot['descripcion'] ?? '',
-        wday = snapshot['wday'] ?? 0,
+        wday = snapshot['wday'] != null ? Utils.toInt(snapshot['wday']) : 0,
         horaApertura = (snapshot['horaApertura'] != null) ? DateTime.parse(Utils.dateTimeToDate(DateTime.now(), snapshot['horaApertura'])) : DateTime.parse("${DateTime.now().year}-${Utils.toDosDigitos(DateTime.now().month.toString())}-${Utils.toDosDigitos(DateTime.now().day.toString())} 01:00"),
         horaCierre = (snapshot['horaCierre'] != null) ? DateTime.parse(Utils.dateTimeToDate(DateTime.now(), snapshot['horaCierre'])) : DateTime.parse("${DateTime.now().year}-${Utils.toDosDigitos(DateTime.now().month.toString())}-${Utils.toDosDigitos(DateTime.now().day.toString())} 23:00"),
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null

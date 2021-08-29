@@ -49,13 +49,13 @@ class Banca {
   Banca({this.id, this.descripcion, this.codigo, this.dueno, this.localidad, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.limiteVenta, this.balanceDesactivacion, this.minutosCancelarTicket, this.imprimirCodigoQr, this.usuario, this.grupo, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos, this.dias});
 
   Banca.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
         descripcion = snapshot['descripcion'] ?? '',
         codigo = snapshot['codigo'] ?? '',
         dueno = snapshot['dueno'] ?? '',
         localidad = snapshot['localidad'] ?? '',
-        status = snapshot['status'] ?? 1,
-        idMoneda = snapshot['idMoneda'] ?? 1,
+        status = snapshot['status'] != null ? Utils.toInt(snapshot['status']) : 1,
+        idMoneda = snapshot['idMoneda'] != null ? Utils.toInt(snapshot['idMoneda']) : 1,
         monedaObject = snapshot['monedaObject'] != null ? Moneda.fromMap(Utils.parsedToJsonOrNot(snapshot['monedaObject'])) : null,
         usuario = snapshot['usuario'] != null ? Usuario.fromMap(Utils.parsedToJsonOrNot(snapshot['usuario'])) : null,
         grupo = snapshot['grupo'] != null ? Grupo.fromMap(Utils.parsedToJsonOrNot(snapshot['grupo'])) : null,
@@ -67,7 +67,7 @@ class Banca {
         limiteVenta = Utils.toDouble(snapshot['limiteVenta'].toString()) ?? 0.0,
         balanceDesactivacion = Utils.toDouble(snapshot['balanceDesactivacion'].toString()) ?? 0.0,
         minutosCancelarTicket = snapshot['minutosCancelarTicket'] != null ? Utils.toDouble(snapshot['minutosCancelarTicket'].toString()).toInt() : 0,
-        imprimirCodigoQr = snapshot['imprimirCodigoQr'] ?? 1,
+        imprimirCodigoQr = snapshot['imprimirCodigoQr'] != null ? Utils.toInt(snapshot['imprimirCodigoQr']) : 1,
         piepagina1 = snapshot['piepagina1'] ?? '',
         piepagina2 = snapshot['piepagina2'] ?? '',
         piepagina3 = snapshot['piepagina3'] ?? '',

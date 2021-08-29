@@ -25,7 +25,7 @@ class Venta {
   Venta({this.id, this.banca, this.abreviatura, this.status, this.jugadas, this.codigoQr, this.minutosExtras, this.loterias});
 
   Venta.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         banca = (snapshot["banca"] != null) ? Banca.fromMap(Utils.parsedToJsonOrNot(snapshot['banca'])) : null,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         abreviatura = snapshot['abreviatura'] ?? '',
@@ -34,11 +34,11 @@ class Venta {
         idTicket = (snapshot['idTicket'] != null) ? BigInt.from(snapshot['idTicket']) : BigInt.zero ,
         total = Utils.toDouble(snapshot['total'].toString()) ?? 0,
         descuentoMonto = Utils.toDouble(snapshot['descuentoMonto'].toString()) ?? 0,
-        status = snapshot['status'] ?? 1,
-        jugadas = jugadasToMap(snapshot['jugadas']) ?? List(),
-        loterias = loteriasToMap(snapshot['loterias']) ?? List(),
+        status = Utils.toInt(snapshot['status']) ?? 1,
+        jugadas = jugadasToMap(snapshot['jugadas']) ?? [],
+        loterias = loteriasToMap(snapshot['loterias']) ?? [],
         codigoQr= snapshot['codigoQr'] ?? '',
-        minutosExtras = snapshot['minutosExtras'] ?? 0
+        minutosExtras = Utils.toInt(snapshot['minutosExtras']) ?? 0
         ;
 
 List jugadasToJson() {

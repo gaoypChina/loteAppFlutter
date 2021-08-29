@@ -13,10 +13,10 @@ class EstadisticaJugada{
   EstadisticaJugada({this.id, this.idLoteria, this.idSorteo, this.cantidad, this.descripcion, this.descripcionSorteo});
 
 EstadisticaJugada.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
-        idLoteria = snapshot['idLoteria'] ?? 0,
-        idSorteo = snapshot['idSorteo'] ?? 0,
+        idLoteria = Utils.toInt(snapshot['idLoteria']) ?? 0,
+        idSorteo = Utils.toInt(snapshot['idSorteo']) ?? 0,
         cantidad = Utils.toInt(snapshot['cantidad'].toString()) ?? 0
         ;
 

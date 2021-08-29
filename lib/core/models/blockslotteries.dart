@@ -1,5 +1,7 @@
 
 
+import 'package:loterias/core/classes/utils.dart';
+
 class Blockslotteries{
    int id;
    int idBanca;
@@ -14,15 +16,15 @@ class Blockslotteries{
   Blockslotteries(this.id, this.idBanca, this.idDia, this.idLoteria, this.idSorteo, this.monto, this.created_at, this.idMoneda, this.descontarDelBloqueoGeneral);
 
 Blockslotteries.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idDia = snapshot['idDia'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
-        idSorteo = snapshot['idSorteo'] ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
+        idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : 0,
+        idDia = snapshot['idDia'] != null ? Utils.toInt(snapshot['idDia']) : 0,
+        idLoteria = snapshot['idLoteria'] != null ? Utils.toInt(snapshot['idLoteria']) : 0,
+        idSorteo = snapshot['idSorteo'] != null ? Utils.toInt(snapshot['idSorteo']) : 0,
         monto = double.parse(snapshot['monto'].toString()) ?? 0,
         created_at = DateTime.parse(snapshot['created_at']) ?? null,
-        idMoneda = snapshot['idMoneda'] ?? 0,
-        descontarDelBloqueoGeneral =  snapshot['descontarDelBloqueoGeneral'] != null ? snapshot['descontarDelBloqueoGeneral'] is bool ? snapshot['descontarDelBloqueoGeneral'] == true ? 1 : 0 : snapshot['descontarDelBloqueoGeneral'] : 0
+        idMoneda = snapshot['idMoneda'] != null ? Utils.toInt(snapshot['idMoneda']) : 0,
+        descontarDelBloqueoGeneral =  Utils.toInt(snapshot['descontarDelBloqueoGeneral'])
         ;
 
   static List<Blockslotteries> fromMapList(var parsed) => parsed != null ? parsed.map<Blockslotteries>((json) => Blockslotteries.fromMap(json)).toList() : [];

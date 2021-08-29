@@ -85,11 +85,14 @@ class  Utils {
       return returnNullIfNotDouble ? null : 0.0;
     }
   }
-  static toInt(String caracter){
+  static toInt(dynamic caracter, {bool returnNullIfNotDouble = false}){
     try {
-       return int.parse(caracter);
+      if(!(caracter is String) && caracter != null)
+       return int.parse(caracter.toString());
+
+      return int.parse(caracter);
     } catch (e) {
-      return 0;
+      return returnNullIfNotDouble ? null : 0;
     }
   }
 

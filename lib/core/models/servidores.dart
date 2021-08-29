@@ -1,3 +1,5 @@
+import 'package:loterias/core/classes/utils.dart';
+
 class Servidor{
    int id;
    String descripcion;
@@ -6,9 +8,9 @@ class Servidor{
   Servidor(this.id, this.descripcion, this.pordefecto);
 
 Servidor.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
-        pordefecto = snapshot['pordefecto'] ?? 0
+        pordefecto = Utils.toInt(snapshot['pordefecto']) ?? 0
         ;
 
   toJson() {

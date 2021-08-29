@@ -10,10 +10,10 @@ class Grupo {
   Grupo({this.id, this.descripcion, this.codigo, this.status = 1});
 
   Grupo.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         codigo = snapshot['codigo'] ?? '',
-        status = snapshot['status'] ?? 1
+        status = Utils.toInt(snapshot['status']) ?? 1
         ;
 
   toJson() {

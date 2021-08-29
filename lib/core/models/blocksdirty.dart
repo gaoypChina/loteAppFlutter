@@ -14,13 +14,13 @@ class Blocksdirty{
   Blocksdirty(this.id, this.idBanca, this.idLoteria, this.idSorteo, this.cantidad, this.created_at, this.idMoneda);
 
 Blocksdirty.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idLoteria = snapshot['idLoteria'] ?? 0,
-        idSorteo = snapshot['idSorteo'] ?? 0,
-        cantidad = Utils.toInt(snapshot['cantidad'].toString()) ?? 0,
+        id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
+        idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : 0,
+        idLoteria = snapshot['idLoteria'] != null ? Utils.toInt(snapshot['idLoteria']) : 0,
+        idSorteo = snapshot['idSorteo'] != null ? Utils.toInt(snapshot['idSorteo']) : 0,
+        cantidad = snapshot['cantidad'] != null ? Utils.toInt(snapshot['cantidad']) : 0,
         created_at = DateTime.parse(snapshot['created_at']) ?? null,
-        idMoneda = snapshot['idMoneda'] ?? 0
+        idMoneda = snapshot['idMoneda'] != null ? Utils.toInt(snapshot['idMoneda']) : 0
         ;
 
   toJson() {
@@ -36,7 +36,7 @@ Blocksdirty.fromMap(Map snapshot) :
   }
 
   static List blocksdirtyToJson(List<Blocksdirty> lista) {
-    List jsonList = List();
+    List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())
     ).toList();

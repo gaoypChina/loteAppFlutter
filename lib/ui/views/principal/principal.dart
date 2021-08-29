@@ -664,7 +664,7 @@ Future<bool> _requestPermisionChannel() async {
     bool tienePermisoVerVentasPorFecha = await Db.existePermiso("Ver ventas por fecha");
     bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    print("_getPermisos tiene permiso jugar sin disponibilidad: $tienePermisoJugarSinDisponibilidad");
+    print("_getPermisos tiene permiso permisoAccesoAlSistema: $permisoAccesoAlSistema");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -808,16 +808,12 @@ Future<bool> _requestPermisionChannel() async {
       throw Exception("PrincipalView El servidor es nulo");
       
 
-    var salesdetailsListMap = await Db.queryListBy("Salesdetails", "idVenta", sale.id.toInt());
-    List<Salesdetails> salesdetails = salesdetailsListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
 
     var salesdetailsOfThisSaleListMap = await Db.database.rawQuery("SELECT * FROM Salesdetails WHERE idVenta = ${sale.id.toInt()} AND idTicket = ${sale.idTicket.toInt()}");
     List<Salesdetails> salesdetails2 = salesdetailsOfThisSaleListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
 
     print("PrincipalView _emitToSaveTicketsNoSubidos ticket: ${ticketMap}");
     print("PrincipalView _emitToSaveTicketsNoSubidos sale: ${saleMap}");
-    salesdetailsListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails: $e"));
-    print("");
     print("");
     print("");
     salesdetailsOfThisSaleListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails222: $e"));
@@ -913,8 +909,22 @@ Future<bool> _requestPermisionChannel() async {
       print("PricipalView deleteSubidaYesterdaysSale yesterday: ${yesterday.toString()}");
       print("PricipalView deleteSubidaYesterdaysSale cincoDiasAtras: ${cincoDiasAtras.toString()}");
       
-      String query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
-      await Db.database.rawQuery(query);
+      print("PrincipalView deleteSubidaYesterdaysSale sales: ${await Db.database.rawQuery("SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'")}");
+      print("");
+      print("");
+      print("");
+      print("PrincipalView deleteSubidaYesterdaysSale salesdetails: ${await Db.database.rawQuery("SELECT * FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
+      print("");
+      print("");
+      print("");
+      print("PrincipalView deleteSubidaYesterdaysSale tickets: ${await Db.database.rawQuery("SELECT jugada, idTicket, created_at FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
+      
+      await Db.database.rawQuery("DELETE FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
+      await Db.database.rawQuery("DELETE FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
+      await Db.database.rawQuery("DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'");
+      
+      // String query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
+      // await Db.database.rawQuery(query);
     } on Exception catch (e) {
       print("PrincipalView deleteSubidaYesterdaysSale error: ${e.toString()}");
       // TODO
@@ -1788,12 +1798,14 @@ AppBar _appBar(bool screenHeightIsSmall){
 
                       // deleteSubidaYesterdaysSale();
 
-                      var query = await Db.database.rawQuery("SELECT * FROM Sales");
-                      query.forEach((e) => print("PrincipalView cloud sale: $e"));
-                      query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
-                      query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
+                      // var query = await Db.database.rawQuery("SELECT * FROM Sales");
+                      // query.forEach((e) => print("PrincipalView cloud sale: $e"));
+                      // query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
+                      // query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
 
-                      print("PrincipalView cloud: $query");
+                      // print("PrincipalView cloud: $query");
+
+                      deleteSubidaYesterdaysSale();
 
                       
                     },);

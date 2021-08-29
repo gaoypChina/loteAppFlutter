@@ -20,7 +20,7 @@ class Venta {
         idTicket = BigInt.from(snapshot['idTicket']) ?? BigInt.from(0),
         total = Utils.toDouble(snapshot['total'].toString()) ?? 0,
         premios = Utils.toDouble(snapshot['premios'].toString()) ?? 0,
-        status = snapshot['status'] ?? 1,
+        status = Utils.toInt(snapshot['status']) ?? 1,
         codigoBarra = snapshot['codigoBarra'] ?? 1,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         usuarioCancelacion = (snapshot['usuarioCancelacion'] != null) ? snapshot['usuarioCancelacion'] : null,

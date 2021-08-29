@@ -20,14 +20,14 @@ class Gasto{
   Gasto({this.id, this.idBanca, this.idFrecuenca, this.loteria, this.frecuencia, this.dia, this.idDia, this.monto, this.descripcion, this.created_at,});
 
 Gasto.fromMap(Map snapshot) :
-        id = snapshot['id'] ?? 0,
-        idBanca = snapshot['idBanca'] ?? 0,
-        idFrecuenca = snapshot['idFrecuenca'] ?? 0,
+        id = Utils.toInt(snapshot['id']) ?? 0,
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
+        idFrecuenca = Utils.toInt(snapshot['idFrecuenca']) ?? 0,
         loteria = snapshot['loteria'] != null ? Loteria.fromMap(Utils.parsedToJsonOrNot(snapshot['loteria'])) : null,
         frecuencia = snapshot['frecuencia'] != null ? Frecuencia.fromMap(Utils.parsedToJsonOrNot(snapshot['frecuencia'])) : null,
         dia = snapshot['dia'] != null ? Dia.fromMap(Utils.parsedToJsonOrNot(snapshot['dia'])) : null,
-        idDia = int.tryParse(snapshot['idDia'].toString()) ?? 0,
-        monto = double.tryParse(snapshot['monto'].toString()) ?? 0,
+        idDia = Utils.toInt(snapshot['idDia']) ?? 0,
+        monto = Utils.toDouble(snapshot['monto'].toString()) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
         created_at = DateTime.parse(snapshot['created_at']) ?? null
         ;
