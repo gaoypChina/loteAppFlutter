@@ -258,9 +258,20 @@ class _GrupoScreenState extends State<GrupoScreen> {
       return SingleChildScrollView(
         child: Column(
           children: snapshot.data.map((e) => ListTile(
+            isThreeLine: true,
             leading: _avatarScreen(e),
             title: Text("${e.descripcion}"),
-            subtitle: Text("${e.codigo}"),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("${e.codigo}"),
+                Row(
+                  children: [
+                    Expanded(child: Text("${e.bancas != null ? e.bancas.length > 0 ? e.bancas.map((b) => b.descripcion).join(' • ') : '' : ''}", softWrap: true, overflow: TextOverflow.ellipsis,)),
+                  ],
+                )
+              ],
+            ),
             onTap: (){_showDialogGuardar(data: e);},
             trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )).toList(),

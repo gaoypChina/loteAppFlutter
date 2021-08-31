@@ -80,6 +80,62 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
       setState(() => _status = data);
     }
 
+    _bancasScreen(bool isSmallOrMedium){
+      if(widget.grupo == null)
+        return SizedBox();
+
+      if(widget.grupo.bancas == null)
+        return SizedBox();
+
+      if(widget.grupo.bancas.length == 0)
+        return SizedBox();
+
+      if(isSmallOrMedium)
+        return ListTile(
+          leading: Icon(Icons.ballot),
+          title: Text(widget.grupo.bancas.map((e) => e.descripcion).join(", ")),
+          onTap: () async {
+            // var sorteosRetornados = await showDialog(
+            //   context: context, 
+            //   builder: (context){
+            //     return MyMultiselect(
+            //       title: "Agregar sorteos",
+            //       items: listaSorteo.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+            //       initialSelectedItems: _sorteos.length == 0 ? [] : _sorteos.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+            //     );
+            //   }
+            // );
+
+            // if(sorteosRetornados != null)
+            //   setState(() => _sorteos = List.from(sorteosRetornados));
+          },
+        );
+
+      return SizedBox();
+      // return Column(
+      //   crossAxisAlignment: CrossAxisAlignment.start,
+      //   children: [
+      //     MySubtitle(title: "Sorteos", padding: EdgeInsets.only(top: 15, bottom: 4),),
+      //     Padding(
+      //       padding: const EdgeInsets.only(bottom: 15.0),
+      //       child: MyDescripcon(title: "Son los sorteos que se podran jugar en esta loteria.", fontSize: 14,),
+      //     ),
+      //     MyToggleButtons(
+      //       items: listaSorteo.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList(),
+      //       selectedItems: _sorteos != null ? _sorteos.map((e) => MyToggleData(value: e, child: "${e.descripcion}")).toList() : [],
+      //       onTap: (value){
+      //         int index = _sorteos.indexWhere((element) => element == value);
+      //         if(index != -1)
+      //           setState(() => _sorteos.removeAt(index));
+      //         else
+      //           setState(() => _sorteos.add(value));
+      //       },
+      //     )
+      //   ],
+      // );
+    }
+
+
 
   @override
   void initState() {
@@ -151,7 +207,9 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
                       ),
                     ),
                     MyDivider(showOnlyOnSmall: true,),
-                    _statusScreen(isSmallOrMedium)
+                    _statusScreen(isSmallOrMedium),
+                    MyDivider(showOnlyOnSmall: true,),
+                    _bancasScreen(isSmallOrMedium)
                     // MyDropdown(
                     //   title: "Estado",
                     //   medium: 1,
