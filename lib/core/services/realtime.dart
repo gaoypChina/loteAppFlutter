@@ -599,7 +599,7 @@ class Realtime{
   });
     print("Realtime guardarventa after transaction: ${listSalesdetails.length}");
     socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
-    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
     return [sale, listSalesdetails];
   }
   
@@ -726,7 +726,7 @@ class Realtime{
 
       print("Realtime createTicketIfNotExists: ${parsed}");
       ticketParsed.servidor = await Db.servidor();
-      print("Realtime createTicketIfNotExists ticket: ${ticketParsed.toJson()}");
+      // print("Realtime createTicketIfNotExists ticket: ${ticketParsed.toJson()}");
       if(ticketParsed.servidor == null)
         return;
 
@@ -734,25 +734,25 @@ class Realtime{
         if(ticketDB.id != ticketParsed.id && ticketDB.servidor == ticketParsed.servidor){
          await Db.insert("Tickets", ticketParsed.toJson());
           // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
-          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
-          print("createTicketIfNotExists query: $query");
-          var tickets = await Db.database.rawQuery(query);
-          print("createTicketIfNotExists ticketInsertado: $tickets");
+          // var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+          // print("createTicketIfNotExists query: $query");
+          // var tickets = await Db.database.rawQuery(query);
+          // print("createTicketIfNotExists ticketInsertado: $tickets");
         }else{
           await Db.insert("Tickets", ticketParsed.toJson());
           // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
-          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
-          print("createTicketIfNotExists query: $query");
-          var tickets = await Db.database.rawQuery(query);
-          print("createTicketIfNotExists ticketInsertado: $tickets");
+          // var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+          // print("createTicketIfNotExists query: $query");
+          // var tickets = await Db.database.rawQuery(query);
+          // print("createTicketIfNotExists ticketInsertado: $tickets");
         }
       }else
         await Db.insert("Tickets", ticketParsed.toJson());
         // var tickets = await Db.database.rawQuery("SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'");
-          var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
-          print("createTicketIfNotExists query: $query");
-        var tickets = await Db.database.rawQuery(query);
-        print("createTicketIfNotExists ticketInsertado: $tickets");
+        //   var query = "SELECT * FROM Tickets WHERE id = ${ticketParsed.id.toInt()} AND servidor = '${await Db.servidor()}'";
+        //   print("createTicketIfNotExists query: $query");
+        // var tickets = await Db.database.rawQuery(query);
+        // print("createTicketIfNotExists ticketInsertado: $tickets");
     }
 
     static setVentaToSubido(var parsed) async {

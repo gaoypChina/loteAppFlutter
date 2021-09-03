@@ -18,7 +18,7 @@ class Ajuste {
         id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
         consorcio = snapshot['consorcio'] ?? '',
         imprimirNombreConsorcio = snapshot['imprimirNombreConsorcio'] != null ? Utils.toInt(snapshot['imprimirNombreConsorcio']) : 1,
-        idTipoFormatoTicket = snapshot['idTipoFormatoTicket'] != null ? Utils.toInt(snapshot['idTipoFormatoTicket'], returnNullIfNotDouble: true) : null,
+        idTipoFormatoTicket = snapshot['idTipoFormatoTicket'] != null ? Utils.toInt(snapshot['idTipoFormatoTicket'], returnNullIfNotInt: true) : null,
         tipoFormatoTicket = (snapshot['tipoFormatoTicket'] != null) ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipoFormatoTicket'])) : null,
         descripcionTipoFormatoTicket = (snapshot['descripcionTipoFormatoTicket'] != null) ? snapshot["descripcionTipoFormatoTicket"] : '',
         cancelarTicketWhatsapp = snapshot['cancelarTicketWhatsapp'] != null ? Utils.toInt(snapshot['cancelarTicketWhatsapp']) : 1,

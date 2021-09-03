@@ -901,6 +901,9 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   Future deleteSubidaYesterdaysSale() async {
+    if(kIsWeb)
+      return;
+
     try {
       DateTime today = await NTP.now(timeout: Duration(seconds: 2));
       DateTime yesterday = today.subtract(Duration(days: 1));
@@ -1752,7 +1755,7 @@ AppBar _appBar(bool screenHeightIsSmall){
 
                     },);
 
-                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+                  return Icon(Icons.cloud_off, color: Colors.white, size: 16);
                 }
               ),
             )
@@ -1810,7 +1813,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                       
                     },);
 
-                  return IconButton(icon: Icon(Icons.cloud_off, color: Colors.white, size: 18), onPressed: deleteSubidaYesterdaysSale,);
+                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
                 }
               ),
             )
@@ -1976,95 +1979,107 @@ AppBar _appBar(bool screenHeightIsSmall){
                                     children: <Widget>[
                                       !_tienePermisoJugarComoCualquierBanca
                                       ?
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text("${_banca != null ? _banca.descripcion : 'Banca'}"),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis),
+                                        ),
                                       )
                                       :
-                                      StreamBuilder(
-                                        stream: _streamControllerBanca.stream,
-                                        builder: (context, snapshot){
-                                          
-                                          if(snapshot.hasData){
-                                            return Padding(
-                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                            child: DropdownButton(
-                                                  hint: Text('sel. banca'),
-                                                  // isExpanded: true,
-                                                  value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                                                  onChanged: (Banca banca) async {
-                                                    setState(() {
-                                                    _indexBanca = listaBanca.indexOf(banca); 
-                                                    _emitToGetNewIdTicket();
-                                                    indexPost(false);
-                                                    for (var jugada in listaJugadas) {
-                                                      print("jugada before bancaChanged: ${jugada.stock.idBanca}");
-                                                    }
-                                                    for (var jugada in listaJugadas) {
-                                                      jugada.stockEliminado = true;
-                                                      jugada.stock.idBanca = banca.id;
-                                                    }
-                                                    for (var jugada in listaJugadas) {
-                                                      print("jugada after bancaChanged: ${jugada.stock.idBanca}");
-                                                    }
-                                                    });
-                                                    await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
-                                                  },
-                                                  items: listaBanca.map((b){
-                                                    return DropdownMenuItem<Banca>(
-                                                      value: b,
-                                                      child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                          
-                                          );
-                                          }else{
+                                      Expanded(
+                                        flex: 2,
+                                        child: StreamBuilder(
+                                          stream: _streamControllerBanca.stream,
+                                          builder: (context, snapshot){
+                                            
+                                            if(snapshot.hasData){
+                                              return Padding(
+                                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                              child: DropdownButton(
+                                                    hint: Text('sel. banca'),
+                                                    isExpanded: true,
+                                                    value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
+                                                    onChanged: (Banca banca) async {
+                                                      setState(() {
+                                                      _indexBanca = listaBanca.indexOf(banca); 
+                                                      _emitToGetNewIdTicket();
+                                                      indexPost(false);
+                                                      for (var jugada in listaJugadas) {
+                                                        print("jugada before bancaChanged: ${jugada.stock.idBanca}");
+                                                      }
+                                                      for (var jugada in listaJugadas) {
+                                                        jugada.stockEliminado = true;
+                                                        jugada.stock.idBanca = banca.id;
+                                                      }
+                                                      for (var jugada in listaJugadas) {
+                                                        print("jugada after bancaChanged: ${jugada.stock.idBanca}");
+                                                      }
+                                                      });
+                                                      await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
+                                                    },
+                                                    items: listaBanca.map((b){
+                                                      return DropdownMenuItem<Banca>(
+                                                        value: b,
+                                                        child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                            
+                                            );
+                                            }else{
+                                              return Padding(
+                                                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                                child: DropdownButton(
+                                                    hint: Text('Sin datos...'),
+                                                    value:  'Sin datos',
+                                                    onChanged: (String banca){
+                                                      setState(() {
+                                                      
+                                                      });
+                                                    },
+                                                    items: [
+                                                      DropdownMenuItem<String>(
+                                                        value: "Sin datos",
+                                                        child: Text('Sin datos',),
+                                                      )
+                                                    ]
+                                                  ),
+                                              );
+                                              
+                                            }
+                                              
                                             return Padding(
                                               padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                               child: DropdownButton(
-                                                  hint: Text('Sin datos...'),
-                                                  value:  'Sin datos',
-                                                  onChanged: (String banca){
-                                                    setState(() {
-                                                    
-                                                    });
-                                                  },
-                                                  items: [
-                                                    DropdownMenuItem<String>(
-                                                      value: "Sin datos",
-                                                      child: Text('Sin datos',),
-                                                    )
-                                                  ]
-                                                ),
+                                                    hint: Text('Seleccionar banca'),
+                                                    value:  listaBanca[_indexBanca],
+                                                    onChanged: (Banca banca){
+                                                      setState(() {
+                                                      _indexBanca = listaBanca.indexOf(banca); 
+                                                      });
+                                                    },
+                                                    items: listaBanca.map((b){
+                                                      return DropdownMenuItem<Banca>(
+                                                        value: b,
+                                                        child: Text(b.descripcion, textAlign: TextAlign.center,),
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                            
                                             );
-                                            
-                                          }
-                                            
-                                          return Padding(
-                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                            child: DropdownButton(
-                                                  hint: Text('Seleccionar banca'),
-                                                  value:  listaBanca[_indexBanca],
-                                                  onChanged: (Banca banca){
-                                                    setState(() {
-                                                    _indexBanca = listaBanca.indexOf(banca); 
-                                                    });
-                                                  },
-                                                  items: listaBanca.map((b){
-                                                    return DropdownMenuItem<Banca>(
-                                                      value: b,
-                                                      child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                          
-                                          );
-                                        },
+                                          },
+                                        ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                        child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                            child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -3054,6 +3069,24 @@ AppBar _appBar(bool screenHeightIsSmall){
                            ),
                         ],
                       ),
+                    ),
+                    ListTile(
+                      title: Text('Horarios loterias'),
+                      leading: Icon(Icons.account_balance_wallet),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/horariosloterias");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                    ListTile(
+                      title: Text('Monedas'),
+                      leading: Icon(Icons.account_balance_wallet),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/monedas");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
                     ),
                     Visibility(
                       visible: _tienePermisoVerListaDeBalancesDeBancass,

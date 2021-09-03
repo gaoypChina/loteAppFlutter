@@ -2,6 +2,8 @@
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
 
+import 'dia.dart';
+
 class Loteria {
   int id;
   String descripcion;
@@ -14,6 +16,7 @@ class Loteria {
   int status;
   List<Draws> sorteos;
   List<Loteria> loteriaSuperpale;
+  List<Dia> dias;
   String horaApertura;
   String horaCierre;
   int minutosExtras;
@@ -34,7 +37,8 @@ class Loteria {
         loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
         horaApertura= snapshot['horaApertura'] ?? '',
         horaCierre= snapshot['horaCierre'] ?? '',
-        minutosExtras = Utils.toInt(snapshot['minutosExtras']) ?? 0
+        minutosExtras = Utils.toInt(snapshot['minutosExtras']) ?? 0,
+        dias = diasToMap(Utils.parsedToJsonOrNot(snapshot['dias'])) ?? []
         ;
 
 List sorteosToJson() {
@@ -87,6 +91,24 @@ List sorteosToJson() {
     return jsonList;
   }
 
+  List diasToJson() {
+    if(dias == null)
+      return [];
+
+    List jsonList = [];
+    dias.map((u)=>
+      jsonList.add(u.toFullJson())
+    ).toList();
+    return jsonList;
+  }
+
+  static List<Dia> diasToMap(List<dynamic> dias){
+    if(dias != null)
+      return dias.map((data) => Dia.fromMap(data)).toList();
+    else
+      return [];
+  }
+
   toJson() {
     return {
       "id": id,
@@ -102,7 +124,8 @@ List sorteosToJson() {
       "horaCierre": horaCierre,
       "minutosExtras": minutosExtras,
       "sorteos" : sorteosToJson(),
-      "loterias" : loteriaSuperpaleToJson()
+      "loterias" : loteriaSuperpaleToJson(),
+      "dias" : diasToJson(),
     };
   }
 }

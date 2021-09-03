@@ -15,8 +15,10 @@ import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
 import 'package:loterias/ui/views/grupos/gruposaddscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposscreen.dart';
+import 'package:loterias/ui/views/horarios/horariosscreen.dart';
 import 'package:loterias/ui/views/loterias/loteriasaddscreen.dart';
 import 'package:loterias/ui/views/loterias/loteriasscreen.dart';
+import 'package:loterias/ui/views/monedas/monedasscreen.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
@@ -35,6 +37,8 @@ import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
 import 'package:loterias/ui/views/usuarios/sesionesscreen.dart';
 import 'package:loterias/ui/views/usuarios/usuariosscreen.dart';
+
+import 'views/monedas/monedasaddscreen.dart';
 
 
 class MyRouter {
@@ -176,6 +180,18 @@ class MyRouter {
         case '/bloqueosporjugadas' :
           return MaterialPageRoute(
             builder: (_)=> BloqueosPorJugadas()
+          ) ;
+        case '/horariosloterias' :
+          return MaterialPageRoute(
+            builder: (_)=> HorariosScreen()
+          ) ;
+        case '/monedas' :
+          return MaterialPageRoute(
+            builder: (_)=> MonedasScreen()
+          ) ;
+        case '/monedas/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> MonedasAddScreen(data: settings.arguments,)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

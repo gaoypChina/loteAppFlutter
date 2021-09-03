@@ -8,9 +8,11 @@ class Moneda{
    String abreviatura;
    String color;
    int pordefecto;
+   int permiteDecimales;
    DateTime created_at;
+   double equivalenciaDeUnDolar;
 
-  Moneda(this.id, this.descripcion, this.abreviatura, this.color, this.pordefecto, this.created_at);
+  Moneda({this.id, this.descripcion, this.abreviatura, this.color, this.pordefecto, this.created_at, this.equivalenciaDeUnDolar, this.permiteDecimales});
 
 Moneda.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
@@ -18,7 +20,9 @@ Moneda.fromMap(Map snapshot) :
         abreviatura = snapshot['abreviatura'] ?? '',
         color = snapshot['color'] ?? '',
         pordefecto = Utils.toInt(snapshot['pordefecto']) ?? 0,
-        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
+        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
+        equivalenciaDeUnDolar = Utils.toDouble(snapshot['equivalenciaDeUnDolar'], returnNullIfNotDouble: true),
+        permiteDecimales = Utils.toInt(snapshot['permiteDecimales'], returnNullIfNotInt: true)
         ;
 
   toJson() {
@@ -29,11 +33,13 @@ Moneda.fromMap(Map snapshot) :
       "color": color,
       "pordefecto": pordefecto,
       "created_at": created_at.toString(),
+      "equivalenciaDeUnDolar": equivalenciaDeUnDolar,
+      "permiteDecimales": permiteDecimales,
     };
   }
 
   static List monedaToJson(List<Moneda> lista) {
-    List jsonList = List();
+    List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())
     ).toList();
