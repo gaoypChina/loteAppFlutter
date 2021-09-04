@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/entidades.dart';
 import 'package:loterias/core/models/monedas.dart';
-import 'package:loterias/core/services/monedasservice.dart';
+import 'package:loterias/core/models/tipos.dart';
+import 'package:loterias/core/services/entidadesservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
-import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysearch.dart';
@@ -14,21 +15,25 @@ import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:rxdart/rxdart.dart';
 
-class MonedasScreen extends StatefulWidget {
-  const MonedasScreen({ Key key }) : super(key: key);
+class EntidadesScreen extends StatefulWidget {
+  const EntidadesScreen({ Key key }) : super(key: key);
 
   @override
-  _MonedasScreenState createState() => _MonedasScreenState();
+  _EntidadesScreenState createState() => _EntidadesScreenState();
 }
 
-class _MonedasScreenState extends State<MonedasScreen> {
-  StreamController<List<Moneda>> _streamController;
-  List<Moneda> listaData = [];
+class _EntidadesScreenState extends State<EntidadesScreen> {
+  StreamController<List<Entidad>> _streamController;
+  List<Entidad> listaData = [];
+  List<Moneda> listaMoneda = [];
+  List<Tipo> listaTipo = [];
   var _txtSearch = TextEditingController();
 
   _init() async {
-    var parsed = await MonedasService.index(context: context);
-    listaData = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
+    var parsed = await EntidadesService.index(context: context);
+    listaData = (parsed["data"] != null) ? parsed["data"].map<Entidad>((json) => Entidad.fromMap(json)).toList() : [];
+    listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
+    listaTipo = (parsed["tipo"] != null) ? parsed["tipo"].map<Tipo>((json) => Tipo.fromMap(json)).toList() : [];
     _streamController.add(listaData);
     print("MonedasScreen _init: $parsed");
     // listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
@@ -37,7 +42,7 @@ class _MonedasScreenState extends State<MonedasScreen> {
     // _dias = selectedLoteria != null ? selectedLoteria.dias.length > 0 ? List<Dia>.from(selectedLoteria.dias) : [] : [];
   }
 
-  _agregarOEditar({Moneda data}) async {
+  _agregarOEditar({Entidad data}) async {
     var data2 = await Navigator.pushNamed(context, "/monedas/agregar", arguments: data);
     if(data2 == null)
       return;
@@ -45,7 +50,7 @@ class _MonedasScreenState extends State<MonedasScreen> {
     _addDataToList(data2);
   }
 
-  _addDataToList(Moneda data){
+  _addDataToList(Entidad data){
     if(data != null){
       int idx = listaData.indexWhere((element) => element.id == data.id);
       if(idx != -1){
@@ -59,7 +64,7 @@ class _MonedasScreenState extends State<MonedasScreen> {
     }
   }
 
-  _removeDataFromList(Moneda data){
+  _removeDataFromList(Entidad data){
     if(data != null){
       int idx = listaData.indexWhere((element) => element.id == data.id);
       if(idx != -1){
@@ -71,7 +76,7 @@ class _MonedasScreenState extends State<MonedasScreen> {
   }
 
   
-  _showDialogEliminar({Moneda data}){
+  _showDialogEliminar({Entidad data}){
     bool cargando = false;
     showDialog(
       context: context,
@@ -79,15 +84,15 @@ class _MonedasScreenState extends State<MonedasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return MyAlertDialog(
-              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar la moneda ", boldText: "${data.descripcion}",), 
+              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar la moneda ", boldText: "${data.nombre}",), 
               isDeleteDialog: true,
               cargando: cargando,
               okFunction: () async {
                 try {
                   setState(() => cargando = true);
-                  var parsed = await MonedasService.eliminar(context: context, data: data);
+                  var parsed = await EntidadesService.eliminar(context: context, data: data);
                   if(parsed["data"] != null)
-                    _removeDataFromList(Moneda.fromMap(parsed["data"]));
+                    _removeDataFromList(Entidad.fromMap(parsed["data"]));
                   setState(() => cargando = false);
                   Navigator.pop(context);
                 } on Exception catch (e) {
@@ -102,16 +107,16 @@ class _MonedasScreenState extends State<MonedasScreen> {
     );
   }
 
-  _avatarScreen(Moneda data){
+ _avatarScreen(Entidad data){
 
     return CircleAvatar(
-      backgroundColor: Utils.fromHex(data.color),
-      child: Text("${data.abreviatura}"),
+      backgroundColor: data.status == 1 ? Colors.green : Colors.pink,
+      child: data.status == 1 ? Icon(Icons.done, color: Colors.green[100],) : Icon(Icons.unpublished, color: Colors.pink[100],),
     );
   }
 
 
-   _dataScreen(AsyncSnapshot<List<Moneda>> snapshot, bool isSmallOrMedium){
+   _dataScreen(AsyncSnapshot<List<Entidad>> snapshot, bool isSmallOrMedium){
     if(isSmallOrMedium){
       return SingleChildScrollView(
         child: Column(
@@ -122,63 +127,17 @@ class _MonedasScreenState extends State<MonedasScreen> {
               key,
               ListTile(
             leading: _avatarScreen(e),
-            title: Text("${e.descripcion}"),
+            title: Text("${e.nombre}"),
             isThreeLine: true,
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("${e.abreviatura}"),
+                Text("${e.moneda.descripcion}"),
                 // Text("${e.sorteos}"),
               ],
             ),
             onTap: (){_agregarOEditar(data: e);},
-            trailing: Wrap(
-              children: [
-                ValueListenableBuilder<bool>(
-                  valueListenable: valueNotify,
-                  builder: (context, value, __) {
-                    return Wrap(
-                      children: [
-                        AnimatedSwitcher(
-                          duration: Duration(milliseconds: 200),
-                          child: value 
-                            ? 
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10.0, right: 12.0),
-                              child: SizedBox(height: 25, width: 25, child: CircularProgressIndicator()),
-                            ) 
-                            :
-                            Checkbox(value: e.pordefecto == 1, onChanged: (value) async {
-                            try {
-                              valueNotify.value = !valueNotify.value;
-                              var parsed = await MonedasService.pordefecto(context: context, data: e);
-                              listaData = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
-                              valueNotify.value = false;
-                              _streamController.add(listaData);
-                            } on Exception catch (er) {
-                              valueNotify.value = false;
-                            }
-                          })
-                        ),
-                        // Visibility(visible: value, child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator())),
-                        // Checkbox(value: e.pordefecto == 1, onChanged: (value) async {
-                        //   try {
-                        //     valueNotify.value = !valueNotify.value;
-                        //     var parsed = await MonedasService.pordefecto(context: context, data: e);
-                        //     listaData = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
-                        //     valueNotify.value = false;
-                        //     _streamController.add(listaData);
-                        //   } on Exception catch (er) {
-                        //     valueNotify.value = false;
-                        //   }
-                        // }),
-                      ],
-                    );
-                  }
-                ),
-                IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
-              ],
-            ),
+            trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )
             );
           }).values.toList()
@@ -225,7 +184,7 @@ class _MonedasScreenState extends State<MonedasScreen> {
       );
     }
     return MyTable(
-      columns: ["Moneda", "Abreviatura", "Equivalencia USD", "Por defecto"], 
+      columns: ["#", "Entidad", "Tipo", "Moneda"], 
       rows: 
       // snapshot.data.map((e) => [
       //   e, 
@@ -245,30 +204,10 @@ class _MonedasScreenState extends State<MonedasScreen> {
           key, 
           [
             e, 
-            Text("${e.descripcion}", style: TextStyle(color: Utils.fromHex(e.color), fontWeight: FontWeight.w700),), 
-            "${e.abreviatura}", 
-            "${e.equivalenciaDeUnDolar}", 
-            ValueListenableBuilder<bool>(
-              valueListenable: valueNotify,
-              builder: (context, value, __) {
-                return Row(
-                  children: [
-                    Checkbox(value: e.pordefecto == 1, onChanged: (value) async {
-                      try {
-                        valueNotify.value = !valueNotify.value;
-                        var parsed = await MonedasService.pordefecto(context: context, data: e);
-                        listaData = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
-                        valueNotify.value = false;
-                        _streamController.add(listaData);
-                      } on Exception catch (e) {
-                        valueNotify.value = false;
-                      }
-                    }),
-                    Visibility(visible: value, child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator()))
-                  ],
-                );
-              }
-            )
+            key + 1,
+            "${e.nombre}",
+            "${e.tipo != null ? e.tipo.descripcion : ''}", 
+            "${e.moneda != null ? e.moneda.descripcion : ''}", 
           ]
         );
       }).values.toList(),
@@ -300,9 +239,9 @@ class _MonedasScreenState extends State<MonedasScreen> {
       _streamController.add(listaData);
     else
       {
-        var element = listaData.where((element) => element.descripcion.toLowerCase().indexOf(data) != -1).toList();
+        var element = listaData.where((element) => element.nombre.toLowerCase().indexOf(data) != -1).toList();
         print("RolesScreen _serach length: ${element.length}");
-        _streamController.add(listaData.where((element) => element.descripcion.toLowerCase().indexOf(data) != -1).toList());
+        _streamController.add(listaData.where((element) => element.nombre.toLowerCase().indexOf(data) != -1).toList());
       }
   }
 
@@ -321,7 +260,6 @@ class _MonedasScreenState extends State<MonedasScreen> {
   //   );
   // }
 
-
   @override
   void initState() {
     // TODO: implement initState
@@ -339,23 +277,22 @@ class _MonedasScreenState extends State<MonedasScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
-      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _agregarOEditar,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
-          title: "Monedas",
-          subtitle: isSmallOrMedium ? '' :  "Con las monedas puede dividir y agrupar cada una de sus bancas.",
-          actions: [
-            MySliverButton(title: "Crear", onTap: _agregarOEditar, showOnlyOnLarge: true,)
-          ],
+            title: "Entidades",
+            subtitle: isSmallOrMedium ? '' :  "Con las monedas puede dividir y agrupar cada una de sus bancas.",
+            actions: [
+              MySliverButton(title: "Crear", onTap: _agregarOEditar, showOnlyOnLarge: true,)
+            ],
         ), 
-        sliver: StreamBuilder<List<Moneda>>(
+        sliver: StreamBuilder<List<Entidad>>(
           stream: _streamController.stream,
           builder: (context, snapshot) {
             if(!snapshot.hasData)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
 
             return SliverList(delegate: SliverChildListDelegate([
-               MySubtitle(title: "${listaData.length} Monedas", showOnlyOnLarge: true,),
+               MySubtitle(title: "${listaData.length} Entidades", showOnlyOnLarge: true,),
               Stack(
                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

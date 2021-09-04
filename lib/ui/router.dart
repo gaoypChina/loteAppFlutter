@@ -13,6 +13,7 @@ import 'package:loterias/ui/views/bloqueos/bloqueosporjugadas.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporloteriasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
+import 'package:loterias/ui/views/entidades/entidadesscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposaddscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposscreen.dart';
 import 'package:loterias/ui/views/horarios/horariosscreen.dart';
@@ -192,6 +193,10 @@ class MyRouter {
         case '/monedas/agregar' :
           return MaterialPageRoute(
             builder: (_)=> MonedasAddScreen(data: settings.arguments,)
+          ) ;
+        case '/entidades' :
+          return MaterialPageRoute(
+            builder: (_)=> EntidadesScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

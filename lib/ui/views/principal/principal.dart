@@ -3088,6 +3088,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                         _scaffoldKey.currentState.openEndDrawer();
                       },
                     ),
+                    ListTile(
+                      title: Text('Entidades'),
+                      leading: Icon(Icons.account_balance_wallet),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/entidades");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                     Visibility(
                       visible: _tienePermisoVerListaDeBalancesDeBancass,
                       child: ListTile(

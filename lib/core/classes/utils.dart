@@ -77,8 +77,11 @@ class  Utils {
     }
   }
 
-  static double toDouble(String caracter, {bool returnNullIfNotDouble = false}){
+  static double toDouble(dynamic caracter, {bool returnNullIfNotDouble = false}){
     try {
+      if(!(caracter is String) && caracter != null)
+       return double.parse(caracter.toString().replaceAll(",", ''));
+
        return double.parse(caracter.replaceAll(",", ''));
     } catch (e) {
 
