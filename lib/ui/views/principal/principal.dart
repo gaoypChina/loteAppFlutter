@@ -3097,6 +3097,15 @@ AppBar _appBar(bool screenHeightIsSmall){
                         _scaffoldKey.currentState.openEndDrawer();
                       },
                     ),
+                    ListTile(
+                      title: Text('Balance bancos'),
+                      leading: Icon(Icons.account_balance_wallet),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/balancebancos");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                     Visibility(
                       visible: _tienePermisoVerListaDeBalancesDeBancass,
                       child: ListTile(

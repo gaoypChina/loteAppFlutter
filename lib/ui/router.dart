@@ -7,12 +7,14 @@ import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/ajustes/ajustesscreen.dart';
 import 'package:loterias/ui/views/balance/balancebanca.dart';
+import 'package:loterias/ui/views/balance/balancebancos.dart';
 import 'package:loterias/ui/views/bancas/bancasaddscreen.dart';
 import 'package:loterias/ui/views/bancas/bancasscreen.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporjugadas.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporloteriasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
+import 'package:loterias/ui/views/entidades/entidadesaddscreen.dart';
 import 'package:loterias/ui/views/entidades/entidadesscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposaddscreen.dart';
 import 'package:loterias/ui/views/grupos/gruposscreen.dart';
@@ -197,6 +199,14 @@ class MyRouter {
         case '/entidades' :
           return MaterialPageRoute(
             builder: (_)=> EntidadesScreen()
+          ) ;
+        case '/entidades/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> EntidadesAddScreen(data: settings.arguments,)
+          ) ;
+        case '/balancebancos' :
+          return MaterialPageRoute(
+            builder: (_)=> BalanceBancosScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

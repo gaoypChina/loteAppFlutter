@@ -7,6 +7,7 @@ import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/entidadesservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysearch.dart';
@@ -43,7 +44,7 @@ class _EntidadesScreenState extends State<EntidadesScreen> {
   }
 
   _agregarOEditar({Entidad data}) async {
-    var data2 = await Navigator.pushNamed(context, "/monedas/agregar", arguments: data);
+    var data2 = await Navigator.pushNamed(context, "/entidades/agregar", arguments: data);
     if(data2 == null)
       return;
 
@@ -204,7 +205,7 @@ class _EntidadesScreenState extends State<EntidadesScreen> {
           key, 
           [
             e, 
-            key + 1,
+            "${key + 1}",
             "${e.nombre}",
             "${e.tipo != null ? e.tipo.descripcion : ''}", 
             "${e.moneda != null ? e.moneda.descripcion : ''}", 
@@ -277,6 +278,7 @@ class _EntidadesScreenState extends State<EntidadesScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _agregarOEditar,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
             title: "Entidades",
@@ -290,6 +292,10 @@ class _EntidadesScreenState extends State<EntidadesScreen> {
           builder: (context, snapshot) {
             if(!snapshot.hasData)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator(),));
+
+            if(snapshot.data.length == 0 && isSmallOrMedium)
+              return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay datos", icon: Icons.bakery_dining_sharp, titleButton: "No hay entidades, agregar", onTap: _agregarOEditar,),));
+
 
             return SliverList(delegate: SliverChildListDelegate([
                MySubtitle(title: "${listaData.length} Entidades", showOnlyOnLarge: true,),

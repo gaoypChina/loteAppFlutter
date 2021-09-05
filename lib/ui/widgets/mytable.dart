@@ -186,7 +186,7 @@ class _MyTableState extends State<MyTable> {
 
   _myCustomTotalRow(boxconstraint, indexFilaAnterior){
     var wrap = Wrap(
-      children: widget.bottom.asMap().map((key, dynamic value) => 
+      children: widget.bottom == null ? [] : widget.bottom.asMap().map((key, dynamic value) => 
       MapEntry(
         key, 
         Container(
@@ -250,6 +250,7 @@ class _MyTableState extends State<MyTable> {
     LayoutBuilder(
       builder: (context, boxconstraint) {
         return ListView.builder(
+          shrinkWrap: true,
           itemCount: widget.rows.length,
           itemBuilder: (context, index){
             print("MyTable nueva table: ${widget.rows.length - 1} == ${index}");

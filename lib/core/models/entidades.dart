@@ -14,8 +14,9 @@ class Entidad{
    DateTime created_at;
    Moneda moneda;
    Tipo tipo;
+   double balance;
 
-  Entidad({this.id, this.nombre, this.renglon, this.status, this.idTipo, this.idMoneda, this.created_at, this.moneda, this.tipo});
+  Entidad({this.id, this.nombre, this.renglon, this.status, this.idTipo, this.idMoneda, this.created_at, this.moneda, this.tipo, this.balance});
 
 Entidad.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
@@ -25,8 +26,9 @@ Entidad.fromMap(Map snapshot) :
         idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
         idMoneda = Utils.toInt(snapshot['idMoneda']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
-        moneda = snapshot['moneda'] != null ? Moneda.fromMap(Utils.parsedToJsonOrNot(snapshot['moneda'])) : null,
-        tipo = snapshot['tipo'] != null ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipo'])) : null
+        moneda = snapshot['monedaObject'] != null ? Moneda.fromMap(Utils.parsedToJsonOrNot(snapshot['monedaObject'])) : null,
+        tipo = snapshot['tipo'] != null ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipo'])) : null,
+        balance = Utils.toDouble(snapshot['balance'])
         ;
 
   toJson() {
