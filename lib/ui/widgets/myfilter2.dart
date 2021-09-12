@@ -11,7 +11,8 @@ class MyFilterSubData2 {
   dynamic child;
   dynamic value;
   dynamic type;
-  MyFilterSubData2({@required this.child, @required this.value, this.type});
+  List<MyFilterSubData2> data;
+  MyFilterSubData2({@required this.child, @required this.value, this.type, this.data});
 }
 
 class MyFilterData2 {
@@ -57,6 +58,29 @@ class MyFilter2State extends State<MyFilter2> {
     return textPainter.size;
   }
 
+  // _select(){
+  //   if(widget.values == null)
+  //     _selectedValues = [];
+  //   if(widget.values.length == 0)
+  //     _selectedValues = [];
+  //   else{
+  //       print("MyFilter2 _select widget.values.length: ${widget.values.length}");
+
+  //   _selectedValues = [];
+  //   for (var myFilterSubData in widget.values) {
+  //     for (var myFilterData in widget.data) {
+  //       int index = myFilterData.data.indexWhere((element) => element == myFilterSubData);
+  //       print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
+  //       if(index != -1){
+  //         if(_selectedValues.indexWhere((element) => element == myFilterData) == -1)
+  //           _selectedValues.add(myFilterData);
+  //       }
+  //     }
+  //   }
+  //       print("MyFilter2 _select _selectedValues: ${_selectedValues.length}");
+  //   }
+  // }
+
   _select(){
     if(widget.values == null)
       _selectedValues = [];
@@ -68,10 +92,25 @@ class MyFilter2State extends State<MyFilter2> {
     _selectedValues = [];
     for (var myFilterSubData in widget.values) {
       for (var myFilterData in widget.data) {
-        int index = myFilterData.data.indexWhere((element) => element == myFilterSubData);
-        print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
-        if(index != -1){
-          if(_selectedValues.indexWhere((element) => element == myFilterData) == -1)
+        // int index = myFilterData.data.indexWhere((element) => element == myFilterSubData);
+        // print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
+        // if(index != -1){
+        //   if(_selectedValues.indexWhere((element) => element == myFilterData) == -1)
+        //     _selectedValues.add(myFilterData);
+        // }
+
+        MyFilterSubData2 item = myFilterData.data.firstWhere((element) => element == myFilterSubData, orElse: () => null);
+        if(item == null){
+          for (var itemFor in myFilterData.data) {
+            if(itemFor.data != null){
+              item = itemFor.data.firstWhere((element) => element == myFilterSubData, orElse: () => null);
+              if(item != null)
+                break;
+            }
+          }
+        }
+        // print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
+        if(item != null){
             _selectedValues.add(myFilterData);
         }
       }
@@ -80,7 +119,7 @@ class MyFilter2State extends State<MyFilter2> {
     }
   }
 
-  _openSecondFilter(BuildContext context, MyFilterData2 myFilterData2){
+  _openSecondFilter(BuildContext context, MyFilterData2 myFilterData2, [MyFilterSubData2 myFilterSubData2]){
     // List<MyFilterSubData2> selectedData = _getSelectedFiltersVales(myFilterData2);
     List<MyFilterSubData2> selectedData = [];
     for (var item in widget.data) {
@@ -131,8 +170,13 @@ class MyFilter2State extends State<MyFilter2> {
             onTap: (){
               // print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
               print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
-              _selectItem(myFilterData2, e);
-              widget.onChanged(selectedData);
+              // myFilterData2.
+              if(e.data == null){
+                _selectItem(myFilterData2, e);
+                widget.onChanged(selectedData);
+              }else{
+                _openSecondFilter(context, myFilterData2, e);
+              }
               overlay.remove();
             }
           );
@@ -178,7 +222,11 @@ class MyFilter2State extends State<MyFilter2> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               // children: myFilterData2.data.map((e) => ).toList(),
-                              children: myFilterData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList(),
+                              children: myFilterSubData2 == null
+                                ?
+                                myFilterData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList()
+                                :
+                                myFilterSubData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList(),
                             ),
                             
                           ],
@@ -271,9 +319,15 @@ class MyFilter2State extends State<MyFilter2> {
             onTap: (){
               // print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
               print("MyFilter2 _openSecondFIlter _normal${widget.data[0].data[0].child} == ${e.child} : ${widget.data[0].data[0] == e}");
-              _selectItem(myFilterData2, e);
-              widget.onChanged(selectedData);
-              _back();
+              if(e.data == null){
+                _selectItem(myFilterData2, e);
+                widget.onChanged(selectedData);
+                _back();
+              }else{
+                print("MyFilter2 abrir nuevamente");
+                _back();
+                _openSecondFilter(context, myFilterData2, e);
+              }
             }
           );
           
@@ -291,20 +345,29 @@ class MyFilter2State extends State<MyFilter2> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 24.0, right: 10.0),
-                                child: Text("${myFilterData2.child}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700 )),
-                              ),
-                              IconButton(onPressed: _back, icon: Icon(Icons.clear)),
-                            ],
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //   children: [
+                          //     Padding(
+                          //       padding: const EdgeInsets.only(left: 24.0, right: 10.0),
+                          //       child: Text("${myFilterData2.child}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700 )),
+                          //     ),
+                          //     IconButton(onPressed: _back, icon: Icon(Icons.clear)),
+                          //   ],
+                          // ),
+                          ListTile(
+                            title: Text("${myFilterData2.child}", style: TextStyle(fontWeight: FontWeight.w700 )),
+                            trailing: IconButton(onPressed: _back, icon: Icon(Icons.clear)),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             // children: myFilterData2.data.map((e) => ).toList(),
-                            children: myFilterData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList(),
+                            children: 
+                              myFilterSubData2 == null
+                              ?
+                              myFilterData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList()
+                              :
+                              myFilterSubData2.data.map((e) => myFilterData2.isMultiple ? _checkBox(myFilterData2, e) : _normal(myFilterData2, e)).toList(),
                           ),
                           
                         ],
@@ -391,17 +454,40 @@ class MyFilter2State extends State<MyFilter2> {
       );
   }
 
+  // List<MyFilterSubData2> _getSelectedFiltersVales(MyFilterData2 myFilterData){
+    
+  //   List<MyFilterSubData2> values = [];
+  //   for (var myFilterSubData in widget.values) {
+  //       int index = myFilterData.data.indexWhere((element) => element == myFilterSubData);
+  //       print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
+  //       if(index != -1){
+  //           values.add(myFilterData.data[index]);
+  //       }
+  //   }
+
+  //   return values;
+  // }
   List<MyFilterSubData2> _getSelectedFiltersVales(MyFilterData2 myFilterData){
     
     List<MyFilterSubData2> values = [];
     for (var myFilterSubData in widget.values) {
-        int index = myFilterData.data.indexWhere((element) => element == myFilterSubData);
-        print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
-        if(index != -1){
-            values.add(myFilterData.data[index]);
+        MyFilterSubData2 item = myFilterData.data.firstWhere((element) => element == myFilterSubData, orElse: () => null);
+        if(item == null){
+          for (var itemFor in myFilterData.data) {
+            if(itemFor.data != null){
+              item = itemFor.data.firstWhere((element) => element == myFilterSubData, orElse: () => null);
+              if(item != null)
+                break;
+            }
+          }
+        }
+        // print("MyFilter2 _selected: ${myFilterData.data[0] == widget.values[0]} : ${myFilterData.data[0].child} == ${widget.values[0].child}");
+        if(item != null){
+            values.add(item);
         }
     }
 
+    print("MyFilter2 _getSelectedFiltersVales valuesLength: ${values.length} : widget.values ${widget.values.length}");
     return values;
   }
 

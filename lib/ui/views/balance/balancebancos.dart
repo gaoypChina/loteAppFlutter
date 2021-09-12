@@ -5,6 +5,8 @@ import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/entidades.dart';
 import 'package:loterias/core/services/balanceservice.dart';
+import 'package:loterias/ui/views/balance/balancebancossearch.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -42,6 +44,41 @@ class _BalanceBancosScreenState extends State<BalanceBancosScreen> {
       // setState(() => _cargando = false);
     // _streamControllerMonitoreo.add([]);
    }
+  }
+
+  Widget _mysearch(){
+    return GestureDetector(
+      onTap: () async {
+          Entidad data = await showSearch(context: context, delegate: BalanceBancosSearch(listaData));
+          if(data == null)
+            return;
+    
+          // _showDialogGuardar(data: data);
+        },
+      child: MySearchField(
+        controller: _txtSearch, 
+        enabled: false,
+        hint: "", 
+        medium: 1, 
+        xlarge: 2.6, 
+        padding: EdgeInsets.all(0), 
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      ),
+    );
+  }
+
+  _subtitle(bool isSmallOrMedium){
+         return isSmallOrMedium 
+           ?
+           MyCollapseChanged(
+            actionWhenCollapse: MyCollapseAction.hide,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _mysearch(),
+            ),
+           )
+           :
+           "Observa los balances correspondiente para cada banco";
   }
 
   _dataScreen(AsyncSnapshot<List<Entidad>> snapshot, bool isSmallOrMedium){
@@ -222,6 +259,8 @@ class _BalanceBancosScreenState extends State<BalanceBancosScreen> {
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Balance bancos",
+          expandedHeight: isSmallOrMedium ? 105 : 85,
+          subtitle: _subtitle(isSmallOrMedium),
           actions: [
             MySliverButton(
               title: "", 

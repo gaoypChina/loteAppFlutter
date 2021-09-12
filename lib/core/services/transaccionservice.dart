@@ -5,13 +5,15 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'dart:convert';
 
+import 'package:loterias/core/models/tipos.dart';
+
 class TransaccionService{
   static Future<Map<String, dynamic>> transacciones({BuildContext context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
-    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones?token=$jwt"), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones/v2?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -36,17 +38,17 @@ class TransaccionService{
 
     return parsed;
   }
-  static Future<Map<String, dynamic>> buscarTransacciones({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, int idUsuario}) async {
+  static Future<Map<String, dynamic>> buscarTransacciones({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, int idUsuario, int idTipoEntidad, int idEntidad, int idTipo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // var fechaDesdeString = fechaDesde.year.toString() + "-" + Utils.toDosDigitos(fechaDesde.month.toString()) + "-" + Utils.toDosDigitos(fechaDesde.day.toString());
     // var fechaHastaString = fechaHasta.year.toString() + "-" + Utils.toDosDigitos(fechaHasta.month.toString()) + "-" + Utils.toDosDigitos(fechaHasta.day.toString());
     map["fechaDesde"] = fechaDesde.toString();
     map["fechaHasta"] = fechaHasta.toString();
-    map["idTipoEntidad"] = 0;
-    map["idEntidad"] = 0;
-    map["idTipo"] = 0;
-    map["idUsuario"] = 0;
+    map["idTipoEntidad"] = idTipoEntidad != null ? idTipoEntidad : 0;
+    map["idEntidad"] = idEntidad != null ? idEntidad : 0;
+    map["idTipo"] = idTipo != null ? idTipo : 0;
+    map["idUsuario"] = idUsuario != null ? idUsuario : 0;
     // mapDatos["datos"] = map;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
@@ -151,7 +153,7 @@ class TransaccionService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/transacciones/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/transacciones/v2/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

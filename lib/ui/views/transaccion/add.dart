@@ -9,6 +9,11 @@ import 'package:loterias/core/models/entidades.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mytabbar.dart';
+import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AddTransaccionesScreen extends StatefulWidget {
@@ -16,7 +21,8 @@ class AddTransaccionesScreen extends StatefulWidget {
   _AddTransaccionesScreenState createState() => _AddTransaccionesScreenState();
 }
 
-class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
+class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with TickerProviderStateMixin {
+  var _tabController;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   StreamController<List<Banca>> _streamControllerBanca;
@@ -32,6 +38,8 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
   bool _txtDebitoEnabled = true;
   bool _txtCreditoEnabled = true;
   bool _cargando = false;
+  bool _cargandoBalanceBanca = false;
+  bool _cargandoBalanceEntidad = false;
   List<Banca> listaBanca = [];
   List<Entidad> listaEntidad = [];
   List<Tipo> listaTipo = [];
@@ -48,15 +56,17 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
   bool _esProgramada = false;
   Banca _banca;
   Entidad _entidad;
+  Future _future;
 
   @override
   void initState() {
     // TODO: implement initState
+    _tabController = TabController(length: 2, vsync: this);
     _streamControllerBanca = BehaviorSubject();
     _streamControllerEntidad = BehaviorSubject();
     _streamControllerTipo = BehaviorSubject();
     _streamControllerTransacciones = BehaviorSubject();
-    _init();
+    _future = _init();
     super.initState();
   }
 
@@ -141,7 +151,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       _txtBalanceFinalEntidad2.text = "";
       setState((){
         _banca = banca;
-        _cargando = true;
+        _cargandoBalanceBanca = true;
       });
       var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: banca.id);
       _txtBalanceEntidad1.text = datos["saldo_inicial"].toString();
@@ -150,14 +160,14 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       
       _streamControllerEntidad.add(listaEntidad.where((element) => element.idMoneda == banca.idMoneda).toList());
       setState((){
-        _cargando = false;
+        _cargandoBalanceBanca = false;
         _entidad = null;
       });
     }catch(e){
       setState((){
         _indexBanca = 0;
         _txtBalanceEntidad1.text = '';
-        _cargando = false;
+        _cargandoBalanceBanca = false;
       });
     }
   }
@@ -170,18 +180,18 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
       _txtBalanceFinalEntidad2.text = "";
       setState((){
         _entidad = entidad;
-        _cargando = true;
+        _cargandoBalanceEntidad = true;
       });
       var datos = await TransaccionService.saldo(scaffoldKey: _scaffoldKey, id: entidad.id, esBanca: false);
       _txtBalanceEntidad2.text = datos["saldo_inicial"].toString();
       print("datos _entidadChange: ${datos["saldo_inicial"]}");
-      setState(() => _cargando = false);
+      setState(() => _cargandoBalanceEntidad = false);
     }catch(e){
 
       setState((){
         _indexEntidad = 0;
       _txtBalanceEntidad2.text = '';
-        _cargando = false;
+        _cargandoBalanceEntidad = false;
       });
     }
   }
@@ -421,8 +431,14 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
     try{
       setState(() => _cargando = true);
       var datos = await TransaccionService.guardar(scaffoldKey: _scaffoldKey, idUsuario: await Db.idUsuario(), transacciones: listaTransaccion);
+      print("AddTransacciones _guardar datos: ${datos}");
+      print("");
+      print("");
+      print("");
+      // print("AddTransacciones _guardar datos grupos: ${datos["grupo"][0]["transacciones"]}");
       listaTransaccion.clear();
-      Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
+      // Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
+      Navigator.pop(context, datos != null ? datos["grupo"] != null ? datos["grupo"]["transacciones"] : null : null);
       setState(() => _cargando = false);
     }on Exception catch(e){
       setState(() => _cargando = false);
@@ -431,6 +447,419 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+      key: _scaffoldKey,
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(
+        backgroundColor: Theme.of(context).primaryColor, 
+        child: Icon(Icons.add), onPressed: (){
+          if(_formKey.currentState.validate()){
+            _addTransaccion();
+            // print("save: ${map.toString()}");
+          }
+        },
+      ) : null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Agregar transacciones",
+          actions: [
+            MySliverButton(title: "Guardar", onTap: _guardar)
+          ],
+        ), 
+        sliver: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+            return SliverFillRemaining(child: Column(
+              children: [
+                  MyTabBar(controller: _tabController, tabs: ["Agregar", "Todas"], isScrollable: false,),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        AbsorbPointer(
+                          absorbing: _cargando || _cargandoBalanceBanca || _cargandoBalanceEntidad,
+                          child: SafeArea(
+                            child: ListView(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
+                                  child: 
+                                  // DropdownButton<dynamic>(
+                                  //   isExpanded: true,
+                                  //   value: listaTipoTransaccion[_indexTipoTransaccion],
+                                  //   items: listaTipoTransaccion.map<DropdownMenuItem>((t) => DropdownMenuItem<dynamic>(
+                                  //     value: t,
+                                  //     child: Text(t["descripcion"]),
+                                  //   )).toList(),
+                                  //   onChanged: (map){
+                                  //     int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
+                                  //     if(idx != -1)
+                                  //       setState((){
+                                  //         _indexTipoTransaccion = idx;
+                                  //         _tipoTransaccionChange();
+                                  //       });
+                                  //   },
+                                  // ),
+                                  MyDropdownButton(
+                                        title: "Tipo",
+                                        value: listaTipoTransaccion[_indexTipoTransaccion],
+                                        items: listaTipoTransaccion.map((e) => [e, e["descripcion"]]).toList(),
+                                        onChanged: (map){
+                                          int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
+                                          if(idx != -1)
+                                            setState((){
+                                              _indexTipoTransaccion = idx;
+                                              _tipoTransaccionChange();
+                                            });
+                                        },
+                                      )
+                                ),
+                                Visibility(
+                                  visible: _esProgramada,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: RaisedButton(
+                                      child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+                                      color: Colors.transparent, 
+                                      onPressed: () async {
+                                        var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
+                                        setState(() => _fecha = (fecha != null) ? fecha : _fecha);
+                                      }, 
+                                      elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
+                                  ),
+                                ),
+                                StreamBuilder<List<Tipo>>(
+                                  stream: _streamControllerTipo.stream,
+                                  builder: (context, snapshot) {
+                                    if(snapshot.hasData){
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
+                                        child: 
+                                      //   DropdownButton<Tipo>(
+                                      //     isExpanded: true,
+                                      //     value: listaTipo[_indexTipo],
+                                      //     items: listaTipo.map<DropdownMenuItem<Tipo>>((t) => DropdownMenuItem<Tipo>(
+                                      //       value: t,
+                                      //       child: Text(t.descripcion),
+                                      //     )).toList(),
+                                      //     onChanged: (tipo){
+                                      //       int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
+                                      //       if(idx != -1){
+                                      //         setState((){
+                                      //           _indexTipo = idx;
+                                      //           _tipoChange();
+                                      //         });
+                                      //       }
+                                      //     },
+                                      // ),
+                                      MyDropdownButton(
+                                        title: "Concepto",
+                                        value: listaTipo[_indexTipo],
+                                        items: listaTipo.map((e) => [e, e.descripcion]).toList(),
+                                        onChanged: (tipo){
+                                          int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
+                                          if(idx != -1){
+                                            setState((){
+                                              _indexTipo = idx;
+                                              _tipoChange();
+                                            });
+                                          }
+                                        },
+                                      )
+                                      );
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: DropdownButton(isExpanded: true, value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null),
+                                    );
+                                  }
+                                ),
+                                Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: <Widget>[
+                                      Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+                                              child: StreamBuilder<List<Banca>>(
+                                                stream: _streamControllerBanca.stream,
+                                                builder: (context, snapshot) {
+                                                  if(snapshot.hasData){
+                                                    // return DropdownButton<Banca>(
+                                                    //   // isExpanded: true,
+                                                    //   value: listaBanca[_indexBanca],
+                                                    //   items: listaBanca.map<DropdownMenuItem<Banca>>((t) => DropdownMenuItem<Banca>(
+                                                    //     value: t,
+                                                    //     child: Text(t.descripcion),
+                                                    //   )).toList(),
+                                                    //   onChanged: (banca){
+                                                    //     int idx = listaBanca.indexWhere((t) => t.descripcion == banca.descripcion);
+                                                    //     if(idx != -1){
+                                                    //       setState((){
+                                                    //          _indexBanca = idx;
+                                                    //          _bancaChange();
+                                                    //       });
+                                                    //     }
+                                                    //   },
+                                                    // );
+                                                    return MyDropdownButton(
+                                                      hint: "Selec. banca",
+                                                      value: _banca,
+                                                      items: snapshot.data.map((e) => [e, e.descripcion]).toList(),
+                                                      onChanged: (value){
+                                                        _bancaChange(value);
+                                                      }
+                                                    );
+                                                  }
+                                                  return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
+                                                }
+                                          ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Stack(
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                                  child: MyTextFormField(
+                                                    controller: _txtBalanceEntidad1,
+                                                    enabled: false,
+                                                    type: MyType.normal,
+                                                    title: "Balance",
+                                                    // decoration: InputDecoration(labelText: "Balance"),
+                                                  ),
+                                                ),
+                                                Visibility(
+                                                  visible: _cargandoBalanceBanca,
+                                                  child: Positioned(
+                                                    top: 25,
+                                                    right: 20,
+                                                    child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+                                              child: StreamBuilder<List<Entidad>>(
+                                                stream: _streamControllerEntidad.stream,
+                                                builder: (context, snapshot) {
+                                                  if(snapshot.hasData){
+                                                    // return DropdownButton<Entidad>(
+                                                    //   // isExpanded: true,
+                                                    //   value: snapshot.data[_indexEntidad],
+                                                    //   items: listaEntidad.map<DropdownMenuItem<Entidad>>((t) => DropdownMenuItem<Entidad>(
+                                                    //     value: t,
+                                                    //     child: Text(t.nombre),
+                                                    //   )).toList(),
+                                                    //   onChanged: (entidad){
+                                                    //     int idx = listaEntidad.indexWhere((t) => t.nombre == entidad.nombre);
+                                                    //     if(idx != -1){
+                                                    //       setState((){
+                                                    //          _indexEntidad = idx;
+                                                    //          _entidadChange();
+                                                    //       });
+                                                    //     }
+                                                    //   },
+                                                    // );
+                                                    return MyDropdownButton(
+                                                      hint: "Selec. banco",
+                                                      value: _entidad,
+                                                      items: snapshot.data.map((e) => [e, e.nombre]).toList(),
+                                                      onChanged: (value){
+                                                        _entidadChange(value);
+                                                      }
+                                                    );
+                                                  }
+                                                  return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
+                                                }
+                                          ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Stack(
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                                  child: MyTextFormField(
+                                                    controller: _txtBalanceEntidad2,
+                                                    enabled: false,
+                                                    type: MyType.normal,
+                                                    title: "Balance",
+                                                    // decoration: InputDecoration(labelText: "Balance"),
+                                                  ),
+                                                ),
+                                                Visibility(
+                                                  visible: _cargandoBalanceEntidad,
+                                                  child: Positioned(
+                                                    top: 25,
+                                                    right: 20,
+                                                    child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                              child: TextFormField(
+                                                controller: _txtDebito,
+                                                enabled: _txtDebitoEnabled,
+                                                decoration: InputDecoration(labelText: "Debito"),
+                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                inputFormatters: [
+                                                  // WhitelistingTextInputFormatter.digitsOnly,
+                                                  // DecimalTextInputFormatter(decimalRange: 2),
+                                                  FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+                                                  // RegExp(r"^(?=.*[1-9])\s*\d*(?:\.\d{1,2})?\s*$")
+                                                ],
+                                                onChanged: (texto){
+                                                  _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                                                  _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                                                },
+                                                validator: (data){
+                                                  if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
+                                                    return "Vacio";
+                                                  else if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
+                                                    return (_txtCredito.text.isEmpty) ? "Vacio" : null;
+                                                  }
+                                                  else
+                                                    return null;
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                              child: TextFormField(
+                                                controller: _txtCredito,
+                                                enabled: _txtCreditoEnabled,
+                                                decoration: InputDecoration(labelText: "Credito"),
+                                                keyboardType: TextInputType.number,
+                                                inputFormatters: [
+                                                  // WhitelistingTextInputFormatter.digitsOnly
+                                                  FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+
+                                                ],
+                                                onChanged: (texto){
+                                                  _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                                                  _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                                                },
+                                                validator: (data){
+                                                  if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
+                                                    return "Vacio";
+                                                  else if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
+                                                    return (_txtDebito.text.isEmpty) ? "Vacio" : null;
+                                                  }
+                                                  else
+                                                    return null;
+                                                },
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                              child: TextFormField(
+                                                controller: _txtBalanceFinalEntidad1,
+                                                enabled: false,
+                                                decoration: InputDecoration(labelText: "Final entidad1"),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                                              child: TextFormField(
+                                                controller: _txtBalanceFinalEntidad2,
+                                                enabled: false,
+                                                decoration: InputDecoration(labelText: "Final entidad2"),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SafeArea(
+                          child: ListView(
+                            children: <Widget>[
+                              Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+                                child: MyResizedContainer(
+                                  small: 1,
+                                  medium: 1,
+                                  child: InkWell(
+                                    onTap: (){
+                                      listaTransaccion.clear();
+                                      _streamControllerTransacciones.add(listaTransaccion);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(10)
+                                      ),
+                                      child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                              StreamBuilder<List>(
+                                stream: _streamControllerTransacciones.stream,
+                                builder: (context, snapshot){
+                                  if(snapshot.hasData){
+                                    return _buildTableVentasPorLoteria(listaTransaccion);
+                                  }
+                                  return Center(child: Text("No hay transacciones registradas", style: TextStyle(fontSize: 18)));
+                                },
+                              )
+                            ],
+                          )
+                        )
+          
+                      ]
+                    )
+                  )
+              ],
+            ),);
+          }
+        )
+      )
+    );
+
     return DefaultTabController(
       length: 2,
 

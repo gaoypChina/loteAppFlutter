@@ -7,7 +7,7 @@ import 'dart:convert';
 
 
 class BalanceService{
-  static Future<List> bancas({BuildContext context, scaffoldKey, DateTime fechaHasta, int idGrupo}) async {
+  static Future<Map<String, dynamic>> bancas({BuildContext context, scaffoldKey, DateTime fechaHasta, List<int> idGrupos}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
@@ -16,7 +16,7 @@ class BalanceService{
     map["idUsuario"] = await Db.idUsuario();
     map["layout"] = "Principal";
     map["servidor"] = await Db.servidor();
-    map["idGrupo"] = idGrupo;
+    map["idGrupos"] = idGrupos;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
@@ -41,7 +41,7 @@ class BalanceService{
       throw Exception("Error BalanceService bancas: ${parsed["mensaje"]}");
     }
 
-    return List.from(parsed["bancas"]);
+    return parsed;
   }
   static Future<Map<String, dynamic>> bancos({BuildContext context, scaffoldKey, DateTime fechaHasta, int idGrupo}) async {
     var map = Map<String, dynamic>();

@@ -270,25 +270,27 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
           print("Pruebasliver: ${boxconstraint.biggest.height}");
           return Align(
             alignment: Alignment.bottomLeft,
-            child: Padding(
-              padding: EdgeInsets.only( bottom: isSmallOrMedium ? 0 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // _actionsScreen(isSmallOrMedium)
-                  // SizedBox(height: boxconstraint.biggest.height < 57 ? 20 : 10,),
-                  _subtitle(isSmallOrMedium),
-                  // Padding(
-                  //   padding: const EdgeInsets.only(right: 25.0, top: 20),
-                  //   child: Divider(color: Colors.grey.shade300, thickness: 0.9, height: 1,),
-                  // ),
-                  (Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
-                  ?
-                  SizedBox.shrink()
-                  :
-                  MyDivider(padding: widget.dividerPadding,)
-                ],
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only( bottom: isSmallOrMedium ? 0 : 0, left: Utils.isSmallOrMedium(boxconstraint.maxWidth) ? 0 : 0.0, top: boxconstraint.biggest.height <= 57 ? 10 : 14,),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // _actionsScreen(isSmallOrMedium)
+                    // SizedBox(height: boxconstraint.biggest.height < 57 ? 20 : 10,),
+                    _subtitle(isSmallOrMedium),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(right: 25.0, top: 20),
+                    //   child: Divider(color: Colors.grey.shade300, thickness: 0.9, height: 1,),
+                    // ),
+                    (Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
+                    ?
+                    SizedBox.shrink()
+                    :
+                    MyDivider(padding: widget.dividerPadding,)
+                  ],
+                ),
               ),
             ),
           );

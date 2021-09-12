@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
-class MyValue{
-  final dynamic value;
+class MyValue<T>{
+  final T value;
   final dynamic child;
   MyValue({@required this.value, @required this.child});
 }
 
-class MyMultiselect extends StatefulWidget {
+class MyMultiselect<T> extends StatefulWidget {
   final dynamic title;
-  final List<MyValue> items;
-  final List<MyValue> initialSelectedItems;
+  final List<MyValue<T>> items;
+  final List<MyValue<T>> initialSelectedItems;
   MyMultiselect({Key key, @required this.title, this.items = const [], this.initialSelectedItems = const []}) : super(key: key);
   @override
-  _MyMultiselectState createState() => _MyMultiselectState();
+  _MyMultiselectState<T> createState() => _MyMultiselectState<T>();
 }
 
-class _MyMultiselectState extends State<MyMultiselect> {
-  List<MyValue> _selectedItems = [];
+class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
+  List<MyValue<T>> _selectedItems = [];
 
   _title(dynamic data){
     print("MyMultiSelect $data");
@@ -26,7 +26,8 @@ class _MyMultiselectState extends State<MyMultiselect> {
       return Text("$data",);
   }
 
-  _onChanged(bool value, data){
+  _onChanged(bool value, MyValue<T> data){
+    print("MyMultiSelect onChanged: ${data.runtimeType}");
     if(value == false){
       if(_selectedItems.length == 0)
         return;
@@ -70,7 +71,9 @@ class _MyMultiselectState extends State<MyMultiselect> {
   }
 
   _back(){
-    Navigator.pop(context, _selectedItems != null ? _selectedItems.map((e) => e.value).toList() : []);
+    var lista = _selectedItems != null ? _selectedItems.map<T>((e) => e.value).toList() : [];
+    print("MyMultiSelect _back runtimeType: ${_selectedItems.runtimeType}");
+    Navigator.pop<List<T>>(context, _selectedItems.map<T>((e) => e.value).toList());
   }
 
 

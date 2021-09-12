@@ -7,6 +7,7 @@ import 'package:loterias/core/models/tipos.dart';
 class Entidad{
    int id;
    String nombre;
+   String descripcion;
    String renglon;
    int status;
    int idTipo;
@@ -16,11 +17,12 @@ class Entidad{
    Tipo tipo;
    double balance;
 
-  Entidad({this.id, this.nombre, this.renglon, this.status, this.idTipo, this.idMoneda, this.created_at, this.moneda, this.tipo, this.balance});
+  Entidad({this.id, this.nombre, this.descripcion, this.renglon, this.status, this.idTipo, this.idMoneda, this.created_at, this.moneda, this.tipo, this.balance});
 
 Entidad.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
         nombre = snapshot['nombre'] ?? '',
+        descripcion = snapshot['descripcion'] ?? '',
         renglon = snapshot['renglon'] ?? '',
         status = Utils.toInt(snapshot['status']) ?? 0,
         idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
@@ -35,6 +37,7 @@ Entidad.fromMap(Map snapshot) :
     return {
       "id": id,
       "nombre": nombre,
+      "descripcion": descripcion,
       "renglon": renglon,
       "status": status,
       "idTipo": idTipo,

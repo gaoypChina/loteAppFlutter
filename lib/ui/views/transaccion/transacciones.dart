@@ -3,8 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/entidades.dart';
+import 'package:loterias/core/models/grupo.dart';
+import 'package:loterias/core/models/tipos.dart';
+import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
+import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
+import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myfilter2.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TransaccionesScreen extends StatefulWidget {
@@ -13,28 +28,77 @@ class TransaccionesScreen extends StatefulWidget {
 }
 
 class _TransaccionesScreenState extends State<TransaccionesScreen> {
+  GlobalKey<MyFilter2State> _myFilterKey = GlobalKey();
   final _scaffoldkey = GlobalKey<ScaffoldState>();
   bool _cargando = false;
   StreamController<List> _streamControllerTransacciones;
-  List listaTransaccion = List();
-  DateTime _fecha = DateTime.now();
+  List listaTransaccion =[];
+  MyDate _fecha;
+  List<MyFilterSubData2> _selectedFilter = [];
+  List<MyFilterData2> listaFiltros = [];
+  List<Tipo> listaEntidad = [];
+  List<Grupo> listaGrupo = [];
+  List<Banca> listaBanca = [];
+  List<Usuario> listaUsuario = [];
+  List<Tipo> listaTipo = [];
+  Entidad _banco;
+  Banca _banca;
+  Usuario _usuario;
+  Tipo _tipo;
+  List<Entidad> listaBanco = [];
+  Entidad _entidad;
+  int _idGrupoDeEsteUsuario;
+  DateTimeRange _date;
+  
 
   @override
   void initState() {
     // TODO: implement initState
     _streamControllerTransacciones = BehaviorSubject();
-    _transacciones();
+    _date = MyDate.getTodayDateRange();
+    _init();
     super.initState();
   }
 
-  _transacciones() async {
+  _init() async {
     try{
       setState(() => _cargando = true);
-      var datos = await TransaccionService.transacciones(scaffoldKey: _scaffoldkey);
-      listaTransaccion = List.from(datos["transacciones"]);
+      var parsed = await TransaccionService.transacciones(scaffoldKey: _scaffoldkey);
+      listaTransaccion = List.from(parsed["transacciones"]);
+      listaEntidad = parsed["entidades"] != null ? parsed["entidades"].map<Tipo>((e) => Tipo.fromMap(e)).toList() : [];
+      listaBanca = parsed["bancas"] != null ? parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList() : [];
+      listaBanco = parsed["bancos"] != null ? parsed["bancos"].map<Entidad>((e) => Entidad.fromMap(e)).toList() : [];
+      listaUsuario = parsed["usuarios"] != null ? parsed["usuarios"].map<Usuario>((e) => Usuario.fromMap(e)).toList() : [];
+      listaTipo = parsed["tipos"] != null ? parsed["tipos"].map<Tipo>((e) => Tipo.fromMap(e)).toList() : [];
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
-      print("transaccionesscreen transacciones: ${datos['transacciones']}");
+      print("transaccionesscreen transacciones: ${parsed['entidades']}");
+
+      listaEntidad.forEach((element) {print("TransaccionesScreen _init: ${element.descripcion}");});
+
+      if(listaEntidad.length > 0){
+        listaFiltros.add(MyFilterData2(
+          child: "Entidades", 
+          data: listaEntidad.map((e){
+            List<MyFilterSubData2> listaTercerSubData;
+            if(e.descripcion == "Banca")
+              listaTercerSubData = listaBanca.map((element) => MyFilterSubData2(child: element.descripcion, value: element, type: "Entidades")).toList();
+            else if(e.descripcion == "Banco")
+              listaTercerSubData = listaBanco.map((element) => MyFilterSubData2(child: element.nombre, value: element, type: "Entidades")).toList();
+
+            return MyFilterSubData2(child: e.descripcion, value: e, data: listaTercerSubData);
+          }).toList()
+        ));
+      }
+
+      if(listaUsuario.length > 0){
+        listaFiltros.add(MyFilterData2(child: "Usuario", data: listaUsuario.map((e) => MyFilterSubData2(child: e.usuario, value: e)).toList()));
+      }
+      if(listaTipo.length > 0){
+        listaFiltros.add(MyFilterData2(child: "Concepto", data: listaTipo.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
+      }
+
+      
       setState(() => _cargando = false);
     }on Exception catch(e){
       setState(() => _cargando = false);
@@ -44,16 +108,53 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   _buscarTransacciones() async {
     try{
       setState(() => _cargando = true);
-      var fechaHasta = new DateTime(_fecha.year, _fecha.month, _fecha.day, 23, 55);
-      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, idUsuario: await Db.idUsuario(), fechaDesde: _fecha, fechaHasta: fechaHasta);
+      // var fechaHasta = new DateTime(_fecha.year, _fecha.month, _fecha.day, 23, 55);
+      _streamControllerTransacciones.add(null);
+      var entidad = _banca != null ? listaEntidad.firstWhere((element) => element.descripcion == "Banca", orElse: () => null) : _banco != null ? listaEntidad.firstWhere((element) => element.descripcion == "Banco", orElse: () => null) : null;
+      var idEntidad = _banca != null ? _banca.id : _banco != null ? _banco.id : null;
+      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, fechaDesde: _date.start, fechaHasta: _date.end, idUsuario: _usuario != null ? _usuario.id : null, idTipoEntidad: entidad != null ? entidad.id : null, idEntidad: idEntidad, idTipo: _tipo != null ? _tipo.id : null );
       listaTransaccion = List.from(datos["transacciones"]);
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
       print("transaccionesscreen transacciones: ${datos['transacciones']}");
       setState(() => _cargando = false);
     }on Exception catch(e){
+      _streamControllerTransacciones.add([]);
       setState(() => _cargando = false);
     }
+  }
+
+  _goToAddTransacciones() async {
+    var data2 = await Navigator.pushNamed(context, "/addTransacciones");
+    if(data2 == null)
+      return;
+
+    _addDataToList(data2);
+  }
+
+   _addDataToList(List data){
+     if(data == null)
+      return;
+
+    if(data.length == 0)
+      return;
+
+
+    print("TransaccionesScreen _goToAddTransacciones validaciones length: ${data.length}");
+    print("TransaccionesScreen _goToAddTransacciones validaciones data: ${data}");
+    for (var item in data) {
+      int idx = listaTransaccion.indexWhere((element) => element["id"] == item["id"]);
+      print("TransaccionesScreen _goToAddTransacciones index: $idx ${item["id"]}");
+      if(idx != -1)
+        listaTransaccion[idx] = item;
+      else
+        listaTransaccion.add(item);
+    }
+
+    // print("TransaccionesScreen _goToAddTransacciones validaciones final: ${listaTransaccion.length}");
+
+
+    _streamControllerTransacciones.add(listaTransaccion);
   }
 
    Widget _buildTableTransaccion(List map){
@@ -319,8 +420,249 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   
  }
 
+ _dateChanged(date){
+    setState((){
+      _date = date;
+      _fecha = MyDate.dateRangeToMyDate(date);
+      _buscarTransacciones();
+    });
+  }
+
+  _showDateTimeRangeCalendar(){
+    _back(){
+      Navigator.pop(context);
+    }
+    showMyModalBottomSheet(
+      context: context, 
+      myBottomSheet2: MyBottomSheet2(
+        child: MyDateRangeDialog(
+          date: _date,
+          onCancel: _back,
+          onOk: (date){
+            _dateChanged(date);
+            _back();
+          },
+        ), 
+      height: 350
+      )
+    );
+  }
+
+ _myFilterWidget(bool isSmallOrMedium){
+    return MyFilter2(
+            key: _myFilterKey,
+            xlarge: 1.1,
+            large: 1.1,
+            medium: 1,
+            small: 1,
+            leading: 
+            !isSmallOrMedium
+            ?
+            null
+            :
+            _selectedFilter.length == 0
+            ?
+            SizedBox.shrink()
+            :
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                  //   var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
+
+                  // if(date != null)
+                  //   setState(() {
+                  //     _date = DateTimeRange(
+                  //       start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+                  //       end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+                  //     );
+                  //     _buscarTransacciones();
+                  //   });
+
+                    _showDateTimeRangeCalendar();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        // border: Border.all(color: Colors.blue[900]),
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
+                    ),
+                  ),
+                ),
+                Container(height: 34, width: 1, color: Colors.grey),
+              ],
+            )
+            ,
+            widgetWhenNoFilter: Expanded(
+              child: MyFilter(
+
+                filterTitle: '',
+                filterLeading: SizedBox.shrink(),
+                leading: SizedBox.shrink(),
+                value: _date,
+                paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+                onChanged: _dateChanged,
+                showListNormalCortaLarga: 3,
+              ),
+            ),
+            onChanged: (data){
+              
+              if(data.length == 0){
+                setState(() {
+                  _selectedFilter = [];
+                  _banca = null;
+                  _banco = null;
+                  _usuario = null;
+                  _tipo = null;
+                  _buscarTransacciones();
+                });
+                return;
+              }
+
+              _banco = null;
+              _banca = null;
+              setState(() {
+                _selectedFilter = data;
+                print("TransaccionesScreen selectedFilterLength: ${_selectedFilter.length}");
+                // _selectedFilter.forEach((element) {print("");})
+                for (MyFilterSubData2 myFilterSubData2 in data) {
+                  print("HistoricoVentas Filter2 for subData: ${myFilterSubData2.type} value: ${myFilterSubData2.value}");
+                  if(myFilterSubData2.value is Banca){
+                    _banca = myFilterSubData2.value;
+                    _banco = null;
+                  }
+                  if(myFilterSubData2.value is Grupo){
+                    _banco = myFilterSubData2.value;
+                    _banca = null;
+                  }
+                  if(myFilterSubData2.value is Usuario)
+                    _usuario = myFilterSubData2.value;
+                  if(myFilterSubData2.value is Tipo)
+                    _tipo = myFilterSubData2.value;
+                }
+                _buscarTransacciones();
+              });
+              
+            },
+            onDelete: (data){
+              setState(() {
+                if(data.value is Banca)
+                  _banca = null;
+                if(data.value is Grupo)
+                  _banco = null;
+                if(data.value is Usuario)
+                  _usuario = null;
+                if(data.value is Tipo)
+                  _tipo = null;
+                for (var element in data.data) {
+                  if(element.data != null){
+                    for (var item in element.data) {
+                      _selectedFilter.remove(item);
+                    }
+                  }
+                  _selectedFilter.remove(element);
+                }
+                _buscarTransacciones();
+              });
+            },
+            onDeleteAll: (values){
+              setState((){
+                // _selectedFilter = [];
+                  print("TransaccionesScreeen nofor delete filter: ${values.length}");
+                for (var item in values) {
+                  print("TransaccionesScreeen for delete filter: ${item.child}");
+                  _selectedFilter.removeWhere((element) => element.type == item.child);
+                  if(item.child is Banca)
+                  _banca = null;
+                  if(item.child is Grupo)
+                    _banco = null;
+                  if(item.child is Usuario)
+                    _usuario = null;
+                  if(item.child is Tipo)
+                    _tipo = null;
+                }
+                _buscarTransacciones();
+              });
+            },
+            data: listaFiltros,
+            values: _selectedFilter
+          );
+  
+  }
+
+  
+ _subtitle(bool isSmallOrMedium){
+    return
+    isSmallOrMedium
+    ?
+    MyCollapseChanged(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: _myFilterWidget(isSmallOrMedium),
+      )
+      
+        
+      ,
+    )
+    :
+    "Filtre y agrupe todas las ventas por fecha.";
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _goToAddTransacciones,) : null,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Transacciones",
+          subtitle: _subtitle(isSmallOrMedium),
+          expandedHeight: isSmallOrMedium ? 105 : 85,
+          actions: [
+            MySliverButton(
+              title: "", 
+              iconWhenSmallScreen: Icons.date_range,
+              showOnlyOnSmall: true,
+              onTap: () {
+                _showDateTimeRangeCalendar();
+              },
+            ),
+            MySliverButton(
+              title: "title", 
+              iconWhenSmallScreen: Icons.filter_alt_rounded,
+              showOnlyOnSmall: true,
+              onTap: () async {
+                if(isSmallOrMedium){
+                  _myFilterKey.currentState.openFilter(context);
+                }
+              }
+            ),
+          ],
+        ), 
+        sliver: StreamBuilder<List>(
+          stream: _streamControllerTransacciones.stream,
+          builder: (context, snapshot) {
+            if(!snapshot.hasData)
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+            if(snapshot.hasData && snapshot.data.length == 0)
+              return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay transacciones realizadas", titleButton: "No hay transacciones", icon: Icons.transfer_within_a_station,)));
+
+            return SliverFillRemaining(child: _buildTableTransaccion(snapshot.data),);
+          }
+        )
+      )
+    );
     return Scaffold(
       key: _scaffoldkey,
       appBar: AppBar(
@@ -364,7 +706,8 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: RaisedButton(
-                  child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+                  // child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+                  child: Text(""), 
                   color: Colors.transparent, 
                   onPressed: () async {
                     var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));

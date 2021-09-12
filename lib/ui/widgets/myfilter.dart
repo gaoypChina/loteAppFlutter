@@ -38,7 +38,8 @@ class _MyFilterState extends State<MyFilter> {
 
     _fecha = widget.value;
     _seleccionarFechaSencillaSiPertenece();
-    _fillDataList();
+    Future.delayed(Duration.zero, _fillDataList);
+    // _fillDataList();
   }
 
   _fillDataList(){

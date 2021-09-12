@@ -119,6 +119,7 @@ String _montoPrueba = '0';
   bool _tienePermisoVerVentas = false;
   bool _tienePermisoVerHistoricoVentas = false;
   bool _tienePermisoVerListaDeBalancesDeBancass = false;
+  bool _tienePermisoVerListaDeBalancesDeBancos = false;
   bool _tienePermisoVerReporteJugadas = false;
   bool _tienePermisoTransacciones = false;
   bool _tienePermisoVerAjustes = false;
@@ -130,6 +131,9 @@ String _montoPrueba = '0';
   bool _tienePermisoManejarManejarGrupos = false;
   bool _tienePermisoVerIniciosDeSesion = false;
   bool _tienePermisoVerVentasPorFecha = false;
+  bool _tienePermisoManejarHorariosDeLoterias = false;
+  bool _tienePermisoManejarMonedas = false;
+  bool _tienePermisoManejarEntidadesContables = false;
   static bool _tienePermisoAdministrador = false;
   static bool _tienePermisoProgramador = false;
   StreamController<bool> _streamControllerBanca;
@@ -649,6 +653,7 @@ Future<bool> _requestPermisionChannel() async {
     bool permisoVerHistoricoVentas = await Db.existePermiso("Ver historico ventas");
     bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
     bool permisoVerListaDeBalancesDeBancas = await Db.existePermiso("Ver lista de balances de bancas");
+    bool permisoVerListaDeBalancesDeBancos = await Db.existePermiso("Ver lista de balances de bancos");
     bool permisoTransacciones = await Db.existePermiso("Manejar transacciones");
     bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
     bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
@@ -663,6 +668,9 @@ Future<bool> _requestPermisionChannel() async {
     bool tienePermisoManejarManejarGrupos = await Db.existePermiso("Manejar grupos");
     bool tienePermisoVerVentasPorFecha = await Db.existePermiso("Ver ventas por fecha");
     bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
+    bool tienePermisoManejarHorariosDeLoterias = await Db.existePermiso("Manejar horarios de loterias");
+    bool tienePermisoManejarMonedas = await Db.existePermiso("Manejar monedas");
+    bool tienePermisoManejarEntidadesContables = await Db.existePermiso("Manejar entidades contables");
     print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
     print("_getPermisos tiene permiso permisoAccesoAlSistema: $permisoAccesoAlSistema");
     if(permisoAccesoAlSistema == false){
@@ -685,6 +693,7 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
       _tienePermisoTransacciones = permisoTransacciones;
       _tienePermisoVerListaDeBalancesDeBancass = permisoVerListaDeBalancesDeBancas;
+      _tienePermisoVerListaDeBalancesDeBancos = permisoVerListaDeBalancesDeBancos;
       _tienePermisoVerReporteJugadas = permisoVerReporteJugadas;
       _tienePermisoVerAjustes = permisoVerAjustes;
 
@@ -697,6 +706,10 @@ Future<bool> _requestPermisionChannel() async {
       _tienePermisoManejarManejarGrupos = tienePermisoManejarManejarGrupos;
 
       _tienePermisoVerVentasPorFecha = tienePermisoVerVentasPorFecha;
+
+      _tienePermisoManejarHorariosDeLoterias = tienePermisoManejarHorariosDeLoterias;
+      _tienePermisoManejarMonedas = tienePermisoManejarMonedas;
+      _tienePermisoManejarEntidadesContables = tienePermisoManejarEntidadesContables;
       // initSocketNoticacionInForeground();
     });
   }
@@ -3070,54 +3083,76 @@ AppBar _appBar(bool screenHeightIsSmall){
                         ],
                       ),
                     ),
-                    ListTile(
-                      title: Text('Horarios loterias'),
-                      leading: Icon(Icons.account_balance_wallet),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/horariosloterias");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                    ListTile(
-                      title: Text('Monedas'),
-                      leading: Icon(Icons.account_balance_wallet),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/monedas");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                    ListTile(
-                      title: Text('Entidades'),
-                      leading: Icon(Icons.account_balance_wallet),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/entidades");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
-                    ),
-                    ListTile(
-                      title: Text('Balance bancos'),
-                      leading: Icon(Icons.account_balance_wallet),
-                      dense: true,
-                      onTap: (){
-                        Navigator.of(context).pushNamed("/balancebancos");
-                        _scaffoldKey.currentState.openEndDrawer();
-                      },
+                    Visibility(
+                      visible: _tienePermisoVerListaDeBalancesDeBancos || _tienePermisoVerListaDeBalancesDeBancass,
+                      child: ExpansionTile(
+                        leading: Icon(Icons.six_ft_apart),
+                        title: Text("Balances"),
+                        children: [
+                          Visibility(
+                            visible: _tienePermisoVerListaDeBalancesDeBancos,
+                            child: ListTile(
+                              title: Text('Balance bancos'),
+                              leading: Icon(Icons.account_balance_wallet_outlined),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/balancebancos");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                          Visibility(
+                            visible: _tienePermisoVerListaDeBalancesDeBancass,
+                            child: ListTile(
+                              title: Text('Balance bancas'),
+                              leading: Icon(Icons.account_balance_wallet),
+                              dense: true,
+                              onTap: (){
+                                Navigator.of(context).pushNamed("/balanceBancas");
+                                _scaffoldKey.currentState.openEndDrawer();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Visibility(
-                      visible: _tienePermisoVerListaDeBalancesDeBancass,
+                      visible: _tienePermisoManejarHorariosDeLoterias,
                       child: ListTile(
-                        title: Text('Balance bancas'),
-                        leading: Icon(Icons.account_balance_wallet),
+                        title: Text('Horarios loterias'),
+                        leading: Icon(Icons.timer),
                         dense: true,
                         onTap: (){
-                          Navigator.of(context).pushNamed("/balanceBancas");
+                          Navigator.of(context).pushNamed("/horariosloterias");
                           _scaffoldKey.currentState.openEndDrawer();
                         },
                       ),
                     ),
+                    Visibility(
+                      visible: _tienePermisoManejarMonedas,
+                      child: ListTile(
+                        title: Text('Monedas'),
+                        leading: Icon(Icons.attach_money_rounded),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/monedas");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
+                      visible: _tienePermisoManejarEntidadesContables,
+                      child: ListTile(
+                        title: Text('Entidades'),
+                        leading: Icon(Icons.apartment_outlined),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/entidades");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    
                     
                     Visibility(
                       visible: _tienePermisoManejarBancas,
