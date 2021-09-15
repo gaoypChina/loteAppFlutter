@@ -11,16 +11,24 @@ import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/myscrollbar.dart';
+import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
+
+import 'add.dart';
 
 class TransaccionesScreen extends StatefulWidget {
   @override
@@ -28,7 +36,9 @@ class TransaccionesScreen extends StatefulWidget {
 }
 
 class _TransaccionesScreenState extends State<TransaccionesScreen> {
+  var _txtSearch = TextEditingController();
   GlobalKey<MyFilter2State> _myFilterKey = GlobalKey();
+  GlobalKey<AddTransaccionesScreenState> _addTransaccionScreenKey = GlobalKey();
   final _scaffoldkey = GlobalKey<ScaffoldState>();
   bool _cargando = false;
   StreamController<List> _streamControllerTransacciones;
@@ -124,12 +134,25 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     }
   }
 
-  _goToAddTransacciones() async {
-    var data2 = await Navigator.pushNamed(context, "/addTransacciones");
-    if(data2 == null)
-      return;
+  _goToAddTransacciones(bool isSmallOrMedium) async {
+    if(isSmallOrMedium){
+      var data2 = await Navigator.pushNamed(context, "/addTransacciones");
+      if(data2 == null)
+        return;
 
-    _addDataToList(data2);
+      _addDataToList(data2);
+    }else{
+     showDialog(
+       context: context, 
+       builder: (context){
+         return  MyAlertDialog(
+          title: "Guardar", 
+          content: SingleChildScrollView(child: AddTransaccionesScreen(key: _addTransaccionScreenKey, isLarge: true,)), 
+          // okFunction: (){_addTransaccionScreenKey.currentState.guardar();}
+        );
+       }
+      );
+    }
   }
 
    _addDataToList(List data){
@@ -140,25 +163,84 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
       return;
 
 
-    print("TransaccionesScreen _goToAddTransacciones validaciones length: ${data.length}");
-    print("TransaccionesScreen _goToAddTransacciones validaciones data: ${data}");
+    print("TransaccionesScreen _addDataToList validaciones length: ${data.length}");
+    print("TransaccionesScreen _addDataToList validaciones data: ${data}");
     for (var item in data) {
       int idx = listaTransaccion.indexWhere((element) => element["id"] == item["id"]);
-      print("TransaccionesScreen _goToAddTransacciones index: $idx ${item["id"]}");
+      print("TransaccionesScreen _addDataToList index: $idx ${item["id"]}");
       if(idx != -1)
         listaTransaccion[idx] = item;
       else
         listaTransaccion.add(item);
     }
 
-    // print("TransaccionesScreen _goToAddTransacciones validaciones final: ${listaTransaccion.length}");
+    // print("TransaccionesScreen _addDataToList validaciones final: ${listaTransaccion.length}");
 
 
     _streamControllerTransacciones.add(listaTransaccion);
   }
 
-   Widget _buildTableTransaccion(List map){
+  _search(String data){
+    print("SucursalesSCreen _search: $data");
+    if(data.isEmpty)
+      _streamControllerTransacciones.add(listaTransaccion);
+    else
+      {
+        var element = listaTransaccion.where((element) => element["entidad1"]["descripcion"].toLowerCase().indexOf(data) != -1 || element["entidad2"]["nombre"].toLowerCase().indexOf(data) != -1).toList();
+        // print("RolesScreen _serach length: ${element.length}");
+        _streamControllerTransacciones.add(element);
+      }
+  }
+
+  _myWebFilterScreen(bool isSmallOrMedium){
+    return 
+    isSmallOrMedium
+    ?
+    SizedBox.shrink()
+    :
+    Padding(
+      padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          // _mydropdown(),
+          // MyDropdown(
+          //   large: 5.8,
+          //   title: "Filtrar",
+          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+          //   onTap: (value){
+          //     _opcionChanged(value);
+          //   },
+          // ),
+          // MyDropdown(
+          //   large: 5.8,
+          //   title: "Grupos",
+          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+          //   onTap: (value){
+          //     _opcionChanged(value);
+          //   },
+          // ),
+         _myFilterWidget(isSmallOrMedium),
+          Padding(
+            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          ),
+          MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
+        ],
+      ),
+    );
+  }
+
+
+
+   Widget _buildTableTransaccion(List map, bool isSmallOrMedium){
    var tam = (map != null) ? map.length : 0;
+   if(map == null)
+    return SizedBox();
+
    List<TableRow> rows;
    if(tam == 0){
      rows = <TableRow>[];
@@ -394,7 +476,32 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
         
    }
 
-   return Padding(
+
+
+   return 
+   isSmallOrMedium == false
+   ?
+   MyTable(
+    //  isScrolled: false,
+     columns: ["Fecha", "Entidad1", "Entidad2", "saldo inicial entidad #1", "saldo inicial entidad #2", "Tipo", "Monto", "saldo final entidad #2", "saldo final entidad #2", "notas"], 
+     rows: map.map((e) => [
+        e,
+        e["created_at"] != null ? MyDate.datesToString(MyDate.toDateTime(e["created_at"]), MyDate.toDateTime(e["created_at"])) : '',
+        // e["tipo"]["descripcion"],
+        e["entidad1"]["descripcion"],
+        e["entidad2"]["nombre"],
+        "${Utils.toCurrency(e["entidad1_saldo_inicial"])}",
+        "${Utils.toCurrency(e["entidad2_saldo_inicial"])}",
+        "${(e["tipo"]["descripcion"] != 'Ajuste') ?e["tipo"]["descripcion"].toString().substring(0, e["tipo"]["descripcion"].toString().length > 10 ? 10 : e["tipo"]["descripcion"].toString().length) : e["debito"] != 0 ? e["tipo"]["descripcion"] + '(Debito)' : e["tipo"]["descripcion"] + '(Credito)'}",
+        "${Utils.toDouble(e["debito"].toString()) > 0 ? Utils.toCurrency(e["debito"]) : Utils.toCurrency(e["credito"])}",
+        "${Utils.toCurrency(e["entidad1_saldo_final"])}",
+        "${Utils.toCurrency(e["entidad2_saldo_final"])}",
+        "${e["nota"]}",
+       ]
+      ).toList()
+    )
+   :
+   Padding(
           padding: const EdgeInsets.all(8.0),
           child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -451,8 +558,8 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
  _myFilterWidget(bool isSmallOrMedium){
     return MyFilter2(
             key: _myFilterKey,
-            xlarge: 1.1,
-            large: 1.1,
+            xlarge: 1.65,
+            large: 2,
             medium: 1,
             small: 1,
             leading: 
@@ -519,6 +626,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                   _banco = null;
                   _usuario = null;
                   _tipo = null;
+                  _entidad = null;
                   _buscarTransacciones();
                 });
                 return;
@@ -536,7 +644,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                     _banca = myFilterSubData2.value;
                     _banco = null;
                   }
-                  if(myFilterSubData2.value is Grupo){
+                  if(myFilterSubData2.value is Entidad){
                     _banco = myFilterSubData2.value;
                     _banca = null;
                   }
@@ -550,15 +658,17 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
               
             },
             onDelete: (data){
+              print("ONDelete transaccionesscreen: ${data.value}");
               setState(() {
-                if(data.value is Banca)
-                  _banca = null;
-                if(data.value is Grupo)
-                  _banco = null;
-                if(data.value is Usuario)
+                
+                if(data.child == "Usuario")
                   _usuario = null;
-                if(data.value is Tipo)
+                if(data.child == "Tipo")
                   _tipo = null;
+                if(data.child == "Entidades"){
+                  _banca = null;
+                  _banco = null;
+                }
                 for (var element in data.data) {
                   if(element.data != null){
                     for (var item in element.data) {
@@ -623,7 +733,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
-      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _goToAddTransacciones,) : null,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: (){_goToAddTransacciones(isSmallOrMedium);},) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Transacciones",
@@ -648,17 +758,31 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 }
               }
             ),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: (){_goToAddTransacciones(isSmallOrMedium);}, showOnlyOnLarge: true,),
+
           ],
         ), 
         sliver: StreamBuilder<List>(
           stream: _streamControllerTransacciones.stream,
           builder: (context, snapshot) {
-            if(!snapshot.hasData)
+            if(!snapshot.hasData && isSmallOrMedium)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
-            if(snapshot.hasData && snapshot.data.length == 0)
+            if(snapshot.hasData && snapshot.data.length == 0 && isSmallOrMedium)
               return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay transacciones realizadas", titleButton: "No hay transacciones", icon: Icons.transfer_within_a_station,)));
 
-            return SliverFillRemaining(child: _buildTableTransaccion(snapshot.data),);
+            return SliverFillRemaining(child: MyScrollbar(child: Column(
+              children: [
+
+                _myWebFilterScreen(isSmallOrMedium),
+                MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25),),
+                snapshot.hasData && snapshot.data.length == 0
+                ?
+                Center(child:  MyEmpty(title: "No hay transacciones realizadas", titleButton: "No hay transacciones", icon: Icons.transfer_within_a_station),)
+                :
+                _buildTableTransaccion(snapshot.data, isSmallOrMedium),
+                SizedBox(height: 45,)
+              ],
+            )),);
           }
         )
       )
@@ -720,9 +844,9 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 stream: _streamControllerTransacciones.stream,
                 builder: (context, snapshot){
                   if(snapshot.hasData){
-                    return  _buildTableTransaccion(snapshot.data);
+                    return  _buildTableTransaccion(snapshot.data, false);
                   }
-                  return _buildTableTransaccion(List());
+                  return _buildTableTransaccion(List(), false);
                 },
               ),
               

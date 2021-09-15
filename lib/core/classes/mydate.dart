@@ -354,4 +354,9 @@ class MyDate {
     );
   }
 
+  static toDateTime(dynamic fecha){
+    var datetime = DateTime.tryParse(fecha);
+    return datetime != null ? datetime : DateTime.now();
+  }
+
 }

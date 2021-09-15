@@ -1,11 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/ui/widgets/myscrollbar.dart';
 
 class MyTableCell{
   final value;
   final child;
   final color;
   MyTableCell({@required this.value, @required this.child, @required this.color});
+}
+
+class MyTableType {
+  const MyTableType._(this.index);
+
+  /// The encoded integer value of this font weight.
+  final int index;
+
+  /// Thin, the least thick
+  static const MyTableType normal = MyTableType._(0);
+
+  /// Extra-light
+  static const MyTableType custom = MyTableType._(1);
+
+  /// A list of all the font weights.
+  static const List<MyTableType> values = <MyTableType>[
+    normal, custom
+  ];
 }
 
 class MyTable extends StatefulWidget {
@@ -24,7 +43,8 @@ class MyTable extends StatefulWidget {
   final bool isScrolled;
   final bool putDeleteIconOnlyOnTheFirstRow;
   final bool showColorWhenImpar;
-  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom}) : super(key: key);
+  final MyTableType type;
+  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal}) : super(key: key);
   @override
   _MyTableState createState() => _MyTableState();
 }
@@ -58,7 +78,7 @@ class _MyTableState extends State<MyTable> {
       var firstDataToReturnOnChanged = row.first;
 
       for (var i2 = 1; i2 < row.length; i2++) {
-        cells.add(DataCell((row[i2] is Widget) ? row[i2] : Text(row[i2],)));
+        cells.add(DataCell((row[i2] is Widget) ? row[i2] :  row[i2] is MyTableCell ? Container(color: row[i2].color, child: row[i2].child, constraints: BoxConstraints.expand()) : Text(row[i2],)));
         //   DataRow dataRow = DataRow(
         //   onSelectChanged: (data){_onSelectChanged(firstDataToReturnOnChanged);},
         //   cells: row.map((e) => DataCell((e is Widget) ? e : Text(e, style: TextStyle(fontFamily: "GoogleSans"), textAlign: TextAlign.center,))).toList() 
@@ -209,45 +229,44 @@ class _MyTableState extends State<MyTable> {
     return wrap;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // return SingleChildScrollView(
-    //   scrollDirection: Axis.horizontal,
-    //   child: Column(
-    //     children: [
-    //       DataTable(
-    //         showCheckboxColumn: false,
-    //         columns: _initColumn(),
-    //         rows: _init(),
-    //       ),
-    //       _customTotals(),
-    //     ],
-    //   ),
-    // );
+  _normalTable(){
     return 
-    (widget.isScrolled == false)
+    widget.isScrolled
     ?
-    //  Row(
-    //    children: [
-    //      Expanded(
-    //        child: DataTable(
-    //                   showCheckboxColumn: false,
-    //                   columns: _initColumn(),
-    //                   rows: _init(),
-    //                 ),
-    //      ),
-    //    ],
-    //  )
-    DataTable(
-      showCheckboxColumn: false,
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide.none, bottom: BorderSide.none) 
-      ),
-      columns: _initColumn(),
-      rows: _init(),
+    Column(
+      children: [
+        MyScrollbar(
+          direction: Axis.horizontal,
+          child: DataTable(
+            showCheckboxColumn: false,
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide.none, bottom: BorderSide.none) 
+            ),
+            columns: _initColumn(),
+            rows: _init(),
+          )
+        ),
+        _customTotals()
+      ],
     )
     :
-    LayoutBuilder(
+    Column(
+      children: [
+        DataTable(
+          showCheckboxColumn: false,
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide.none, bottom: BorderSide.none) 
+          ),
+          columns: _initColumn(),
+          rows: _init(),
+        ),
+        _customTotals()
+      ],
+    );
+  }
+
+  _customTable(){
+    return  LayoutBuilder(
       builder: (context, boxconstraint) {
         return ListView.builder(
           shrinkWrap: true,
@@ -288,6 +307,64 @@ class _MyTableState extends State<MyTable> {
         );
       }
     );
+    
+  }
+
+  _screen(){
+    // if(widget.isScrolled){
+      return 
+      widget.type == MyTableType.normal
+      ?
+      _normalTable()
+      :
+      _customTable()
+      ;
+    // }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // return SingleChildScrollView(
+    //   scrollDirection: Axis.horizontal,
+    //   child: Column(
+    //     children: [
+    //       DataTable(
+    //         showCheckboxColumn: false,
+    //         columns: _initColumn(),
+    //         rows: _init(),
+    //       ),
+    //       _customTotals(),
+    //     ],
+    //   ),
+    // );
+    return _screen();
+    return 
+    (widget.isScrolled == true)
+    ?
+    //  Row(
+    //    children: [
+    //      Expanded(
+    //        child: DataTable(
+    //                   showCheckboxColumn: false,
+    //                   columns: _initColumn(),
+    //                   rows: _init(),
+    //                 ),
+    //      ),
+    //    ],
+    //  )
+    SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        showCheckboxColumn: false,
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide.none, bottom: BorderSide.none) 
+        ),
+        columns: _initColumn(),
+        rows: _init(),
+      ),
+    )
+    :
+   
     Column(
       children: [
         // (widget.isScrolled)

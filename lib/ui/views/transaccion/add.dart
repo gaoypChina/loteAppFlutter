@@ -17,11 +17,13 @@ import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AddTransaccionesScreen extends StatefulWidget {
+  bool isLarge;
+  AddTransaccionesScreen({Key key, this.isLarge = false}) : super(key: key);
   @override
-  _AddTransaccionesScreenState createState() => _AddTransaccionesScreenState();
+  AddTransaccionesScreenState createState() => AddTransaccionesScreenState();
 }
 
-class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with TickerProviderStateMixin {
+class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with TickerProviderStateMixin {
   var _tabController;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
@@ -422,7 +424,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
     );
   }
 
-  _guardar() async {
+  guardar() async {
     if(listaTransaccion.length <= 0){
       Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Error: Debe registrar transacciones");
       return;
@@ -431,11 +433,11 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
     try{
       setState(() => _cargando = true);
       var datos = await TransaccionService.guardar(scaffoldKey: _scaffoldKey, idUsuario: await Db.idUsuario(), transacciones: listaTransaccion);
-      print("AddTransacciones _guardar datos: ${datos}");
+      print("AddTransacciones guardar datos: ${datos}");
       print("");
       print("");
       print("");
-      // print("AddTransacciones _guardar datos grupos: ${datos["grupo"][0]["transacciones"]}");
+      // print("AddTransacciones guardar datos grupos: ${datos["grupo"][0]["transacciones"]}");
       listaTransaccion.clear();
       // Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Se ha guardado correctamente");
       Navigator.pop(context, datos != null ? datos["grupo"] != null ? datos["grupo"]["transacciones"] : null : null);
@@ -445,48 +447,12 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
-    return myScaffold(
-      key: _scaffoldKey,
-      context: context, 
-      cargando: false, 
-      cargandoNotify: null,
-      floatingActionButton: isSmallOrMedium ? FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor, 
-        child: Icon(Icons.add), onPressed: (){
-          if(_formKey.currentState.validate()){
-            _addTransaccion();
-            // print("save: ${map.toString()}");
-          }
-        },
-      ) : null,
-      isSliverAppBar: true,
-      sliverBody: MySliver(
-        sliverAppBar: MySliverAppBar(
-          title: "Agregar transacciones",
-          actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar)
-          ],
-        ), 
-        sliver: FutureBuilder<void>(
-          future: _future,
-          builder: (context, snapshot) {
-            if(snapshot.connectionState != ConnectionState.done)
-              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
-
-            return SliverFillRemaining(child: Column(
-              children: [
-                  MyTabBar(controller: _tabController, tabs: ["Agregar", "Todas"], isScrollable: false,),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        AbsorbPointer(
+  _formScreen(bool isSmallOrMedium){
+    return AbsorbPointer(
                           absorbing: _cargando || _cargandoBalanceBanca || _cargandoBalanceEntidad,
                           child: SafeArea(
                             child: ListView(
+                              shrinkWrap: true,
                               children: <Widget>[
                                 Padding(
                                   padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
@@ -810,9 +776,13 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
                               ],
                             ),
                           ),
-                        ),
-                        SafeArea(
+                        );
+  }
+
+  _dataScreen(bool isSmallOrMedium){
+    return SafeArea(
                           child: ListView(
+                            shrinkWrap: true,
                             children: <Widget>[
                               Center(
                               child: Padding(
@@ -848,13 +818,76 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
                               )
                             ],
                           )
-                        )
+                        );
           
+  }
+
+  screen(bool isSmallOrMedium){
+    
+    return 
+    widget.isLarge
+    ?
+    Wrap(
+      children: [
+        _formScreen(isSmallOrMedium),
+        _dataScreen(isSmallOrMedium)
+      ],
+    )
+    :
+    Column(
+      mainAxisSize: MainAxisSize.min,
+              children: [
+                  MyTabBar(controller: _tabController, tabs: ["Agregar", "Todas"], isScrollable: false,),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _formScreen(isSmallOrMedium),
+                        _dataScreen(isSmallOrMedium)
                       ]
                     )
                   )
               ],
-            ),);
+            );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    if(widget.isLarge)
+      return screen(isSmallOrMedium);
+
+    return myScaffold(
+      key: _scaffoldKey,
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(
+        backgroundColor: Theme.of(context).primaryColor, 
+        child: Icon(Icons.add), onPressed: (){
+          if(_formKey.currentState.validate()){
+            _addTransaccion();
+            // print("save: ${map.toString()}");
+          }
+        },
+      ) : null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Agregar transacciones",
+          actions: [
+            MySliverButton(title: "Guardar", onTap: guardar)
+          ],
+        ), 
+        sliver: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+            return SliverFillRemaining(child: 
+              screen(isSmallOrMedium)
+            );
           }
         )
       )
@@ -907,7 +940,7 @@ class _AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Ti
                 ),
                 IconButton(
                   icon: Icon(Icons.save, color: Colors.blue,), 
-                  onPressed: _guardar
+                  onPressed: guardar
                 )
             ],
             bottom: TabBar(

@@ -41,7 +41,7 @@ class MyFilter2 extends StatefulWidget {
   final double medium;
   final double large;
   final double xlarge;
-  const MyFilter2({ Key key, this.hintText = "Agregar filtro", @required this.data, @required this.values, @required  this.onChanged,  @required this.onDelete, @required this.onDeleteAll, this.leading, this.widgetWhenNoFilter, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 2,}) : super(key: key);
+  const MyFilter2({ Key key, this.hintText = "Filtrar", @required this.data, @required this.values, @required  this.onChanged,  @required this.onDelete, @required this.onDeleteAll, this.leading, this.widgetWhenNoFilter, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 2,}) : super(key: key);
 
   @override
   MyFilter2State createState() => MyFilter2State();
@@ -121,6 +121,7 @@ class MyFilter2State extends State<MyFilter2> {
 
   _openSecondFilter(BuildContext context, MyFilterData2 myFilterData2, [MyFilterSubData2 myFilterSubData2]){
     // List<MyFilterSubData2> selectedData = _getSelectedFiltersVales(myFilterData2);
+    var tmpContext = context;
     List<MyFilterSubData2> selectedData = [];
     for (var item in widget.data) {
       List<MyFilterSubData2> selectListData = _getSelectedFiltersVales(item);
@@ -174,10 +175,12 @@ class MyFilter2State extends State<MyFilter2> {
               if(e.data == null){
                 _selectItem(myFilterData2, e);
                 widget.onChanged(selectedData);
+                overlay.remove();
               }else{
-                _openSecondFilter(context, myFilterData2, e);
+                print("MyFilter2 abrir nuevamente");
+                  overlay.remove();
+                _openSecondFilter(tmpContext, myFilterData2, e);
               }
-              overlay.remove();
             }
           );
           InkWell(
