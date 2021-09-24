@@ -8,6 +8,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/entidades.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/transaccionservice.dart';
+import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -424,7 +425,7 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
     );
   }
 
-  guardar() async {
+  Future guardar() async {
     if(listaTransaccion.length <= 0){
       Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Error: Debe registrar transacciones");
       return;
@@ -448,377 +449,423 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
   }
 
   _formScreen(bool isSmallOrMedium){
-    return AbsorbPointer(
-                          absorbing: _cargando || _cargandoBalanceBanca || _cargandoBalanceEntidad,
-                          child: SafeArea(
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
-                                  child: 
-                                  // DropdownButton<dynamic>(
-                                  //   isExpanded: true,
-                                  //   value: listaTipoTransaccion[_indexTipoTransaccion],
-                                  //   items: listaTipoTransaccion.map<DropdownMenuItem>((t) => DropdownMenuItem<dynamic>(
-                                  //     value: t,
-                                  //     child: Text(t["descripcion"]),
-                                  //   )).toList(),
-                                  //   onChanged: (map){
-                                  //     int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
-                                  //     if(idx != -1)
-                                  //       setState((){
-                                  //         _indexTipoTransaccion = idx;
-                                  //         _tipoTransaccionChange();
-                                  //       });
-                                  //   },
-                                  // ),
-                                  MyDropdownButton(
-                                        title: "Tipo",
-                                        value: listaTipoTransaccion[_indexTipoTransaccion],
-                                        items: listaTipoTransaccion.map((e) => [e, e["descripcion"]]).toList(),
-                                        onChanged: (map){
-                                          int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
-                                          if(idx != -1)
-                                            setState((){
-                                              _indexTipoTransaccion = idx;
-                                              _tipoTransaccionChange();
-                                            });
-                                        },
-                                      )
-                                ),
-                                Visibility(
-                                  visible: _esProgramada,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: RaisedButton(
-                                      child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
-                                      color: Colors.transparent, 
-                                      onPressed: () async {
-                                        var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
-                                        setState(() => _fecha = (fecha != null) ? fecha : _fecha);
-                                      }, 
-                                      elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
-                                  ),
-                                ),
-                                StreamBuilder<List<Tipo>>(
-                                  stream: _streamControllerTipo.stream,
-                                  builder: (context, snapshot) {
-                                    if(snapshot.hasData){
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
-                                        child: 
-                                      //   DropdownButton<Tipo>(
-                                      //     isExpanded: true,
-                                      //     value: listaTipo[_indexTipo],
-                                      //     items: listaTipo.map<DropdownMenuItem<Tipo>>((t) => DropdownMenuItem<Tipo>(
-                                      //       value: t,
-                                      //       child: Text(t.descripcion),
-                                      //     )).toList(),
-                                      //     onChanged: (tipo){
-                                      //       int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
-                                      //       if(idx != -1){
-                                      //         setState((){
-                                      //           _indexTipo = idx;
-                                      //           _tipoChange();
-                                      //         });
-                                      //       }
-                                      //     },
-                                      // ),
-                                      MyDropdownButton(
-                                        title: "Concepto",
-                                        value: listaTipo[_indexTipo],
-                                        items: listaTipo.map((e) => [e, e.descripcion]).toList(),
-                                        onChanged: (tipo){
-                                          int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
-                                          if(idx != -1){
-                                            setState((){
-                                              _indexTipo = idx;
-                                              _tipoChange();
-                                            });
-                                          }
-                                        },
-                                      )
-                                      );
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: DropdownButton(isExpanded: true, value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null),
-                                    );
-                                  }
-                                ),
-                                Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    children: <Widget>[
-                                      Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(left: 20.0, top: 15.0),
-                                              child: StreamBuilder<List<Banca>>(
-                                                stream: _streamControllerBanca.stream,
-                                                builder: (context, snapshot) {
-                                                  if(snapshot.hasData){
-                                                    // return DropdownButton<Banca>(
-                                                    //   // isExpanded: true,
-                                                    //   value: listaBanca[_indexBanca],
-                                                    //   items: listaBanca.map<DropdownMenuItem<Banca>>((t) => DropdownMenuItem<Banca>(
-                                                    //     value: t,
-                                                    //     child: Text(t.descripcion),
-                                                    //   )).toList(),
-                                                    //   onChanged: (banca){
-                                                    //     int idx = listaBanca.indexWhere((t) => t.descripcion == banca.descripcion);
-                                                    //     if(idx != -1){
-                                                    //       setState((){
-                                                    //          _indexBanca = idx;
-                                                    //          _bancaChange();
-                                                    //       });
-                                                    //     }
-                                                    //   },
-                                                    // );
-                                                    return MyDropdownButton(
-                                                      hint: "Selec. banca",
-                                                      value: _banca,
-                                                      items: snapshot.data.map((e) => [e, e.descripcion]).toList(),
-                                                      onChanged: (value){
-                                                        _bancaChange(value);
-                                                      }
-                                                    );
-                                                  }
-                                                  return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
-                                                }
-                                          ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                                  child: MyTextFormField(
-                                                    controller: _txtBalanceEntidad1,
-                                                    enabled: false,
-                                                    type: MyType.normal,
-                                                    title: "Balance",
-                                                    // decoration: InputDecoration(labelText: "Balance"),
-                                                  ),
-                                                ),
-                                                Visibility(
-                                                  visible: _cargandoBalanceBanca,
-                                                  child: Positioned(
-                                                    top: 25,
-                                                    right: 20,
-                                                    child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(left: 20.0, top: 15.0),
-                                              child: StreamBuilder<List<Entidad>>(
-                                                stream: _streamControllerEntidad.stream,
-                                                builder: (context, snapshot) {
-                                                  if(snapshot.hasData){
-                                                    // return DropdownButton<Entidad>(
-                                                    //   // isExpanded: true,
-                                                    //   value: snapshot.data[_indexEntidad],
-                                                    //   items: listaEntidad.map<DropdownMenuItem<Entidad>>((t) => DropdownMenuItem<Entidad>(
-                                                    //     value: t,
-                                                    //     child: Text(t.nombre),
-                                                    //   )).toList(),
-                                                    //   onChanged: (entidad){
-                                                    //     int idx = listaEntidad.indexWhere((t) => t.nombre == entidad.nombre);
-                                                    //     if(idx != -1){
-                                                    //       setState((){
-                                                    //          _indexEntidad = idx;
-                                                    //          _entidadChange();
-                                                    //       });
-                                                    //     }
-                                                    //   },
-                                                    // );
-                                                    return MyDropdownButton(
-                                                      hint: "Selec. banco",
-                                                      value: _entidad,
-                                                      items: snapshot.data.map((e) => [e, e.nombre]).toList(),
-                                                      onChanged: (value){
-                                                        _entidadChange(value);
-                                                      }
-                                                    );
-                                                  }
-                                                  return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
-                                                }
-                                          ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                                  child: MyTextFormField(
-                                                    controller: _txtBalanceEntidad2,
-                                                    enabled: false,
-                                                    type: MyType.normal,
-                                                    title: "Balance",
-                                                    // decoration: InputDecoration(labelText: "Balance"),
-                                                  ),
-                                                ),
-                                                Visibility(
-                                                  visible: _cargandoBalanceEntidad,
-                                                  child: Positioned(
-                                                    top: 25,
-                                                    right: 20,
-                                                    child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                              child: TextFormField(
-                                                controller: _txtDebito,
-                                                enabled: _txtDebitoEnabled,
-                                                decoration: InputDecoration(labelText: "Debito"),
-                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                                inputFormatters: [
-                                                  // WhitelistingTextInputFormatter.digitsOnly,
-                                                  // DecimalTextInputFormatter(decimalRange: 2),
-                                                  FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
-                                                  // RegExp(r"^(?=.*[1-9])\s*\d*(?:\.\d{1,2})?\s*$")
-                                                ],
-                                                onChanged: (texto){
-                                                  _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
-                                                  _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
-                                                },
-                                                validator: (data){
-                                                  if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
-                                                    return "Vacio";
-                                                  else if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
-                                                    return (_txtCredito.text.isEmpty) ? "Vacio" : null;
-                                                  }
-                                                  else
-                                                    return null;
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                              child: TextFormField(
-                                                controller: _txtCredito,
-                                                enabled: _txtCreditoEnabled,
-                                                decoration: InputDecoration(labelText: "Credito"),
-                                                keyboardType: TextInputType.number,
-                                                inputFormatters: [
-                                                  // WhitelistingTextInputFormatter.digitsOnly
-                                                  FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+    List<Widget> widgets = <Widget>[
+      Padding(
+        padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
+        child: 
+        // DropdownButton<dynamic>(
+        //   isExpanded: true,
+        //   value: listaTipoTransaccion[_indexTipoTransaccion],
+        //   items: listaTipoTransaccion.map<DropdownMenuItem>((t) => DropdownMenuItem<dynamic>(
+        //     value: t,
+        //     child: Text(t["descripcion"]),
+        //   )).toList(),
+        //   onChanged: (map){
+        //     int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
+        //     if(idx != -1)
+        //       setState((){
+        //         _indexTipoTransaccion = idx;
+        //         _tipoTransaccionChange();
+        //       });
+        //   },
+        // ),
+        MyDropdownButton(
+              title: "Tipo",
+              value: listaTipoTransaccion[_indexTipoTransaccion],
+              items: listaTipoTransaccion.map((e) => [e, e["descripcion"]]).toList(),
+              medium: 1,
+              large: 1,
+              xlarge: 1,
+              onChanged: (map){
+                int idx = listaTipoTransaccion.indexWhere((t) => t["descripcion"] == map["descripcion"]);
+                if(idx != -1)
+                  setState((){
+                    _indexTipoTransaccion = idx;
+                    _tipoTransaccionChange();
+                  });
+              },
+            )
+      ),
+      Visibility(
+        visible: _esProgramada,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: RaisedButton(
+            child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+            color: Colors.transparent, 
+            onPressed: () async {
+              var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
+              setState(() => _fecha = (fecha != null) ? fecha : _fecha);
+            }, 
+            elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
+        ),
+      ),
+      StreamBuilder<List<Tipo>>(
+        stream: _streamControllerTipo.stream,
+        builder: (context, snapshot) {
+          if(snapshot.hasData){
+            return Padding(
+              padding: const EdgeInsets.only(top: 2.0, bottom: 0.0, left: 20.0, right: 20.0),
+              child: 
+            //   DropdownButton<Tipo>(
+            //     isExpanded: true,
+            //     value: listaTipo[_indexTipo],
+            //     items: listaTipo.map<DropdownMenuItem<Tipo>>((t) => DropdownMenuItem<Tipo>(
+            //       value: t,
+            //       child: Text(t.descripcion),
+            //     )).toList(),
+            //     onChanged: (tipo){
+            //       int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
+            //       if(idx != -1){
+            //         setState((){
+            //           _indexTipo = idx;
+            //           _tipoChange();
+            //         });
+            //       }
+            //     },
+            // ),
+            MyDropdownButton(
+              title: "Concepto",
+              value: listaTipo[_indexTipo],
+              items: listaTipo.map((e) => [e, e.descripcion]).toList(),
+              medium: 1,
+              large: 1,
+              xlarge: 1,
+              onChanged: (tipo){
+                int idx = listaTipo.indexWhere((t) => t.descripcion == tipo.descripcion);
+                if(idx != -1){
+                  setState((){
+                    _indexTipo = idx;
+                    _tipoChange();
+                  });
+                }
+              },
+            )
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DropdownButton(isExpanded: true, value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null),
+          );
+        }
+      ),
+      Form(
+        key: _formKey,
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+                    child: StreamBuilder<List<Banca>>(
+                      stream: _streamControllerBanca.stream,
+                      builder: (context, snapshot) {
+                        if(snapshot.hasData){
+                          // return DropdownButton<Banca>(
+                          //   // isExpanded: true,
+                          //   value: listaBanca[_indexBanca],
+                          //   items: listaBanca.map<DropdownMenuItem<Banca>>((t) => DropdownMenuItem<Banca>(
+                          //     value: t,
+                          //     child: Text(t.descripcion),
+                          //   )).toList(),
+                          //   onChanged: (banca){
+                          //     int idx = listaBanca.indexWhere((t) => t.descripcion == banca.descripcion);
+                          //     if(idx != -1){
+                          //       setState((){
+                          //          _indexBanca = idx;
+                          //          _bancaChange();
+                          //       });
+                          //     }
+                          //   },
+                          // );
+                          return MyDropdownButton(
+                            hint: "Selec. banca",
+                            value: _banca,
+                            items: snapshot.data.map((e) => [e, e.descripcion]).toList(),
+                            onChanged: (value){
+                              _bancaChange(value);
+                            }
+                          );
+                        }
+                        return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
+                      }
+                ),
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                        child: MyTextFormField(
+                          controller: _txtBalanceEntidad1,
+                          enabled: false,
+                          type: MyType.normal,
+                          title: "Balance",
+                          // decoration: InputDecoration(labelText: "Balance"),
+                        ),
+                      ),
+                      Visibility(
+                        visible: _cargandoBalanceBanca,
+                        child: Positioned(
+                          top: 25,
+                          right: 20,
+                          child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20.0, top: 15.0),
+                    child: StreamBuilder<List<Entidad>>(
+                      stream: _streamControllerEntidad.stream,
+                      builder: (context, snapshot) {
+                        if(snapshot.hasData){
+                          // return DropdownButton<Entidad>(
+                          //   // isExpanded: true,
+                          //   value: snapshot.data[_indexEntidad],
+                          //   items: listaEntidad.map<DropdownMenuItem<Entidad>>((t) => DropdownMenuItem<Entidad>(
+                          //     value: t,
+                          //     child: Text(t.nombre),
+                          //   )).toList(),
+                          //   onChanged: (entidad){
+                          //     int idx = listaEntidad.indexWhere((t) => t.nombre == entidad.nombre);
+                          //     if(idx != -1){
+                          //       setState((){
+                          //          _indexEntidad = idx;
+                          //          _entidadChange();
+                          //       });
+                          //     }
+                          //   },
+                          // );
+                          return MyDropdownButton(
+                            hint: "Selec. banco",
+                            value: _entidad,
+                            items: snapshot.data.map((e) => [e, e.nombre]).toList(),
+                            onChanged: (value){
+                              _entidadChange(value);
+                            }
+                          );
+                        }
+                        return DropdownButton( value: "No hay datos", items: [DropdownMenuItem(value: "No hay datos", child: Text("No hay datos"),)], onChanged: null);
+                      }
+                ),
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                        child: MyTextFormField(
+                          controller: _txtBalanceEntidad2,
+                          enabled: false,
+                          type: MyType.normal,
+                          title: "Balance",
+                          // decoration: InputDecoration(labelText: "Balance"),
+                        ),
+                      ),
+                      Visibility(
+                        visible: _cargandoBalanceEntidad,
+                        child: Positioned(
+                          top: 25,
+                          right: 20,
+                          child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator())
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                    child: TextFormField(
+                      controller: _txtDebito,
+                      enabled: _txtDebitoEnabled,
+                      decoration: InputDecoration(labelText: "Debito"),
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        // WhitelistingTextInputFormatter.digitsOnly,
+                        // DecimalTextInputFormatter(decimalRange: 2),
+                        FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+                        // RegExp(r"^(?=.*[1-9])\s*\d*(?:\.\d{1,2})?\s*$")
+                      ],
+                      onChanged: (texto){
+                        _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                        _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                      },
+                      validator: (data){
+                        if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
+                          return "Vacio";
+                        else if(data.isEmpty && _txtDebitoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
+                          return (_txtCredito.text.isEmpty) ? "Vacio" : null;
+                        }
+                        else
+                          return null;
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                    child: TextFormField(
+                      controller: _txtCredito,
+                      enabled: _txtCreditoEnabled,
+                      decoration: InputDecoration(labelText: "Credito"),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        // WhitelistingTextInputFormatter.digitsOnly
+                        FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
 
-                                                ],
-                                                onChanged: (texto){
-                                                  _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
-                                                  _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
-                                                },
-                                                validator: (data){
-                                                  if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
-                                                    return "Vacio";
-                                                  else if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
-                                                    return (_txtDebito.text.isEmpty) ? "Vacio" : null;
-                                                  }
-                                                  else
-                                                    return null;
-                                                },
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                              child: TextFormField(
-                                                controller: _txtBalanceFinalEntidad1,
-                                                enabled: false,
-                                                decoration: InputDecoration(labelText: "Final entidad1"),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(right: 20.0, left: 10.0),
-                                              child: TextFormField(
-                                                controller: _txtBalanceFinalEntidad2,
-                                                enabled: false,
-                                                decoration: InputDecoration(labelText: "Final entidad2"),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                      ],
+                      onChanged: (texto){
+                        _txtBalanceFinalEntidad1.text = _saldoFinalEntidad1().toString();
+                        _txtBalanceFinalEntidad2.text = _saldoFinalEntidad2().toString();
+                      },
+                      validator: (data){
+                        if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion != "Ajuste")
+                          return "Vacio";
+                        else if(data.isEmpty && _txtCreditoEnabled && listaTipo[_indexTipo].descripcion == "Ajuste"){
+                          return (_txtDebito.text.isEmpty) ? "Vacio" : null;
+                        }
+                        else
+                          return null;
+                      },
+                    ),
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                    child: TextFormField(
+                      controller: _txtBalanceFinalEntidad1,
+                      enabled: false,
+                      decoration: InputDecoration(labelText: "Final entidad1"),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20.0, left: 10.0),
+                    child: TextFormField(
+                      controller: _txtBalanceFinalEntidad2,
+                      enabled: false,
+                      decoration: InputDecoration(labelText: "Final entidad2"),
+                    ),
+                  ),
+                )
+              ],
+            ),
+            Visibility(
+              visible: !isSmallOrMedium,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0, right: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    MyButton(
+                      isResponsive: false,
+                      color: Colors.green,
+                      medium: 5,
+                      large: 5,
+                      title: "Agregar",
+                      function: (){
+                        if(_formKey.currentState.validate()){
+                          _addTransaccion();
+                          // print("save: ${map.toString()}");
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    ];
+                            
+    return AbsorbPointer(
+      absorbing: _cargando || _cargandoBalanceBanca || _cargandoBalanceEntidad,
+      child: SafeArea(
+        child: 
+        isSmallOrMedium
+        ?
+        ListView(
+          shrinkWrap: true,
+          children: widgets
+        )
+        :
+        Column(
+          children: widgets
+        ),
+      ),
+    );
   }
 
   _dataScreen(bool isSmallOrMedium){
-    return SafeArea(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: <Widget>[
-                              Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-                                child: MyResizedContainer(
-                                  small: 1,
-                                  medium: 1,
-                                  child: InkWell(
-                                    onTap: (){
-                                      listaTransaccion.clear();
-                                      _streamControllerTransacciones.add(listaTransaccion);
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                              StreamBuilder<List>(
-                                stream: _streamControllerTransacciones.stream,
-                                builder: (context, snapshot){
-                                  if(snapshot.hasData){
-                                    return _buildTableVentasPorLoteria(listaTransaccion);
-                                  }
-                                  return Center(child: Text("No hay transacciones registradas", style: TextStyle(fontSize: 18)));
-                                },
-                              )
-                            ],
-                          )
-                        );
+    List<Widget> widgets = <Widget>[
+      Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+          child: MyResizedContainer(
+            small: 1,
+            medium: 1,
+            child: InkWell(
+              onTap: (){
+                listaTransaccion.clear();
+                _streamControllerTransacciones.add(listaTransaccion);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
+              ),
+            ),
+          ),
+        ),
+      ),
+      StreamBuilder<List>(
+        stream: _streamControllerTransacciones.stream,
+        builder: (context, snapshot){
+          if(snapshot.hasData){
+            return _buildTableVentasPorLoteria(listaTransaccion);
+          }
+          return Center(child: Text("No hay transacciones registradas", style: TextStyle(fontSize: 18)));
+        },
+      )
+    ];
+    
+    return 
+    isSmallOrMedium
+    ?
+    ListView(
+      children: widgets,
+    )
+    :
+    Column(
+      // shrinkWrap: true,
+      children: widgets
+    );
           
   }
 

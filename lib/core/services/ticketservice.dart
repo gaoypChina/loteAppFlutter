@@ -299,7 +299,7 @@ class TicketService{
     return parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
   }
 
-  static Future<Map<String, dynamic>> monitoreoV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo}) async {
+  static Future<Map<String, dynamic>> monitoreoV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo, int idLoteria}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     
@@ -310,6 +310,7 @@ class TicketService{
     map["servidor"] = await Db.servidor();
     map["retornarBancas"] = retornarBancas;
     map["grupo"] = idGrupo;
+    map["idLoteria"] = idLoteria;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 

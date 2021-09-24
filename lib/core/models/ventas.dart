@@ -9,11 +9,14 @@ class Venta {
   int status;
   String codigoBarra;
   DateTime created_at;
+  String usuario;
   String usuarioCancelacion;
   DateTime fechaCancelacion;
+  double montoAPagar;
+  double montoPagado;
 
 
-  Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra});
+  Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra, this.usuario});
 
   Venta.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.from(0),
@@ -23,8 +26,11 @@ class Venta {
         status = Utils.toInt(snapshot['status']) ?? 1,
         codigoBarra = snapshot['codigoBarra'] ?? 1,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
+        usuario = (snapshot['usuario'] != null) ? snapshot['usuario'] : null,
         usuarioCancelacion = (snapshot['usuarioCancelacion'] != null) ? snapshot['usuarioCancelacion'] : null,
-        fechaCancelacion = (snapshot['fechaCancelacion'] != null) ? DateTime.parse(snapshot['fechaCancelacion']) : null
+        fechaCancelacion = (snapshot['fechaCancelacion'] != null) ? DateTime.parse(snapshot['fechaCancelacion']) : null,
+        montoAPagar = Utils.toDouble(snapshot['montoAPagar'].toString()) ?? 0,
+        montoPagado = Utils.toDouble(snapshot['montoPagado'].toString()) ?? 0
         ;
 
   toJson() {

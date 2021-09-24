@@ -314,11 +314,11 @@ class MyDate {
     else if(MyDate.isUltimos30Dias(date.start, date.end))
       dateString = "Ultimos 30 días";
     
-    if(dateString == null)
+    if(dateString == null && date != null)
       dateString = MyDate.datesToString(date.start, date.end);
 
     print("MyDate dateRangeToNameOrString: $dateString");
-    return dateString;
+    return dateString != null ? dateString : '';
   }
 
   static String datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){

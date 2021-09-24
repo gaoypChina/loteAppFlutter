@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/ui/widgets/mycolor.dart';
 
 import 'myresizecontainer.dart';
 import 'myscrollbar.dart';
@@ -29,7 +30,7 @@ class MyDropdown extends StatefulWidget {
   final Color textColor;
   final String helperText;
   final bool onlyBorder;
-  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading, this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false}) : super(key: key);
+  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false}) : super(key: key);
   @override
   _MyDropdownState createState() => _MyDropdownState();
 }

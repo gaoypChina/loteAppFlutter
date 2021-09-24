@@ -159,7 +159,7 @@ class _MyTableState extends State<MyTable> {
       e 
       : 
       // Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans",), overflow: TextOverflow.ellipsis, softWrap: true, ))
-      Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans",), overflow: TextOverflow.ellipsis, softWrap: true, ))
+      Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, softWrap: true, ))
     )).toList();
     if(widget.delete != null)
       columns.add(DataColumn(label: Center(child: (widget.showDeleteIcon) ? IconButton(icon: Icon(Icons.delete), onPressed: null,) : Text(""))));
@@ -239,7 +239,12 @@ class _MyTableState extends State<MyTable> {
           direction: Axis.horizontal,
           child: DataTable(
             showCheckboxColumn: false,
+            headingRowHeight: 46,
             decoration: BoxDecoration(
+              // color: Colors.grey[100],
+              // color: Colors.grey[300],
+              // color: Utils.colorPrimary,
+              borderRadius: BorderRadius.circular(5),
               border: Border(top: BorderSide.none, bottom: BorderSide.none) 
             ),
             columns: _initColumn(),

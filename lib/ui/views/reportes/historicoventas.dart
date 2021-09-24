@@ -1766,10 +1766,12 @@ _monedaChanged(moneda){
                 child: Builder(
                   builder: (context) {
                     return MyDropdown(title: null, 
+                      padding: EdgeInsets.symmetric(vertical: 7, horizontal: 15),
                       hint: "${MyDate.dateRangeToNameOrString(_date)}",
                       onTap: (){
                         showMyOverlayEntry(
                           context: context,
+                          right: 20,
                           builder: (context, overlay){
                             _cancel(){
                               overlay.remove();
@@ -1820,11 +1822,23 @@ _monedaChanged(moneda){
               child: _getBodyWidget(snapshot.data, isSmallOrMedium),
             )
             :
-            SliverList(delegate: SliverChildListDelegate([
+            // SliverList(delegate: SliverChildListDelegate([
+            //   _myWebFilterScreen(isSmallOrMedium),
+            //   MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
+              
+            //   _getBodyWidget(snapshot.data, isSmallOrMedium)
+            //   // :
+            //   // MyTable(
+            //   //   columns: ["Banca", "Pendientes", "Ganadores", "Perdedores", "Tickets", "Ventas", "Comis.", "Desc.", "Premios", "Neto", "Balalance", "Balance + ventas"], 
+            //   //   rows: rows
+            //   // )
+            // ]));
+            SliverFillRemaining(child: Column(
+              children: [
               _myWebFilterScreen(isSmallOrMedium),
               MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
               
-              _getBodyWidget(snapshot.data, isSmallOrMedium)
+              Expanded(child: _getBodyWidget(snapshot.data, isSmallOrMedium))
               // :
               // MyTable(
               //   columns: ["Banca", "Pendientes", "Ganadores", "Perdedores", "Tickets", "Ventas", "Comis.", "Desc.", "Premios", "Neto", "Balalance", "Balance + ventas"], 

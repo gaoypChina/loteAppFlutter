@@ -16,6 +16,7 @@ import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
@@ -26,6 +27,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'add.dart';
@@ -142,16 +144,39 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
 
       _addDataToList(data2);
     }else{
-     showDialog(
+       bool cargandoGuardar = false;
+     var data2 = await showDialog(
        context: context, 
        builder: (context){
-         return  MyAlertDialog(
-          title: "Guardar", 
-          content: SingleChildScrollView(child: AddTransaccionesScreen(key: _addTransaccionScreenKey, isLarge: true,)), 
-          // okFunction: (){_addTransaccionScreenKey.currentState.guardar();}
-        );
+         return  StatefulBuilder(
+           builder: (context, setState) {
+             return MyAlertDialog(
+              title: "Guardar", 
+              medium: 1,
+              large: 1,
+              xlarge: 2,
+              cargando: cargandoGuardar,
+              content: MyScrollbar(child: AddTransaccionesScreen(key: _addTransaccionScreenKey, isLarge: true,)), 
+              okFunction: () async {
+                try {
+                  setState(() => cargandoGuardar = true);
+                  await _addTransaccionScreenKey.currentState.guardar();
+                  setState(() => cargandoGuardar = false);
+                } on Exception catch (e) {
+                  // TODO
+                  setState(() => cargandoGuardar = false);
+                }
+              }
+                 );
+           }
+         );
        }
       );
+
+      if(data2 == null)
+        return;
+      _addDataToList(data2);
+      print("_goToAddTransactions data: $data2");
     }
   }
 
@@ -239,7 +264,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
    Widget _buildTableTransaccion(List map, bool isSmallOrMedium){
    var tam = (map != null) ? map.length : 0;
    if(map == null)
-    return SizedBox();
+    return Center(child: CircularProgressIndicator());
 
    List<TableRow> rows;
    if(tam == 0){
@@ -483,6 +508,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
    ?
    MyTable(
     //  isScrolled: false,
+    showColorWhenImpar: true,
      columns: ["Fecha", "Entidad1", "Entidad2", "saldo inicial entidad #1", "saldo inicial entidad #2", "Tipo", "Monto", "saldo final entidad #2", "saldo final entidad #2", "notas"], 
      rows: map.map((e) => [
         e,
@@ -758,6 +784,37 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 }
               }
             ),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: MyDropdown(title: null, 
+                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                        onTap: (){
+                          showMyOverlayEntry(
+                            context: context,
+                            right: 20,
+                            builder: (context, overlay){
+                              _cancel(){
+                                overlay.remove();
+                              }
+                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                            }
+                          );
+                        },
+                      ),
+                    );
+                  }
+                ),
+              ), 
+              onTap: (){}
+              ),
             MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: (){_goToAddTransacciones(isSmallOrMedium);}, showOnlyOnLarge: true,),
 
           ],

@@ -36,20 +36,22 @@ class PremiosService{
       throw Exception("Error premiosService getLoterias: ${parsed["mensaje"]}");
     }
 
-    return (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : List<Loteria>();
+    return (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
   }
   
-  static Future<List<Loteria>> guardar({BuildContext context, scaffoldKey, Loteria loteria}) async {
+  static Future<List<Loteria>> guardar({BuildContext context, scaffoldKey, Loteria loteria, DateTime date, bool actualizarTransacciones}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
-    List<Loteria> listaLoteria = List<Loteria>();
+    List<Loteria> listaLoteria =[];
     listaLoteria.add(loteria);
 
     map["loterias"] = [loteria.toJson()];
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
-    map["layout"] = "";
+    map["layout"] = "vistaSencilla";
     map["servidor"] = await Db.servidor();
+    map["fecha"] = date != null ? date.toString() : DateTime.now();
+    map["actualizarTransacciones"] = actualizarTransacciones;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
@@ -78,7 +80,48 @@ class PremiosService{
       throw Exception("Error premiosService guardar: ${parsed["mensaje"]}");
     }
 
-    return (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : List<Loteria>();
+    return (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
+  }
+
+  static Future<List<Loteria>> buscar({BuildContext context, scaffoldKey, DateTime date}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    List<Loteria> listaLoteria =[];
+
+    map["fecha"] = date != null ? date.toString() : null;
+    map["idUsuario"] = await Db.idUsuario();
+    map["idBanca"] = await Db.idBanca();
+    // map["layout"] = "";
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("premiosservice guardar: ${mapDatos.toString()}");
+    // return listaLoteria;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/premios/buscarPorFecha"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("premiosService guardar: ${response.body}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "Error del servidor premiosService buscarPorFecha", title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor premiosService buscarPorFecha", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor premiosService buscarPorFecha");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    print("premiosservice guardar parsed: ${parsed}");
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error premiosService guardar: ${parsed["mensaje"]}");
+    }
+
+    return (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
   }
 
   static Future<List<Loteria>> borrar({BuildContext context, scaffoldKey, Loteria loteria}) async {

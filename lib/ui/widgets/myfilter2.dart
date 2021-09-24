@@ -11,6 +11,7 @@ class MyFilterSubData2 {
   dynamic child;
   dynamic value;
   dynamic type;
+  dynamic defaultValue;
   List<MyFilterSubData2> data;
   MyFilterSubData2({@required this.child, @required this.value, this.type, this.data});
 }

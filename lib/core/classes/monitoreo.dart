@@ -7,6 +7,8 @@ import 'package:loterias/core/models/ventas.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
 
 class Monitoreo{
   static showDialogImprimirCompartir({Venta venta, BuildContext context}){
@@ -90,7 +92,7 @@ class Monitoreo{
    );
  }
 
- static showDialogVerTicket({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+ static showDialogVerTicket({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias, bool isSmallOrMedium = true}) async {
     return await showDialog(
       context: context,
       builder: (context){
@@ -108,23 +110,14 @@ class Monitoreo{
         _getJugadasSuperpalePertenecientesALoteria(int idLoteria, int idLoteriaSuperpale, List<Jugada> jugadas){
           return jugadas.where((element) => element.idLoteria == idLoteria && element.idLoteriaSuperpale == idLoteriaSuperpale && element.sorteo == "Super pale").toList();
         }
-        
-            return AlertDialog(
-              contentPadding: EdgeInsets.all(0),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text('Ver ticket'),
-                   Visibility(
-                    visible: _cargando,
-                    child: CircularProgressIndicator()
-                  ),
-                ],
-              ),
-              content: Container(
-                height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height : (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100,
-                width: MediaQuery.of(context).size.width,
-                child: ListView(
+
+        _goBack(){
+          Navigator.pop(context);
+        }
+
+
+        var widgets = ListView(
+          shrinkWrap: true,
                   children: <Widget>[
                           Center(child: Text('Leyenda', style: TextStyle(fontSize: 25, color: Colors.grey[500]))),
                           Row(
@@ -330,15 +323,42 @@ class Monitoreo{
                     //   ),
                     // ),
                   ],
-                ),
+                );
+
+
+
+
+            
+        
+            return 
+            isSmallOrMedium == false
+            ?
+            MyAlertDialog(
+              title: "Ver ticket", 
+              content: widgets, 
+              okFunction: _goBack
+            )
+            :
+            AlertDialog(
+              contentPadding: EdgeInsets.all(0),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text('Ver ticket'),
+                   Visibility(
+                    visible: _cargando,
+                    child: CircularProgressIndicator()
+                  ),
+                ],
+              ),
+              content: Container(
+                height: (MediaQuery.of(context).orientation == Orientation.landscape) ? MediaQuery.of(context).size.height : (_jugadas.length < 18) ? 300 : MediaQuery.of(context).size.height - 100,
+                width: MediaQuery.of(context).size.width,
+                child: widgets
               ),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
-                Navigator.of(context).pop();
-                },),
-                FlatButton(child: Text("Ok"), onPressed: () async {
-                    Navigator.of(context).pop();
-                  },
+                FlatButton(child: Text("Cancelar"), onPressed: _goBack,),
+                FlatButton(child: Text("Ok"), onPressed: _goBack,
                 )
               ],
             );

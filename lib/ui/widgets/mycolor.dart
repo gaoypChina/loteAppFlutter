@@ -34,4 +34,6 @@ class MyColors{
       900: Color(0xFF049EF8),
     },
   );
+
+  static const Color blue700 = Color(0xFF1976D2);
 }

@@ -27,6 +27,7 @@ OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widge
             // left: offset.dx,
             // top: offset.dy + size.height,
             // left: offset.dx,
+            // left: right == null ? offset.dx - (size.width + 140)  : null,
             left: right == null ? offset.dx : null,
             right: right,
             top: offset.dy + size.height,
