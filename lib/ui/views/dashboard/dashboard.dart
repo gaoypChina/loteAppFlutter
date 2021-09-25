@@ -1,12 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/graficaventas.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
+import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/mybarchart.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -33,12 +38,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _cargando = false;
   bool _onCreate = true;
   var _fecha = DateTime.now();
+  DateTimeRange _date;
 
   @override
   initState(){
     _streamControllerMonedas = BehaviorSubject();
     _streamControllerGrafica = BehaviorSubject();
-    
+    _date = MyDate.getTodayDateRange();
     _dashboard();
     super.initState();
   }
@@ -106,8 +112,134 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  _dateChanged(var date){
+    if(date != null && date == DateTime)
+      setState(() {
+        _date = DateTimeRange(
+          start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+          end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+        );
+        _dashboard();
+      });
+    else
+      _date = date;
+  }
+
+   _dateDialog() async {
+    var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
+    _dateChanged(date);
+    
+  }
+
+  _subtitle(bool isSmallOrMedium){
+    return
+    isSmallOrMedium
+    ?
+    SingleChildScrollView(
+      child: MyCollapseChanged(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              MyFilter(
+                filterTitle: '',
+                filterLeading: SizedBox.shrink(),
+                leading: SizedBox.shrink(),
+                value: _date, 
+                onChanged: _dateChanged,
+                showListNormalCortaLarga: 2,
+              ),
+              // _mysearch()
+            ]
+          ),
+        )
+        
+          
+        ,
+      ),
+    )
+    :
+    "Filtre y agrupe todas las ventas por fecha.";
+  }
+
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Dashboard",
+          subtitle: _subtitle(isSmallOrMedium),
+          expandedHeight: isSmallOrMedium ? 105 : 85,
+          actions: [
+             MySliverButton(
+              // showOnlyOnLarge: true,
+              showOnlyOnSmall: true,
+              title: Container(
+                width: 120,
+                // width: 140,
+              height: 37,
+              padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+              decoration: BoxDecoration(
+              color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10)
+              ),
+                child: Builder(
+                  builder: (context) {
+                    return InkWell(
+                    onTap: _dateDialog,
+                    child: Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                        Icon(Icons.date_range),
+                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    ),
+                  );
+                  }
+                ),
+              ), 
+              onTap: (){}
+              ),
+          ],
+        ), 
+        sliver: StreamBuilder<Object>(
+          stream: _streamControllerGrafica.stream,
+          builder: (context, snapshot) {
+            if(snapshot.data == null && (isSmallOrMedium || listaVentasGrafica == null))
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
+
+            return SliverFillRemaining(
+              child: Column(
+                children: [
+                  Container(
+                    height: 200,
+                    child: MyBarchar(
+                      leftLabelDivider: 2,
+                      borderRadius: BorderRadius.circular(2),
+                      type: MyBarType.stack,
+                      listOfBottomLabel: [Text("Trasan", style: TextStyle(fontSize: 10),), Text("Antesayer", style: TextStyle(fontSize: 10)), Text("Ayer", style: TextStyle(fontSize: 10)), Text("Hoy", style: TextStyle(fontSize: 10))],
+                      listOfData: [
+                        [MyBar(value: 20, color: Colors.grey), MyBar(value: 10, color: Colors.green)],
+                        [MyBar(value: 30, color: Colors.grey), MyBar(value: 15, color: Colors.green)],
+                        [MyBar(value: 50, color: Colors.grey), MyBar(value: 45, color: Colors.green)],
+                        [MyBar(value: 20, color: Colors.grey), MyBar(value: 12, color: Colors.green)],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        )
+      )
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text("Ventas", style: TextStyle(color: Colors.black),),

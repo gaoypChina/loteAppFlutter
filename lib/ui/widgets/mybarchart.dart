@@ -5,6 +5,31 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'myresizecontainer.dart';
 
+class MyBarType {
+  const MyBarType._(this.index);
+
+  /// The encoded integer value of this font weight.
+  final int index;
+
+  /// Thin, the least thick
+  static const MyBarType normal = MyBarType._(0);
+
+  /// Extra-light
+  static const MyBarType stack = MyBarType._(1);
+
+  /// Light
+  // static const MyBarType rounded = MyBarType._(2);
+
+  // static const MyBarType noBorder = MyBarType._(3);
+  // static const MyBarType floatingLabelWithBorder = MyBarType._(4);
+
+  /// A list of all the font weights.
+  static const List<MyBarType> values = <MyBarType>[
+    normal, stack, 
+    // rounded, floatingLabelWithBorder
+  ];
+}
+
 class MyBarchar extends StatefulWidget {
   final double small;
   final double medium;
@@ -13,7 +38,9 @@ class MyBarchar extends StatefulWidget {
   final int leftLabelDivider;
   final List<List<MyBar>> listOfData;
   final List<Text> listOfBottomLabel;
-  MyBarchar({Key key, this.listOfData = const [], this.listOfBottomLabel = const [], this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.leftLabelDivider = 5}) : super(key: key);
+  final MyBarType type;
+  final BorderRadiusGeometry borderRadius;
+  MyBarchar({Key key, this.listOfData = const [], this.listOfBottomLabel = const [], this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.leftLabelDivider = 5, this.type = MyBarType.normal, this.borderRadius}) : super(key: key);
   @override
   _MyBarcharState createState() => _MyBarcharState();
 }
@@ -26,8 +53,10 @@ class _MyBarcharState extends State<MyBarchar> {
   List<double> listOfValues = [];
   _init(){
     double maxValue = 0;
-    listOfValues = widget.listOfData.map((e) => e.map((e) => e.value).reduce((value, element) => value + element)).toList();
+    listOfValues = widget.listOfData.map((e) => e.map((e) => e.value).reduce(max)).toList();
      _maxValue = listOfValues.reduce(max);
+
+     print("MyBarChar maxValue: $_maxValue");
   }
 
   getWidth(double screenSize){
@@ -106,49 +135,62 @@ class _MyBarcharState extends State<MyBarchar> {
 
   _createBarsWidgets({@required indexOfLabels, @required double width, @required double height}){
     /// El parametro indexOfLabels es para obtener la barra que le corresponde al label
-    var barWidgets = widget.listOfData[indexOfLabels].map<Widget>((e){
+    var barWidgets = widget.listOfData[indexOfLabels].asMap().map((key, e){
         // print("screenSize: (${e.value} / $_maxValue) * ${MediaQuery.of(context).size.height / 2} = ${(e.value / _maxValue) * boxconstraints.maxWidth}");
         var _changeColor = ValueNotifier<bool>(false);
-        print("MyBarCharScreen _CreateBarsWidgets Bar height: ${((e.value / (_maxValue + 20)) * height)}");
-        return Builder(
-          builder: (context) {
-            return MouseRegion(
-              onEnter: (pointerEnterEvent){
-                _changeColor.value = true;
-                // if(_overlayEntry == null){
-                // _overlayEntry = _createOverlayEntry(context);
-                // Overlay.of(context).insert(_overlayEntry);
-                // print("mouse entro: ${pointerEnterEvent.size}");
-                // // Navigator.of(context).push(CustomDialog());
-                // // List<String> resultados = lista.where((element) => element.toLowerCase().indexOf(data) != -1).toList();
-                
-                // }
-              },
-              onExit: (pointerEnterEvent){
-                // if(_overlayEntry != null){
-                //   this._overlayEntry.remove();
-                //   this._overlayEntry = null;
-                // }
-                print("_creteBarsWidgets context: ${context.widget.toStringShort()} hashCode: ${context.hashCode}");
-                _changeColor.value = false;
-              },
-              child: ValueListenableBuilder(
-                valueListenable: _changeColor,
-                builder: (context, value, _) {
-                  return Container(
+        // print("MyBarCharScreen _CreateBarsWidgets Bar height: ${((e.value / (_maxValue + 20)) * height)}");
+        print("MyBarCharScreen _CreateBarsWidgets Bar height2: ${((e.value / (_maxValue)) * height)}");
+        Widget builder = Builder(
+            builder: (context) {
+              return MouseRegion(
+                onEnter: (pointerEnterEvent){
+                  _changeColor.value = true;
+                  // if(_overlayEntry == null){
+                  // _overlayEntry = _createOverlayEntry(context);
+                  // Overlay.of(context).insert(_overlayEntry);
+                  // print("mouse entro: ${pointerEnterEvent.size}");
+                  // // Navigator.of(context).push(CustomDialog());
+                  // // List<String> resultados = lista.where((element) => element.toLowerCase().indexOf(data) != -1).toList();
+                  
+                  // }
+                },
+                onExit: (pointerEnterEvent){
+                  // if(_overlayEntry != null){
+                  //   this._overlayEntry.remove();
+                  //   this._overlayEntry = null;
+                  // }
+                  print("_creteBarsWidgets context: ${((e.value / (_maxValue)) * height)}");
+                  _changeColor.value = false;
+                },
+                child: ValueListenableBuilder(
+                  valueListenable: _changeColor,
+                  builder: (context, value, _) {
+                    return Container(
+                      decoration: BoxDecoration(
                         color: value ? e.color.withOpacity(0.7) : e.color,
-                        // width: boxconstraints.maxHeight / 4,
-                        width: (width / ((e.width != null) ? e.width : widget.listOfBottomLabel.length)),
-                        height: ((e.value / (_maxValue + 20)) * height), 
-                        // height: 100, 
-                      );
-                }
-              ),
-            );
-          }
+                        borderRadius: widget.borderRadius,
+                      ),
+                          // width: boxconstraints.maxHeight / 4,
+                          width: (width / ((e.width != null) ? e.width : widget.listOfBottomLabel.length)),
+                          height: ((e.value / (_maxValue)) * height), 
+                          // height: ((e.value / (_maxValue)) / widget.listOfData[indexOfLabels].length * height), 
+                          // height: 100, 
+                        );
+                  }
+                ),
+              );
+            }
+          );
+
+        if(widget.type == MyBarType.stack && key == (widget.listOfData[indexOfLabels].length - 1))
+          builder = Positioned(child: builder, bottom: 0,);
+        
+        return MapEntry(
+          key,
+          builder
         );
       }
-    ).toList();
+    ).values.toList();
     return Builder(
       builder: (context) {
         return MouseRegion(
@@ -181,7 +223,14 @@ class _MyBarcharState extends State<MyBarchar> {
 
             }
           },
-          child: Column(
+          child: 
+          widget.type == MyBarType.normal
+          ?
+          Column(
+            children: barWidgets,
+          )
+          :
+          Stack(
             children: barWidgets,
           ),
         );
@@ -194,9 +243,13 @@ class _MyBarcharState extends State<MyBarchar> {
     List<Widget> widgets = [];
     double valueToSubstractofTmpMaxValue = (maxValue / widget.leftLabelDivider);
 
-    for (double i = 0; i < maxValue ; i++) {
+    print("MyBarChar _createLeftLabel maxValue: $maxValue h: $height}");
+  
+
+    for (double i = 0; i <= maxValue ;) {
       tmpMaxValue += valueToSubstractofTmpMaxValue;
-      if(i == 0)
+
+      if(i.toInt() == 0)
         widgets.add(
         Positioned(
           // top: (widget.leftLabelDivider / maxValue) * height,
@@ -210,35 +263,41 @@ class _MyBarcharState extends State<MyBarchar> {
               child: Wrap(
                 alignment: WrapAlignment.end,
                 children: [
-                MyResizedContainer(child: Center(child: Text("0", style: TextStyle(fontSize: 11, fontFamily: "GoogleSans", fontWeight: FontWeight.bold))), small: 14, medium: 14, large: 11, xlarge: 16.8,),
+                MyResizedContainer(child: Center(child: Text("0", style: TextStyle(fontSize: 10, fontFamily: "GoogleSans", fontWeight: FontWeight.bold))), small: 14, medium: 14, large: 11, xlarge: 16.8,),
                 MyResizedContainer(child: Divider(), small: 1.15, medium: 1.12, large: 1.09, xlarge: 1.065, padding: EdgeInsets.only(left: 10.0, ))
               ],),
             ),
           ),
         )
       );
-      else
-      widgets.add(
+      else{
+    print("MyBarChar _createLeftLabel: i: $i ${((i / maxValue) * height)}");
+        widgets.add(
         Positioned(
           // top: (widget.leftLabelDivider / maxValue) * height,
-          bottom: (i == 0) ? i : ((i / maxValue) * height) + 12,
+          bottom: (((i / maxValue)) * height) < height ? (((i / maxValue)) * height) : height - 28,
           child: Container(
+            // color: Colors.blue,
             width: width,
             // height: (widget.leftLabelDivider / maxValue) * height,
             child: Align(
               alignment: Alignment.topRight,
               child: Wrap(children: [
-                MyResizedContainer(child: Center(child: Text("${tmpMaxValue.toInt()}", style: TextStyle(fontSize: 11, fontFamily: "GoogleSans", fontWeight: FontWeight.bold))), small: 14, medium: 14, large: 11, xlarge: 16.8,),
+                Center(child: Text("${i.toInt()}", style: TextStyle(fontSize: 10, fontFamily: "GoogleSans", fontWeight: FontWeight.bold))),
                 MyResizedContainer(child: Divider(), small: 1.15, medium: 1.12, large: 1.09, xlarge: 1.065, padding: EdgeInsets.only(left: 10.0, ),)
               ],),
             ),
           ),
         )
       );
+      }
 
       
       i += valueToSubstractofTmpMaxValue.toInt();
     }
+
+    print("MyBarChar _createLeftLabel length: ${widgets.length}");
+
 
     return widgets;
   }
@@ -370,14 +429,11 @@ class _MyBarcharState extends State<MyBarchar> {
           // color: Colors.red,
           // width: MediaQuery.of(context).size.width / 2,
           width: width,
-          height: MediaQuery.of(context).size.height / 1.6,
+          height: boxconstraints.minHeight,
           // height: boxconstraints.maxHeight,
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Stack(
-                children: _screen(width: width, height: (MediaQuery.of(context).size.height / 1.6) - 40)
-              ),
+            child: Stack(
+              children: _screen(width: width, height: (boxconstraints.minHeight))
             ),
           ),
          
