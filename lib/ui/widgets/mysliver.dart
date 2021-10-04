@@ -189,7 +189,8 @@ class MySliverAppBar extends StatefulWidget {
   final Widget bottom;
   final EdgeInsets dividerPadding;
   final bool floating;
-  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom, this.dividerPadding = const EdgeInsets.only(right: 25, top: 20), this.floating = false}) : super(key: key);
+  final bool showDivider;
+  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom, this.dividerPadding = const EdgeInsets.only(right: 25, top: 20), this.floating = false, this.showDivider = true}) : super(key: key);
 
   @override
   _MySliverAppBarState createState() => _MySliverAppBarState();
@@ -288,7 +289,11 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
                     ?
                     SizedBox.shrink()
                     :
+                    widget.showDivider
+                    ?
                     MyDivider(padding: widget.dividerPadding,)
+                    :
+                    SizedBox.shrink()
                   ],
                 ),
               ),

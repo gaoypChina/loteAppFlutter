@@ -4,14 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/graficaventas.dart';
+import 'package:loterias/core/models/loteriasventas.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/mybarchart.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/mytogglebuttons.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -25,8 +32,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   StreamController<List<Moneda>> _streamControllerMonedas;
   StreamController<List<GraficaVentas>> _streamControllerGrafica;
   List<Moneda> listaMoneda = [];
-  List<GraficaVentas> listaVentasGrafica = [];
-  List listaVentasPorLoteria = [];
+  List<GraficaVentas> listaVentasGrafica;
+  List<LoteriasVentas> listaLoteria = [];
   double _totalVentasLoterias = 0;
   double _totalPremiosLoterias = 0;
   List listaLoteriasJugadasDashboard = [];
@@ -39,9 +46,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _onCreate = true;
   var _fecha = DateTime.now();
   DateTimeRange _date;
+  ScrollController _scrollController;
+  int bancasSinVentas = 0;
+  int bancasConVentas = 0;
+  double promedioVentas = 0;
+  double promedioPremios = 0;
 
   @override
   initState(){
+    _scrollController = ScrollController();
     _streamControllerMonedas = BehaviorSubject();
     _streamControllerGrafica = BehaviorSubject();
     _date = MyDate.getTodayDateRange();
@@ -51,8 +64,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   _dashboard() async {
     try{
-      setState(() => _cargando = true);
-      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _fecha);
+      // setState(() => _cargando = true);
+      _streamControllerGrafica.add(null);
+      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start);
       if(_onCreate){
         listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
         _streamControllerMonedas.add(listaMoneda);
@@ -60,17 +74,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       listaVentasGrafica = datos["ventasGrafica"] != null ? datos["ventasGrafica"].map<GraficaVentas>((e) => GraficaVentas.fromMap(e)).toList() : [];
-      listaVentasPorLoteria = List.from(datos["loterias"]);
+      listaLoteria = datos["loterias"] != null ? datos["loterias"].map<LoteriasVentas>((e) => LoteriasVentas.fromMap(e)).toList() : [];
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
-      listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
+      listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : [];
       listaSorteo = List.from(datos["sorteos"]);
+      bancasConVentas = datos["bancasConVentas"];
+      bancasSinVentas = datos["bancasSinVentas"];
       if(listaSorteo != null)
         _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+
+      promedioVentas = listaVentasGrafica != null ? listaVentasGrafica.length > 0 ? listaVentasGrafica.map((e) => e.total).toList().reduce((value, element) => value + element) / listaVentasGrafica.length : 0 : 0;
+      promedioPremios = listaVentasGrafica != null ? listaVentasGrafica.length > 0 ? listaVentasGrafica.map((e) => e.premios).toList().reduce((value, element) => value + element) / listaVentasGrafica.length : 0 : 0;
       
       _streamControllerGrafica.add(listaVentasGrafica);
       setState(() => _cargando = false);
     } on Exception catch(e){
+      _streamControllerGrafica.add([]);
       setState(() => _cargando = false);
     }
   }
@@ -86,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       listaVentasGrafica = datos["ventasGrafica"] != null ? datos["ventasGrafica"].map<GraficaVentas>((e) => GraficaVentas.fromMap(e)).toList() : [];
-      listaVentasPorLoteria = List.from(datos["loterias"]);
+      listaLoteria = List.from(datos["loterias"]);
       _totalVentasLoterias = Utils.toDouble(datos["totalVentasLoterias"].toString());
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
       listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
@@ -113,7 +133,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   _dateChanged(var date){
-    if(date != null && date == DateTime)
+    print("Hola");
+    if(date == null)
+      return;
+
+    if(date != null && date is DateTime)
       setState(() {
         _date = DateTimeRange(
           start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
@@ -122,7 +146,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _dashboard();
       });
     else
-      _date = date;
+     setState((){
+        _date = date;
+        _dashboard();
+     });
   }
 
    _dateDialog() async {
@@ -159,8 +186,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     )
     :
-    "Filtre y agrupe todas las ventas por fecha.";
+    SizedBox();
   }
+
+  Widget myCard({@required title, @required subtitle, @required Widget leading, Color iconColor, double small = 2, double medium = 2.3, double large = 4, double xlarge = 4, bool isSmallOrMedium}){
+  return MyResizedContainer(
+    small: small,
+    medium: medium,
+    large: large,
+    xlarge: xlarge,
+    child: Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+          leading,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+            title is Widget  ? title : MyDescripcon(title: title, fontSize: isSmallOrMedium ? 11 : 13,),
+            subtitle is Widget ? subtitle : MySubtitle(title: subtitle, padding: EdgeInsets.only(bottom: 5, top: 5), fontSize: isSmallOrMedium ? 16 : 20,)
+          ],)
+        ],),
+      ),
+    ),
+  );
+  
+          
+}
 
   @override
   Widget build(BuildContext context) {
@@ -174,70 +232,227 @@ class _DashboardScreenState extends State<DashboardScreen> {
         sliverAppBar: MySliverAppBar(
           title: "Dashboard",
           subtitle: _subtitle(isSmallOrMedium),
-          expandedHeight: isSmallOrMedium ? 105 : 85,
+          showDivider: false,
+          expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
-             MySliverButton(
-              // showOnlyOnLarge: true,
+            MySliverButton(
+              title: "Hey", 
               showOnlyOnSmall: true,
-              title: Container(
-                width: 120,
-                // width: 140,
-              height: 37,
-              padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-              decoration: BoxDecoration(
-              color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10)
-              ),
-                child: Builder(
-                  builder: (context) {
-                    return InkWell(
-                    onTap: _dateDialog,
-                    child: Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                        Icon(Icons.date_range),
-                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
-                        Icon(Icons.arrow_drop_down, color: Colors.black)
-                      ],),
-                    ),
-                  );
-                  }
-                ),
-              ), 
-              onTap: (){}
-              ),
+              iconWhenSmallScreen: Icons.date_range,
+              onTap: _dateDialog
+            ),
+            //  MySliverButton(
+            //   // showOnlyOnLarge: true,
+            //   showOnlyOnSmall: true,
+            //   title: Container(
+            //     width: 120,
+            //     // width: 140,
+            //   height: 37,
+            //   padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+            //   decoration: BoxDecoration(
+            //   color: Colors.grey[200],
+            //     borderRadius: BorderRadius.circular(10)
+            //   ),
+            //     child: Builder(
+            //       builder: (context) {
+            //         return InkWell(
+            //         onTap: _dateDialog,
+            //         child: Container(
+            //           child: Row(
+            //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //             children: [
+            //             Icon(Icons.date_range),
+            //             Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+            //             Icon(Icons.arrow_drop_down, color: Colors.black)
+            //           ],),
+            //         ),
+            //       );
+            //       }
+            //     ),
+            //   ), 
+            //   onTap: (){}
+            //   ),
           ],
         ), 
-        sliver: StreamBuilder<Object>(
+        sliver: 
+        // SliverFillRemaining(
+        //   child: Center(
+        //     child: Container(
+        //                 height: 400,
+        //                 child: MyBarchar(
+        //                   xlarge: 2,
+        //                   large: 2,
+        //                   medium: 1,
+        //                   small: 1,
+        //                   leftLabelDivider: 3,
+        //                   listOfBottomLabel: [Text("Lunes"), Text("martes"), Text("Mierco"), Text("Jueves"), Text("Viern"), Text("Sab"), Text("Dom.")],
+        //                   listOfData: [
+        //                     [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
+        //                     [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+        //                     [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
+        //                     [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
+        //                     [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+        //                     [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+        //                     [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+        //                   ],
+        //                 ),
+        //               ),
+        //   ),
+        // )
+
+        StreamBuilder<Object>(
           stream: _streamControllerGrafica.stream,
           builder: (context, snapshot) {
             if(snapshot.data == null && (isSmallOrMedium || listaVentasGrafica == null))
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
 
-            return SliverFillRemaining(
-              child: Column(
-                children: [
-                  Container(
-                    height: 200,
-                    child: MyBarchar(
-                      leftLabelDivider: 2,
-                      borderRadius: BorderRadius.circular(2),
-                      type: MyBarType.stack,
-                      listOfBottomLabel: [Text("Trasan", style: TextStyle(fontSize: 10),), Text("Antesayer", style: TextStyle(fontSize: 10)), Text("Ayer", style: TextStyle(fontSize: 10)), Text("Hoy", style: TextStyle(fontSize: 10))],
-                      listOfData: [
-                        [MyBar(value: 20, color: Colors.grey), MyBar(value: 10, color: Colors.green)],
-                        [MyBar(value: 30, color: Colors.grey), MyBar(value: 15, color: Colors.green)],
-                        [MyBar(value: 50, color: Colors.grey), MyBar(value: 45, color: Colors.green)],
-                        [MyBar(value: 20, color: Colors.grey), MyBar(value: 12, color: Colors.green)],
+            var widgets = [
+                Wrap(
+                  children: [
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        myCard(title: "Promedio ventas", subtitle: "${Utils.toCurrency(promedioVentas)}", isSmallOrMedium: isSmallOrMedium, 
+                        leading: Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Icon(Icons.attach_money, size: 32, color: Colors.green,),
+                            ),
+                          ],
+                        )),
+                        myCard(title: "Promedio premios", subtitle: "${Utils.toCurrency(promedioPremios)}", isSmallOrMedium: isSmallOrMedium, 
+                        leading: Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: Icon(Icons.money_off, size: 32, color: Colors.pink,),
+                            ),
+                          ],
+                        )),
+                        myCard(title: "Bancas con ventas", subtitle: "$bancasConVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_added, size: 32, color: Colors.blue[700],)),
+                        myCard(title: "Bancas sin ventas", subtitle: "$bancasSinVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_remove, size: 32, color: Colors.orange[700],)),
                       ],
                     ),
-                  ),
-                ],
-              ),
+                    // MyResizedContainer(
+                    //   xlarge: 2,
+                    //   large: 2,
+                    //   child: Card(elevation: 5, child: Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),))
+                    // ),
+                    MyResizedContainer(
+                      xlarge: 2,
+                      large: 2,
+                      medium: 1,
+                      small: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MySubtitle(title: "Grafica de ventas", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
+                          MyDescripcon(title: "Aqui se muestra el total vendido y el total neto de los ultimos 7 dias"),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: 
+                             Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data, isSmallOrMedium: isSmallOrMedium)),),
+                            // Container(
+                            //     height: 400,
+                            //     child: MyBarchar(
+                            //       xlarge: 1,
+                            //       large: 1,
+                            //       medium: 1,
+                            //       small: 1,
+                            //       leftLabelDivider: 3,
+                            //       listOfBottomLabel: listaVentasGrafica.map<Text>((e) => Text("${e.dia}")).toList(),
+                            //       listOfData: listaVentasGrafica.map((e) => [MyBar(value: e.total, color: Colors.green[100], text: "Total", borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),), MyBar(text: "Neto", value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink, borderRadius: e.neto < 0 ? BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)) : null)]).toList()
+                            //       // [
+                            //       //   [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
+                            //       //   [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                            //       //   [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
+                            //       //   [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
+                            //       //   [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                            //       //   [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                            //       //   [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                            //       // ],
+                            //     ),
+                            //   ),
+                          ),
+                        ],
+                      ),
+                    ),
+                      // Container( 
+                      //   height: 200, 
+                      //   child: MyBarchar(
+                      //     medium: 1,
+                      //     listOfBottomLabel: snapshot.data.map((e) => Text(e.dia)).toList(),
+                      //     leftLabelDivider: 5,
+                      //     listOfData: snapshot.data.map((e) => [MyBar(value: e.total, color: Colors.grey[50]), MyBar(value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink)]).toList(),
+                      //   ),
+                      // ),
+                      MyResizedContainer(
+                        xlarge: 2,
+                        large: 2,
+                        medium: 1,
+                        small: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            MySubtitle(title: "totales por loteria", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 18.0),
+                              child: MyDescripcon(title: "Aqui se mostraran las ventas y premios totales de cada loteria"),
+                            ),
+                            // Padding(
+                            //     padding: const EdgeInsets.only(top: 20, bottom: 15),
+                            //     child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
+                            //   ),
+                              isSmallOrMedium
+                              ?
+                            _buildTableVentasPorLoteria(listaLoteria)
+                            :
+                            Container(
+                              height: isSmallOrMedium ? null : 400,
+
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 20.0, top: 20.0),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: MyTable(
+                                        type: MyTableType.custom,
+                                        // isScrolled: false,
+                                        bottom: ["Totales", "${listaLoteria != null ? Utils.toCurrency(listaLoteria.map((e) => e.ventas).toList().reduce((value, element) => value + element)) : Utils.toCurrency("0")}", "0"],
+                                        columns: [Center(child: Text("Loteria", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Ventas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Premios", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))], 
+                                        rows: listaLoteria.map((e) => [e, e.descripcion, "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}"]).toList()
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                  _buildJugadasRealizadas(isSmallOrMedium)
+              ];
+
+            return SliverFillRemaining(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widgets.length,
+                itemBuilder: (context, index){
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: index == 0 ? 0 : 14.0),
+                    child: widgets[index],
+                  );
+                }
+              )
             );
           }
         )
+      
       )
     );
     return Scaffold(
@@ -361,8 +576,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           padding: const EdgeInsets.only(top: 20, bottom: 15),
                           child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
                         ),
-                      _buildTableVentasPorLoteria(listaVentasPorLoteria),
-                       _buildJugadasRealizadas()
+                      _buildTableVentasPorLoteria(listaLoteria),
+                       _buildJugadasRealizadas(false)
                     ],
                   );
                 }
@@ -377,7 +592,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildJugadasRealizadas()
+  Widget _playsScreen(bool isSmallOrMedium){
+    //  Map<String, dynamic> sort = sorteosLoteriasJugadas.firstWhere((s) => s["descripcion"] == sorteo);
+    //   if(sort != null)
+    //     setState(() => listaJugada = List.from(sort["jugadas"]));
+    if(isSmallOrMedium)
+      return _buildTableLoteriasJugadasDashboard();
+
+    List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
+    return Wrap(
+      children: sorteosLoteriasJugadas.map((e) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          elevation: 5,
+          child: MyResizedContainer(
+            xlarge: 4.3,
+            large: 4.3,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: Container(
+                height: 250,
+                child: Column(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text("${e["descripcion"]}"),
+                      ),
+                    ),
+                    Expanded(
+                      child: MyTable(
+                        type: MyTableType.custom,
+                        columns: ["LOT", "NUM", "MONT"], 
+                        rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : j["abreviatura"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      )).toList(),
+    );
+  }
+
+  Widget _drawsScreen(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return  MyToggleButtons(
+          onTap: (sorteo){
+            // var d = _loteriasComisiones.firstWhere((element) => element.id == data, orElse: () => null);
+            int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
+            if(idx != -1){
+              setState(() => _indexSorteo = idx);
+              print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
+              _cambiarValorListaJugada(sorteo);
+            }
+          },
+          // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
+          items: listaSorteo.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: e["descripcion"])).toList(),
+          selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaSorteo[_indexSorteo]["descripcion"], child: "${listaSorteo[_indexSorteo]['descripcion']}")] : [],
+        );
+
+    return SizedBox.shrink();
+  }
+
+  Widget _buildJugadasRealizadas(bool isSmallOrMedium)
   {
     if(listaLoteriasJugadasDashboard == null)
       return SizedBox();
@@ -385,44 +668,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return SizedBox();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        MySubtitle(title: "Jugadas realizadas", padding: EdgeInsets.only(top: 15, bottom: 12.0),),
         Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 15),
-          child: Center(child: Text("Jugadas realizadas", style: TextStyle(fontSize: 25),),),
+          padding: const EdgeInsets.only(bottom: 18.0),
+          child: MyDescripcon(title: "Aqui se muestran las jugadas para cada loteria ordenadas por monto jugado de manera descendente."),
         ),
-        DropdownButton<String>(
-          value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"],
-          items: listaLoteriasJugadasDashboard.map((l) => DropdownMenuItem<String>(
-            value: l["descripcion"],
-            child: Text(l["descripcion"])
-          )).toList(), 
-          onChanged: (String loteria){
-            int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
-            setState(() => _indexLoteriaJugadas = idx);
-            _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
-          }
+        // Padding(
+        //   padding: const EdgeInsets.only(top: 20, bottom: 15),
+        //   child: Center(child: Text("Jugadas realizadas", style: TextStyle(fontSize: 25),),),
+        // ),
+        // DropdownButton<String>(
+        //   value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"],
+        //   items: listaLoteriasJugadasDashboard.map((l) => DropdownMenuItem<String>(
+        //     value: l["descripcion"],
+        //     child: Text(l["descripcion"])
+        //   )).toList(), 
+        //   onChanged: (String loteria){
+        //     int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
+        //     setState(() => _indexLoteriaJugadas = idx);
+        //     _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+        //   }
+        // ),
+        
+        // DropdownButton<String>(
+        //   value: listaSorteo[_indexSorteo]["descripcion"],
+        //   items: listaSorteo.map((s) => DropdownMenuItem<String>(
+        //     value: s["descripcion"],
+        //     child: Text(s["descripcion"])
+        //   )).toList(), 
+        //   onChanged: (String sorteo){
+        //     int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
+        //     if(idx != -1){
+        //       setState(() => _indexSorteo = idx);
+        //       print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
+        //       _cambiarValorListaJugada(sorteo);
+        //     }
+        //   }
+        // ),
+        // _buildTableLoteriasJugadasDashboard()
+        MyToggleButtons(
+          onTap: (loteria){
+            // var d = _loteriasComisiones.firstWhere((element) => element.id == data, orElse: () => null);
+            setState(() {
+              int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
+              setState(() => _indexLoteriaJugadas = idx);
+              _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+            });
+          },
+          // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
+          items: listaLoteriasJugadasDashboard.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: e["descripcion"])).toList(),
+          selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"], child: "${listaLoteriasJugadasDashboard[_indexLoteriaJugadas]['descripcion']}")] : [],
         ),
-        DropdownButton<String>(
-          value: listaSorteo[_indexSorteo]["descripcion"],
-          items: listaSorteo.map((s) => DropdownMenuItem<String>(
-            value: s["descripcion"],
-            child: Text(s["descripcion"])
-          )).toList(), 
-          onChanged: (String sorteo){
-            int idx = listaSorteo.indexWhere((s) => s["descripcion"] == sorteo);
-            if(idx != -1){
-              setState(() => _indexSorteo = idx);
-              print("Changed sorteos: ${listaSorteo[_indexSorteo]}");
-              _cambiarValorListaJugada(sorteo);
-            }
-          }
-        ),
-        _buildTableLoteriasJugadasDashboard()
+       _drawsScreen(isSmallOrMedium),
+        _playsScreen(isSmallOrMedium)
       ],
     );
   }
 
-static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas> listaVentasGrafica) {
+static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas> listaVentasGrafica, {bool isSmallOrMedium = false}) {
 
   final desktopSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia, Utils.toDouble(v.total.toString()))).toList();
   final tableSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia.toString(), Utils.toDouble(v.neto.toString()))).toList();
@@ -442,7 +747,7 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
         },
         outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
           final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: 7);
+          return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
         },
         colorFn: (OrdinalSales sales, _) => charts.Color.fromHex(code: "#95999e"),
       ),
@@ -459,7 +764,7 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
         },
         outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
           final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: 7);
+          return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
         },
         colorFn: (OrdinalSales sales, _) => sales.sales > 0 ? charts.Color.fromHex(code: "#75b281") : charts.Color.fromHex(code: "#dc2365"),
       ),
@@ -467,7 +772,7 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
   }
 
 
-  Widget _buildTableVentasPorLoteria(List map){
+  Widget _buildTableVentasPorLoteria(List<LoteriasVentas> map){
    var tam = (map != null) ? map.length : 0;
    List<TableRow> rows;
    if(tam == 0){
@@ -483,18 +788,18 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16)))
+                    child: InkWell(onTap: (){}, child: Text(b.descripcion, style: TextStyle(fontSize: 16)))
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["ventas"] == null ? Utils.toCurrency('0') : Utils.toCurrency(b["ventas"])}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b.ventas == null ? Utils.toCurrency('0') : Utils.toCurrency(b.ventas)}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${b["premios"] == null ? Utils.toCurrency('0') : Utils.toCurrency(b["premios"])}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${b.premios == null ? Utils.toCurrency('0') : Utils.toCurrency(b.premios)}", style: TextStyle(fontSize: 16)))
                 ),
               ],
             )
@@ -555,14 +860,11 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
         
    }
 
-   return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              columnWidths: <int, TableColumnWidth>{0 : FractionColumnWidth(.35)},
-              children: rows,
-             ),
-        );
+   return Table(
+       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+       columnWidths: <int, TableColumnWidth>{0 : FractionColumnWidth(.35)},
+       children: rows,
+      );
 
   return Flexible(
       child: ListView(
@@ -691,19 +993,14 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
         
    }
 
-   return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: 
-            (rows.length == 0)
-            ? Text("No hay datos", style: TextStyle(fontSize: 20),)
-            :
-            Table(
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              columnWidths: <int, TableColumnWidth>{0 : FractionColumnWidth(.35)},
-              children: rows,
-             ),
-
-        );
+   return (rows.length == 0)
+   ? Text("No hay datos", style: TextStyle(fontSize: 20),)
+   :
+   Table(
+     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+     columnWidths: <int, TableColumnWidth>{0 : FractionColumnWidth(.35)},
+     children: rows,
+    );
 
   return Flexible(
       child: ListView(

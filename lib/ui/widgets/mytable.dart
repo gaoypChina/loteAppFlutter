@@ -51,10 +51,12 @@ class MyTable extends StatefulWidget {
 
 class _MyTableState extends State<MyTable> {
   List<DataRow> rows;
+  ScrollController _controller;
   @override
   void initState() {
     // TODO: implement initState
     // _init();
+    _controller = ScrollController();
     super.initState();
   }
 
@@ -273,42 +275,48 @@ class _MyTableState extends State<MyTable> {
   _customTable(){
     return  LayoutBuilder(
       builder: (context, boxconstraint) {
-        return ListView.builder(
-          shrinkWrap: true,
-          itemCount: widget.rows.length,
-          itemBuilder: (context, index){
-            print("MyTable nueva table: ${widget.rows.length - 1} == ${index}");
-            if(index == 0){
-              if(widget.rows.length - 1 != index)
-              return Column(
-                children: [
-                  Wrap(
-                    children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
-                  ),
-                  _myCustomRow(boxconstraint, index)
-                ],
-              );
+        return Scrollbar(
+          interactive: true,
+          controller: _controller,
+          isAlwaysShown: true,
+          child: ListView.builder(
+            controller: _controller,
+            shrinkWrap: true,
+            itemCount: widget.rows.length,
+            itemBuilder: (context, index){
+              print("MyTable nueva table: ${widget.rows.length - 1} == ${index}");
+              if(index == 0){
+                if(widget.rows.length - 1 != index)
+                return Column(
+                  children: [
+                    Wrap(
+                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
+                    ),
+                    _myCustomRow(boxconstraint, index)
+                  ],
+                );
+                else
+                return Column(
+                  children: [
+                    Wrap(
+                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
+                    ),
+                    _myCustomRow(boxconstraint, index),
+                    _myCustomTotalRow(boxconstraint, index),
+                  ],
+                );
+              }else if(widget.rows.length - 1 == index){
+                return Column(
+                  children: [
+                    _myCustomRow(boxconstraint, index),
+                    _myCustomTotalRow(boxconstraint, index),
+                  ],
+                );
+              }
               else
-              return Column(
-                children: [
-                  Wrap(
-                    children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
-                  ),
-                  _myCustomRow(boxconstraint, index),
-                  _myCustomTotalRow(boxconstraint, index),
-                ],
-              );
-            }else if(widget.rows.length - 1 == index){
-              return Column(
-                children: [
-                  _myCustomRow(boxconstraint, index),
-                  _myCustomTotalRow(boxconstraint, index),
-                ],
-              );
+                return _myCustomRow(boxconstraint, index);
             }
-            else
-              return _myCustomRow(boxconstraint, index);
-          }
+          ),
         );
       }
     );
