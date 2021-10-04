@@ -9,6 +9,7 @@ import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/mybarchart.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
@@ -236,11 +237,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
           expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
             MySliverButton(
-              title: "Hey", 
-              showOnlyOnSmall: true,
+              title: "", 
               iconWhenSmallScreen: Icons.date_range,
-              onTap: _dateDialog
+              showOnlyOnSmall: true,
+              onTap: _dateDialog,
             ),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: MyDropdown(title: null, 
+                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                        onTap: _dateDialog,
+                      ),
+                    );
+                  }
+                ),
+              ), 
+              onTap: (){}
+              )
             //  MySliverButton(
             //   // showOnlyOnLarge: true,
             //   showOnlyOnSmall: true,
@@ -303,7 +324,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         StreamBuilder<Object>(
           stream: _streamControllerGrafica.stream,
           builder: (context, snapshot) {
-            if(snapshot.data == null && (isSmallOrMedium || listaVentasGrafica == null))
+            if(snapshot.data == null)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
 
             var widgets = [
