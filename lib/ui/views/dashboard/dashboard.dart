@@ -21,7 +21,7 @@ import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytogglebuttons.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+// import 'package:charts_flutter/flutter.dart' as charts;
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -374,28 +374,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 20.0),
                             child: 
-                             Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data, isSmallOrMedium: isSmallOrMedium)),),
-                            // Container(
-                            //     height: 400,
-                            //     child: MyBarchar(
-                            //       xlarge: 1,
-                            //       large: 1,
-                            //       medium: 1,
-                            //       small: 1,
-                            //       leftLabelDivider: 3,
-                            //       listOfBottomLabel: listaVentasGrafica.map<Text>((e) => Text("${e.dia}")).toList(),
-                            //       listOfData: listaVentasGrafica.map((e) => [MyBar(value: e.total, color: Colors.green[100], text: "Total", borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),), MyBar(text: "Neto", value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink, borderRadius: e.neto < 0 ? BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)) : null)]).toList()
-                            //       // [
-                            //       //   [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
-                            //       //   [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
-                            //       //   [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
-                            //       //   [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       // ],
-                            //     ),
-                            //   ),
+                            //  Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data, isSmallOrMedium: isSmallOrMedium)),),
+                            Container(
+                                height: 400,
+                                child: MyBarchar(
+                                  xlarge: 1,
+                                  large: 1,
+                                  medium: 1,
+                                  small: 1,
+                                  leftLabelDivider: 3,
+                                  listOfBottomLabel: listaVentasGrafica.map<Text>((e) => Text("${e.dia}")).toList(),
+                                  listOfData: listaVentasGrafica.map((e) => [MyBar(value: e.total, color: Colors.green[100], text: "Total", borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),), MyBar(text: "Neto", value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink, borderRadius: e.neto < 0 ? BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)) : null)]).toList()
+                                  // [
+                                  //   [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
+                                  //   [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                                  //   [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
+                                  //   [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
+                                  //   [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                                  //   [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                                  //   [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                                  // ],
+                                ),
+                              ),
                           ),
                         ],
                       ),
@@ -583,7 +583,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     return Center(child: Text("No hay datos"));
                   return Column(
                     children: <Widget>[
-                      Container( height: 200, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),),
+                      // Container( height: 200, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),),
                       // Container( 
                       //   height: 200, 
                       //   child: MyBarchar(
@@ -748,49 +748,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas> listaVentasGrafica, {bool isSmallOrMedium = false}) {
+// static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas> listaVentasGrafica, {bool isSmallOrMedium = false}) {
 
-  final desktopSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia, Utils.toDouble(v.total.toString()))).toList();
-  final tableSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia.toString(), Utils.toDouble(v.neto.toString()))).toList();
+//   final desktopSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia, Utils.toDouble(v.total.toString()))).toList();
+//   final tableSalesDataA = listaVentasGrafica.map((v) => OrdinalSales(v.dia.toString(), Utils.toDouble(v.neto.toString()))).toList();
     
 
-    return [
-      new charts.Series<OrdinalSales, String>(
-        id: 'Desktop A',
-        seriesCategory: 'A',
-        domainFn: (OrdinalSales sales, _) => sales.year,
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: desktopSalesDataA,
-        labelAccessorFn: (OrdinalSales sales, _) => sales.sales.toString(),
-        insideLabelStyleAccessorFn: (OrdinalSales sales, _) {
-          final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: 30);
-        },
-        outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
-          final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
-        },
-        colorFn: (OrdinalSales sales, _) => charts.Color.fromHex(code: "#95999e"),
-      ),
-      new charts.Series<OrdinalSales, String>(
-        id: 'Tablet A',
-        seriesCategory: 'A',
-        domainFn: (OrdinalSales sales, _) => sales.year,
-        measureFn: (OrdinalSales sales, _) => sales.sales,
-        data: tableSalesDataA,
-        labelAccessorFn: (OrdinalSales sales, _) => sales.sales.toString(),
-        insideLabelStyleAccessorFn: (OrdinalSales sales, _) {
-          final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: 30);
-        },
-        outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
-          final color = charts.MaterialPalette.black;
-          return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
-        },
-        colorFn: (OrdinalSales sales, _) => sales.sales > 0 ? charts.Color.fromHex(code: "#75b281") : charts.Color.fromHex(code: "#dc2365"),
-      ),
-    ];
-  }
+//     return [
+//       new charts.Series<OrdinalSales, String>(
+//         id: 'Desktop A',
+//         seriesCategory: 'A',
+//         domainFn: (OrdinalSales sales, _) => sales.year,
+//         measureFn: (OrdinalSales sales, _) => sales.sales,
+//         data: desktopSalesDataA,
+//         labelAccessorFn: (OrdinalSales sales, _) => sales.sales.toString(),
+//         insideLabelStyleAccessorFn: (OrdinalSales sales, _) {
+//           final color = charts.MaterialPalette.black;
+//           return new charts.TextStyleSpec(color: color, fontSize: 30);
+//         },
+//         outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
+//           final color = charts.MaterialPalette.black;
+//           return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
+//         },
+//         colorFn: (OrdinalSales sales, _) => charts.Color.fromHex(code: "#95999e"),
+//       ),
+//       new charts.Series<OrdinalSales, String>(
+//         id: 'Tablet A',
+//         seriesCategory: 'A',
+//         domainFn: (OrdinalSales sales, _) => sales.year,
+//         measureFn: (OrdinalSales sales, _) => sales.sales,
+//         data: tableSalesDataA,
+//         labelAccessorFn: (OrdinalSales sales, _) => sales.sales.toString(),
+//         insideLabelStyleAccessorFn: (OrdinalSales sales, _) {
+//           final color = charts.MaterialPalette.black;
+//           return new charts.TextStyleSpec(color: color, fontSize: 30);
+//         },
+//         outsideLabelStyleAccessorFn: (OrdinalSales sales, _) {
+//           final color = charts.MaterialPalette.black;
+//           return new charts.TextStyleSpec(color: color, fontSize: isSmallOrMedium ? 7 : 11);
+//         },
+//         colorFn: (OrdinalSales sales, _) => sales.sales > 0 ? charts.Color.fromHex(code: "#75b281") : charts.Color.fromHex(code: "#dc2365"),
+//       ),
+//     ];
+//   }
 
 
   Widget _buildTableVentasPorLoteria(List<LoteriasVentas> map){

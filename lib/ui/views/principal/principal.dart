@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
@@ -28,7 +29,7 @@ import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+// import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
@@ -1863,7 +1864,15 @@ AppBar _appBar(bool screenHeightIsSmall){
           onSelected: (String value) async {
             if(value == "duplicar"){
               try{
-                String codigoQr = await BarcodeScanner.scan();
+                // String codigoQr = await BarcodeScanner.scan();
+                // String codigoQr = await scanner.scan();
+                String codigoQr = await FlutterBarcodeScanner.scanBarcode(
+                                                    "#38B6FF", 
+                                                    "Cancel", 
+                                                    true,
+                                                    ScanMode.QR
+                                                    );
+
                 setState(() => _cargando = true);
                 var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
                 setState(() => _cargando = false);
@@ -1875,7 +1884,14 @@ AppBar _appBar(bool screenHeightIsSmall){
               }
             }else if(value == "pagar"){
               try{
-                String codigoQr = await BarcodeScanner.scan();
+                // String codigoQr = await BarcodeScanner.scan();
+                // String codigoQr = await scanner.scan();
+                String codigoQr = await FlutterBarcodeScanner.scanBarcode(
+                                                    "#38B6FF", 
+                                                    "Cancel", 
+                                                    true,
+                                                    ScanMode.QR
+                                                    );
                 setState(() => _cargando = true);
                 var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
                 setState(() => _cargando = false);

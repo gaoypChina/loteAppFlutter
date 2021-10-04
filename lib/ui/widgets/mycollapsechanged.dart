@@ -64,6 +64,10 @@ class _MyCollapseChangedState extends State<MyCollapseChanged> {
     _position?.removeListener(_positionListener);
   }
   void _positionListener() {
+    // MaterialStateProperty.resolveWith((states){
+    //   print("MyCollapseChanged _positionListener: ${states.contains(MaterialState.scrolledUnder)}");
+    //   return states.contains(MaterialState.scrolledUnder);
+    // });
     final FlexibleSpaceBarSettings settings =
       context.dependOnInheritedWidgetOfExactType();
     print(settings.minExtent);

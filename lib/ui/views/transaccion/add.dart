@@ -963,7 +963,7 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
             },
           ),
           backgroundColor: Colors.transparent,
-          textTheme: TextTheme(title: TextStyle(color: Colors.black,),),
+          // textTheme: TextTheme(title: TextStyle(color: Colors.black,),),
           elevation: 0,
           actions: <Widget>[
                Column(

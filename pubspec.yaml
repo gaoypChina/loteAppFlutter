@@ -34,8 +34,14 @@ dependencies:
   # corsac_jwt: ^0.1.2
   # adhara_socket_io: ^0.4.2+1
   sqflite: ^2.0.0+3
-  barcode_scan: ^2.0.1
-  charts_flutter: ^0.10.0
+  # barcode_scan: ^2.0.1
+  # qrscans: ^0.0.7
+  # qrscan: ^0.2.18
+  # majascan: ^0.4.0
+  # ez_qr: ^0.0.1
+  # qrscan: ^0.3.2
+  flutter_barcode_scanner: ^2.0.0
+  # charts_flutter: ^0.11.0
   # package_info: ^0.4.0+17
   package_info: ^2.0.0
   url_launcher: ^6.0.2
@@ -43,7 +49,7 @@ dependencies:
   shimmer: ^1.1.1
   # workmanager: ^0.2.3
   jiffy: ^4.1.0
-  flutter_native_timezone: ^1.0.4
+  flutter_native_timezone: ^2.0.0
   unicons: ^2.0.1
   scrollable_positioned_list: ^0.1.10
   horizontal_data_table: ^3.1.0
@@ -59,7 +65,8 @@ dependencies:
   printing: ^5.4.1
   qr_flutter: ^4.0.0
   screenshot: ^1.2.3
-  flutter_colorpicker: ^0.4.0
+  # flutter_colorpicker: ^0.4.0
+  flutter_colorpicker: ^0.6.0
   flutter:
     sdk: flutter
 
