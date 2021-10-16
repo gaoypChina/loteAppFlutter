@@ -99,7 +99,7 @@ class LoginService{
       }
     }
     print("Loginservice guardarDatos: ${a.toJson()}");
-    if(a != null && !kIsWeb)
+    if(a != null)
       await Db.insert("Settings", {
         "id" : a.id, 
         "consorcio" : (a.consorcio != null) ? a.consorcio : '',

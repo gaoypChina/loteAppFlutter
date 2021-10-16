@@ -28,6 +28,8 @@ abstract class CrossSembas {
   getIdUsuario();
 
   getIdBanca();
+
+  getPrinter();
   factory CrossSembas() => getSembas();
   
 }

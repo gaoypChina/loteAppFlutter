@@ -26,15 +26,120 @@ class MyListTile extends StatefulWidget {
   final Function onTap;
   final bool visible;
   final MyListTileType type;
-  MyListTile({Key key, @required this.title, @required this.icon, this.onTap, this.selected = false, this.cargando = false, this.visible, this.type = MyListTileType.normal}) : super(key: key);
+  final AnimationController controller;
+  MyListTile({Key key, @required this.title, @required this.icon, this.onTap, this.selected = false, this.cargando = false, this.visible, this.type = MyListTileType.normal, this.controller}) : super(key: key);
   @override
   _MyListTileState createState() => _MyListTileState();
 }
 
 class _MyListTileState extends State<MyListTile> {
+  Widget _firstChild(){
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(25),
+        onTap: widget.onTap,
+        child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: widget.selected ? Colors.blue[50] : Colors.transparent,
+              borderRadius: BorderRadius.circular(25)
+            ),
+            child: Center(child: Icon(widget.icon, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700,)) ,
+          ),
+        ),
+    );
+  }
+
+  Widget _secondChild(){
+    return Padding(
+        padding: EdgeInsets.only(right: 10.0),
+        child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: widget.selected ? Colors.blue[50] : Colors.transparent
+              ),
+              child: ListTile(
+                onTap: widget.onTap,
+                selected: widget.selected,
+                selectedTileColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 10.0),
+                dense: true,
+                leading: 
+                Padding(
+                  padding: const EdgeInsets.only(left: 15.0),
+                  child: Icon(widget.icon, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700,),
+                ),
+                
+                title: Visibility(
+                  visible: widget.type == MyListTileType.normal,
+                  child: Wrap(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                    Text(widget.title, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w500,fontSize: 14.3, letterSpacing: 0.2, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700)),
+                    Visibility(visible: widget.cargando, child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Visibility(
+                                visible: widget.cargando,
+                                child: new CircularProgressIndicator()
+                                // Theme(
+                                //   data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                                //   child: new CircularProgressIndicator(),
+                                // ),
+                              ),
+                            ),
+                          ),)
+                  ],),
+                )
+              ),
+            ),
+      ),
+    );
+    
+  }
+
   @override
   Widget build(BuildContext context) {
     return 
+    // widget.type == MyListTileType.onlyIcon
+    // ?
+    // _firstChild()
+    // :
+    // _secondChild();
+    AnimatedBuilder(
+        animation: widget.controller,
+        builder: (context, child) {
+          return FractionalTranslation(
+            
+            translation: Offset(0.0, 0.0),
+            child: 
+            
+            widget.controller.value <= 0.3 || widget.controller.value == null
+            ? 
+            _firstChild()
+            : 
+             _secondChild()
+          );
+        },
+    );
+    // MyAnimatedSwitcher(
+    //   animation: widget.animation,
+    //   child: _firstChild(),
+    //   secondChild: _secondChild(),
+    // );
     widget.type == MyListTileType.onlyIcon
     ?
     Center(
@@ -63,7 +168,7 @@ class _MyListTileState extends State<MyListTile> {
             child: ListTile(
               onTap: widget.onTap,
               selected: widget.selected,
-              selectedTileColor: Colors.blue[100],
+              selectedTileColor: Colors.red,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                   topRight: Radius.circular(32),
@@ -196,5 +301,29 @@ class _MyListTileState extends State<MyListTile> {
           )
         )
     );
+  }
+}
+
+class MyAnimatedSwitcher extends AnimatedWidget {
+  final Widget child;
+  final Widget secondChild;
+  const MyAnimatedSwitcher({Key key, @required Animation<double> animation, @required this.child, @required this.secondChild})
+      : super(key: key, listenable: animation);
+
+  @override
+  Widget build(BuildContext context) {
+    final animation = listenable as Animation<double>;
+     return
+     animation.value == 0
+      ?
+       child
+      :
+      secondChild;
+    // return Container(
+    //   // height: MediaQuery.of(context).size.height,
+    //   // width: animation.value,
+    //   child:
+     
+    // );
   }
 }

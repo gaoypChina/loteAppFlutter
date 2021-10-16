@@ -17,17 +17,18 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:timezone/timezone.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class  Utils {
-  // static final String URL = 'http://127.0.0.1:8000';
-  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  static final String URL = 'http://127.0.0.1:8000';
+  static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL_SOCKET = 'http://148.255.160.175:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  static final String URL = 'https://loteriasdo.gq';
-  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  // static final String URL = 'https://loteriasdo.gq';
+  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -160,11 +161,13 @@ class  Utils {
   static Future<bool> exiseImpresora() async{
     var c = await DB.create();
     var impresora = await c.getValue('printer');
-    if(impresora != null){
-      return true;
-    }
+    if(impresora == null)
+      return false;
 
-    return false;
+    if(impresora.isEmpty)
+      return false;
+
+    return true;
   }
 
   static String toSecuencia(String codigoBanca, BigInt idTicket, [bool mostrarCodigoBanca = true]){
@@ -1167,6 +1170,14 @@ class  Utils {
    
  }
 
+
+  static launchUrl(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
  
 }

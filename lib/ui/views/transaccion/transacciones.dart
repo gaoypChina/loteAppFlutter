@@ -759,6 +759,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      transacciones: true,
       floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: (){_goToAddTransacciones(isSmallOrMedium);},) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
@@ -827,8 +828,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
             if(snapshot.hasData && snapshot.data.length == 0 && isSmallOrMedium)
               return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay transacciones realizadas", titleButton: "No hay transacciones", icon: Icons.transfer_within_a_station,)));
 
-            return SliverFillRemaining(child: MyScrollbar(child: Column(
-              children: [
+            var widgets = [
 
                 _myWebFilterScreen(isSmallOrMedium),
                 MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25),),
@@ -838,8 +838,29 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 :
                 _buildTableTransaccion(snapshot.data, isSmallOrMedium),
                 SizedBox(height: 45,)
-              ],
-            )),);
+              ];
+
+              return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index){
+                  return widgets[index];
+                },
+                childCount: widgets.length
+              ));
+
+            // return SliverFillRemaining(child: MyScrollbar(child: Column(
+            //   children: [
+
+            //     _myWebFilterScreen(isSmallOrMedium),
+            //     MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25),),
+            //     snapshot.hasData && snapshot.data.length == 0
+            //     ?
+            //     Center(child:  MyEmpty(title: "No hay transacciones realizadas", titleButton: "No hay transacciones", icon: Icons.transfer_within_a_station),)
+            //     :
+            //     _buildTableTransaccion(snapshot.data, isSmallOrMedium),
+            //     SizedBox(height: 45,)
+            //   ],
+            // )),);
           }
         )
       )

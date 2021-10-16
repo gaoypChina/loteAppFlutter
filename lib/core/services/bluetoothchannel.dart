@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class BluetoothChannel{
   static const String TYPE_ORIGINAL = "ORIGINAL";
@@ -80,20 +82,49 @@ class BluetoothChannel{
 
     print("BluetoothChannel printTicket ajustes: ${await Db.ajustes()}");
     _ajustes = Ajuste.fromMap(await Db.ajustes());
-          
-     _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
-      (onData) async {
-        print("Listen OnData: $onData");
-        _connectado = true;
-        final bool result = await _methodChannel.invokeMethod("printText", {"data" : _ajustes.descripcionTipoFormatoTicket == "Formato de ticket 2" ? generateMapTicketOtroFormato(map, type) : generateMapTicket(map, type)});
-        disconnect();
-        print("Listen OnData print: $result");
-      },
-      onError: (error){
-        _connectado = false;
-        print("Listen Error: $error");
-      }
-    );
+    Map<int, dynamic> generatedCuadre = _ajustes.descripcionTipoFormatoTicket == "Formato de ticket 2" ? generateMapTicketOtroFormato(map, type) : generateMapTicket(map, type);
+
+
+    if(kIsWeb){
+      var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+      channel.stream.listen((message) {
+        print("principalView received! from websocket: ${generatedCuadre.length}");
+        List<String> generatedCuadreToWeb = [printer];
+        for (int i = 0; i < generatedCuadre.length; i++) {
+          print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]} : ${generatedCuadre[i]["text"]}");
+          // if(generatedCuadre[i]["cmd"] == CMD.h1)
+          //   generatedCuadreToWeb.add(CMD.h1Web);
+          // if(generatedCuadre[i]["cmd"] == CMD.h2)
+          //   generatedCuadreToWeb.add(CMD.h2Web);
+          // if(generatedCuadre[i]["cmd"] == CMD.center)
+          //   generatedCuadreToWeb.add(CMD.centerWeb);
+          String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
+          if(cmdWeb != null)
+            generatedCuadreToWeb.add(cmdWeb);
+
+          generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
+        }
+
+
+        channel.sink.add(generatedCuadreToWeb);
+        channel.sink.close();
+      });
+    }else{
+      _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+        (onData) async {
+          print("Listen OnData: $onData");
+          _connectado = true;
+          final bool result = await _methodChannel.invokeMethod("printText", {"data" : generatedCuadre});
+          disconnect();
+          print("Listen OnData print: $result");
+        },
+        onError: (error){
+          _connectado = false;
+          print("Listen Error: $error");
+        }
+      );
+    }     
+     
   }
 
   static printTicketV2({@required Sale sale, @required List<Salesdetails> salesdetails, @required String type}) async {
@@ -138,22 +169,52 @@ class BluetoothChannel{
       return;
     }
 
-    
-     _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
-      (onData) async {
-        print("Listen OnData: $onData");
-        _connectado = true;
-        final bool result = await _methodChannel.invokeMethod("printText", {"data" : generateCuadre(mapCuadre: map, imprimirNumerosGanadores: imprimirNumerosGanadores, imprimirTotalesPorLoteria: imprimirTotalesPorLoteria, imprimirTicketsGanadores: imprimirTicketsGanadores)});
-        disconnect();
-        print("Listen OnData print: $result");
+    Map<int, dynamic> generatedCuadre = generateCuadre(mapCuadre: map, imprimirNumerosGanadores: imprimirNumerosGanadores, imprimirTotalesPorLoteria: imprimirTotalesPorLoteria, imprimirTicketsGanadores: imprimirTicketsGanadores);
 
-        // generateCuadre(map);
-      },
-      onError: (error){
-        _connectado = false;
-        print("Listen Error: $error");
-      }
-    );
+    if(kIsWeb){
+      var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+      channel.stream.listen((message) {
+        print("principalView received! from websocket: ${generatedCuadre.length}");
+        List<String> generatedCuadreToWeb = [printer];
+        for (int i = 0; i < generatedCuadre.length; i++) {
+          print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]}");
+          // if(generatedCuadre[i]["cmd"] == CMD.h1)
+          //   generatedCuadreToWeb.add(CMD.h1Web);
+          // if(generatedCuadre[i]["cmd"] == CMD.h2)
+          //   generatedCuadreToWeb.add(CMD.h2Web);
+          // if(generatedCuadre[i]["cmd"] == CMD.center)
+          //   generatedCuadreToWeb.add(CMD.centerWeb);
+          String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
+          if(cmdWeb != null)
+            generatedCuadreToWeb.add(cmdWeb);
+
+          generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
+        }
+
+
+        channel.sink.add(generatedCuadreToWeb);
+        channel.sink.close();
+      });
+    }else{
+      _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+        (onData) async {
+          print("Listen OnData: $onData");
+          _connectado = true;
+          final bool result = await _methodChannel.invokeMethod("printText", {"data" : generatedCuadre});
+          disconnect();
+          print("Listen OnData print: $result");
+
+          // generateCuadre(map);
+        },
+        onError: (error){
+          _connectado = false;
+          print("Listen Error: $error");
+        }
+      );
+    }
+
+    
+     
   }
 
   static printText({String content, int nWidthTimes = 1, normalOPrueba = true}) async {

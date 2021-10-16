@@ -25,8 +25,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
   @override
   void initState() {
-    _listaEscaneados = List();
-    _listaEmparejados = List();
+    _listaEscaneados = [];
+    _listaEmparejados = [];
     _streamControllerEscaneados = BehaviorSubject();
     _streamControllerGuardado = BehaviorSubject();
     _getPrinter();

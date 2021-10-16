@@ -11,6 +11,50 @@ import 'package:loterias/core/models/ventas.dart';
 
 
 class TicketService{
+
+  static Future<Map<String, dynamic>> montoDisponible({@required BuildContext context, @required String jugada, @required int idBanca, @required int idLoteria, int idLoteriaSuperpale}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    map["idUsuario"] = await Db.idUsuario();
+    map["jugada"] = jugada;
+    map["idBanca"] = idBanca;
+    map["idLoteria"] = idLoteria;
+    map["idLoteriaSuperpale"] = idLoteriaSuperpale;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+
+
+    mapDatos = {
+      "datos" : jwt
+    };
+
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/principal/montodisponible"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("GrupoService index: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor GrupoService index: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+      print("GrupoService index parsed: ${parsed}");
+
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      // else
+      //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error GrupoService index: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
   
 
   static Future<Map<String, dynamic>> cancelar({String codigoBarra, scaffoldKey}) async {
@@ -375,7 +419,7 @@ class TicketService{
     );
   }
 
-  static Future<Map<String, dynamic>> guardar({String idVenta, bool compartido, int descuentomonto, bool hayDescuento, double total, List<dynamic> loterias, List<dynamic> jugadas, int idUsuario, int idBanca, GlobalKey<ScaffoldState> scaffoldKey}) async {
+  static Future<Map<String, dynamic>> guardar({context, String idVenta, bool compartido, int descuentomonto, bool hayDescuento, double total, List<dynamic> loterias, List<dynamic> jugadas, int idUsuario, int idBanca, GlobalKey<ScaffoldState> scaffoldKey}) async {
     var map = new Map<String, dynamic>();
     var map2 = new Map<String, dynamic>();
     map["idVenta"] = idVenta;
@@ -396,8 +440,11 @@ class TicketService{
     var response = await http.post(Uri.parse(Utils.URL +"/api/principal/guardar"), body: json.encode(map2), headers: Utils.header);
     int statusCode = response.statusCode;
     if(statusCode < 200 || statusCode > 400){
-      print("Error servidor ticketService guardar: ${response.body}");
-      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: "Error servidor ticketservice guardar");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
       throw Exception("Error servidor ticketService guardar");
     }
 
@@ -405,8 +452,11 @@ class TicketService{
 
      if(parsed["errores"] == 1){
       print("Principal parsedDatos: ${parsed}");
-      Utils.showSnackBar(scaffoldKey: scaffoldKey, content: (parsed["mensaje"] != null) ? parsed["mensaje"] : "Error");
-      throw Exception("Error Principal parsedDatos: ${parsed["mensaje"]}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: (parsed["mensaje"] != null) ? parsed["mensaje"] : parsed["\@SQLMessage"] != null ? parsed["\@SQLMessage"] : "Error", title: "Error");
+      else
+        Utils.showSnackBar(scaffoldKey: scaffoldKey, content: (parsed["mensaje"] != null) ? parsed["mensaje"] : parsed["@SQLMessage"] != null ? parsed["@SQLMessage"] : "Error");
+      throw Exception("Error ticketService guardar: ${parsed}");
     }
 
     var mapDatos = Map<String, dynamic>();

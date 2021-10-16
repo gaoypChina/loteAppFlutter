@@ -29,6 +29,7 @@ import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -120,16 +121,65 @@ class Principal{
     return jsonList;
   }
 
-  static showDialogDuplicarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey}) async {
+  static showDialogDuplicarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, bool isSmallOrMedium}) async {
     return await showDialog(
       context: context,
       builder: (context){
         var _formDuplicarKey = GlobalKey<FormState>();
         var _txtTicketDuplicar = TextEditingController();
         bool _cargando =false;
+
+        
+
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+
+            _duplicar() async {
+              if(_formDuplicarKey.currentState.validate()){
+                try{
+                  setState(() => _cargando = true);
+                Map<String, dynamic> ticket = await TicketService.duplicar(codigoBarra: _txtTicketDuplicar.text, context: context);
+                  setState(() => _cargando = false);
+                Navigator.of(context).pop(ticket);
+                }on Exception catch(e){
+                  setState(() => _cargando = false);
+                //  Navigator.of(context).pop(Map<String, dynamic>());
+                }
+                
+              }
+            // });
+            }
+            
+            _widget(){
+              return Form(
+                key: _formDuplicarKey,
+                child: TextFormField(
+                  controller: _txtTicketDuplicar,
+                  decoration: InputDecoration(
+                    labelText: "Numero ticket"
+                  ),
+                  validator: (data){
+                    if(data.isEmpty){
+                      return 'No debe estar vacio';
+                    }
+                    return null;
+                  },
+                )
+              );
+            }
+
+            return 
+            !isSmallOrMedium
+            ?
+            MyAlertDialog(
+              title: "Duplicar ticket", 
+              content: _widget(), 
+              okFunction: _duplicar,
+              xlarge: 4,
+              cargando: _cargando,
+            )
+            :
+            AlertDialog(
               title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -140,37 +190,12 @@ class Principal{
                     ),
                   ],
                 ),
-              content: Form(
-                key: _formDuplicarKey,
-                child: TextFormField(
-                  controller: _txtTicketDuplicar,
-                  validator: (data){
-                    if(data.isEmpty){
-                      return 'No debe estar vacio';
-                    }
-                    return null;
-                  },
-                )
-              ),
+              content: _widget(),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop(Map<String, dynamic>());
                 },),
-                FlatButton(child: Text("Ok"), onPressed: () async {
-                   if(_formDuplicarKey.currentState.validate()){
-                     try{
-                       setState(() => _cargando = true);
-                      Map<String, dynamic> ticket = await TicketService.duplicar(codigoBarra: _txtTicketDuplicar.text, context: context);
-                       setState(() => _cargando = false);
-                      Navigator.of(context).pop(ticket);
-                     }on Exception catch(e){
-                       setState(() => _cargando = false);
-                      //  Navigator.of(context).pop(Map<String, dynamic>());
-                     }
-                     
-                   }
-                  // });
-                  },
+                TextButton(child: Text("Ok"), onPressed: _duplicar,
                 )
               ],
             );
@@ -369,7 +394,7 @@ class Principal{
   }
 
 
-  static showDialogPagarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey}) async {
+  static showDialogPagarFormulario({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, bool isSmallOrMedium}) async {
     return await showDialog(
       context: context,
       builder: (context){
@@ -378,18 +403,25 @@ class Principal{
         bool _cargando = false;
         return StatefulBuilder(
           builder:(context, setState){
-           return AlertDialog(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text('Pagar ticket'),
-                 Visibility(
-                  visible: _cargando,
-                  child: CircularProgressIndicator()
-                ),
-              ],
-            ),
-            content: Form(
+          
+          _pagar() async {
+            if(_formDuplicarKey.currentState.validate()){
+              try {
+                setState(() => _cargando = true);
+                Map<String, dynamic> ticket = await TicketService.buscarTicketAPagar(codigoBarra: _txtTicketDuplicar.text,context: context);
+                setState(() => _cargando = false);
+                Navigator.of(context).pop(ticket);
+              } on Exception catch (e) {
+                setState(() => _cargando = false);
+                // Utils.showAlertDialog(context: context, content: "Error");
+              }
+              
+            }
+          // });
+          }
+
+          _widget(){
+            return Form(
               key: _formDuplicarKey,
               child: TextFormField(
                 controller: _txtTicketDuplicar,
@@ -401,27 +433,38 @@ class Principal{
                   return null;
                 },
               )
+            );
+          }
+
+           return 
+           !isSmallOrMedium
+           ?
+           MyAlertDialog(
+             title: "Pagar ticket", 
+             content: _widget(), 
+             okFunction: _pagar,
+             cargando: _cargando,
+             xlarge: 4,
+            )
+            :
+           AlertDialog(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text('Pagar ticket'),
+                 Visibility(
+                  visible: _cargando,
+                  child: CircularProgressIndicator()
+                ),
+              ],
             ),
+            content: _widget(),
             actions: <Widget>[
              
-              FlatButton(child: Text("Cancelar"), onPressed: (){
+              TextButton(child: Text("Cancelar"), onPressed: (){
               Navigator.of(context).pop(Map<String, dynamic>());
               },),
-              FlatButton(child: Text("Buscar"), onPressed: () async {
-                 if(_formDuplicarKey.currentState.validate()){
-                   try {
-                      setState(() => _cargando = true);
-                      Map<String, dynamic> ticket = await TicketService.buscarTicketAPagar(codigoBarra: _txtTicketDuplicar.text,context: context);
-                      setState(() => _cargando = false);
-                      Navigator.of(context).pop(ticket);
-                   } on Exception catch (e) {
-                     setState(() => _cargando = false);
-                      // Utils.showAlertDialog(context: context, content: "Error");
-                   }
-                   
-                 }
-                // });
-                },
+              TextButton(child: Text("Buscar"), onPressed: _pagar,
               )
             ],
           );

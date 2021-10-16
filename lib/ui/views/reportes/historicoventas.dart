@@ -1015,6 +1015,40 @@ _monedaChanged(moneda){
       );
 
     // return Text("Klk");
+
+    if(!isSmallOrMedium)
+      return MyTable(
+        // type: MyTableType.custom,
+        showColorWhenImpar: true,
+        columns: [
+          "Banca",
+          "Pendientes",
+          "Ganadores",
+          "Perdedores",
+          "Tickets",
+          "Ventas",
+          "Comi.",
+          "Desc.",
+          "Premios",
+          "Neto",
+          "Balance",
+          "Balance mas ventas",
+        ], 
+        rows: data.map((e) => [
+          e, 
+          "${e.descripcion}", 
+          "${e.pendientes}", 
+          "${e.ganadores}", 
+          "${e.perdedores}", 
+          "${e.tickets}", 
+          "${Utils.toCurrency(e.ventas)}", 
+          "${Utils.toCurrency(e.comisiones)}", 
+          "${Utils.toCurrency(e.descuentos)}", 
+          "${Utils.toCurrency(e.premios)}", 
+          "${Utils.toCurrency(e.totalNeto)}", 
+          "${Utils.toCurrency(e.balance)}", 
+          "${Utils.toCurrency(e.balanceActual)}"]).toList()
+      );
     
     return HorizontalDataTable(
       leftHandSideColumnWidth: 120,
@@ -1815,38 +1849,44 @@ _monedaChanged(moneda){
             if(snapshot.hasData && snapshot.data.length == 0 && isSmallOrMedium)
               return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay bancas $_selectedOption", icon: Icons.home_work_sharp, titleButton: "No hay bancas",),));
 
-            return 
-            isSmallOrMedium
-            ?
-            SliverFillRemaining(
-              child: _getBodyWidget(snapshot.data, isSmallOrMedium),
-            )
-            :
-            // SliverList(delegate: SliverChildListDelegate([
+            if(isSmallOrMedium)
+              return SliverFillRemaining(
+                child: _getBodyWidget(snapshot.data, isSmallOrMedium)
+              );
+
+            var widgets = [
+              _getBodyWidget(snapshot.data, isSmallOrMedium)
+            ];
+
+            if(!isSmallOrMedium){
+              widgets.insert(0, _myWebFilterScreen(isSmallOrMedium));
+              widgets.insert(1, MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,));
+            }
+
+            return SliverList(delegate: SliverChildBuilderDelegate(
+              (context, index){
+                return widgets[index];
+              },
+              childCount: widgets.length
+            ));
+
+            // return 
+            // isSmallOrMedium
+            // ?
+            // SliverFillRemaining(
+            //   child: _getBodyWidget(snapshot.data, isSmallOrMedium),
+            // )
+            // :
+           
+            // SliverFillRemaining(child: Column(
+            //   children: [
             //   _myWebFilterScreen(isSmallOrMedium),
             //   MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
               
-            //   _getBodyWidget(snapshot.data, isSmallOrMedium)
-            //   // :
-            //   // MyTable(
-            //   //   columns: ["Banca", "Pendientes", "Ganadores", "Perdedores", "Tickets", "Ventas", "Comis.", "Desc.", "Premios", "Neto", "Balalance", "Balance + ventas"], 
-            //   //   rows: rows
-            //   // )
-            // ]));
-            SliverFillRemaining(child: Column(
-              children: [
-              _myWebFilterScreen(isSmallOrMedium),
-              MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Bancas", showOnlyOnLarge: true,),
+            //   Expanded(child: _getBodyWidget(snapshot.data, isSmallOrMedium))
               
-              Expanded(child: _getBodyWidget(snapshot.data, isSmallOrMedium))
-              // :
-              // MyTable(
-              //   columns: ["Banca", "Pendientes", "Ganadores", "Perdedores", "Tickets", "Ventas", "Comis.", "Desc.", "Premios", "Neto", "Balalance", "Balance + ventas"], 
-              //   rows: rows
-              // )
-            ]));
+            // ]));
 
-            // return SliverFillRemaining(child: _getBodyWidget(snapshot.data));
           }
         ),
       )

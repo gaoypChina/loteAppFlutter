@@ -1165,6 +1165,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      monitoreo: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Monitoreo",
@@ -1234,7 +1235,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                   if(snapshot.hasData && _listaVenta.length == 0 && isSmallOrMedium)
                     return SliverFillRemaining(child: MyEmpty(title: "No hay tickets creados", icon: Icons.receipt, titleButton: "No hay tickets"));
 
-                  return SliverList(delegate: SliverChildListDelegate([
+                  var widgets = [
                     Visibility(
                       visible: isSmallOrMedium,
                       child: Padding(
@@ -1252,9 +1253,37 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                     Center(child:  MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),)
                     :
                   _screen(snapshot.data, isSmallOrMedium)
+                  ];
+
+
+                  return SliverList(delegate: SliverChildBuilderDelegate(
+                    (context, index){
+                      return widgets[index];
+                    },
+                    childCount: widgets.length
+                  ));
+
+                  // return SliverList(delegate: SliverChildListDelegate([
+                  //   Visibility(
+                  //     visible: isSmallOrMedium,
+                  //     child: Padding(
+                  //     padding: const EdgeInsets.all(8.0),
+                  //     child: TextField(
+                  //       decoration: InputDecoration(hintText: "Numero ticket"),
+                  //       onChanged: _search,
+                  //     ),
+                  //                     ),
+                  //   ),
+                  //   _myWebFilterScreen(isSmallOrMedium),
+                  //   MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25), showOnlyOnLarge: true,),
+                  //   snapshot.hasData && snapshot.data.length == 0
+                  //   ?
+                  //   Center(child:  MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),)
+                  //   :
+                  // _screen(snapshot.data, isSmallOrMedium)
                        
            
-                  ]));
+                  // ]));
                 }
               )
       )

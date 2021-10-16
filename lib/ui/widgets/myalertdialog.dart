@@ -226,7 +226,7 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 10.0),
-                                      child: FlatButton(child: Text("Cancelar", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)), onPressed: (){Navigator.pop(context);}),
+                                      child: TextButton(child: Text("Cancelar", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)), onPressed: (){Navigator.pop(context);}),
                                     ),
                                   // FlatButton(child: Text("Agregar", style: TextStyle(color: Utils.colorPrimaryBlue)), onPressed: () => _retornarReferencia(referencia: Referencia(nombre: _txtNombre.text, telefono: _txtTelefono.text, tipo: _tipo, parentesco: _parentesco)),),
                                     Visibility(

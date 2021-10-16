@@ -1536,10 +1536,27 @@ Widget _buildTableTicketsGanadores(List map){
             MySliverButton(
               showOnlyOnLarge: true,
               title: Container(
+                width: 115,
+                child: 
+                MyDropdown(
+                        isFlat: true,
+                        title: null, 
+                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                        hint: "Imprimir",
+                        onTap: _showDialogImprimir,
+                      )
+              ), 
+              onTap: (){}
+            ),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
                 width: 180,
                 child: Builder(
                   builder: (context) {
                     return MyDropdown(title: null, 
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
                       hint: "${MyDate.dateRangeToNameOrString(_date)}",
                       onTap: (){
                         showMyOverlayEntry(
@@ -1553,52 +1570,12 @@ Widget _buildTableTicketsGanadores(List map){
                         );
                       },
                     );
-                    MyButton(
-                      padding: EdgeInsets.symmetric(vertical: 9, horizontal: 15),
-                      type: MyButtonType.listTile,
-                      leading: Icon(Icons.date_range_outlined, size: 20),
-                      trailing: Icon(Icons.arrow_drop_down, size: 20),
-                      title: "${MyDate.dateRangeToNameOrString(_date)}",
-                      function: (){
-                        showMyOverlayEntry(
-                          context: context,
-                          builder: (context, overlay){
-                            _cancel(){
-                              overlay.remove();
-                            }
-                            return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){setState(() => _date = date); overlay.remove();},);
-                          }
-                        );
-                        // DateRangePickerDialog(firstDate: firstDate, lastDate: lastDate)
-                        // showDateRangePicker(
-                        //   initialEntryMode: DatePickerEntryMode.calendar,
-                        //   context: context, 
-                        //   firstDate: DateTime.now().subtract(Duration(days: 365 * 5)), 
-                        //   lastDate: DateTime.now().add(Duration(days: 365 * 2)),
-                        //   builder: (context, widget){
-                        //     return Material(
-                        //       child: Container(
-                        //         width: 100,
-                        //         child: Row(
-                        //           children: [
-                        //             Column(
-                        //               children: MyDate.listaFechaLarga.map((e) => Text("${e[1]}")).toList(),
-                        //             ),
-                        //             Expanded(child: widget,),
-                        //           ],
-                        //         )
-                        //       ),
-                        //     );
-                        //   }
-                        // );
-                      
-                      },
-                    );
                   }
                 ),
               ), 
               onTap: (){}
               ),
+            
             MySliverButton(title: null, onTap: _filtroScreen, iconWhenSmallScreen: Icons.date_range, showOnlyOnSmall: true),
             MySliverButton(title: null, onTap: _showDialogImprimir, iconWhenSmallScreen: Icons.print, showOnlyOnSmall: true,),
           ],

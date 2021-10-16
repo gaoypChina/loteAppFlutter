@@ -229,6 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      dashboard: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Dashboard",
@@ -458,6 +459,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                   _buildJugadasRealizadas(isSmallOrMedium)
               ];
+            
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index){
+                  return widgets[index];
+                },
+                childCount: widgets.length
+              ));
 
             return SliverFillRemaining(
               child: ListView.builder(
@@ -659,6 +668,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       )).toList(),
     );
+  
   }
 
   Widget _drawsScreen(bool isSmallOrMedium){

@@ -187,6 +187,16 @@ static final MobileSembas _singleton = MobileSembas._internal();
   }
 
   @override
+  getPrinter() async {
+    try {
+      var printer = await _store.record("printer").get(_db) as dynamic;
+      return printer;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   getPlantForm() {
     // TODO: implement getPlantForm
     print("Mobile Platform Sembas");

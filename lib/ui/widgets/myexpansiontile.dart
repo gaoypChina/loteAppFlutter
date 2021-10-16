@@ -23,19 +23,70 @@ class MyExpansionTileType {
 class MyExpansionTile extends StatefulWidget {
   final String title;
   final IconData icon;
-  final List<MyListTile> listaMylisttile;
+  final List<Widget> listaMylisttile;
   final bool initialExpanded;
   final bool selected;
   final MyExpansionTileType type;
-  MyExpansionTile({Key key, @required this.title, @required this.icon, @required this.listaMylisttile, this.initialExpanded = false, this.selected = false, this.type = MyExpansionTileType.normal}) : super(key: key);
+  final AnimationController controller;
+  MyExpansionTile({Key key, @required this.title, @required this.icon, @required this.listaMylisttile, this.initialExpanded = false, this.selected = false, this.type = MyExpansionTileType.normal, this.controller}) : super(key: key);
   @override
   _MyExpansionTileState createState() => _MyExpansionTileState();
 }
 
 class _MyExpansionTileState extends State<MyExpansionTile> {
+  Widget _firstChild(){
+    return Center(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(25),
+        onTap: (){},
+        child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: widget.selected ? Colors.blue[50] : Colors.transparent,
+              borderRadius: BorderRadius.circular(25)
+            ),
+            child: Center(child: Icon(widget.icon, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700,)) ,
+          ),
+        ),
+    );
+  }
+
+  Widget _secondChild(){
+    return Container(
+      color: Colors.transparent,
+      child: ExpansionTile(
+        initiallyExpanded: widget.initialExpanded,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 13.0),
+          child: Icon(widget.icon,),
+        ),
+        title: Text(widget.title, style: TextStyle(fontFamily: "GoogleSans", fontSize: 14.3, fontWeight: FontWeight.w500 )),
+        children: widget.listaMylisttile,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return 
+    AnimatedBuilder(
+        animation: widget.controller,
+        builder: (context, child) {
+          return FractionalTranslation(
+            
+            translation: Offset(0.0, 0.0),
+            child: 
+            widget.controller.value <= 0.3 
+            ? 
+            _firstChild()
+            : 
+             _secondChild()
+          );
+        },
+    );
+    // MyAnimatedSwitcher(animation: widget.animation, child: _firstChild(), secondChild: _secondChild(),);
+
     widget.type == MyExpansionTileType.onlyIcon
     ?
     Center(
@@ -66,5 +117,30 @@ class _MyExpansionTileState extends State<MyExpansionTile> {
         children: widget.listaMylisttile,
       ),
     );
+  }
+}
+
+
+class MyAnimatedSwitcher extends AnimatedWidget {
+  final Widget child;
+  final Widget secondChild;
+  const MyAnimatedSwitcher({Key key, @required Animation<double> animation, @required this.child, @required this.secondChild})
+      : super(key: key, listenable: animation);
+
+  @override
+  Widget build(BuildContext context) {
+    final animation = listenable as Animation<double>;
+     return
+     animation.value == 0
+      ?
+       child
+      :
+      secondChild;
+    // return Container(
+    //   // height: MediaQuery.of(context).size.height,
+    //   // width: animation.value,
+    //   child:
+     
+    // );
   }
 }

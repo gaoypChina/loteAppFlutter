@@ -125,7 +125,7 @@ class _MyButtonState extends State<MyButton> {
         color: _color(),
         borderRadius: BorderRadius.circular(5)
       ),
-      child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+      child: Center(child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),))
     );
     return InkWell(
     onTap: widget.function,

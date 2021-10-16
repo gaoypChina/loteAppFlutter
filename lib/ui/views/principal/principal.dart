@@ -32,7 +32,16 @@ import 'package:loterias/core/services/ticketservice.dart';
 // import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
+import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -68,6 +77,11 @@ import 'package:rxdart/rxdart.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:timezone/timezone.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/status.dart' as webSocketstatus;
+import 'package:web_socket_channel/web_socket_channel.dart';
+
 
 class PrincipalApp extends StatefulWidget {
   final bool callThisScreenFromLogin;
@@ -77,6 +91,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  var valueNotifyDrawer = ValueNotifier<bool>(false);
   IO.Socket socket;
   var _scrollController = ItemScrollController();
   List<String> _listaMensajes = List();
@@ -142,10 +157,13 @@ String _montoPrueba = '0';
   StreamController<bool> _streamControllerVenta;
   StreamController<List<Jugada>> _streamControllerJugada;
   var _txtJugada = TextEditingController();
+  var _jugadaFocusNode = FocusNode();
   var _txtMontoDisponible = TextEditingController();
   var _txtMonto = TextEditingController(); 
+  var _montoFocusNode = FocusNode();
   var _txtMontoLigar = TextEditingController(); 
   var _txtLoteriasSeleccionadasParaLigar = TextEditingController(); 
+  var _txtNombreImpresora = TextEditingController(); 
   bool _txtMontoPrimerCaracter = true;
   List<Loteria> _selectedLoterias;
   Timer _timer;
@@ -239,33 +257,41 @@ Future<bool> _requestPermisionChannel() async {
 
   guardar() async{
     if(listaJugadas.length <= 0){
-      _showSnackBar("No hay jugadas realizadas");
+      Utils.showAlertDialog(context: context, title: "Jugadas", content: "No hay jugadas realizadas");
       return;
     }
+
+    var c = await DB.create();
+    print("PrincipalView guardar printer: ${await c.getPrinter()}");
 
     if(_ckbPrint){
       if(await Utils.exiseImpresora() == false){
-        _showSnackBar("Debe registrar una impresora");
+        Utils.showAlertDialog(context: context, title: "Impresora", content: "Debe registrar una impresora");
         return;
       }
 
-      if(!(await BluetoothChannel.turnOn())){
+      if(!kIsWeb){
+        if(!(await BluetoothChannel.turnOn())){
+          return;
+        }
+      }
+    }
+
+    if(!kIsWeb){
+      if(await hayJugadasSuciasNuevo()){
+        sendNotificationJugadasSucias();
         return;
       }
     }
 
-    if(await hayJugadasSuciasNuevo()){
-      sendNotificationJugadasSucias();
+    if(!kIsWeb){
+      _guardarLocal();
       return;
     }
 
-
-    _guardarLocal();
-    return;
-
     try{
-      setState(() => _cargando = true);
-      var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), scaffoldKey: _scaffoldKey);
+      // setState(() => _cargando = true);
+      var datos = await TicketService.guardar(idVenta: _idVenta, compartido:  !_ckbPrint,descuentomonto: await _calcularDescuento(), hayDescuento: _ckbDescuento, total: _calcularTotal(), loterias: Principal.loteriaToJson(_selectedLoterias), jugadas: Principal.jugadaToJson(listaJugadas), idUsuario: await Db.idUsuario(), idBanca: await getIdBanca(), context: context);
       
       setState(() {
          
@@ -282,10 +308,12 @@ Future<bool> _requestPermisionChannel() async {
         _cargando = false;
         listaEstadisticaJugada.clear();
         // (_ckbPrint) ? BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) : ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["img"], codigoQr: datos["venta"]["codigoQr"], sms_o_whatsapp: _ckbMessage);
+        if(_ckbPrint)
+          BluetoothChannel.printTicket(datos['venta'], BluetoothChannel.TYPE_ORIGINAL) ;
       
       });
     } on Exception catch(e){
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
     }
   }
 
@@ -1730,9 +1758,146 @@ _showIntentNotificationIfExists() async {
     }
   }
 
+_bluetoothScreen([bool isSmallOrMedium = true]){
+  if(isSmallOrMedium)
+    Navigator.of(context).pushNamed('/bluetooth');
+
+  var _formPrinterKey = GlobalKey<FormState>();
+
+
+
+  showDialog(
+
+    context: context, 
+    builder: (context){
+      _init() async {
+        var c = await DB.create();
+        String printer = await c.getPrinter();
+        if(printer != null)
+          _txtNombreImpresora.text = printer;
+        else
+          _txtNombreImpresora.text = "";
+
+        await c.add("printer", _txtNombreImpresora.text);
+      }
+      _guardarPrinter() async {
+        if(!_formPrinterKey.currentState.validate())
+          return;
+
+        var c = await DB.create();
+        await c.add("printer", _txtNombreImpresora.text);
+        Navigator.pop(context);
+      }
+
+      _init();
+
+      return MyAlertDialog(
+        title: "Configure su impresora",
+        description: "Aqui tiene toda la informacion necesaria para configurar su impresora con el sistema.",
+        content: Wrap(children: [
+          Form(
+            key: _formPrinterKey,
+            child: MyTextFormField(
+              isRequired: true,
+              controller: _txtNombreImpresora,
+              // type: MyType.normal,
+              title: "Nombre impresora",
+            ),
+          ),
+          MySubtitle(title: "Intrucciones"),
+          MySubtitle(title: "Descargar Java SDK 14"),
+          MyDescripcon(title: "Debera descargar e instalar Java SDK 14 para la plataforma que desee"),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Wrap(
+              children: [
+                MyButton(
+                  type: MyButtonType.roundedWithOnlyBorder,
+                  title: "Windows",
+                  medium: 4,
+                  function: (){
+                    Utils.launchUrl('https://drive.google.com/file/d/1Hkp61twXBSbKfm5BDVaYPGaTrK0V29tP/view?usp=sharing');
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: MyButton(
+                    type: MyButtonType.roundedWithOnlyBorder,
+                    title: "Mac",
+                    medium: 4,
+                    function: (){
+                      Utils.launchUrl('https://drive.google.com/file/d/1U7IZX26fUR7L0OEI6oLK2zNMTbSx5WK7/view?usp=sharing');
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          MySubtitle(title: "Descargar App para imprimir"),
+          MyResizedContainer(
+             medium: 1,
+            child: MyDescripcon(title: "Esta es la app que permitira la conexion entre el sistema y su equipo.")
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: MyButton(
+              type: MyButtonType.roundedWithOnlyBorder,
+              title: "Descargar",
+              medium: 4,
+              function: () async {
+                Utils.launchUrl('http://loteriasdo.gq/assets/java/mavenproject1-1.0-jar-with-dependencies.jar');
+              },
+            ),
+          ),
+          MySubtitle(title: "Copiar App en la carpeta Startup"),
+          MyResizedContainer(
+             medium: 1,
+            child: MyDescripcon(title: "Para que la App inicie cada vez que se encienda el equipo debe copiar dicha App en carpetas especiales que tiene cada sistema operativo.")
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MySubtitle(title: "1. Windows", fontSize: 16,),
+                Wrap(
+                  children: [
+                    MyDescripcon(title: "• Presionar las teclas:  "),
+                    Icon(Icons.window, size: 18),
+                    MyDescripcon(title: " +  R", fontSize: 15,),
+                  ],
+                ),
+                Wrap(
+                  children: [
+                    MyDescripcon(title: "• Escribir el siguiente comando:  "),
+                    SelectableText("shell:common startup", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                MyDescripcon(title: "• Presionar Ok."),
+                MyDescripcon(title: "• Copiar la App en la carpeta"),
+                MySubtitle(title: "2. Mac", fontSize: 16,),
+                Wrap(
+                  children: [
+                    MyDescripcon(title: "• Ir a: "),
+                    SelectableText("System Preferences > Accounts > 'username' > Login items", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                MyDescripcon(title: "• Agregar la App ahi."),
+              ],
+            ),
+          )
+           
+        ],),
+        okFunction: _guardarPrinter,
+      );
+    }
+  );
+}
+
 AppBar _appBar(bool screenHeightIsSmall){
     double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
     double _iconPaddingHorizontal = 12;
+    
     return AppBar(
       backgroundColor: Utils.colorMaterialCustom,
       iconTheme: IconThemeData(color: Colors.white),
@@ -1928,7 +2093,7 @@ AppBar _appBar(bool screenHeightIsSmall){
         // ),
         Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
-            child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){Navigator.of(context).pushNamed('/bluetooth');}),
+            child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){_bluetoothScreen();}),
         ),
         // Visibility(
         //   visible: _tienePermisoAdministrador || _tienePermisoProgramador,
@@ -1990,6 +2155,378 @@ AppBar _appBar(bool screenHeightIsSmall){
     );
   }
 
+Widget _bancasScreen(){
+    return
+    !_tienePermisoJugarComoCualquierBanca
+    ?
+    Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis),
+    )
+    :
+    StreamBuilder(
+      stream: _streamControllerBanca.stream,
+      builder: (context, snapshot){
+        
+        if(snapshot.hasData){
+          return Padding(
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          child: DropdownButton(
+                hint: Text('sel. banca'),
+                isExpanded: true,
+                value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
+                onChanged: (Banca banca) async {
+                  setState(() {
+                  _indexBanca = listaBanca.indexOf(banca); 
+                  _emitToGetNewIdTicket();
+                  indexPost(false);
+                  for (var jugada in listaJugadas) {
+                    print("jugada before bancaChanged: ${jugada.stock.idBanca}");
+                  }
+                  for (var jugada in listaJugadas) {
+                    jugada.stockEliminado = true;
+                    jugada.stock.idBanca = banca.id;
+                  }
+                  for (var jugada in listaJugadas) {
+                    print("jugada after bancaChanged: ${jugada.stock.idBanca}");
+                  }
+                  });
+                  await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
+                },
+                items: listaBanca.map((b){
+                  return DropdownMenuItem<Banca>(
+                    value: b,
+                    child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
+                  );
+                }).toList(),
+              ),
+        
+        );
+        }else{
+          return Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: DropdownButton(
+                hint: Text('Sin datos...'),
+                value:  'Sin datos',
+                onChanged: (String banca){
+                  setState(() {
+                  
+                  });
+                },
+                items: [
+                  DropdownMenuItem<String>(
+                    value: "Sin datos",
+                    child: Text('Sin datos',),
+                  )
+                ]
+              ),
+          );
+          
+        }
+        
+      },
+    );
+                                      
+  }
+
+Widget _loteriasScreen([bool isSmallOrMedium = true]){
+    return Padding(
+      padding: EdgeInsets.only(left: _isLargeAndWeb() ? 0 : 8.0, right: 8.0, top: _isLargeAndWeb() ? 5.0 : 0.0),
+      child: GestureDetector(
+        onTap: (){
+          _showMultiSelect(context);
+        },
+          child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height * 0.058,
+          // padding: EdgeInsets.only(top: 13, bottom: 13),
+          decoration: BoxDecoration(
+            border: 
+            _isLargeAndWeb() 
+            ?
+            Border(bottom: BorderSide(style: BorderStyle.solid, color: Colors.black, width: 1))
+            :
+            Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+          ),
+          // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
+          child: _isLargeAndWeb() 
+            ? 
+            Align(
+              alignment: Alignment.centerLeft, 
+              child: Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+              Expanded(child: _getSelectedLoteriaStream(isSmallOrMedium)),
+              Icon(Icons.arrow_drop_down)
+            ],)) 
+            : 
+            Center(child: _getSelectedLoteriaStream(isSmallOrMedium),),
+        ),
+      ),
+    );
+  }
+
+  Widget _jugadaTextField(bool isSmallOrMedium){
+    return RawKeyboardListener(
+      focusNode: FocusNode(),
+      onKey: (RawKeyEvent event) { 
+        print("Event runtimeType is ${event.runtimeType}");
+        if(event.runtimeType.toString() != 'RawKeyUpEvent')
+          return;
+        print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
+        if(event.logicalKey == LogicalKeyboardKey.backspace)
+          return;
+
+        if(event.data.keyLabel.isEmpty)
+          return;
+
+        
+        // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
+        if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
+          _escribir(event.data.keyLabel);
+        // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
+        
+      },
+      child: TextField(
+        controller: _txtJugada,
+        focusNode: _jugadaFocusNode,
+        autofocus: _isLargeAndWeb(),
+        enabled: _isLargeAndWeb(),
+        style: TextStyle(fontSize: 20),
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.all(0),
+          isDense: _isLargeAndWeb() ? false : true,
+          // alignLabelWithHint: true,
+          border: _isLargeAndWeb() ? null : InputBorder.none,
+          hintText: _isLargeAndWeb() ? null : 'Jugada',
+          labelText: _isLargeAndWeb() ? 'Jugada' : null,
+          fillColor: Colors.transparent,
+          // filled: true,
+          hintStyle: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        textAlign: _isLargeAndWeb() ? TextAlign.left : TextAlign.center,
+        inputFormatters: !_isLargeAndWeb() ? [] : [
+          LengthLimitingTextInputFormatter(6),
+
+          // WhitelistingTextInputFormatter.digitsOnly,
+          // FilteringTextInputFormatter.digitsOnly
+          FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+        ],
+        onSubmitted: (data){
+          _cambiarFocusJugadaMonto();
+          changeMontoDisponibleFromTxtMontoDisponible();
+        }
+        // onChanged: (String data){
+        //   print("PrincipalView _jugadaTextField onChanged: $data");
+        //   // _escribir(data);
+        // },
+        // expands: false,
+      ),
+    );
+  }
+
+  TextField _montoDisponibleTextField(bool isSmallOrMedium){
+    return TextField(
+      controller: _txtMontoDisponible,
+      enabled: false,
+      style: TextStyle(fontSize: 20),
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.all(0),
+        isDense: _isLargeAndWeb() ? false : true,
+        border: _isLargeAndWeb() ? null : InputBorder.none,
+        hintText: '0',
+        // labelText: _isLargeAndWeb() ? 'Jugada' : null,
+        fillColor: Colors.transparent,
+        // filled: true,
+        hintStyle: TextStyle(fontWeight: FontWeight.bold),
+        
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  TextField _montoTextField(bool isSmallOrMedium){
+    return TextField(
+      controller: _txtMonto,
+      focusNode: _montoFocusNode,
+      enabled: _isLargeAndWeb(),
+      style: TextStyle(fontSize: 20),
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.all(0),
+        isDense: _isLargeAndWeb() ? false : true,
+        border: _isLargeAndWeb() ? null : InputBorder.none,
+        hintText: _isLargeAndWeb() ? null : 'Monto',
+        labelText: _isLargeAndWeb() ? 'Monto' : null,
+        fillColor: Colors.transparent,
+        // filled: true,
+        hintStyle: TextStyle(fontWeight: FontWeight.bold)
+      ),
+      textAlign: _isLargeAndWeb() ? TextAlign.left : TextAlign.center,
+      onSubmitted: (data) async {
+        _escribir("ENTER");
+        // await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+      },
+    );
+  }
+
+  _jugadaMontoScreen(bool isSmallOrMedium){
+    return Row(
+      children: <Widget>[
+      GestureDetector(
+        onTap: (){
+          // _showMultiSelect(context);
+          setState(() => _jugadaOmonto = true);
+        },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Container(
+              // duration: Duration(milliseconds: 50),
+                width: MediaQuery.of(context).size.width / 3,
+                height: (MediaQuery.of(context).size.height * 0.0688),
+                // padding: EdgeInsets.only(top: 13, bottom: 13),
+                decoration: BoxDecoration(
+                  border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
+                ),
+                child: Center(
+                  child: _jugadaTextField(isSmallOrMedium),
+                ),
+            ),
+          ),
+      ),
+      GestureDetector(
+        onTap: (){
+          // _showMultiSelect(context);
+        },
+        child: Container(
+          width: (MediaQuery.of(context).size.width / 3) - 16,
+          height: (MediaQuery.of(context).size.height * 0.0688),
+          // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
+          decoration: BoxDecoration(
+            border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+          ),
+          child: Center(
+            child: _montoDisponibleTextField(isSmallOrMedium)
+            
+            //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
+            // FutureBuilder<String>(
+            // future: _montoFuture,
+            //   builder: (context, snapshot){
+            //     if (snapshot.hasData) {
+            //         // setState(() {
+            //         //  _cargando = false; 
+            //         // });
+            //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
+            //       } else if (snapshot.hasError) {
+            //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
+            //       }
+
+            //       return Text('', style: TextStyle(fontSize: 25));
+            //   },
+            // )
+            // TextField(
+            //   controller: _txtMontoDisponible,
+            //   enabled: false,
+            //   style: TextStyle(fontSize: 20),
+            //   decoration: InputDecoration(
+            //     border: InputBorder.none,
+            //     hintText: '0',
+            //     fillColor: Colors.transparent,
+            //     filled: true,
+            //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
+            //   ),
+            //   textAlign: TextAlign.center,
+            // ),
+          ),
+        ),
+      ),
+      GestureDetector(
+        onTap: (){
+          // _showMultiSelect(context);
+          changeMontoDisponibleFromTxtMontoDisponible();
+          setState(() => _jugadaOmonto = false);
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: Container(
+              width: MediaQuery.of(context).size.width / 3,
+              height: (MediaQuery.of(context).size.height * 0.0688),
+              // padding: EdgeInsets.only(top: 13, bottom: 13),
+              decoration: BoxDecoration(
+                border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
+              ),
+              child: Center(
+                child: _montoTextField(isSmallOrMedium)
+              ),
+          ),
+        ),
+      ),
+      ],
+    );
+                                  
+  }
+
+  _ckbPrintScreen([bool isSmallOrMedium = true]){
+    return Row(
+        children: <Widget>[
+          // MyCheckbox(
+          //   useTapTarget: false,
+          //   value: _ckbPrint,
+          //   onChanged: _ckbPrintChanged,
+          // ),
+          SizedBox(
+            width: 10,
+            height: 8,
+            child: Checkbox(
+              // useTapTarget: false,
+              value: _ckbPrint,
+              onChanged: _ckbPrintChanged,
+            ),
+          ),
+          SizedBox(width: 5,),
+          GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
+        ],
+      );
+  }
+
+  _ckbDescuentoScreen([bool isSmallOrMedium = true]){
+    return Row(
+      children: <Widget>[
+        //MyCheckbox
+        // MyCheckbox(
+        //   useTapTarget: false,
+        //   value: _ckbDescuento,
+        //   onChanged: (newValue){
+        //     setState(() {
+        //     _ckbDescuento = newValue; 
+        //     });
+        //   },
+        // ),
+        SizedBox(
+          width: 10,
+          height: 8,
+          child: Checkbox(
+            // useTapTarget: false,
+            value: _ckbDescuento,
+            onChanged: _ckbDescuentoChanged,
+          ),
+        ),
+        // Checkbox(
+        //   // useTapTarget: false,
+        //   value: _ckbDescuento,
+        //   onChanged: (newValue){
+        //     setState(() {
+        //     _ckbDescuento = newValue; 
+        //     });
+        //   },
+        // ),
+        SizedBox(width: 5,),
+        GestureDetector(child: Text('${_isLargeAndWeb() ? 'Desc.' : 'Des'}', style: TextStyle(fontSize: 12, letterSpacing: _isLargeAndWeb() ? 1 : null)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
+      ],
+    );
+                                          
+  }
+
+
   _myPrincipalScreen(){
     
     return LayoutBuilder(
@@ -2006,99 +2543,9 @@ AppBar _appBar(bool screenHeightIsSmall){
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      !_tienePermisoJugarComoCualquierBanca
-                                      ?
                                       Expanded(
                                         flex: 2,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis),
-                                        ),
-                                      )
-                                      :
-                                      Expanded(
-                                        flex: 2,
-                                        child: StreamBuilder(
-                                          stream: _streamControllerBanca.stream,
-                                          builder: (context, snapshot){
-                                            
-                                            if(snapshot.hasData){
-                                              return Padding(
-                                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                              child: DropdownButton(
-                                                    hint: Text('sel. banca'),
-                                                    isExpanded: true,
-                                                    value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                                                    onChanged: (Banca banca) async {
-                                                      setState(() {
-                                                      _indexBanca = listaBanca.indexOf(banca); 
-                                                      _emitToGetNewIdTicket();
-                                                      indexPost(false);
-                                                      for (var jugada in listaJugadas) {
-                                                        print("jugada before bancaChanged: ${jugada.stock.idBanca}");
-                                                      }
-                                                      for (var jugada in listaJugadas) {
-                                                        jugada.stockEliminado = true;
-                                                        jugada.stock.idBanca = banca.id;
-                                                      }
-                                                      for (var jugada in listaJugadas) {
-                                                        print("jugada after bancaChanged: ${jugada.stock.idBanca}");
-                                                      }
-                                                      });
-                                                      await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
-                                                    },
-                                                    items: listaBanca.map((b){
-                                                      return DropdownMenuItem<Banca>(
-                                                        value: b,
-                                                        child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                            
-                                            );
-                                            }else{
-                                              return Padding(
-                                                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                                child: DropdownButton(
-                                                    hint: Text('Sin datos...'),
-                                                    value:  'Sin datos',
-                                                    onChanged: (String banca){
-                                                      setState(() {
-                                                      
-                                                      });
-                                                    },
-                                                    items: [
-                                                      DropdownMenuItem<String>(
-                                                        value: "Sin datos",
-                                                        child: Text('Sin datos',),
-                                                      )
-                                                    ]
-                                                  ),
-                                              );
-                                              
-                                            }
-                                              
-                                            return Padding(
-                                              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                              child: DropdownButton(
-                                                    hint: Text('Seleccionar banca'),
-                                                    value:  listaBanca[_indexBanca],
-                                                    onChanged: (Banca banca){
-                                                      setState(() {
-                                                      _indexBanca = listaBanca.indexOf(banca); 
-                                                      });
-                                                    },
-                                                    items: listaBanca.map((b){
-                                                      return DropdownMenuItem<Banca>(
-                                                        value: b,
-                                                        child: Text(b.descripcion, textAlign: TextAlign.center,),
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                            
-                                            );
-                                          },
-                                        ),
+                                        child: _bancasScreen(),
                                       ),
                                       Expanded(
                                         flex: 2,
@@ -2112,179 +2559,11 @@ AppBar _appBar(bool screenHeightIsSmall){
                                       ),
                                     ],
                                   ),
-                                  // Padding(
-                                  //   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                  //   child: GestureDetector(
-                                  //     onTap: (){
-                                  //       _showMultiSelect(context);
-                                  //     },
-                                  //       child: Container(
-                                  //       width: MediaQuery.of(context).size.width,
-                                  //       padding: EdgeInsets.only(top: 13, bottom: 13),
-                                  //       decoration: BoxDecoration(
-                                  //         border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                  //       ),
-                                  //       child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                        
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                    child: GestureDetector(
-                                      onTap: (){
-                                        _showMultiSelect(context);
-                                      },
-                                        child: Container(
-                                        width: MediaQuery.of(context).size.width,
-                                        height: MediaQuery.of(context).size.height * 0.058,
-                                        // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                        ),
-                                        // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
-                                        child: Center(child: _getSelectedLoteriaStream(),),
-                                      ),
-                                    ),
-                                  ),
+                                  
+                                  _loteriasScreen(),
                                   
                                   SizedBox(height: 8,),
-                                  Row(
-                                    children: <Widget>[
-                                      GestureDetector(
-                                        onTap: (){
-                                          // _showMultiSelect(context);
-                                          setState(() => _jugadaOmonto = true);
-                                        },
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 8),
-                                            child: Container(
-                                              // duration: Duration(milliseconds: 50),
-                                                width: MediaQuery.of(context).size.width / 3,
-                                                height: (MediaQuery.of(context).size.height * 0.0688),
-                                                // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
-                                                ),
-                                                child: Center(
-                                                  child: TextField(
-                                                    controller: _txtJugada,
-                                                    enabled: false,
-                                                    style: TextStyle(fontSize: 20, color: Colors.black),
-                                                    decoration: InputDecoration(
-                                                      contentPadding: EdgeInsets.all(0),
-                                                      isDense: true,
-                                                      alignLabelWithHint: true,
-                                                      border: InputBorder.none,
-                                                      hintText: 'Jugada',
-                                                      fillColor: Colors.transparent,
-                                                      // filled: true,
-                                                      hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                    // expands: false,
-                                                  ),
-                                                ),
-                                            ),
-                                          ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: (){
-                                          // _showMultiSelect(context);
-                                        },
-                                        child: Container(
-                                          width: (MediaQuery.of(context).size.width / 3) - 16,
-                                          height: (MediaQuery.of(context).size.height * 0.0688),
-                                          // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
-                                          ),
-                                          child: Center(
-                                            child: 
-                                            TextField(
-                                              controller: _txtMontoDisponible,
-                                              enabled: false,
-                                              style: TextStyle(fontSize: 20),
-                                              decoration: InputDecoration(
-                                                contentPadding: EdgeInsets.all(0),
-                                                isDense: true,
-                                                border: InputBorder.none,
-                                                hintText: '0',
-                                                fillColor: Colors.transparent,
-                                                filled: true,
-                                                hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            //  Text(_montoPrueba, style: TextStyle(fontSize: 25))
-                                            // FutureBuilder<String>(
-                                            // future: _montoFuture,
-                                            //   builder: (context, snapshot){
-                                            //     if (snapshot.hasData) {
-                                            //         // setState(() {
-                                            //         //  _cargando = false; 
-                                            //         // });
-                                            //         return Text(snapshot.data, style: TextStyle(fontSize: 25));
-                                            //       } else if (snapshot.hasError) {
-                                            //         return Text("${snapshot.error}", style: TextStyle(fontSize: 25));
-                                            //       }
-                        
-                                            //       return Text('', style: TextStyle(fontSize: 25));
-                                            //   },
-                                            // )
-                                            // TextField(
-                                            //   controller: _txtMontoDisponible,
-                                            //   enabled: false,
-                                            //   style: TextStyle(fontSize: 20),
-                                            //   decoration: InputDecoration(
-                                            //     border: InputBorder.none,
-                                            //     hintText: '0',
-                                            //     fillColor: Colors.transparent,
-                                            //     filled: true,
-                                            //     hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                            //   ),
-                                            //   textAlign: TextAlign.center,
-                                            // ),
-                                          ),
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: (){
-                                          // _showMultiSelect(context);
-                                          changeMontoDisponibleFromTxtMontoDisponible();
-                                          setState(() => _jugadaOmonto = false);
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(right: 8),
-                                          child: Container(
-                                              width: MediaQuery.of(context).size.width / 3,
-                                              height: (MediaQuery.of(context).size.height * 0.0688),
-                                              // padding: EdgeInsets.only(top: 13, bottom: 13),
-                                              decoration: BoxDecoration(
-                                                border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  controller: _txtMonto,
-                                                  enabled: false,
-                                                  style: TextStyle(fontSize: 20),
-                                                  decoration: InputDecoration(
-                                                    contentPadding: EdgeInsets.all(0),
-                                                    isDense: true,
-                                                    border: InputBorder.none,
-                                                    hintText: 'Monto',
-                                                    fillColor: Colors.transparent,
-                                                    filled: true,
-                                                    hintStyle: TextStyle(fontWeight: FontWeight.bold)
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  _jugadaMontoScreen(true),
                                   SizedBox(height: 8,),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2307,40 +2586,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                           // color: Colors.red,
                                           child: Padding(
                                             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                            child: Row(
-                                              children: <Widget>[
-                                                //MyCheckbox
-                                                // MyCheckbox(
-                                                //   useTapTarget: false,
-                                                //   value: _ckbDescuento,
-                                                //   onChanged: (newValue){
-                                                //     setState(() {
-                                                //     _ckbDescuento = newValue; 
-                                                //     });
-                                                //   },
-                                                // ),
-                                                SizedBox(
-                                                  width: 10,
-                                                  height: 8,
-                                                  child: Checkbox(
-                                                    // useTapTarget: false,
-                                                    value: _ckbDescuento,
-                                                    onChanged: _ckbDescuentoChanged,
-                                                  ),
-                                                ),
-                                                // Checkbox(
-                                                //   // useTapTarget: false,
-                                                //   value: _ckbDescuento,
-                                                //   onChanged: (newValue){
-                                                //     setState(() {
-                                                //     _ckbDescuento = newValue; 
-                                                //     });
-                                                //   },
-                                                // ),
-                                                SizedBox(width: 5,),
-                                                GestureDetector(child: Text('Des', style: TextStyle(fontSize: 12)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
-                                              ],
-                                            ),
+                                            child: _ckbDescuentoScreen()
                                           ),
                                         ),
                                       ),
@@ -2351,26 +2597,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                          child: Row(
-                                            children: <Widget>[
-                                              // MyCheckbox(
-                                              //   useTapTarget: false,
-                                              //   value: _ckbPrint,
-                                              //   onChanged: _ckbPrintChanged,
-                                              // ),
-                                              SizedBox(
-                                                width: 10,
-                                                height: 8,
-                                                child: Checkbox(
-                                                  // useTapTarget: false,
-                                                  value: _ckbPrint,
-                                                  onChanged: _ckbPrintChanged,
-                                                ),
-                                              ),
-                                              SizedBox(width: 5,),
-                                              GestureDetector(child: Icon(Icons.print,), onTap: (){_ckbPrintChanged(!_ckbPrint);},)
-                                            ],
-                                          ),
+                                          child: _ckbPrintScreen(),
                                         ),
                                       ),
                                       Row(
@@ -2823,12 +3050,493 @@ AppBar _appBar(bool screenHeightIsSmall){
                         );
                              
   }
+
+  _iconButtonDeletePlay(Jugada jugada, {double size: 18}){
+    return InkWell(
+      child: Icon(Icons.delete, size: size), 
+      onTap: (){
+      listaJugadas.remove(jugada);
+      _streamControllerJugada.add(listaJugadas);
+    },);
+  }
+
+  _pagar([bool isSmallOrMedium = true]) async {
+    dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context, isSmallOrMedium: isSmallOrMedium);
+    
+    if(isSmallOrMedium)
+      _scaffoldKey.currentState.openEndDrawer();
+
+    if(datos == null)
+      return;
+
+    if(datos.isEmpty)
+      return
+
+      print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
+      Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
+  }
+  
+  _showDialogDuplicar([bool isSmallOrMedium = true]) async {
+    Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey, isSmallOrMedium: isSmallOrMedium);
+    if(isSmallOrMedium)
+      _scaffoldKey.currentState.openEndDrawer();
+
+    if(datos == null)
+      return;
+
+    if(datos.isEmpty)
+      return
+    
+    print("_showDialogDuplicar datos2: $datos");
+      await _duplicar(datos);
+    // print("prueba alertdialog: $prueba");
+  }
+
   @override
   build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return  
       (_cargandoDatosSesionUsuario)
       ?
       SplashScreen()
+      :
+      kIsWeb && !isSmallOrMedium
+      ?
+      myScaffold(
+        context: context,
+        cargando: false,
+        cargandoNotify: null,
+        isSliverAppBar: true,
+        inicio: true,
+        valueNotifyDrawer: valueNotifyDrawer,
+        onDrawerChanged: (){
+          valueNotifyDrawer.value = !valueNotifyDrawer.value;
+        },
+        // showDrawerOnSmallOrMedium: true,
+        sliverBody: MySliver(
+          sliverAppBar: MySliverAppBar(
+            title: Wrap(
+              children: [
+                Text("Principal"),
+                MyResizedContainer(child: _bancasScreen())
+              ],
+            ),
+            showDivider: false,
+            actions: [
+              // MySliverButton(
+              //   padding: EdgeInsets.all(0),
+              //   title: IconButton(
+              //   padding: EdgeInsets.all(0),
+                  
+              //     icon: Icon(Icons.save),
+              //     onPressed: () async {
+              //       // var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+              //       // channel.stream.listen((message) {
+              //       //   print("principalView received! from websocket");
+              //       //   channel.sink.add(['POS58 Printer', 'hola como estas buen palomo']);
+              //       //   channel.sink.close();
+              //       // });
+              //       var c = await DB.create();
+              //       print("PrincipalView Icons.save printer: ${await c.getPrinter()}");
+              //     },
+              //     tooltip: "Guardar",
+              //   ), 
+              //   showOnlyOnLarge: true,
+              //   onTap: (){}
+              // ),
+              // MySliverButton(
+              //   padding: EdgeInsets.all(0),
+              //   title: IconButton(
+              //   padding: EdgeInsets.all(0),
+              //     icon: Icon(Icons.print_rounded),
+              //     onPressed: (){_bluetoothScreen(isSmallOrMedium);},
+              //     tooltip: "Configuracion impresora",
+              //   ), 
+              //   showOnlyOnLarge: true,
+              //   onTap: (){}
+              // ),
+            
+            ],
+          ), 
+          sliver: SliverFillRemaining(
+            child: Wrap(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 18.0),
+                  child: MyResizedContainer(
+                    xlarge: 1,
+                    large: 1,
+                    child: Card(
+                      elevation: 5,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Wrap(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 14.0, left: 16.0),
+                              child: MyResizedContainer(xlarge: 14, child: _ckbPrintScreen(isSmallOrMedium)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 19.0),
+                              child: MyResizedContainer(xlarge: 14, child: _ckbDescuentoScreen(isSmallOrMedium)),
+                            ),
+                            MyResizedContainer(xlarge: 4, child: _loteriasScreen(isSmallOrMedium)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              child: MyResizedContainer(xlarge: 8, child: _jugadaTextField(isSmallOrMedium)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              child: MyResizedContainer(xlarge: 8, child: _montoDisponibleTextField(isSmallOrMedium)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              child: MyResizedContainer(xlarge: 8, child: _montoTextField(isSmallOrMedium)),
+                            ),
+                          ],
+                        ),
+                      )
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 15.0, bottom: 15.0, right: 18.0),
+                  child: Row(
+                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                     Padding(
+                       padding: const EdgeInsets.only(right: 20.0),
+                       child: Wrap(
+                           children: [
+                             Container(
+                               padding: EdgeInsets.symmetric(vertical: 5),
+                               child: Text("Monto: ", style: TextStyle(fontSize: 20))
+                              ),
+                             Container(
+                               padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                               decoration: BoxDecoration(
+                                 color: Utils.colorPrimary,
+                                 borderRadius: BorderRadius.circular(5)
+                               ),
+                               child: Text("${listaJugadas != null ? listaJugadas.length > 0 ? Utils.toCurrency(listaJugadas.map((e) => e.monto).reduce((value, element) => value + element)) : Utils.toCurrency('0') : Utils.toCurrency('0')}", style: TextStyle(color: Colors.white, fontSize: 20))
+                              ),
+                           ],
+                         ),
+                     ),
+                     Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                       child: Wrap(
+                           children: [
+                             Container(
+                               padding: EdgeInsets.symmetric(vertical: 5),
+                               child: Text("Descuento: ", style: TextStyle(fontSize: 20))
+                              ),
+                             FutureBuilder<int>(
+                               future: _calcularDescuento(),
+                               builder: (context, snapshot) {
+                                 return Container(
+                                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                   decoration: BoxDecoration(
+                                     color: Utils.colorPrimary,
+                                     borderRadius: BorderRadius.circular(5)
+                                   ),
+                                   child: Text("${snapshot.hasData ? Utils.toCurrency(snapshot.data) : Utils.toCurrency('0')}", style: TextStyle(color: Colors.white, fontSize: 20))
+                                  );
+                               }
+                             ),
+                           ],
+                         ),
+                     ),
+                     Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                       child: Wrap(
+                           children: [
+                             Container(
+                               padding: EdgeInsets.symmetric(vertical: 5),
+                               child: Text("Total a pagar: ", style: TextStyle(fontSize: 20))
+                              ),
+                             FutureBuilder<int>(
+                               future: _calcularDescuento(),
+                               builder: (context, snapshot) {
+                                 double totalAPagar = listaJugadas != null ? listaJugadas.length > 0 ? listaJugadas.map((e) => e.monto).reduce((value, element) => value + element) : 0.0 : 0.0;
+                                 if(snapshot.hasData)
+                                  totalAPagar = totalAPagar - snapshot.data;
+
+                                 return Container(
+                                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                   decoration: BoxDecoration(
+                                     color: Colors.green,
+                                     borderRadius: BorderRadius.circular(5)
+                                   ),
+                                   child: Text("${Utils.toCurrency(totalAPagar)}", style: TextStyle(color: Colors.white, fontSize: 20))
+                                  );
+                               }
+                             ),
+                           ],
+                         ),
+                     ),
+                       Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                         child: Wrap(
+                           children: [
+                             Container(
+                               padding: EdgeInsets.symmetric(vertical: 5),
+                               child: Text("Jugadas: ", style: TextStyle(fontSize: 20))
+                              ),
+                             StreamBuilder<List<Jugada>>(
+                               stream: _streamControllerJugada.stream,
+                               builder: (context, snapshot) {
+                                 return Container(
+                                   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                   decoration: BoxDecoration(
+                                     color: Utils.colorPrimary,
+                                     borderRadius: BorderRadius.circular(5)
+                                   ),
+                                   child: Text("${listaJugadas.length}", style: TextStyle(color: Colors.white, fontSize: 20))
+                                  );
+                               }
+                             ),
+                           ],
+                         ),
+                       ),
+                    //  RichText(
+                    //    text: TextSpan(
+                    //      style: TextStyle(color: Colors.black),
+                    //      children: [
+                    //        TextSpan(
+                    //          text: "Monto: "
+                    //        ),
+                    //        TextSpan(
+                    //      style: TextStyle(color: Colors.blue[700],),
+                    //          text: "${listaJugadas != null ? listaJugadas.length > 0 ? Utils.toCurrency(listaJugadas.map((e) => e.monto).reduce((value, element) => value + element)) : '0' : '0'}"
+                    //        )
+                    //      ]
+                    //    )
+                    //   ),
+                    ],
+                  ),
+                ),
+                StreamBuilder<List<Jugada>>(
+                  stream: _streamControllerJugada.stream,
+                  builder: (context, snapshot) {
+                    return Wrap(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 5,
+                            child: MyResizedContainer(
+                              xlarge: 4.19,
+                              large: 4.3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: Container(
+                                  height: 270,
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(bottom: 8.0),
+                                          child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: MyTable(
+                                          type: MyTableType.custom,
+                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                                          delete: (){}
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 5,
+                            child: MyResizedContainer(
+                              xlarge: 4.19,
+                              large: 4.3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: Container(
+                                  height: 270,
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(bottom: 8.0),
+                                          child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: MyTable(
+                                          type: MyTableType.custom,
+                                          columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
+                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                                          delete: (){}
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 5,
+                            child: MyResizedContainer(
+                              xlarge: 4.19,
+                              large: 4.3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: Container(
+                                  height: 270,
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(bottom: 8.0),
+                                          child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: MyTable(
+                                          type: MyTableType.custom,
+                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                                          delete: (){}
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 5,
+                            child: MyResizedContainer(
+                              xlarge: 4.19,
+                              large: 4.3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                child: Container(
+                                  height: 270,
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(bottom: 8.0),
+                                          child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: MyTable(
+                                          type: MyTableType.custom,
+                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                                          delete: (){}
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                ),
+
+                MyButton(
+                  cargando: false,
+                  type: MyButtonType.roundedWithOnlyBorder,
+                  // color: Colors.blue[700],
+                  title: "Crear ticket",
+                  function: guardar,
+                  cargandoNotify: ValueNotifier<bool>(false),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: MyButton(
+                    xlarge: 7,
+                    cargando: false,
+                    type: MyButtonType.roundedWithOnlyBorder,
+                    // color: Colors.blue[700],
+                    textColor: Colors.pink,
+                    title: "Impresora",
+                    function: (){_bluetoothScreen(isSmallOrMedium);},
+                    cargandoNotify: ValueNotifier<bool>(false),
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoMarcarTicketComoPagado,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: MyButton(
+                      xlarge: 7,
+                      cargando: false,
+                      type: MyButtonType.roundedWithOnlyBorder,
+                      // color: Colors.blue[700],
+                      // textColor: Colors.pink,
+                      title: "Pagar",
+                      function: (){_pagar(isSmallOrMedium);},
+                      cargandoNotify: ValueNotifier<bool>(false),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoMarcarTicketComoPagado,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: MyButton(
+                      xlarge: 7,
+                      cargando: false,
+                      type: MyButtonType.roundedWithOnlyBorder,
+                      // color: Colors.blue[700],
+                      // textColor: Colors.pink,
+                      title: "Duplicar",
+                      function: (){_showDialogDuplicar(isSmallOrMedium);},
+                      cargandoNotify: ValueNotifier<bool>(false),
+                    ),
+                  ),
+                ),
+                // MyButton(
+                //   title: "Impresora",
+                //   function: guardar,
+                //   color: Colors.green
+                // )
+              ],
+            ),
+          )
+        )
+      )
       :
       DefaultTabController(
           length: 2,
@@ -3014,14 +3722,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                       title: Text('Duplicar'),
                       leading: Icon(Icons.scatter_plot),
                       dense: true,
-                      onTap: () async {
-                        Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey);
-                        _scaffoldKey.currentState.openEndDrawer();
-                        if(datos.isNotEmpty){
-                          await _duplicar(datos);
-                        }
-                        // print("prueba alertdialog: $prueba");
-                      },
+                      onTap: _showDialogDuplicar,
                     ),
                     Visibility(
                       visible: _tienePermisoMarcarTicketComoPagado,
@@ -3029,14 +3730,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                         title: Text("Pagar"),
                         leading: Icon(Icons.payment),
                         dense: true,
-                        onTap: () async {
-                          dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context);
-                          _scaffoldKey.currentState.openEndDrawer();
-                          if(datos.isNotEmpty){
-                            print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
-                            Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
-                          }
-                        },
+                        onTap: _pagar,
                       ),
                     ),
                     Visibility(
@@ -3395,7 +4089,7 @@ void _getTime() {
       });
   }
 
-  StreamBuilder _getSelectedLoteriaStream(){
+  StreamBuilder _getSelectedLoteriaStream(bool isSmallOrMedium){
     
 
     return StreamBuilder(
@@ -3409,7 +4103,10 @@ void _getTime() {
         if(_selectedLoterias.length > 1 || _selectedLoterias.length == 0)
           return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
 
-        return Column(
+        return 
+        isSmallOrMedium
+        ?
+        Column(
           // crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -3418,7 +4115,22 @@ void _getTime() {
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             _getLoteriaRemainingTime(_selectedLoterias[0])
           ],
-        );
+        )
+        :
+        Row(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Text("${_selectedLoterias[0].descripcion}"),
+            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),
+            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Center(child: _getLoteriaRemainingTime(_selectedLoterias[0])),
+            )
+          ],
+        )
+        ;
         // return ListTile(
         //   title: Text("${loteria.descripcion}"),
         //   subtitle: Text(dateString),
@@ -3516,8 +4228,27 @@ void _getTime() {
       );
   }
 
+  _cambiarFocusJugadaMonto(){
+    if(_isLargeAndWeb()){
+      _jugadaOmonto = !_jugadaFocusNode.hasFocus;
+      if(_jugadaOmonto)
+        _jugadaFocusNode.requestFocus();
+      else
+        _montoFocusNode.requestFocus();
+
+        return;
+      }
+
+
+    setState((){
+      _jugadaOmonto = !_jugadaOmonto;
+      print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
+    });
+  }
+
   Future<void> _escribir(String caracter) async {
     print("Hey: $caracter");
+    _jugadaOmonto = _isLargeAndWeb() ? _jugadaFocusNode.hasFocus : _jugadaOmonto;
     if(caracter == '.'){
       if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
         _showLigarDialog();
@@ -3543,16 +4274,24 @@ void _getTime() {
       }else{
         if(_txtJugada.text.indexOf(".") != -1){
           _combinarJugadas();
-          setState(() => _jugadaOmonto = !_jugadaOmonto);
+          _cambiarFocusJugadaMonto();
         }
         else{
+          if(kIsWeb){
+            if(_txtMontoDisponible.text.toLowerCase() != "x"){
+              if(Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
+                Utils.showAlertDialog(title: "Monto insuficiente", context: context, content: "No hay monto suficiente para esta jugada");
+                return;
+              }
+            }
+          }
           await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
         }
       }
       return;
     }
 
-    if(_txtJugada.text.length == 0 && caracter == '-'){
+    if(_txtJugada.text.length == 0 && caracter == '-' && !_isLargeAndWeb()){
       guardar();
       return;
     }
@@ -3563,8 +4302,12 @@ void _getTime() {
         return;
       }
       else if(_txtJugada.text.length < 6 || (_txtJugada.text.length == 6 && caracter == ".")){
-        if(esCaracterEspecial(caracter) == false)
+        if(esCaracterEspecial(caracter) == false){
+          if(_isLargeAndWeb())
+            return;
+
           _txtJugada.text = _txtJugada.text + caracter;
+        }
         else{
           if(caracter == '+'){
             ponerSignoMas();
@@ -3572,7 +4315,7 @@ void _getTime() {
           if(caracter == '-'){
             ponerSignoMenos();
           }
-          if(caracter == 'S'){
+          if(caracter == 'S' || caracter == 's'){
             ponerSignoS();
           }
           if(caracter == '.'){
@@ -3975,45 +4718,59 @@ void _getTime() {
     }
   }
 
+  bool _isLargeAndWeb(){
+    return Utils.isSmallOrMedium(MediaQuery.of(context).size.width) == false && kIsWeb;
+  }
+
   ponerSignoMas(){
-    if(_txtJugada.text.indexOf('+') != -1)
+    if((_txtJugada.text.indexOf('+') != -1 && !_isLargeAndWeb()) || (_txtJugada.text.indexOf('+') == -1 && _isLargeAndWeb()))
       return;
 
-    if(_txtJugada.text.length != 3 && _txtJugada.text.length != 4)
+    print("PrincipalView ponerSignoMas 1");
+
+    if(_txtJugada.text.length != 3 && _txtJugada.text.length != 4 && !_isLargeAndWeb())
       return;
     
-    _txtJugada.text = _txtJugada.text + '+';
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    print("PrincipalView ponerSignoMas 2");
+
+    if(!_isLargeAndWeb())
+      _txtJugada.text = _txtJugada.text + '+';
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
     changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
   ponerSignoMenos(){
-    if(_txtJugada.text.indexOf('-') != -1)
+    if((_txtJugada.text.indexOf('-') != -1 && !_isLargeAndWeb()) || (_txtJugada.text.indexOf('-') == -1 && _isLargeAndWeb()))
       return;
 
-    if(_txtJugada.text.length != 4)
+    if(_txtJugada.text.length != 4 && !_isLargeAndWeb())
       return;
     
-    _txtJugada.text = _txtJugada.text + '-';
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    if(!_isLargeAndWeb())
+      _txtJugada.text = _txtJugada.text + '-';
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
     changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
   ponerSignoS(){
-    if(_txtJugada.text.indexOf('s') != -1)
+    if(_txtJugada.text.indexOf('s') != -1 && !_isLargeAndWeb())
       return;
 
-    if(_txtJugada.text.length != 4)
+    if(_txtJugada.text.length != 4 && !_isLargeAndWeb())
       return;
     if(_selectedLoterias.length < 2){
-      Utils.showSnackBar(content: "Debe seleccionar dos o mas loterias para super pale", scaffoldKey: _scaffoldKey);
+      Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar dos o mas loterias para super pale");
       return;
     }
     
-    _txtJugada.text = _txtJugada.text + 's';
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    if(!_isLargeAndWeb())
+      _txtJugada.text = _txtJugada.text + 's';
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
     changeMontoDisponibleFromTxtMontoDisponible();
     
   }
@@ -4025,7 +4782,8 @@ void _getTime() {
     if(_txtJugada.text.length != 2 && _txtJugada.text.length != 4 && _txtJugada.text.length != 6)
       return;
     
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
     await changeMontoDisponibleFromTxtMontoDisponible();
     _txtJugada.text = _txtJugada.text + '.';
   }
@@ -4071,13 +4829,16 @@ void _getTime() {
     else if(selectedLoterias.length == 1){
 
       // VALIDAMOS EL MONTO DISPONIBLE
-      MontoDisponible montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
-      if(Utils.toDouble(monto) > montoDisponible.monto){
-        _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
-          return;
+      MontoDisponible montoDisponible;
+      if(!kIsWeb){
+        montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
+        if(Utils.toDouble(monto) > montoDisponible.monto){
+          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
+            return;
+        }
       }
 
-      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
+      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: kIsWeb ? Stock() : montoDisponible.stock);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';
@@ -4095,12 +4856,15 @@ void _getTime() {
       List<Jugada> listaLoteriasSuperpaleConStock = [];
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
-          MontoDisponible montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, loteriaSuperpale: _selectedLoterias[i2]);
-          if(Utils.toDouble(monto) > montoDisponible.monto){
-            _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
-              return;
+          MontoDisponible montoDisponible;
+          if(!kIsWeb){
+            montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, loteriaSuperpale: _selectedLoterias[i2]);
+            if(Utils.toDouble(monto) > montoDisponible.monto){
+              _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
+                return;
+            }
           }
-          listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
+          listaLoteriasSuperpaleConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
         }
       }
 
@@ -4124,12 +4888,15 @@ void _getTime() {
       // VALIDAMOS LOS MONTOS DISPONIBLES
       List<Jugada> listaLoteriaConStock = [];
       for (var l in selectedLoterias) {
-        MontoDisponible montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
-        if(Utils.toDouble(monto) > montoDisponible.monto){
-          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
-            return;
+        MontoDisponible montoDisponible;
+        if(!kIsWeb){
+          montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
+          if(Utils.toDouble(monto) > montoDisponible.monto){
+            _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
+              return;
+          }
         }
-        listaLoteriaConStock.add(Jugada(stock: montoDisponible.stock, loteria: l));
+        listaLoteriaConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: l));
       }
 
       // INSERTAMOS LAS LOTERIAS
@@ -4145,7 +4912,8 @@ void _getTime() {
     }
 
           
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
 
   }
 
@@ -4338,11 +5106,15 @@ void _getTime() {
   insertarJugadaDuplicar(Map<String, dynamic> loteriaMap, Map<String, dynamic> jugada) async {
     if(jugada["idSorteo"] != 4){
       // double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
-      MontoDisponible montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
-      double montoDisponibleOtraVez = montoDisponible.monto;
-      if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
-        _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
-          return;
+      MontoDisponible montoDisponible;
+
+      if(!kIsWeb){
+        montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
+        double montoDisponibleOtraVez = montoDisponible.monto;
+        if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
+          _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
+            return;
+        }
       }
 
       print("insertarJugadaDuplicar jugada: ${jugada}");
@@ -4385,7 +5157,7 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: montoDisponible.stock
+          stock: kIsWeb ? null : montoDisponible.stock
         ));
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap), sorteo: _sorteo);
         _streamControllerJugada.add(listaJugadas);
@@ -4456,7 +5228,7 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: montoDisponible.stock
+          stock: kIsWeb ? null : montoDisponible.stock
         );
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria, sorteo: _sorteo);
         print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
@@ -4610,7 +5382,8 @@ void _getTime() {
     }
 
           
-    setState(() => _jugadaOmonto = !_jugadaOmonto);
+    // setState(() => _jugadaOmonto = !_jugadaOmonto);
+    _cambiarFocusJugadaMonto();
 
   }
 
@@ -4671,7 +5444,7 @@ void _getTime() {
       }
 
       setState(() {
-        _selectedLoterias = List();
+        _selectedLoterias = [];
       // final selectedValuesMap = listaLoteria.asMap();
       _selectedLoterias.add(listaLoteria[idx + 1]);
       });
@@ -4852,7 +5625,7 @@ _selectedBanca() async {
       );
    }
   else if(jugada.length == 6){
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 16));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
   }
 
    return Text(jugada, style: TextStyle(fontSize: 16));
@@ -4909,6 +5682,20 @@ _selectedBanca() async {
  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) async {
     
     var montoDisponible;
+
+    if(kIsWeb){
+      try {
+        _txtMontoDisponible.text = "0";
+        var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
+        print("PrincipalView getMontoDisponible: $data");
+        return MontoDisponible(monto: Utils.toDouble(data["monto"]));
+      } on Exception catch (e) {
+        // TODO
+        print("PrincipalView getMontoDisponible error: ${e.toString()}");
+        return MontoDisponible(monto: 0);
+
+      }
+    }
     
     if(socket == null){
       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
@@ -4918,6 +5705,8 @@ _selectedBanca() async {
       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
       return MontoDisponible(monto: 0);
     }
+
+    
 
     int idDia = getIdDia();
     int idSorteo = await getIdSorteo(jugada, loteria);
@@ -5368,22 +6157,36 @@ _selectedBanca() async {
  }
 
  getSorteo(String jugada) async {
+   
+
     Draws sorteo;
 
    if(jugada.length == 2){
+     if(kIsWeb)
+      return Draws(1, 'Directo', 2, 1, 1, null);
+
      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
    }
   else if(jugada.length == 3){
+    if(kIsWeb)
+      return Draws(1, 'Pick 3 Straight', 2, 1, 1, null);
+
     // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
   }
   else if(jugada.length == 4){
     if(jugada.indexOf("+") != -1){
+       if(kIsWeb)
+        return Draws(1, 'Pick 3 Box', 2, 1, 1, null);
+
       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }else{
+      if(kIsWeb)
+        return Draws(1, 'Pale', 2, 1, 1, null);
+
       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
       // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
@@ -5396,19 +6199,31 @@ _selectedBanca() async {
   }
   else if(jugada.length == 5){
     if(jugada.indexOf("+") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Pick 4 Box', 2, 1, 1, null);
+
       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
     else if(jugada.indexOf("-") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Pick 4 Straight', 2, 1, 1, null);
+
       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
     else if(jugada.indexOf("s") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Super pale', 2, 1, 1, null);
+
       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
     }
   }
   else if(jugada.length == 6){
+    if(kIsWeb)
+        return Draws(1, 'Tripleta', 2, 1, 1, null);
+
     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
   }

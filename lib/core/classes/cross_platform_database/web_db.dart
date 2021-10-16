@@ -70,6 +70,8 @@ class WebMoor implements CrossDB{
   @override
   Future<Map<String, dynamic>> ajustes() {
     // TODO: implement ajustes
+    var database = WebMoor();
+    return database.db.getSetting();
     throw UnimplementedError("WebDatabase Uninplemented ajustes");
   }
 
