@@ -9,6 +9,7 @@ import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_tim
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
+import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/classes/ticketimagev2.dart';
 import 'package:loterias/core/models/BlocksgeneralsJugada.dart';
@@ -3092,6 +3093,252 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
     // print("prueba alertdialog: $prueba");
   }
 
+  _directoPaleTripletaScreen(double width, bool isSmallOrMedium){
+    if(ScreenSize.isXLarge(width) || ScreenSize.isLarge(width))
+      return Wrap(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 1.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.24,
+                large: 3.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 1.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4,
+                large: 3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
+                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+                            
+        ]
+      );
+  
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 7,
+        child: MyResizedContainer(
+          xlarge: 4.19,
+          large: 3.2,
+          medium: 2.09,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Container(
+              height: 270,
+              child: Column(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text("Directo-Pale-Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[600])),
+                    ),
+                  ),
+                  Expanded(
+                    child: MyTable(
+                      type: MyTableType.custom,
+                      columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                      rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                      delete: (){}
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+          
+  }
+
+  _pick34Screen(double width){
+    if(ScreenSize.isXLarge(width))
+      return Wrap(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 4.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 4.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+
+
+    
+    return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 1.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                large: 3,
+                medium: 2.09,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 3 y 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+  }
+
+
   @override
   build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
@@ -3166,6 +3413,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                   child: MyResizedContainer(
                     xlarge: 1,
                     large: 1,
+                    medium: 1,
                     child: Card(
                       elevation: 5,
                       child: Padding(
@@ -3174,24 +3422,24 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(top: 14.0, left: 16.0),
-                              child: MyResizedContainer(xlarge: 14, child: _ckbPrintScreen(isSmallOrMedium)),
+                              child: MyResizedContainer(xlarge: 14, large: 8, medium: 11, child: _ckbPrintScreen(isSmallOrMedium)),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(top: 19.0),
-                              child: MyResizedContainer(xlarge: 14, child: _ckbDescuentoScreen(isSmallOrMedium)),
+                              child: MyResizedContainer(xlarge: 14, large: 8, medium: 11, child: _ckbDescuentoScreen(isSmallOrMedium)),
                             ),
-                            MyResizedContainer(xlarge: 4, child: _loteriasScreen(isSmallOrMedium)),
+                            MyResizedContainer(xlarge: 4,  child: _loteriasScreen(isSmallOrMedium)),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: MyResizedContainer(xlarge: 8, child: _jugadaTextField(isSmallOrMedium)),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: MyResizedContainer(xlarge: 8, child: _montoDisponibleTextField(isSmallOrMedium)),
+                              child: MyResizedContainer(xlarge: 8, large: 8, medium: 8, child: _jugadaTextField(isSmallOrMedium)),
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: MyResizedContainer(xlarge: 8, child: _montoTextField(isSmallOrMedium)),
+                              child: MyResizedContainer(xlarge: 8, large: 8, medium: 8, child: _montoDisponibleTextField(isSmallOrMedium)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              child: MyResizedContainer(xlarge: 8, large: 8, medium: 8, child: _montoTextField(isSmallOrMedium)),
                             ),
                           ],
                         ),
@@ -3319,157 +3567,167 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                 StreamBuilder<List<Jugada>>(
                   stream: _streamControllerJugada.stream,
                   builder: (context, snapshot) {
-                    return Wrap(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            elevation: 5,
-                            child: MyResizedContainer(
-                              xlarge: 4.19,
-                              large: 4.3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                child: Container(
-                                  height: 270,
-                                  child: Column(
-                                    children: [
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(bottom: 8.0),
-                                          child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: MyTable(
-                                          type: MyTableType.custom,
-                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
-                                          delete: (){}
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            elevation: 5,
-                            child: MyResizedContainer(
-                              xlarge: 4.19,
-                              large: 4.3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                child: Container(
-                                  height: 270,
-                                  child: Column(
-                                    children: [
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(bottom: 8.0),
-                                          child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: MyTable(
-                                          type: MyTableType.custom,
-                                          columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
-                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
-                                          delete: (){}
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            elevation: 5,
-                            child: MyResizedContainer(
-                              xlarge: 4.19,
-                              large: 4.3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                child: Container(
-                                  height: 270,
-                                  child: Column(
-                                    children: [
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(bottom: 8.0),
-                                          child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: MyTable(
-                                          type: MyTableType.custom,
-                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
-                                          delete: (){}
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            elevation: 5,
-                            child: MyResizedContainer(
-                              xlarge: 4.19,
-                              large: 4.3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                child: Container(
-                                  height: 270,
-                                  child: Column(
-                                    children: [
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(bottom: 8.0),
-                                          child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: MyTable(
-                                          type: MyTableType.custom,
-                                          columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                                          rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
-                                          delete: (){}
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    return MyResizedContainer(
+                      xlarge: 1,
+                      large: 1,
+                      medium: 1,
+                      builder: (context, width) {
+                        return Wrap(
+                          children: [
+                            // Padding(
+                            //   padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+                            //   child: Card(
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(10.0),
+                            //     ),
+                            //     elevation: 5,
+                            //     child: MyResizedContainer(
+                            //       xlarge: 4.19,
+                            //       large: 4.3,
+                            //       child: Padding(
+                            //         padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            //         child: Container(
+                            //           height: 270,
+                            //           child: Column(
+                            //             children: [
+                            //               Center(
+                            //                 child: Padding(
+                            //                   padding: const EdgeInsets.only(bottom: 8.0),
+                            //                   child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
+                            //                 ),
+                            //               ),
+                            //               Expanded(
+                            //                 child: MyTable(
+                            //                   type: MyTableType.custom,
+                            //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   delete: (){}
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                            //   child: Card(
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(10.0),
+                            //     ),
+                            //     elevation: 5,
+                            //     child: MyResizedContainer(
+                            //       xlarge: 4.19,
+                            //       large: 4.3,
+                            //       child: Padding(
+                            //         padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            //         child: Container(
+                            //           height: 270,
+                            //           child: Column(
+                            //             children: [
+                            //               Center(
+                            //                 child: Padding(
+                            //                   padding: const EdgeInsets.only(bottom: 8.0),
+                            //                   child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                            //                 ),
+                            //               ),
+                            //               Expanded(
+                            //                 child: MyTable(
+                            //                   type: MyTableType.custom,
+                            //                   columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            //                   delete: (){}
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                            //   child: Card(
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(10.0),
+                            //     ),
+                            //     elevation: 5,
+                            //     child: MyResizedContainer(
+                            //       xlarge: 4.19,
+                            //       large: 4.3,
+                            //       child: Padding(
+                            //         padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            //         child: Container(
+                            //           height: 270,
+                            //           child: Column(
+                            //             children: [
+                            //               Center(
+                            //                 child: Padding(
+                            //                   padding: const EdgeInsets.only(bottom: 8.0),
+                            //                   child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                            //                 ),
+                            //               ),
+                            //               Expanded(
+                            //                 child: MyTable(
+                            //                   type: MyTableType.custom,
+                            //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   delete: (){}
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                            //   child: Card(
+                            //     shape: RoundedRectangleBorder(
+                            //       borderRadius: BorderRadius.circular(10.0),
+                            //     ),
+                            //     elevation: 5,
+                            //     child: MyResizedContainer(
+                            //       xlarge: 4.19,
+                            //       large: 4.3,
+                            //       child: Padding(
+                            //         padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            //         child: Container(
+                            //           height: 270,
+                            //           child: Column(
+                            //             children: [
+                            //               Center(
+                            //                 child: Padding(
+                            //                   padding: const EdgeInsets.only(bottom: 8.0),
+                            //                   child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                            //                 ),
+                            //               ),
+                            //               Expanded(
+                            //                 child: MyTable(
+                            //                   type: MyTableType.custom,
+                            //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   delete: (){}
+                            //                 ),
+                            //               )
+                            //             ],
+                            //           ),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                          
+                            _directoPaleTripletaScreen(width, isSmallOrMedium),
+                            _pick34Screen(width)
+                          ],
+                        );
+                      }
                     );
                   }
                 ),
@@ -3486,6 +3744,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: MyButton(
                     xlarge: 7,
+                    medium: 5,
                     cargando: false,
                     type: MyButtonType.roundedWithOnlyBorder,
                     // color: Colors.blue[700],
@@ -3501,6 +3760,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: MyButton(
                       xlarge: 7,
+                      large: 7,
+                      medium: 7,
                       cargando: false,
                       type: MyButtonType.roundedWithOnlyBorder,
                       // color: Colors.blue[700],
@@ -3517,6 +3778,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: MyButton(
                       xlarge: 7,
+                      large: 6,
+                      medium: 6,
                       cargando: false,
                       type: MyButtonType.roundedWithOnlyBorder,
                       // color: Colors.blue[700],
@@ -5576,7 +5839,7 @@ _selectedBanca() async {
    );
  }
 
- _buildRichOrTextAndConvertJugadaToLegible(String jugada){
+ _buildRichOrTextAndConvertJugadaToLegible(String jugada, {bool isSmallOrMedium = true}){
    if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
      return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4), style: TextStyle(fontSize: 16));
    }
@@ -5605,10 +5868,10 @@ _selectedBanca() async {
    else if(jugada.length == 5 && jugada.indexOf('+') != -1){
      return RichText(
        text: TextSpan(
-         style: TextStyle(fontSize: 16, color: Colors.black),
+         style: TextStyle(fontSize: 15, color: Colors.black),
          children: [
            TextSpan(text: jugada.substring(0, 4)),
-           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold,)),
          ]
        ),
       );
@@ -5616,7 +5879,7 @@ _selectedBanca() async {
    else if(jugada.length == 5 && jugada.indexOf('-') != -1){
      return RichText(
        text: TextSpan(
-         style: TextStyle(fontSize: 16, color: Colors.black),
+         style: TextStyle(fontSize: 15, color: Colors.black),
          children: [
            TextSpan(text: jugada.substring(0, 4)),
            TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
@@ -5625,10 +5888,11 @@ _selectedBanca() async {
       );
    }
   else if(jugada.length == 6){
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
+    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
   }
 
-   return Text(jugada, style: TextStyle(fontSize: 16));
+   return Text(jugada, style: TextStyle(fontSize: 15));
  }
 
  _calcularTotal(){

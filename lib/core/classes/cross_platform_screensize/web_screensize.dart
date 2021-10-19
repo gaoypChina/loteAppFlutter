@@ -8,8 +8,8 @@ class WebTimezone implements CrossScreenSize{
   //   // TODO: implement getMoorCrossConstructor
   //   return WebDatabase('app', logStatements: true);
   // }
-  static final double _sm = 400;
-  static final double _md = 700;
+  static final double _sm = 450;
+  static final double _md = 750;
   static final double _lg = 1000;
   static final double _xlg = 1300;
 

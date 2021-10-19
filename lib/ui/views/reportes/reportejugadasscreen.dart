@@ -432,6 +432,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      reporteJugadas: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Reporte jugadas",

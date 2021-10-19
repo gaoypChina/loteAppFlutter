@@ -926,6 +926,7 @@ _avatarScreen(Usuario data){
       );
     }
     return  MyTable(
+      type: MyTableType.custom,
       columns: ["Nombre", "Usuario", "Rol", "Activo"], 
       rows: snapshot.data.map((e) => [
         e, 

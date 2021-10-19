@@ -57,7 +57,7 @@ class MyDropdownButton extends StatefulWidget {
   final String nullHint;
   final bool addNingunoToFirstElement;
   final String helperText;
-  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
+  MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
     // this.flexOfSideText = 3, 
     this.flexOfSideText = 3.05, 
     // this.flexOfSideField = 1.5, 

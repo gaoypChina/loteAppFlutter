@@ -231,6 +231,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       cargando: false,
       cargandoNotify: _cargandoNotify,
       isSliverAppBar: true,
+      bloqueosPorLoteria: true,
       bottomTap: isSmallOrMedium ? null : _guardar,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
@@ -316,7 +317,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                         :
                         MyDropdown(
                           xlarge: 1.35,
-                          medium: 1,
+                          large: 1.35,
+                          medium: 1.35,
                           small: 1,
                           isSideTitle: true,
                           title: "Bancas del bloqueo *",
@@ -361,7 +363,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                   :
                   MyDropdown(
                     xlarge: 1.35,
-                    medium: 1,
+                    large: 1.35,
+                    medium: 1.35,
                     small: 1,
                     isSideTitle: true,
                     color: Colors.white,
@@ -386,7 +389,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                   :
                   MyDropdown(
                     xlarge: 1.35,
-                    medium: 1,
+                    large: 1.35,
+                    medium: 1.35,
                     small: 1,
                     isSideTitle: true,
                     title: "Loterias del bloqueo *",

@@ -564,6 +564,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: MyDropdownButton(
+        largeSide: 1.2,
         isSideTitle: true,
         type: MyDropdownType.border,
         title: "Tipo regla del bloqueo *",
@@ -602,6 +603,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             return SizedBox.shrink();
 
           return MyDropdownButton(
+            largeSide: 1.2,
             isSideTitle: true,
             type: MyDropdownType.border,
             title: "Moneda del bloqueo*",
@@ -648,7 +650,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: MyDropdown(
             xlarge: 1.35,
-            medium: 1,
+            large: 1.2,
+            medium: 1.35,
             small: 1,
             isSideTitle: true,
             onlyBorder: true,
@@ -691,7 +694,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     if(!isSmallOrMedium)
       return MyDropdown(
         xlarge: 1.35,
-        medium: 1,
+        large: 1.2,
+        medium: 1.35,
         small: 1,
         isSideTitle: true,
         title: "Fecha del bloqueo", 
@@ -746,7 +750,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
         padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: MyCheckBox(
           xlarge: 1.33,
-          medium: 1,
+          large: 1.2,
+          medium: 1.35,
           small: 1,
           isSideTitle: true,
           title: "Ignorar todos",
@@ -776,7 +781,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
         padding: const EdgeInsets.symmetric(vertical: 24.0),
         child: MyCheckBox(
           xlarge: 1.33,
-          medium: 1,
+          large: 1.2,
+          medium: 1.35,
           small: 1,
           isSideTitle: true,
           title: "Descontar del bloqueo general",
@@ -802,7 +808,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: MyDropdown(
           xlarge: 1.35,
-          medium: 1,
+          large: 1.2,
+          medium: 1.35,
           small: 1,
           isSideTitle: true,
           onlyBorder: true,
@@ -1064,7 +1071,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       );
    }
   else if(jugada.length == 6){
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 11.5 : 16));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
   }
 
    return Text(jugada, style: TextStyle(fontSize: 16));
@@ -1177,6 +1184,129 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     },);
   }
 
+  _directoPaleTripletaScreen(double width, bool isSmallOrMedium){
+    if(ScreenSize.isXLarge(width) || ScreenSize.isLarge(width))
+      return Wrap(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 3.2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 3.2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
+                            rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+                            
+        ]
+      );
+  
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 7,
+        child: MyResizedContainer(
+          xlarge: 4.19,
+          large: 3.2,
+          medium: 2.09,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Container(
+              height: 270,
+              child: Column(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text("Directo-Pale-Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey[600])),
+                    ),
+                  ),
+                  Expanded(
+                    child: MyTable(
+                      type: MyTableType.custom,
+                      columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                      rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                      delete: (){}
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+          
+  }
+
   _pick34Screen(double width){
     print("BloqueosPorJugadas _pick34Screen: isXlarge: ${ScreenSize.isXLarge(width)} width: $width large: ${ScreenSize.lg} xlarge: ${ScreenSize.xlg}");
     if(ScreenSize.isXLarge(width))
@@ -1270,6 +1400,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               elevation: 7,
               child: MyResizedContainer(
                 large: 3.2,
+                medium: 2.09,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
                   child: Container(
@@ -1321,6 +1452,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       cargando: false,
       cargandoNotify: null,
       isSliverAppBar: true,
+      bloqueosPorJugadas: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: _title(isSmallOrMedium),
@@ -1480,80 +1612,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                       builder: (context, width) {
                         return Wrap(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                elevation: 7,
-                                child: MyResizedContainer(
-                                  xlarge: 4.19,
-                                  large: 3.2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Container(
-                                      height: 270,
-                                      child: Column(
-                                        children: [
-                                          Center(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(bottom: 8.0),
-                                              child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: MyTable(
-                                              type: MyTableType.custom,
-                                              columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                                              rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
-                                              delete: (){}
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                elevation: 7,
-                                child: MyResizedContainer(
-                                  xlarge: 4.19,
-                                  large: 3.2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Container(
-                                      height: 270,
-                                      child: Column(
-                                        children: [
-                                          Center(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(bottom: 8.0),
-                                              child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: MyTable(
-                                              type: MyTableType.custom,
-                                              columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
-                                              rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
-                                              delete: (){}
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            _directoPaleTripletaScreen(width, isSmallOrMedium),
                             _pick34Screen(width)
                             // MyResizedContainer(
                             //   xlarge: 4.19,

@@ -1562,6 +1562,7 @@ Widget _buildTableTicketsGanadores(List map){
                       onTap: (){
                         showMyOverlayEntry(
                           context: context,
+                          right: 2,
                           builder: (context, overlay){
                             _cancel(){
                               overlay.remove();
