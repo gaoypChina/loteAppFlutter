@@ -280,7 +280,7 @@ class DBSqflite{
   }
 
   static Future<Map<String, dynamic>> getNextTicket(int idBanca, String servidor, [var transaction]) async {
-      String queryStatemet = "SELECT * FROM Tickets WHERE usado = 0 AND idBanca = $idBanca AND servidor = '$servidor' ORDER BY ID ASC LIMIT 1";
+      String queryStatemet = "SELECT * FROM Tickets WHERE usado = 0 AND idBanca = $idBanca AND servidor = '$servidor' ORDER BY ID DESC LIMIT 1";
       var query = transaction == null ? await database.rawQuery(queryStatemet) : await transaction.rawQuery(queryStatemet);
       if(query.isEmpty){
         return null;

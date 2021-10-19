@@ -406,6 +406,17 @@ class Realtime{
     Ticket ticket = ticketMap != null ? Ticket.fromMap(ticketMap) : Ticket();
     double total = 0;
     print("Realtime guardarVenta after ticket");
+
+    var saleMapValidation = await Db.queryBy("Sales", "idTicket", ticket.id.toInt(), tx);
+    print("Realtime guardarVenta validacion venta no existe con este idTicket: ${saleMapValidation}");
+    sale = saleMapValidation != null ? Sale.fromMap(saleMapValidation) : null;
+    if(sale != null){
+      socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+      ticket.usado = 1;
+      await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
+      await Future.delayed(Duration(seconds: 2), (){print("Error idTicket incorrecto");});
+      throw Exception("Hubo un error al realizar la venta, se esta cambiando id, Intente guardar nuevamente");
+    }
       
     print("Realtime guardarVenta banca.status = ${banca.status}");
     print("Realtime guardarVenta usuario = ${usuario}");
@@ -585,8 +596,9 @@ class Realtime{
 
     ticket.usado = 1;
     await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
-
+    var ticketParaVerificarCampoUsado = await Db.queryBy("Tickets", "id", ticket.id.toInt(), tx);
     print("Realtime guardarVenta ticket: ${ticket.toJson()}");
+    print("Realtime guardarVenta ticketMap: ${ticketParaVerificarCampoUsado}");
 
     if(!socket.connected)
       throw Exception("No esta conectado a internet.");
