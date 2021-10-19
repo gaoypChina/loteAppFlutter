@@ -20,6 +20,7 @@ import 'package:timezone/data/latest.dart' as tz;
 
 
 import 'core/classes/databasesingleton.dart';
+bool DRAWER_IS_OPEN = false;
 
 // void main() => runApp(Prueba2());
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -36,6 +37,7 @@ Future<void> main() async {
 // await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
   await Db.openConnection();
+  DRAWER_IS_OPEN = await Utils.menuIsOpen();
   // //await DB.create();
   // var crossPlatform = CrossTimezone();
   //  var currentTimeZone = await crossPlatform.getCurrentTimezone();

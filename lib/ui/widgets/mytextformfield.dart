@@ -67,7 +67,8 @@ class MyTextFormField extends StatefulWidget {
   final bool autofocus;
   final TextAlign textAlign;
   final Function onTap;
-  MyTextFormField({Key key, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap}) : super(key: key);
+  final FocusNode focusNode;
+  MyTextFormField({Key key, this.focusNode, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 3, this.largeSide = 4, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -196,6 +197,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   _textFormField(){
     var txt = TextFormField(
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
@@ -260,6 +262,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   _textFormFieldFloatingLabelWithBorder(){
     var txt = TextFormField(
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
@@ -317,6 +320,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   _textFormFieldNoBorder(){
     var txt = TextFormField(
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
@@ -425,6 +429,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   _textFormFieldRounded(){
     return TextFormField(
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,
@@ -501,6 +506,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
 
   _textFormFieldWithoutLabel(){
     return TextFormField(
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       controller: widget.controller,
       maxLines: widget.maxLines,

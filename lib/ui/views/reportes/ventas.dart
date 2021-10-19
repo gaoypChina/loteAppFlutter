@@ -1526,6 +1526,7 @@ Widget _buildTableTicketsGanadores(List map){
       cargandoNotify: null,
       isSliverAppBar: true,
       showDrawerOnSmallOrMedium: false,
+      ventas: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           expandedHeight: isSmallOrMedium ? 110 : 85,

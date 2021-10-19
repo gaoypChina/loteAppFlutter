@@ -1047,7 +1047,21 @@ _monedaChanged(moneda){
           "${Utils.toCurrency(e.premios)}", 
           "${Utils.toCurrency(e.totalNeto)}", 
           "${Utils.toCurrency(e.balance)}", 
-          "${Utils.toCurrency(e.balanceActual)}"]).toList()
+          "${Utils.toCurrency(e.balanceActual)}"]).toList(),
+          totals: [[
+            "Total",
+           "${data.map((e) => e.pendientes).reduce((value, element) => value + element)}",
+           "${data.map((e) => e.ganadores).reduce((value, element) => value + element)}",
+           "${data.map((e) => e.perdedores).reduce((value, element) => value + element)}",
+           "${data.map((e) => e.tickets).reduce((value, element) => value + element)}",
+           "${Utils.toCurrency(data.map((e) => e.ventas).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.comisiones).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.descuentos).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.premios).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.totalNeto).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.balance).reduce((value, element) => value + element))}",
+           "${Utils.toCurrency(data.map((e) => e.balanceActual).reduce((value, element) => value + element))}",
+        ]],
       );
     
     return HorizontalDataTable(
@@ -1766,6 +1780,7 @@ _monedaChanged(moneda){
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      historicoVentas: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: _titleScreen(isSmallOrMedium),

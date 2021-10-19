@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/main.dart';
 import 'package:loterias/ui/widgets/mydrawer.dart';
 
 import 'myappbar.dart';
@@ -9,7 +10,7 @@ import 'mybutton.dart';
 
 myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged}){
   Widget widget = SizedBox();
-  var _defaultValueNotifyDrawer = ValueNotifier(true);
+  var _defaultValueNotifyDrawer = ValueNotifier(DRAWER_IS_OPEN);
   AnimationController drawerAnimationController;
   // if(myNestedScrollBar != null)
   //   widget = myNestedScrollBar;
@@ -17,6 +18,18 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
     //     headerSliverBuilder: [SliverToBoxAdapter(child: Container(width: 200, height: 200, color: Colors.blue),)],
     //     body: Container(child: Text("Holaaa"), color: Colors.red),
     //   );
+
+    _initDrawerNotifier() async {
+      if(valueNotifyDrawer != null){
+        if(_defaultValueNotifyDrawer.value != valueNotifyDrawer.value){
+          _defaultValueNotifyDrawer.value = valueNotifyDrawer.value;
+        }
+      }else{
+        if(_defaultValueNotifyDrawer.value != DRAWER_IS_OPEN){
+          _defaultValueNotifyDrawer.value = DRAWER_IS_OPEN;
+        }
+      }
+    }
 
     _drawerWidget(bool value){
       return MyDrawer(
@@ -42,7 +55,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       if(sliverBody == null)
         bodyOrSliverBodyWidget = Column(crossAxisAlignment: CrossAxisAlignment.start, children: body,);
       else{
-        bodyOrSliverBodyWidget = Padding(padding: EdgeInsets.only(left: value == false ? 50 : 0), child: sliverBody);
+        bodyOrSliverBodyWidget = Padding(padding: EdgeInsets.only(left: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? value == false ? 50 : 0 : 0), child: sliverBody);
       }
 
       if(value)
@@ -174,14 +187,17 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
 
     print("MyScaffold widget: ${myNestedScrollBar == null}");
 
-    _onMenuTap(){
+    _onMenuTap() async {
       if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
         if(valueNotifyDrawer != null){
           // valueNotifyDrawer.value = !valueNotifyDrawer.value;
           if(onDrawerChanged != null)
             onDrawerChanged();
-        }else
+        }else{
           _defaultValueNotifyDrawer.value = !_defaultValueNotifyDrawer.value;
+          DRAWER_IS_OPEN = _defaultValueNotifyDrawer.value;
+          await Utils.setMenuStatus(isOpen: _defaultValueNotifyDrawer.value);
+        }
       }
       // else
       //   key.currentState.openDrawer();
@@ -193,6 +209,8 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
 
       return MyDrawer(isForSmallScreen: true, isExpanded: true, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas);
     }
+
+  _initDrawerNotifier();
 
   return Scaffold(
     // resizeToAvoidBottomInset: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? true : false,

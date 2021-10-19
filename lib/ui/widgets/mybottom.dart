@@ -29,36 +29,34 @@ Widget myBottomWidget({@required BuildContext context, Function onTap, String te
         child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: ValueListenableBuilder(
-                      valueListenable: cargando,
-                      builder: (_, value, __) {
-                        return Wrap(children: [
-                          value
-                          ?
-                          CircularProgressIndicator()
-                          :
-                          Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
-                            child: TextButton(onPressed: _back, child: Text("Cancelar", style: TextStyle(color: Utils.fromHex("#3c4043"), fontFamily: "GoogleSans"),)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ValueListenableBuilder(
+                    valueListenable: cargando,
+                    builder: (_, value, __) {
+                      return Wrap(children: [
+                        value
+                        ?
+                        CircularProgressIndicator()
+                        :
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: TextButton(onPressed: _back, child: Text("Cancelar", style: TextStyle(color: Utils.fromHex("#3c4043"), fontFamily: "GoogleSans"),)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15.0, right: 15),
+                          child: MyButton(
+                            isResponsive: false,
+                            title: text,
+                            function: onTap,
+                            cargando: value,
+                            // type: MyButtonType.noResponsive,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15.0, right: 15),
-                            child: MyButton(
-                              isResponsive: false,
-                              title: text,
-                              function: onTap,
-                              cargando: value,
-                              // type: MyButtonType.noResponsive,
-                            ),
-                          ),
-                          
-                        ],);
-                      }
-                    ),
-                  )
+                        ),
+                        
+                      ],);
+                    }
+                  ),
                 )
               ],
             ),

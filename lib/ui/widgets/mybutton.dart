@@ -120,6 +120,7 @@ class _MyButtonState extends State<MyButton> {
   _buttonNormal(){
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
+      height: 34,
       padding: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? widget.paddingSmallScreen : widget.padding,
       decoration: BoxDecoration(
         color: _color(),
@@ -303,7 +304,7 @@ class _MyButtonState extends State<MyButton> {
   }
 
 
-  _screen(){
+  Widget _screen(){
     switch (widget.type) {
       case MyButtonType.roundedWithOnlyBorder:
         return _buttonRoundedWithOnlyBorder();

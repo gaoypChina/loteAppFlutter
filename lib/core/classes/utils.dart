@@ -1179,5 +1179,27 @@ class  Utils {
     }
   }
 
+
+  static Future<bool> setMenuStatus({@required bool isOpen}) async{
+    try {
+      var c = await DB.create();
+      await c.add('menu', isOpen);
+      return true;
+    } on Exception catch (e) {
+      print("Utils.setMenuStatus: ${e.toString()}");
+      return false;
+    }
+  }
+
+  static Future<bool> menuIsOpen() async{
+    var c = await DB.create();
+    var menu = await c.getValue('menu');
+    if(menu == null)
+      return false;
+
+    return true;
+  }
+  
+
  
 }

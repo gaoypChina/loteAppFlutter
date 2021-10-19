@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
@@ -14,10 +18,12 @@ import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
+import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
@@ -27,6 +33,7 @@ import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
@@ -45,6 +52,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   var _txtJugada = TextEditingController();
   var _txtMonto = TextEditingController();
   var _tabController;
+  var _jugadaFocusNode = FocusNode();
+  var _montoFocusNode = FocusNode();
   DateTimeRange _date;
   MyDate _fecha;
   Future _future;
@@ -237,7 +246,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   Future<void> _escribir(String caracter) async {
     print("Hey: $caracter");
     if(caracter == '.'){
-      // if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
+      // if(_txtJugada.text.isEmpty && _jugadas.length >= 2){
       //   _showLigarDialog();
       //   return;
       // }
@@ -330,6 +339,84 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       );
   }
 
+
+
+   getSorteo(String jugada) async {
+   
+
+    Draws sorteo;
+
+   if(jugada.length == 2){
+     if(kIsWeb)
+      return Draws(1, 'Directo', 2, 1, 1, null);
+
+     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
+     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+   }
+  else if(jugada.length == 3){
+    if(kIsWeb)
+      return Draws(1, 'Pick 3 Straight', 2, 1, 1, null);
+
+    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+  else if(jugada.length == 4){
+    if(jugada.indexOf("+") != -1){
+       if(kIsWeb)
+        return Draws(1, 'Pick 3 Box', 2, 1, 1, null);
+
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }else{
+      if(kIsWeb)
+        return Draws(1, 'Pale', 2, 1, 1, null);
+
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+      //   idSorteo = 4;
+      // }else{
+      //   idSorteo = 2;
+      // }
+    }
+  }
+  else if(jugada.length == 5){
+    if(jugada.indexOf("+") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Pick 4 Box', 2, 1, 1, null);
+
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("-") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Pick 4 Straight', 2, 1, 1, null);
+
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+    else if(jugada.indexOf("s") != -1){
+      if(kIsWeb)
+        return Draws(1, 'Super pale', 2, 1, 1, null);
+
+      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+    }
+  }
+  else if(jugada.length == 6){
+    if(kIsWeb)
+        return Draws(1, 'Tripleta', 2, 1, 1, null);
+
+    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
+    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+  }
+
+  return sorteo;
+ }
+
+
   
 
   addJugada({String jugada, String monto}) async {
@@ -341,7 +428,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       jugada = Utils.ordenarMenorAMayor(jugada);
       List<Jugada> jugadasTmp = List.from(_jugadas);
       for (var loteria in _loterias) {
-        Draws sorteo = await Utils.getSorteo(jugada);
+        Draws sorteo = await getSorteo(jugada);
         if(sorteo == null){
           Utils.showAlertDialog(context: context, title: "Error", content: "El sorteo no existe");
           return;
@@ -470,10 +557,396 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
+  Widget _tipoReglaScreen(bool isSmallOrMedium){
+    return 
+    !isSmallOrMedium
+    ?
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: MyDropdownButton(
+        isSideTitle: true,
+        type: MyDropdownType.border,
+        title: "Tipo regla del bloqueo *",
+        helperText: "${_selectedTipo == 'General' ? 'Todas las bancas tendrán el mismo limite y se descontarán del mismo' : 'Cada banca tendrá su propio limite aparte de las demas'} ",
+        value: _selectedTipo,
+        items: listaTipo.map((e) => [e, "$e"]).toList(),
+        onChanged: (data){
+          _tipoChanged(data);
+        }
+      ),
+    )
+    :
+    Row(
+      children: [
+        InkWell(
+          onTap: _showTipos,
+          child: Row(children: [
+            Text("${_selectedTipo != null ? _selectedTipo : ''}", style: TextStyle(color: Colors.black),),
+            Icon(Icons.arrow_drop_down, color: Colors.black)
+          ],),
+        )
+      ],
+    );
+  }
+
+  Widget _monedaScreen(bool isSmallOrMedium){
+    return 
+    !isSmallOrMedium
+    ?
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: StreamBuilder<List<Moneda>>(
+        stream: _streamControllerMoneda.stream,
+        builder: (context, snapshot) {
+          if(!snapshot.hasData)
+            return SizedBox.shrink();
+
+          return MyDropdownButton(
+            isSideTitle: true,
+            type: MyDropdownType.border,
+            title: "Moneda del bloqueo*",
+            helperText: "Solo afectará a las bancas que tengan asignadas esta moneda",
+            value: _selectedMoneda,
+            items: listaMoneda.map((e) => [e, "${e.descripcion}"]).toList(),
+            onChanged: (data){
+              _monedaChanged(data);
+            }
+          );
+        }
+      ),
+    )
+    :
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Container(
+        width: 62,
+        // color: Colors.grey[200],
+        child: StreamBuilder<List<Moneda>>(
+          stream: _streamControllerMoneda.stream,
+          builder: (context, snapshot) {
+            if(snapshot.data == null)
+              return SizedBox.shrink();
+
+            return InkWell(
+              onTap: _showMonedas,
+              child: Row(children: [
+                Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
+                Icon(Icons.arrow_drop_down, color: Colors.black)
+              ],),
+            );
+          }
+        ),
+      ),
+    );
+  }
+
+  Widget _bancaScreen(bool isSmallOrMedium){
+    if(!isSmallOrMedium)
+      return Visibility(
+        visible: _selectedTipo == "Por banca",
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: MyDropdown(
+            xlarge: 1.35,
+            medium: 1,
+            small: 1,
+            isSideTitle: true,
+            onlyBorder: true,
+            textColor: Colors.black,
+            title: "Bancas del bloqueo *",
+            helperText: "Seran las bancas afectadas por el bloqueo deseado",
+            hint: "${_bancas.length > 0 ? _bancas.map((e) => e.descripcion).toList().join(", ") : 'Seleccionar las bancas...'}",
+            onTap: _bancasChanged,
+          ),
+        ),
+      );
+
+    return Visibility(
+      visible: _selectedTipo == "Por banca",
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: GestureDetector(
+          onTap: _bancasChanged,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: MyResizedContainer(
+                small: 1,
+                medium: 1,
+                child: Center(child: Text("${_bancas.length > 0 ? _bancas.length != listaBanca.length ? _bancas.length == 1 ? 'Banca: ' + _bancas[0].descripcion : 'Bancas: [' + _bancas.length.toString() + ']' : 'Banca: Todas' : 'Seleccionar bancas...'}", style: TextStyle(fontSize: 16))),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _fechaScreen(bool isSmallOrMedium){
+    if(!isSmallOrMedium)
+      return MyDropdown(
+        xlarge: 1.35,
+        medium: 1,
+        small: 1,
+        isSideTitle: true,
+        title: "Fecha del bloqueo", 
+        helperText: "Hasta cuando será valido el bloqueo",
+        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+        onTap: (){
+          showMyOverlayEntry(
+            right: 10,
+              context: context,
+              builder: (context, overlay){
+                _cancel(){
+                  overlay.remove();
+                }
+                return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
+                  _dateChanged(date); 
+                  overlay.remove();
+                },);
+              }
+            );
+        },
+      );
+
+    
+    return MyDropdown(
+      title: null, 
+      hint: "${MyDate.dateRangeToNameOrString(_date)}",
+      onTap: (){
+        showMyOverlayEntry(
+          right: 10,
+            context: context,
+            builder: (context, overlay){
+              _cancel(){
+                overlay.remove();
+              }
+              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
+                _dateChanged(date); 
+                overlay.remove();
+              },);
+            }
+          );
+      },
+    );
+  }
+
+  Widget _ignorarDemasBloqueosScreen(bool isSmallOrMedium){
+    return Visibility(
+      visible: _selectedTipo == "General",
+      child: 
+      !isSmallOrMedium
+      ?
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: MyCheckBox(
+          xlarge: 1.33,
+          medium: 1,
+          small: 1,
+          isSideTitle: true,
+          title: "Ignorar todos",
+          titleSideCheckBox: "Ignorar bloqueos",
+          helperText: "Se ignorarán todos los bloqueos si existen y estos se van a establecer por encima de ellos.",
+          value: _ignorarDemasBloqueos,
+          onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
+        ),
+      )
+      :
+      CheckboxListTile(
+        controlAffinity: ListTileControlAffinity.leading,
+        title: Text("Ignorar demas bloqueos", style: TextStyle(fontSize: 12)),
+        value: _ignorarDemasBloqueos,
+        onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
+      )
+    );
+  }
+
+  Widget _descontarBloqueoGeneralScreen(bool isSmallOrMedium){
+    return Visibility(
+      visible: _selectedTipo == "Por banca",
+      child: 
+      !isSmallOrMedium
+      ?
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: MyCheckBox(
+          xlarge: 1.33,
+          medium: 1,
+          small: 1,
+          isSideTitle: true,
+          title: "Descontar del bloqueo general",
+          titleSideCheckBox: "Descontar",
+          helperText: "Se descontará del bloqueo general, de lo contrario las bancas estan tendrán su propio limite y estaran fuera del bloqueo general",
+          value: _descontarDelBloqueoGeneral,
+          onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value),
+        ),
+      )
+      :
+      CheckboxListTile(
+        controlAffinity: ListTileControlAffinity.leading,
+        title: Text("Descontar del bloqueo general", style: TextStyle(fontSize: 12)),
+        value: _descontarDelBloqueoGeneral,
+        onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value),
+      )
+    );
+  }
+
+  Widget _loteriaScreen(bool isSmallOrMedium){
+    if(!isSmallOrMedium)
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: MyDropdown(
+          xlarge: 1.35,
+          medium: 1,
+          small: 1,
+          isSideTitle: true,
+          onlyBorder: true,
+          textColor: Colors.black,
+          title: "Loterias del bloqueo *",
+          helperText: "Seran las loterias afectadas por el bloqueo deseado",
+          hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
+          onTap: _loteriasChanged,
+        ),
+      );
+
+    return GestureDetector(
+      onTap: _loteriasChanged,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10)
+          ),
+          child: MyResizedContainer(
+            small: 1,
+            medium: 1,
+            child: Center(child: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: 16))),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _cambiarFocusJugadaMonto(bool isSmallOrMedium){
+    if(!isSmallOrMedium){
+      _jugadaOmonto = !_jugadaFocusNode.hasFocus;
+      if(_jugadaOmonto)
+        _jugadaFocusNode.requestFocus();
+      else
+        _montoFocusNode.requestFocus();
+
+        return;
+      }
+
+
+    setState((){
+      _jugadaOmonto = !_jugadaOmonto;
+      print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
+    });
+  }
+
+  Widget _jugadaTextField(bool isSmallOrMedium){
+    return RawKeyboardListener(
+      focusNode: FocusNode(),
+      onKey: (RawKeyEvent event) { 
+        print("Event runtimeType is ${event.runtimeType}");
+        if(event.runtimeType.toString() != 'RawKeyUpEvent')
+          return;
+        print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
+        if(event.logicalKey == LogicalKeyboardKey.backspace)
+          return;
+
+        if(event.data.keyLabel.isEmpty)
+          return;
+
+        
+        // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
+        if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
+          _escribir(event.data.keyLabel);
+        // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
+        
+      },
+      child: TextField(
+        controller: _txtJugada,
+        focusNode: _jugadaFocusNode,
+        autofocus: !isSmallOrMedium,
+        enabled: !isSmallOrMedium,
+        style: TextStyle(fontSize: 20),
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.all(0),
+          isDense: !isSmallOrMedium ? false : true,
+          // alignLabelWithHint: true,
+          border: !isSmallOrMedium ? null : InputBorder.none,
+          hintText: !isSmallOrMedium ? null : 'Jugada',
+          labelText: !isSmallOrMedium ? 'Jugada' : null,
+          fillColor: Colors.transparent,
+          // filled: true,
+          hintStyle: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
+        inputFormatters: !!isSmallOrMedium ? [] : [
+          LengthLimitingTextInputFormatter(6),
+
+          // WhitelistingTextInputFormatter.digitsOnly,
+          // FilteringTextInputFormatter.digitsOnly
+          FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+        ],
+        onSubmitted: (data){
+          _cambiarFocusJugadaMonto(isSmallOrMedium);
+        }
+        // onChanged: (String data){
+        //   print("PrincipalView _jugadaTextField onChanged: $data");
+        //   // _escribir(data);
+        // },
+        // expands: false,
+      ),
+    );
+  }
+
+  TextField _montoTextField(bool isSmallOrMedium){
+    return TextField(
+      controller: _txtMonto,
+      focusNode: _montoFocusNode,
+      enabled: !isSmallOrMedium,
+      style: TextStyle(fontSize: 20),
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.all(0),
+        isDense: !isSmallOrMedium ? false : true,
+        border: !isSmallOrMedium ? null : InputBorder.none,
+        hintText: !isSmallOrMedium ? null : 'Monto',
+        labelText: !isSmallOrMedium ? 'Monto' : null,
+        fillColor: Colors.transparent,
+        // filled: true,
+        hintStyle: TextStyle(fontWeight: FontWeight.bold)
+      ),
+      textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
+      onSubmitted: (data) async {
+        _escribir("ENTER");
+        // await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+      },
+    );
+  }
+ 
+  _title(bool isSmallOrMedium){
+    return
+    !isSmallOrMedium
+    ?
+    "Limite por jugadas"
+    :
+    _tipoReglaScreen(isSmallOrMedium);
+  }
+
   _subtitle(bool isSmallOrMedium){
     return !isSmallOrMedium
     ?
-    SizedBox.shrink()
+    "Aqui puede limitar jugadas especificas de manera general, por bancas y loterias."
     :
     MyCollapseChanged(
       actionWhenCollapse: MyCollapseAction.hide,
@@ -529,28 +1002,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                 }
               ),
             ), 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Container(
-                width: 62,
-                // color: Colors.grey[200],
-                child: StreamBuilder<List<Moneda>>(
-                  stream: _streamControllerMoneda.stream,
-                  builder: (context, snapshot) {
-                    if(snapshot.data == null)
-                      return SizedBox.shrink();
-    
-                    return InkWell(
-                      onTap: _showMonedas,
-                      child: Row(children: [
-                        Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : ''}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black),),
-                        Icon(Icons.arrow_drop_down, color: Colors.black)
-                      ],),
-                    );
-                  }
-                ),
-              ),
-            ),
+          // _monedaScreen(isSmallOrMedium)
     
           ],
         ),
@@ -559,7 +1011,11 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                             
   }
 
-  _buildRichOrTextAndConvertJugadaToLegible(String jugada){
+  _tipoReglaWidget(bool isSmallOrMedium){
+
+  }
+
+  _buildRichOrTextAndConvertJugadaToLegible(String jugada, {bool isSmallOrMedium = true}){
    if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
      return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4), style: TextStyle(fontSize: 16));
    }
@@ -608,7 +1064,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       );
    }
   else if(jugada.length == 6){
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 16));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 11.5 : 16));
   }
 
    return Text(jugada, style: TextStyle(fontSize: 16));
@@ -712,6 +1168,138 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
  }
 
 
+ _iconButtonDeletePlay(Jugada jugada, {double size: 18}){
+    return InkWell(
+      child: Icon(Icons.delete, size: size), 
+      onTap: (){
+      _jugadas.remove(jugada);
+      _streamControllerJugada.add(_jugadas);
+    },);
+  }
+
+  _pick34Screen(double width){
+    print("BloqueosPorJugadas _pick34Screen: isXlarge: ${ScreenSize.isXLarge(width)} width: $width large: ${ScreenSize.lg} xlarge: ${ScreenSize.xlg}");
+    if(ScreenSize.isXLarge(width))
+      return Wrap(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 4.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                xlarge: 4.19,
+                large: 4.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+
+
+    
+    return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 7,
+              child: MyResizedContainer(
+                large: 3.2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 270,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("Pick 3 y 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                            rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            delete: (){}
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+  }
+
+
   
 
   @override
@@ -735,17 +1323,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       isSliverAppBar: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
-          title: Row(
-            children: [
-              InkWell(
-                onTap: _showTipos,
-                child: Row(children: [
-                  Text("${_selectedTipo != null ? _selectedTipo : ''}", style: TextStyle(color: Colors.black),),
-                  Icon(Icons.arrow_drop_down, color: Colors.black)
-                ],),
-              )
-            ],
-          ),
+          title: _title(isSmallOrMedium),
           expandedHeight: isSmallOrMedium ? 95 : 85,
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
@@ -863,6 +1441,162 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               child: Center(child: CircularProgressIndicator()),
             );
 
+            if(!isSmallOrMedium){
+              return SliverList(delegate: SliverChildListDelegate([
+                _tipoReglaScreen(isSmallOrMedium),
+                _monedaScreen(isSmallOrMedium),
+                _bancaScreen(isSmallOrMedium),
+                _fechaScreen(isSmallOrMedium),
+                _ignorarDemasBloqueosScreen(isSmallOrMedium),
+                _descontarBloqueoGeneralScreen(isSmallOrMedium),
+                _loteriaScreen(isSmallOrMedium),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
+                      child: MyResizedContainer(
+                        xlarge: 5, 
+                        child: _jugadaTextField(isSmallOrMedium)
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
+                      child: MyResizedContainer(
+                        xlarge: 5, 
+                        child: _montoTextField(isSmallOrMedium)
+                      ),
+                    ),
+                  ],
+                ),
+                StreamBuilder<List<Jugada>>(
+                  stream: _streamControllerJugada.stream,
+                  builder: (context, snapshot) {
+                    return MyResizedContainer(
+                      xlarge: 1,
+                      large: 1,
+                      medium: 1,
+                      small: 1,
+                      builder: (context, width) {
+                        return Wrap(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                elevation: 7,
+                                child: MyResizedContainer(
+                                  xlarge: 4.19,
+                                  large: 3.2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                    child: Container(
+                                      height: 270,
+                                      child: Column(
+                                        children: [
+                                          Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(bottom: 8.0),
+                                              child: Text("Directo", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600])),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: MyTable(
+                                              type: MyTableType.custom,
+                                              columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                                              rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                                              delete: (){}
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                elevation: 7,
+                                child: MyResizedContainer(
+                                  xlarge: 4.19,
+                                  large: 3.2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                    child: Container(
+                                      height: 270,
+                                      child: Column(
+                                        children: [
+                                          Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(bottom: 8.0),
+                                              child: Text("Pale y Tripleta", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: MyTable(
+                                              type: MyTableType.custom,
+                                              columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
+                                              rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                                              delete: (){}
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            _pick34Screen(width)
+                            // MyResizedContainer(
+                            //   xlarge: 4.19,
+                            //   large: 4.3,
+                            //   builder: (context, width){
+                            //   },
+                              // child: Padding(
+                              //   padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              //   child: Container(
+                              //     height: 270,
+                              //     child: Column(
+                              //       children: [
+                              //         Center(
+                              //           child: Padding(
+                              //             padding: const EdgeInsets.only(bottom: 8.0),
+                              //             child: Text("Pick 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey[600]))
+                              //           ),
+                              //         ),
+                              //         Expanded(
+                              //           child: MyTable(
+                              //             type: MyTableType.custom,
+                              //             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
+                              //             rows: _jugadas!= null ?  _jugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                              //             delete: (){}
+                              //           ),
+                              //         )
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
+                            // ),
+                            
+                          ],
+                        );
+                      }
+                    );
+                  }
+                ),
+
+                
+              ]));
+            }
+
             return SliverFillRemaining(
               child: Column(
                 // mainAxisAlignment: ,
@@ -878,66 +1612,16 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                           children: [
                             Column(
                               children: [
-                                Visibility(
-                                  visible: _selectedTipo == "Por banca",
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 8.0),
-                                    child: GestureDetector(
-                                      onTap: _bancasChanged,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(vertical: 10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[200],
-                                            borderRadius: BorderRadius.circular(10)
-                                          ),
-                                          child: MyResizedContainer(
-                                            small: 1,
-                                            medium: 1,
-                                            child: Center(child: Text("${_bancas.length > 0 ? _bancas.length != listaBanca.length ? _bancas.length == 1 ? 'Banca: ' + _bancas[0].descripcion : 'Bancas: [' + _bancas.length.toString() + ']' : 'Banca: Todas' : 'Seleccionar bancas...'}", style: TextStyle(fontSize: 16))),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: _loteriasChanged,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      child: MyResizedContainer(
-                                        small: 1,
-                                        medium: 1,
-                                        child: Center(child: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: 16))),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                _bancaScreen(isSmallOrMedium),
+                                _loteriaScreen(isSmallOrMedium),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Flexible(
-                                      child: CheckboxListTile(
-                                        controlAffinity: ListTileControlAffinity.leading,
-                                        title: Text("Descontar del bloqueo general", style: TextStyle(fontSize: 12)),
-                                        value: _descontarDelBloqueoGeneral,
-                                        onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value),
-                                      ),
+                                      child: _descontarBloqueoGeneralScreen(isSmallOrMedium),
                                     ),
                                     Flexible(
-                                      child: CheckboxListTile(
-                                        controlAffinity: ListTileControlAffinity.leading,
-                                        title: Text("Ignorar demas bloqueos", style: TextStyle(fontSize: 12)),
-                                        value: _ignorarDemasBloqueos,
-                                        onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
-                                      ),
+                                      child: _ignorarDemasBloqueosScreen(isSmallOrMedium),
                                     ),
                                   ],
                                 )

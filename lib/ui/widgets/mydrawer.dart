@@ -223,99 +223,116 @@ _streamControllerListTile = BehaviorSubject();
                             // width: widget.isExpanded == false && value == false ? 65 : 260,
                             width: width,
                             height: MediaQuery.of(context).size.height,
-                            child: Scrollbar(
-                              isAlwaysShown: _showOnHoverNotify.value,
-                              child: SingleChildScrollView(
-                                child: Column(children: [
-                                  SizedBox(height: 5,),
-                                  Visibility(
-                                    visible: ModalRoute.of(context)?.canPop == true,
-                                    child: 
-                                    widget.isExpanded == false
-                                    ?
-                                    GestureDetector(child: Icon(Icons.arrow_back), onTap: (){Navigator.pop(context);},)
-                                    :
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: InkWell(
-                                        onTap: (){
-                                          Navigator.pop(context);
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey.shade300, width: 1),
-                                            borderRadius: BorderRadius.circular(8),
+                            child: ValueListenableBuilder(
+                              valueListenable: _showOnHoverNotify,
+                              builder: (context, value, __) {
+                                return Scrollbar(
+                                  isAlwaysShown: value,
+                                  child: SingleChildScrollView(
+                                    child: Column(children: [
+                                      SizedBox(height: 5,),
+                                      Visibility(
+                                        visible: ModalRoute.of(context)?.canPop == true,
+                                        child: 
+                                        AnimatedBuilder(
+                                          animation: _controller,
+                                          builder: (context, child) {
+                                            return FractionalTranslation(
+                                              
+                                              translation: Offset(0.0, 0.0),
+                                              child: 
+                                              
+                                              _controller.value <= 0.3 || _controller.value == null
+                                              ? 
+                                              GestureDetector(child: Icon(Icons.arrow_back), onTap: (){Navigator.pop(context);},)
+                                              : 
+                                              Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: InkWell(
+                                            onTap: (){
+                                              Navigator.pop(context);
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(color: Colors.grey.shade300, width: 1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(children: [
+                                                Icon(Icons.arrow_back, size: 18,),
+                                                Padding(
+                                                  padding: const EdgeInsets.only(left: 10.0),
+                                                  child: Text("Atras", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade800),),
+                                                )
+                                              ],),
+                                            ),
                                           ),
-                                          child: Row(children: [
-                                            Icon(Icons.arrow_back, size: 18,),
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 10.0),
-                                              child: Text("Atras", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade800),),
-                                            )
-                                          ],),
                                         ),
+                                            );
+                                          },
+                                      )
+                                        
                                       ),
-                                    ),
+                                      _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, onTap: (){_gotTo("/dashboard");}, ),
+                                      _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, onTap: (){_gotTo("/");}, ),
+                                      _myListTile(title: "Transacciones", icon: Icons.transfer_within_a_station, selected: widget.transacciones, onTap: (){_gotTo("/transacciones");},),
+                                      _myListTile(title: "Monitoreo", icon: Icons.donut_large, selected: widget.monitoreo, onTap: (){_gotTo("/monitoreo");},),
+                                      _myListTile(title: "Registrar premios", icon: Icons.format_list_numbered, selected: widget.registrarPremios, onTap: (){_gotTo("/registrarPremios");},),
+                                       _myExpansionTile(
+                                        title: "Reportes", 
+                                        selected: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
+                                        icon: Icons.analytics, 
+                                        initialExpanded: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
+                                        listaMylisttile: [
+                                          _myListTile(title: "Reporte jugadas", icon: null, onTap: (){_gotTo("/reporteJugadas");}, selected: widget.reporteJugadas,), 
+                                          _myListTile(title: "Historico ventas", icon: null, onTap: (){_gotTo("/historicoVentas");}, selected: widget.historicoVentas,), 
+                                          _myListTile(title: "Ventas por fecha", icon: null, onTap: (){_gotTo("/ventasPorFecha");}, selected: widget.ventasPorFecha,), 
+                                          _myListTile(title: "Ventas", icon: null, onTap: (){_gotTo("/ventas");}, selected: widget.ventas,), 
+                                        ]
+                                      ),
+                                       
+                                      _myListTile(title: "Pendientes pago", icon: Icons.attach_money, selected: widget.pendientesPago, onTap: (){_gotTo("/pendientesPago");},),
+                                      _myExpansionTile(
+                                        title: "Bloqueos", 
+                                        selected: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
+                                        icon: Icons.block, 
+                                        initialExpanded: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
+                                        listaMylisttile: [
+                                          _myListTile(title: "Bloqueo loterias", icon: null, onTap: (){_gotTo("/bloqueosporloteria");}, selected: widget.bloqueosPorLoteria,), 
+                                          _myListTile(title: "Bloqueo jugadas", icon: null, onTap: (){_gotTo("/bloqueosporjugadas");}, selected: widget.bloqueosPorJugadas,), 
+                                        ]
+                                      ),
+                                       _myExpansionTile(
+                                        title: "Usuarios", 
+                                        selected: widget.usuarios || widget.sesiones,
+                                        icon: Icons.person_outline, 
+                                        initialExpanded: widget.usuarios || widget.sesiones,
+                                        listaMylisttile: [
+                                          _myListTile(title: "Usuarios", icon: null, onTap: (){_gotTo("/usuarios");}, selected: widget.usuarios,), 
+                                          _myListTile(title: "Sesiones", icon: null, onTap: (){_gotTo("/sesiones");}, selected: widget.sesiones,), 
+                                        ]
+                                      ),
+                                       _myExpansionTile(
+                                        title: "Balances", 
+                                        selected: widget.balancebancos || widget.balanceBancas,
+                                        icon: Icons.six_ft_apart, 
+                                        initialExpanded: widget.balancebancos || widget.balanceBancas,
+                                        listaMylisttile: [
+                                          _myListTile(title: "Balance bancos", icon: null, onTap: (){_gotTo("/balancebancos");}, selected: widget.balancebancos,), 
+                                          _myListTile(title: "Balance bancas", icon: null, onTap: (){_gotTo("/balanceBancas");}, selected: widget.balanceBancas,), 
+                                        ]
+                                      ),
+                                      _myListTile(title: "Horarios loterias", icon: Icons.timer, selected: widget.horariosloterias, onTap: (){_gotTo("/horariosloterias");},),
+                                      _myListTile(title: "Monedas", icon: Icons.attach_money_rounded, selected: widget.monedas, onTap: (){_gotTo("/monedas");},),
+                                      _myListTile(title: "Entidades", icon: Icons.apartment_outlined, selected: widget.entidades, onTap: (){_gotTo("/entidades");},),
+                                      _myListTile(title: "Bancas", icon: Icons.account_balance, selected: widget.bancas, onTap: (){_gotTo("/bancas");},),
+                                      _myListTile(title: "Loterias", icon: Icons.group_work_outlined, selected: widget.loterias, onTap: (){_gotTo("/loterias");},),
+                                      _myListTile(title: "Grupos", icon: Icons.group_work, selected: widget.grupos, onTap: (){_gotTo("/grupos");},),
+                                      _myListTile(title: "Ajustes", icon: Icons.settings, selected: widget.ajustes, onTap: (){_gotTo("/ajustes");},),
+                                    ],),
                                   ),
-                                  _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, onTap: (){_gotTo("/dashboard");}, ),
-                                  _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, onTap: (){_gotTo("/");}, ),
-                                  _myListTile(title: "Transacciones", icon: Icons.transfer_within_a_station, selected: widget.transacciones, onTap: (){_gotTo("/transacciones");},),
-                                  _myListTile(title: "Monitoreo", icon: Icons.donut_large, selected: widget.monitoreo, onTap: (){_gotTo("/monitoreo");},),
-                                  _myListTile(title: "Registrar premios", icon: Icons.format_list_numbered, selected: widget.registrarPremios, onTap: (){_gotTo("/registrarPremios");},),
-                                   _myExpansionTile(
-                                    title: "Reportes", 
-                                    selected: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
-                                    icon: Icons.analytics, 
-                                    initialExpanded: widget.reporteJugadas || widget.historicoVentas,
-                                    listaMylisttile: [
-                                      _myListTile(title: "Reporte jugadas", icon: null, onTap: (){_gotTo("/reporteJugadas");}, selected: widget.reporteJugadas,), 
-                                      _myListTile(title: "Historico ventas", icon: null, onTap: (){_gotTo("/historicoVentas");}, selected: widget.historicoVentas,), 
-                                      _myListTile(title: "Ventas por fecha", icon: null, onTap: (){_gotTo("/ventasPorFecha");}, selected: widget.ventasPorFecha,), 
-                                      _myListTile(title: "Ventas", icon: null, onTap: (){_gotTo("/ventas");}, selected: widget.ventas,), 
-                                    ]
-                                  ),
-                                   
-                                  _myListTile(title: "Pendientes pago", icon: Icons.attach_money, selected: widget.pendientesPago, onTap: (){_gotTo("/pendientesPago");},),
-                                  _myExpansionTile(
-                                    title: "Bloqueos", 
-                                    selected: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
-                                    icon: Icons.block, 
-                                    initialExpanded: widget.reporteJugadas || widget.historicoVentas,
-                                    listaMylisttile: [
-                                      _myListTile(title: "Bloqueo loterias", icon: null, onTap: (){_gotTo("/bloqueosporloteria");}, selected: widget.bloqueosPorLoteria,), 
-                                      _myListTile(title: "Bloqueo jugadas", icon: null, onTap: (){_gotTo("/bloqueosporjugadas");}, selected: widget.bloqueosPorJugadas,), 
-                                    ]
-                                  ),
-                                   _myExpansionTile(
-                                    title: "Usuarios", 
-                                    selected: widget.reporteJugadas || widget.historicoVentas,
-                                    icon: Icons.person_outline, 
-                                    initialExpanded: widget.reporteJugadas || widget.historicoVentas,
-                                    listaMylisttile: [
-                                      _myListTile(title: "Usuarios", icon: null, onTap: (){_gotTo("/usuarios");}, selected: widget.usuarios,), 
-                                      _myListTile(title: "Sesiones", icon: null, onTap: (){_gotTo("/sesiones");}, selected: widget.sesiones,), 
-                                    ]
-                                  ),
-                                   _myExpansionTile(
-                                    title: "Balances", 
-                                    selected: widget.balancebancos || widget.balanceBancas,
-                                    icon: Icons.six_ft_apart, 
-                                    initialExpanded: widget.balancebancos || widget.balanceBancas,
-                                    listaMylisttile: [
-                                      _myListTile(title: "Balance bancos", icon: null, onTap: (){_gotTo("/balancebancos");}, selected: widget.balancebancos,), 
-                                      _myListTile(title: "Balance bancas", icon: null, onTap: (){_gotTo("/balanceBancas");}, selected: widget.balanceBancas,), 
-                                    ]
-                                  ),
-                                  _myListTile(title: "Horarios loterias", icon: Icons.timer, selected: widget.horariosloterias, onTap: (){_gotTo("/horariosloterias");},),
-                                  _myListTile(title: "Monedas", icon: Icons.attach_money_rounded, selected: widget.monedas, onTap: (){_gotTo("/monedas");},),
-                                  _myListTile(title: "Entidades", icon: Icons.apartment_outlined, selected: widget.entidades, onTap: (){_gotTo("/entidades");},),
-                                  _myListTile(title: "Bancas", icon: Icons.account_balance, selected: widget.bancas, onTap: (){_gotTo("/bancas");},),
-                                  _myListTile(title: "Loterias", icon: Icons.group_work_outlined, selected: widget.loterias, onTap: (){_gotTo("/loterias");},),
-                                  _myListTile(title: "Grupos", icon: Icons.group_work, selected: widget.grupos, onTap: (){_gotTo("/grupos");},),
-                                  _myListTile(title: "Ajustes", icon: Icons.settings, selected: widget.ajustes, onTap: (){_gotTo("/ajustes");},),
-                                ],),
-                              ),
+                                );
+                              }
                             ),
                           ),
     );

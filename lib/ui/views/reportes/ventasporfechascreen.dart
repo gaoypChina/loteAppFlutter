@@ -421,6 +421,7 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
       cargando: false, 
       cargandoNotify: null,
       isSliverAppBar: true,
+      ventasPorFecha: true,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Ventas por fecha",
@@ -853,13 +854,14 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
           }
 
           if(snapshot.data != null){
-            if(snapshot.data.length > 1)
+            if(snapshot.data.length > 0)
               widgets.add(Padding(
                 padding: const EdgeInsets.only(top: 18.0),
                 child: Container(
                 height: 700,
                 child: MyTable(
                   // isScrolled: false,
+                  type: MyTableType.custom,
                   showColorWhenImpar: true,
                   columns: ["Fecha", "Ventas", "Premios", "Comisiones", "Descuentos", "Neto"], 
                   bottom: [
@@ -886,6 +888,13 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
             else
               widgets.add(Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.do_disturb_alt_sharp,)));
           }
+
+          return SliverList(delegate: SliverChildBuilderDelegate(
+            (context, index){
+              return widgets[index];
+            },
+            childCount: widgets.length
+          ));
 
           return SliverList(delegate: SliverChildListDelegate(widgets));
 

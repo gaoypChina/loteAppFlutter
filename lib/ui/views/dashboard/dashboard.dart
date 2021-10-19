@@ -29,6 +29,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  ValueNotifier _valueNotifyDrawer;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List<Moneda>> _streamControllerMonedas;
   StreamController<List<GraficaVentas>> _streamControllerGrafica;

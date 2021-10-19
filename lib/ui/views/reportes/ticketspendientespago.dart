@@ -8,6 +8,8 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TicketsPendientesPagoScreen extends StatefulWidget {
@@ -250,6 +252,18 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
 
   @override
   Widget build(BuildContext context) {
+    // return myScaffold(
+    //   context: context, 
+    //   cargando: false, 
+    //   cargandoNotify: null,
+    //   isSliverAppBar: true,
+    //   sliverBody: MySliver(
+    //     sliverAppBar: MySliverAppBar(
+    //       title: "Pendientes de pago",
+    //       subtitle: ,
+    //     ),
+    //   )
+    // );
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
