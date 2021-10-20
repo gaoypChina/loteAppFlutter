@@ -327,7 +327,15 @@ Future<bool> _requestPermisionChannel() async {
       }
 
       setState(() => _cargando = true);
-      var listaDatos = await Realtime.guardarVenta(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+
+      var listaDatos = await Realtime.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+      var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
+      print("PrincipalView _guardarLocal: $parsed");
+      listaDatos[0].idTicket = BigInt.from(parsed["idTicket"]);
+      listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
+      listaDatos[0].ticket.codigoBarra = listaDatos[3];
+      listaDatos[0].ticket.idBanca = listaDatos[0].idBanca;
+
       setState(() => _cargando = false);
      _seleccionarPrimeraLoteria();
       listaJugadas = [];
@@ -1760,8 +1768,10 @@ _showIntentNotificationIfExists() async {
   }
 
 _bluetoothScreen([bool isSmallOrMedium = true]){
-  if(isSmallOrMedium)
+  if(isSmallOrMedium){
     Navigator.of(context).pushNamed('/bluetooth');
+    return;
+  }
 
   var _formPrinterKey = GlobalKey<FormState>();
 
@@ -2038,6 +2048,8 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                     true,
                                                     ScanMode.QR
                                                     );
+
+                print("_appBar codigoQr duplicar: $codigoQr");
 
                 setState(() => _cargando = true);
                 var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);

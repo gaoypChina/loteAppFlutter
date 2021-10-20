@@ -616,6 +616,222 @@ class Realtime{
     return [sale, listSalesdetails];
   }
   
+  static guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad}) async {
+    // print("Realtime guardarventa before: ${Db.database.transaction}");
+    Sale sale;
+    List<Salesdetails> listSalesdetails = [];
+    Usuario usuario;
+    String codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
+    List<int> listaIdLoteria = [];
+    List<int> listaIdLoteriaSuperPale = [];
+    print("Realtime guardarVenta before date");
+    // DateTime date = await NTP.now(timeout: Duration(seconds: 2));
+    DateTime date = DateTime.now();
+    await Db.database.transaction((tx) async {
+    // Batch batch = tx.batch();
+    usuario = Usuario.fromMap(await Db.getUsuario(tx));
+    // var ticketMap = await Db.getNextTicket(banca.id, await Db.servidor(tx), tx);
+    Ticket ticket = Ticket();
+    double total = 0;
+    print("Realtime guardarVenta after ticket");
+
+      
+    print("Realtime guardarVenta banca.status = ${banca.status}");
+    print("Realtime guardarVenta usuario = ${usuario}");
+    if(!socket.connected)
+      throw Exception("No esta conectado a internet.");
+    print("Realtime guardarVenta after sockets");
+    
+    if(banca.status != 1)
+      throw Exception("Esta banca esta desactivada");
+
+    if(usuario.status != 1)
+      throw Exception("Este usuario esta desactivado: ${usuario.status}");
+
+    print("Realtime guardarVenta before permisos");
+
+    if(await Db.existePermisos(["Vender tickets", "Acceso al sistema"], tx) == false)
+      throw Exception("No tiene permiso para realizar esta accion vender y acceso");
+    print("Realtime guardarVenta after permisos");
+
+    if(await Db.idBanca(tx) != banca.id){
+        if(await Db.existePermiso("Jugar como cualquier banca", tx) == false)
+          throw Exception("No tiene permiso para realizar para jugar como cualquier banca");
+    }
+
+    print("Realtime guardarVenta after bancas");
+
+
+    // VALIDACION HORAR APERTURA Y CIERRE DE LA BANCA
+    // DateTime hoyHoraAperturaBanca = banca.dias.firstWhere((element) => element.id == Utils.getIdDiaActual()).horaApertura;
+    // DateTime hoyHoraCierreBanca = banca.dias.firstWhere((element) => element.id == Utils.getIdDiaActual()).horaCierre;
+    // if(date.isBefore(hoyHoraAperturaBanca))
+    //     throw Exception("La banca no ha abierto");
+    // if(date.isAfter(hoyHoraCierreBanca))
+    //     throw Exception("La banca ha cerrado: ${hoyHoraCierreBanca.toString()} | ${date.toString()}");
+
+    total = jugadas.map((e) => e.monto).toList().reduce((value, element) => value + element);
+    // VALIDACION LIMITE VENTA BANCA
+    if((banca.ventasDelDia + total) > banca.limiteVenta)
+        throw Exception("A excedido el limite de ventas de la banca: ${banca.limiteVenta}");
+
+    // CREACION CODIGO BARRA
+    codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
+
+    List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(jugadas)).cast<Jugada>().toList();
+    List<Jugada> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Jugada>().toList();
+    listaLoteriasJugadas.forEach((element) {print("Realtime guardar venta loteria: ${element.idLoteria}");});
+    listaLoteriasSuperPaleJugadas.forEach((element) {print("Realtime guardar venta loteriaSuper: ${element.idLoteriaSuperpale}");});
+
+    // VALIDACION LOTERIA PERTENECE A BANCA
+    for (var jugada in listaLoteriasJugadas) {
+      if(banca.loterias.indexWhere((element) => element.id == jugada.idLoteria) == -1)
+        throw Exception("La loteria ${jugada.loteria.descripcion} no pertenece a esta banca");
+
+      listaIdLoteria.add(jugada.idLoteria);
+
+      // Loteria loteria = listaLoteria.firstWhere((element) => element.id == jugada.loteria.id, orElse: () => null);
+      // if(loteria == null)
+      //   throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado");
+
+      // print("Realtime guardarVenta apertura: ${loteria.horaApertura} horaCierre: ${loteria.horaCierre}");
+      // if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteria.horaApertura, date)))
+      //   throw Exception("La loteria ${loteria.descripcion} no ha abierto");
+      // if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(loteria.horaCierre, date))){
+      //   if(!tienePermisoJugarFueraDeHorario){
+      //     if(tienePermisoJugarMinutosExtras){
+      //       var datePlusExtraMinutes = date.add(Duration(minutes: loteria.minutosExtras));
+      //       if(date.isAfter(datePlusExtraMinutes))
+      //         throw Exception("La loteria ${loteria.descripcion} ha cerrado");
+      //     }
+      //     else
+      //       throw Exception("La loteria ${loteria.descripcion} ha cerrado");
+      //   }
+      // }
+    }
+    
+
+    // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
+    for (var jugada in listaLoteriasSuperPaleJugadas) {
+      print("Realtime guardarVenta validacion superpale: ${jugada.idLoteriaSuperpale} null: ${jugada.loteriaSuperPale == null}");
+      if(banca.loterias.indexWhere((element) => element.id == jugada.idLoteriaSuperpale) == -1)
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} no pertenece a esta banca");
+
+      listaIdLoteriaSuperPale.add(jugada.idLoteriaSuperpale);
+      
+      // Loteria loteriaSuperPale = listaLoteria.firstWhere((element) => element.id == jugada.loteriaSuperPale.id, orElse: () => null);
+      // if(loteriaSuperPale == null)
+      //   throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado");
+
+      // if(date.isBefore(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaApertura, date)))
+      //   throw Exception("La loteria ${loteriaSuperPale.descripcion} aun no ha abierto");
+      // if(date.isAfter(Utils.horaLoteriaToCurrentTimeZone(loteriaSuperPale.horaCierre, date))){
+      //   if(!tienePermisoJugarFueraDeHorario){
+      //     if(tienePermisoJugarMinutosExtras){
+      //       var datePlusExtraMinutes = date.add(Duration(minutes: loteriaSuperPale.minutosExtras));
+      //       if(date.isAfter(datePlusExtraMinutes))
+      //         throw Exception("La loteria ${loteriaSuperPale.descripcion} ha cerrado");
+      //     }
+      //     else
+      //       throw Exception("La loteria ${loteriaSuperPale.descripcion} ha cerrado");
+      //   }
+      // }
+      
+      
+    }
+
+    /**************** AHORA DEBO INVESTIGAR COMO OBTENER EL NUMERO DE TICKET, ESTOY INVESTIGANDO LARAVEL CACHE A VER COMO SE COMUNICA CON REDIS */
+
+
+    // print("Realtime guardarVenta before insert sales idTicket: ${ticket.id.toInt()}");
+    // await Db.insert('Sales', Sale(compartido: compartido ? 1 : 0, servidor: await Db.servidor(tx), idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: date).toJson(), tx);
+    // var saleMap = await Db.queryBy("Sales", "idTicket", ticket.id.toInt(), tx);
+    // print("Realtime guardarVenta after insert sales saleMap: ${saleMap}");
+    sale = Sale(compartido: compartido ? 1 : 0, servidor: await Db.servidor(tx), idUsuario: usuario.id, idBanca: banca.id, total: total, subTotal: 0, descuentoMonto: descuentoMonto, hayDescuento: descuentoMonto > 0 ? 1 : 0, idTicket: ticket.id, created_at: date);
+    if(sale == null)
+      throw Exception("Hubo un error al realizar la venta, la venta es nula");
+
+    sale.ticket = ticket;
+    sale.banca = banca;
+    sale.usuario = usuario;
+
+    for (Jugada jugada in jugadas) {      
+      // await Future(() async {
+        // int id = int.parse(oi.findElements("ID").first.text);
+        // String name = oi.findElements("NAME").first.text;
+
+        //  DatabaseHelper.insertElement(
+        //   tx,
+        //   id: id,
+        //   name: name,
+        //  );
+        String id = "";
+        
+        Loteria loteria = listaLoteria.firstWhere((element) => element.id == jugada.loteria.id, orElse: () => null);
+        Loteria loteriaSuperPale;
+        if(loteria.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+          throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteria.descripcion}");
+        if(jugada.idSorteo == 4){
+          loteriaSuperPale = listaLoteria.firstWhere((element) => element.id == jugada.loteriaSuperPale.id, orElse: () => null);
+          if(loteriaSuperPale.sorteos.indexWhere((element) => element.id == jugada.idSorteo) == -1)
+            throw Exception("El sorteo ${jugada.sorteo} no pertenece a la loteria ${jugada.loteriaSuperPale.descripcion}");
+        }
+
+        if(jugada.stockEliminado){
+          print("Realtime guardarVenta validarMonto con getMontoDisponible");
+          if(jugada.monto > await Utils.getMontoDisponible(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale, tx)){
+            throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
+          }
+        }else{
+          print("Realtime guardarVenta validarMonto normal");
+          if(jugada.monto > jugada.stock.monto){
+            throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
+          }
+        }
+        
+        var salesdetails = Salesdetails(idVenta: sale.id, idTicket: sale.ticket.id, idLoteria: loteria.id, idSorteo: jugada.idSorteo, sorteoDescripcion: jugada.sorteo, jugada: jugada.jugada, monto: jugada.monto, premio: jugada.premio, comision: 0, idStock: 0, idLoteriaSuperpale: loteriaSuperPale != null ? loteriaSuperPale.id : null, created_at: date, updated_at: date, status: 0, loteria: loteria, loteriaSuperPale: loteriaSuperPale, sorteo: Draws(jugada.idSorteo, jugada.sorteo, null, null, null, null));
+        // await Db.insert('Salesdetails', salesdetails.toJson(), tx);
+        listSalesdetails.add(salesdetails);
+        print("Realtime guardarVenta for jugadas: ${listSalesdetails.length}");
+      // });
+    }
+
+    // VALIDAR SI LA LOTERIA EXISTE EN LA LISTA LOTERIA, SI NO EXISTE, ESO QUIERE DECIR O QUE HA CERRADO O QUE SE HAN REGISTRADO PREMIOS
+    for (var jugada in listaLoteriasJugadas) {
+      if(listaLoteria.indexWhere((element) => element.id == jugada.loteria.id) == -1)
+        throw Exception("La loteria ${jugada.loteria.descripcion} ha cerrado o se han registrado premios");
+    }
+
+    // VALIDACION LOTERIA SUPERPALE PERTENECE A BANCA
+    for (var jugada in listaLoteriasSuperPaleJugadas) {
+      if(listaLoteria.indexWhere((element) => element.id == jugada.loteriaSuperPale.id) == -1)
+        throw Exception("La loteria ${jugada.loteriaSuperPale.descripcion} ha cerrado o se han registrado premios");
+    }
+
+    // ticket.usado = 1;
+    // await Db.update("Tickets", ticket.toJson(), ticket.id.toInt(), tx);
+    // var ticketParaVerificarCampoUsado = await Db.queryBy("Tickets", "id", ticket.id.toInt(), tx);
+    // print("Realtime guardarVenta ticket: ${ticket.toJson()}");
+    // print("Realtime guardarVenta ticketMap: ${ticketParaVerificarCampoUsado}");
+
+    if(!socket.connected)
+      throw Exception("No esta conectado a internet.");
+
+    // socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(tx), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(tx), "usuario" : usuario.toJson(), "sale" : sale.toJson(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+
+    // batch.commit(noResult: false, continueOnError: false);
+    // tx.commit();
+  });
+    print("Realtime guardarventa after transaction: ${sale.banca != null ? sale.banca.toJson() : null}");
+    // socket.emit("ticket", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : banca.id, "uuid" : await CrossDeviceInfo.getUIID(), "createNew" : true}));
+    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+    // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
+    return [sale, listSalesdetails, usuario, codigoBarra, listaIdLoteria, listaIdLoteriaSuperPale];
+  }
+  
+
+
   static usuario({BuildContext context, Map<String, dynamic> usuario}) async {
     print("Realtime usuario() usuario: ${usuario["status"]}");
     int idUsuario = await Db.idUsuario();

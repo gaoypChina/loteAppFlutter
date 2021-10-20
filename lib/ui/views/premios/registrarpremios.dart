@@ -799,7 +799,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Registrar premios",
-          subtitle: "Filtre por fecha y administre los numeros ganadores de cada loteria.",
+          subtitle: isSmallOrMedium ? "" : "Filtre por fecha y administre los numeros ganadores de cada loteria.",
           actions: [
             MySliverButton(
               // showOnlyOnLarge: true,
