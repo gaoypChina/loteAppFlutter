@@ -245,31 +245,35 @@ class  Utils {
   }
 
   static String agregarSignoYletrasParaImprimir(String jugada, String sorteo, [bool quitarGuionPaleTripleta = false]){
+    String jugadaTmp = jugada.replaceFirst("-", "");
+    jugadaTmp = jugadaTmp.replaceFirst("+", "");
+    jugadaTmp = jugadaTmp.toUpperCase().replaceFirst("s", "");
+
     switch(sorteo){
       case "Pale":
       if(quitarGuionPaleTripleta)
-          return jugada;
-        return jugada.substring(0, 2) + '-' + jugada.substring(2, 4);
+          return jugadaTmp;
+        return jugadaTmp.substring(0, 2) + '-' + jugadaTmp.substring(2, 4);
         break;
       case "Pick 3 Box":
-        return jugada + "B";
+        return jugadaTmp + "B";
         break;
       case "Pick 4 Box":
-        return jugada + "B";
+        return jugadaTmp + "B";
         break;
       case "Pick 3 Straight":
-        return jugada + "S";
+        return jugadaTmp + "S";
         break;
       case "Pick 4 Straight":
-        return jugada + "S";
+        return jugadaTmp + "S";
         break;
       case "Tripleta":
         if(quitarGuionPaleTripleta)
-          return jugada;
-        return jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6);
+          return jugadaTmp;
+        return jugadaTmp.substring(0, 2) + '-' + jugadaTmp.substring(2, 4) + '-' + jugadaTmp.substring(4, 6);
         break;
       default:
-        return jugada;
+        return jugadaTmp;
         break;
     }
   }

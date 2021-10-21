@@ -63,18 +63,18 @@ class Salesdetails {
 
   toJson() {
     return {
-      "id": id != null ? id.toInt() : null,
-      "idVenta": idVenta != null ? idVenta.toInt() : null,
-      "idTicket": idTicket != null ? idTicket.toInt() : null,
+      // "id": id != null ? id.toInt() : null,
+      // "idVenta": idVenta != null ? idVenta.toInt() : null,
+      // "idTicket": idTicket != null ? idTicket.toInt() : null,
       "idLoteria": idLoteria,
       "idSorteo": idSorteo,
       "jugada": jugada,
       "monto": monto,
       "premio": premio != null ? premio : 0,
-      "comision": comision,
-      "idStock": idStock,
-      "created_at": created_at != null ? created_at.toString() : null,
-      "updated_at": updated_at != null ? updated_at.toString() : null,
+      // "comision": comision,
+      // "idStock": idStock,
+      // "created_at": created_at != null ? created_at.toString() : null,
+      // "updated_at": updated_at != null ? updated_at.toString() : null,
       "idLoteriaSuperpale": idLoteriaSuperpale != null ? idLoteriaSuperpale : 0,
       "sorteoDescripcion": sorteoDescripcion,
     };

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/myfilemanager.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -539,6 +540,8 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     print("TicketService guardarV2: ${map["idLoterias"]}");
     print("TicketService guardarV2 idLoteriasSuperpale: ${map["idLoteriasSuperpale"]}");
+
+    await MyFileManager().writeCounter(map);
 
     // mapDatos["datos"] = jwt;
     mapDatos = {
