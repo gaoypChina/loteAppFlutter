@@ -19,7 +19,7 @@ class MyFileManager{
     final file = await _localFile;
 
     // Write the file
-    return file.writeAsString('${_compress(json.encode(map))}');
+    return file.writeAsString('${compress(json.encode(map))}');
   }
 
   Future<int> readCounter() async {
@@ -50,7 +50,7 @@ class MyFileManager{
     }
   }
 
-  String _compress(String json) {
+  static String compress(String json) {
     final enCodedJson = utf8.encode(json);
     final gZipJson = gzip.encode(enCodedJson);
     final base64Json = base64.encode(gZipJson);
