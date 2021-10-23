@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/usuario.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'myalertdialog.dart';
@@ -19,8 +21,9 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
   var _txtSearch = TextEditingController();
   var _overlayEntry;
   var _cargandoNotify = ValueNotifier<bool>(false);
-  _salir(){
-
+  _salir({OverlayEntry overlay}){
+    Principal.cerrarSesion(context);
+    overlay.remove();
   }
 
   _showDialogCambiarContrasena(Usuario usuario){
@@ -351,7 +354,88 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
     RenderBox renderBox = context.findRenderObject();
     var size = renderBox.size;
     var offset = renderBox.localToGlobal(Offset.zero);
+    showMyOverlayEntry(
+      context: context,
+      right: 0,
+      builder: (context, OverlayEntry overlay){
+        return Container(
+          width:370,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            // borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            // border: Border.all(color: Colors.grey, width: 1, style: BorderStyle.solid),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey,
+                // spreadRadius: 2,
+                blurRadius: 2,
+                offset: Offset(0, 1.0), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.grey[300],
+                  child: Icon(Icons.person, color: Colors.grey,)
+                ),
+                trailing:  ValueListenableBuilder(
+                  valueListenable: _cargandoNotify, 
+                  builder: (context, value, _){
+                    return SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: Visibility(
+                        visible: value,
+                        child: new CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                ),
+                // title: FutureBuilder<Map<String, dynamic>>(
+                //   future: db.getUsuario(),
+                //   builder: (context, snapshot) {
+                //     if(snapshot.connectionState != ConnectionState.done)
+                //       return SizedBox();
 
+                //     var u = Usuario.fromMap(snapshot.data);
+                //     return Text("${u.nombres} ${u.apellidos}");
+                //   }
+                // ),
+                onTap: () async {
+                  // _cargandoNotify.value = true;
+                  // var parsed = await UserService.get(context: context, usuario: Usuario.fromMap(await db.getUsuario()));
+                  // // print("MyAPpBar parsed: $parsed");
+                  // _cargandoNotify.value = false;
+                  // _removeOverlay();
+                  // _showDialogGuardar(usuario: Usuario.fromMap(parsed["data"]));
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.help),
+                title: Text("Ayuda"),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+                    child: TextButton(onPressed: (){_salir(overlay: overlay);}, child: Text("Salir")),
+                  )
+              ],)
+            ],
+          
+          ),
+        );
+            
+      }
+    );
+
+
+    return null;
     return OverlayEntry(
       builder: (context) => Stack(
         children: [
@@ -445,6 +529,7 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
                 
                 ),
               ),
+            
             )
             //  Material(
             //   elevation: 4.0,
@@ -471,8 +556,9 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
   
 
   _showOptions(context){
-    _overlayEntry = _createOverlayEntry(context);
-    Overlay.of(context).insert(_overlayEntry);
+    // _overlayEntry = _createOverlayEntry(context);
+    // Overlay.of(context).insert(_overlayEntry);
+    _createOverlayEntry(context);
   }
 
   

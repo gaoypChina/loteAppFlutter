@@ -1008,6 +1008,7 @@ _avatarScreen(Usuario data){
       context: context,
       cargando: false,
       isSliverAppBar: true,
+      usuarios: true,
       floatingActionButton: isSmallOrMedium ? FloatingActionButton(child: Icon(Icons.add), onPressed: _showDialogGuardar) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(

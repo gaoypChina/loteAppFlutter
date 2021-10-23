@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/screensize.dart';
+import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/ui/widgets/myexpansiontile.dart';
 import 'package:loterias/ui/widgets/mylisttile.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
@@ -80,6 +82,32 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   AnimationController _controllerTile;
   Animation<double> _animationTile;
 
+  var _dashboardNotifier = ValueNotifier<bool>(false);
+  var _transaccionesNotifier = ValueNotifier<bool>(false);
+  var _monitoreoNotifier = ValueNotifier<bool>(false);
+  var _registrarNotifier = ValueNotifier<bool>(false);
+  var _reportesNotifier = ValueNotifier<bool>(false);
+  var _reporteJugadasNotifier = ValueNotifier<bool>(false);
+  var _reporteHistoricoNotifier = ValueNotifier<bool>(false);
+  var _reporteVentasPorFechaNotifier = ValueNotifier<bool>(false);
+  var _reporteVentasNotifier = ValueNotifier<bool>(false);
+  var _pendientesPagoNotifier = ValueNotifier<bool>(false);
+  var _manejarReglasNotifier = ValueNotifier<bool>(false);
+  var _usuariosNotifier = ValueNotifier<bool>(false);
+  var _manejarUsuariosNotifier = ValueNotifier<bool>(false);
+  var _sesionesNotifier = ValueNotifier<bool>(false);
+  var _balancesNotifier = ValueNotifier<bool>(false);
+  var _balanceBancosNotifier = ValueNotifier<bool>(false);
+  var _balanceBancasNotifier = ValueNotifier<bool>(false);
+  var _horariosNotifier = ValueNotifier<bool>(false);
+  var _monedasNotifier = ValueNotifier<bool>(false);
+  var _entidadesNotifier = ValueNotifier<bool>(false);
+  var _bancasNotifier = ValueNotifier<bool>(false);
+  var _loteriasNotifier = ValueNotifier<bool>(false);
+  var _gruposNotifier = ValueNotifier<bool>(false);
+  var _ajustesNotifier = ValueNotifier<bool>(false);
+
+
   _gotTo(String route){
     Navigator.pushNamed(context, route);
   }
@@ -112,6 +140,50 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   //   super.didChangeDependencies();
   // }
 
+  _getPermision() async {
+    _dashboardNotifier.value = await Db.existePermiso("Ver Dashboard");
+    _transaccionesNotifier.value = await Db.existePermiso("Manejar transacciones");
+    _monitoreoNotifier.value = await Db.existePermiso("Monitorear ticket");
+    _registrarNotifier.value = await Db.existePermiso("Manejar resultados");
+
+    _reporteJugadasNotifier .value = await Db.existePermiso("Ver reporte jugadas");
+    _reporteHistoricoNotifier.value = await Db.existePermiso("Ver historico ventas");
+    _reporteVentasPorFechaNotifier.value = await Db.existePermiso("Ver ventas por fecha");
+    _reporteVentasNotifier.value = await Db.existePermiso("Ver ventas");
+    _reportesNotifier.value = _reporteJugadasNotifier.value || _reporteHistoricoNotifier.value || _reporteVentasPorFechaNotifier.value || _reporteVentasNotifier.value;
+    bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
+    bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+
+    if(permisoProgramador != null && permisoAdministrador != null)
+      _pendientesPagoNotifier.value = permisoAdministrador || permisoProgramador;
+
+    _manejarReglasNotifier.value = await Db.existePermiso("Manejar reglas");
+    _manejarUsuariosNotifier.value = await Db.existePermiso("Manejar usuarios");
+    _sesionesNotifier.value = await Db.existePermiso("Ver inicios de sesion");
+    _usuariosNotifier.value = _manejarUsuariosNotifier.value || _sesionesNotifier.value;
+    _balanceBancasNotifier.value = await Db.existePermiso("Ver lista de balances de bancas");
+    _balanceBancosNotifier.value = await Db.existePermiso("Ver lista de balances de bancos");
+    _balancesNotifier.value = _balanceBancasNotifier.value || _balanceBancosNotifier.value;
+
+    _horariosNotifier.value = await Db.existePermiso("Manejar horarios de loterias");
+    _monedasNotifier.value = await Db.existePermiso("Manejar monedas");
+    _entidadesNotifier.value = await Db.existePermiso("Manejar entidades contables");
+    _bancasNotifier.value = await Db.existePermiso("Manejar bancas");
+    _loteriasNotifier.value = await Db.existePermiso("Manejar loterias");
+    _gruposNotifier.value = await Db.existePermiso("Manejar grupos");
+    _ajustesNotifier.value  = await Db.existePermiso("Ver ajustes");
+
+
+
+    // bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
+    // bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
+    // bool permisoAdministrador  = await (await DB.create()).getValue("administrador");
+    // bool permisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+    // bool tienePermisoVerBalanceBancas = await Db.existePermiso("Ver lista de balances de bancas");
+    // bool tienePermisoManejarManejarReglas = await Db.existePermiso("Manejar reglas");
+    // bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -140,6 +212,8 @@ _streamControllerListTile = BehaviorSubject();
       parent: _controller,
       curve: Curves.fastOutSlowIn,
     ));
+
+    _getPermision();
 
     if(widget.isExpanded)
       _expandOrCloseDrawer(true);
@@ -178,7 +252,7 @@ _streamControllerListTile = BehaviorSubject();
     return visible;
   }
 
-  Widget _myListTile({String title, IconData icon, bool selected, Function onTap, bool visible = true}){
+  Widget _myListTile({String title, IconData icon, bool selected, Function onTap, bool visible = false}){
     return Visibility(
       visible: visible,
       child: MyListTile(
@@ -273,62 +347,186 @@ _streamControllerListTile = BehaviorSubject();
                                       )
                                         
                                       ),
-                                      _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, onTap: (){_gotTo("/dashboard");}, ),
-                                      _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, onTap: (){_gotTo("/");}, ),
-                                      _myListTile(title: "Transacciones", icon: Icons.transfer_within_a_station, selected: widget.transacciones, onTap: (){_gotTo("/transacciones");},),
-                                      _myListTile(title: "Monitoreo", icon: Icons.donut_large, selected: widget.monitoreo, onTap: (){_gotTo("/monitoreo");},),
-                                      _myListTile(title: "Registrar premios", icon: Icons.format_list_numbered, selected: widget.registrarPremios, onTap: (){_gotTo("/registrarPremios");},),
-                                       _myExpansionTile(
-                                        title: "Reportes", 
-                                        selected: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
-                                        icon: Icons.analytics, 
-                                        initialExpanded: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
-                                        listaMylisttile: [
-                                          _myListTile(title: "Reporte jugadas", icon: null, onTap: (){_gotTo("/reporteJugadas");}, selected: widget.reporteJugadas,), 
-                                          _myListTile(title: "Historico ventas", icon: null, onTap: (){_gotTo("/historicoVentas");}, selected: widget.historicoVentas,), 
-                                          _myListTile(title: "Ventas por fecha", icon: null, onTap: (){_gotTo("/ventasPorFecha");}, selected: widget.ventasPorFecha,), 
-                                          _myListTile(title: "Ventas", icon: null, onTap: (){_gotTo("/ventas");}, selected: widget.ventas,), 
-                                        ]
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _dashboardNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, visible: value, onTap: (){_gotTo("/dashboard");}, );
+                                        }
                                       ),
+                                      _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, visible: true, onTap: (){_gotTo("/");}, ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _transaccionesNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Transacciones", icon: Icons.transfer_within_a_station, selected: widget.transacciones, visible: value, onTap: (){_gotTo("/transacciones");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _monitoreoNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Monitoreo", icon: Icons.donut_large, selected: widget.monitoreo, visible: value, onTap: (){_gotTo("/monitoreo");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _registrarNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Registrar premios", icon: Icons.format_list_numbered, selected: widget.registrarPremios, visible: value, onTap: (){_gotTo("/registrarPremios");},);
+                                        }
+                                      ),
+                                       ValueListenableBuilder<bool>(
+                                        valueListenable: _reportesNotifier,
+                                        builder: (context, reportesValue, snapshot) {
+                                           return _myExpansionTile(
+                                             visible: reportesValue,
+                                            title: "Reportes", 
+                                            selected: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
+                                            icon: Icons.analytics, 
+                                            initialExpanded: widget.reporteJugadas || widget.historicoVentas || widget.ventasPorFecha || widget.ventas,
+                                            listaMylisttile: [
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _reporteJugadasNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Reporte jugadas", icon: null, visible: value, onTap: (){_gotTo("/reporteJugadas");}, selected: widget.reporteJugadas,);
+                                                }
+                                              ), 
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _reporteHistoricoNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Historico ventas", icon: null, visible: value, onTap: (){_gotTo("/historicoVentas");}, selected: widget.historicoVentas,);
+                                                }
+                                              ), 
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _reporteVentasPorFechaNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Ventas por fecha", icon: null, visible: value, onTap: (){_gotTo("/ventasPorFecha");}, selected: widget.ventasPorFecha,);
+                                                }
+                                              ), 
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _reporteVentasNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Ventas", icon: null, visible: value, onTap: (){_gotTo("/ventas");}, selected: widget.ventas,);
+                                                }
+                                              ), 
+                                            ]
+                                                                             );
+                                         }
+                                       ),
                                        
-                                      _myListTile(title: "Pendientes pago", icon: Icons.attach_money, selected: widget.pendientesPago, onTap: (){_gotTo("/pendientesPago");},),
-                                      _myExpansionTile(
-                                        title: "Bloqueos", 
-                                        selected: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
-                                        icon: Icons.block, 
-                                        initialExpanded: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
-                                        listaMylisttile: [
-                                          _myListTile(title: "Bloqueo loterias", icon: null, onTap: (){_gotTo("/bloqueosporloteria");}, selected: widget.bloqueosPorLoteria,), 
-                                          _myListTile(title: "Bloqueo jugadas", icon: null, onTap: (){_gotTo("/bloqueosporjugadas");}, selected: widget.bloqueosPorJugadas,), 
-                                        ]
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _pendientesPagoNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Pendientes pago", icon: Icons.attach_money, selected: widget.pendientesPago, visible: value, onTap: (){_gotTo("/pendientesPago");},);
+                                        }
                                       ),
-                                       _myExpansionTile(
-                                        title: "Usuarios", 
-                                        selected: widget.usuarios || widget.sesiones,
-                                        icon: Icons.person_outline, 
-                                        initialExpanded: widget.usuarios || widget.sesiones,
-                                        listaMylisttile: [
-                                          _myListTile(title: "Usuarios", icon: null, onTap: (){_gotTo("/usuarios");}, selected: widget.usuarios,), 
-                                          _myListTile(title: "Sesiones", icon: null, onTap: (){_gotTo("/sesiones");}, selected: widget.sesiones,), 
-                                        ]
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _manejarReglasNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myExpansionTile(
+                                            title: "Bloqueos", 
+                                            visible: value,
+                                            selected: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
+                                            icon: Icons.block, 
+                                            initialExpanded: widget.bloqueosPorLoteria || widget.bloqueosPorJugadas,
+                                            listaMylisttile: [
+                                              _myListTile(title: "Bloqueo loterias", icon: null, visible: true, onTap: (){_gotTo("/bloqueosporloteria");}, selected: widget.bloqueosPorLoteria,),
+                                              _myListTile(title: "Bloqueo jugadas", icon: null, visible: true, onTap: (){_gotTo("/bloqueosporjugadas");}, selected: widget.bloqueosPorJugadas,)
+                                            ]
+                                          );
+                                        }
                                       ),
-                                       _myExpansionTile(
-                                        title: "Balances", 
-                                        selected: widget.balancebancos || widget.balanceBancas,
-                                        icon: Icons.six_ft_apart, 
-                                        initialExpanded: widget.balancebancos || widget.balanceBancas,
-                                        listaMylisttile: [
-                                          _myListTile(title: "Balance bancos", icon: null, onTap: (){_gotTo("/balancebancos");}, selected: widget.balancebancos,), 
-                                          _myListTile(title: "Balance bancas", icon: null, onTap: (){_gotTo("/balanceBancas");}, selected: widget.balanceBancas,), 
-                                        ]
+                                       ValueListenableBuilder<bool>(
+                                        valueListenable: _usuariosNotifier,
+                                        builder: (context, usuarioValue, snapshot) {
+                                           return _myExpansionTile(
+                                            title: "Usuarios", 
+                                            visible: usuarioValue,
+                                            selected: widget.usuarios || widget.sesiones,
+                                            icon: Icons.person_outline, 
+                                            initialExpanded: widget.usuarios || widget.sesiones,
+                                            listaMylisttile: [
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _manejarUsuariosNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Usuarios", icon: null, visible: value, onTap: (){_gotTo("/usuarios");}, selected: widget.usuarios,);
+                                                }
+                                              ), 
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _sesionesNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Sesiones", icon: null, visible: value, onTap: (){_gotTo("/sesiones");}, selected: widget.sesiones,);
+                                                }
+                                              ), 
+                                            ]
+                                                                             );
+                                         }
+                                       ),
+                                       ValueListenableBuilder<bool>(
+                                        valueListenable: _balancesNotifier,
+                                        builder: (context, balanceValue, snapshot) {
+                                           return _myExpansionTile(
+                                            title: "Balances", 
+                                            visible: balanceValue,
+                                            selected: widget.balancebancos || widget.balanceBancas,
+                                            icon: Icons.six_ft_apart, 
+                                            initialExpanded: widget.balancebancos || widget.balanceBancas,
+                                            listaMylisttile: [
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _balanceBancosNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Balance bancos", icon: null, visible: value, onTap: (){_gotTo("/balancebancos");}, selected: widget.balancebancos,);
+                                                }
+                                              ), 
+                                              ValueListenableBuilder<bool>(
+                                                valueListenable: _balanceBancasNotifier,
+                                                builder: (context, value, snapshot) {
+                                                  return _myListTile(title: "Balance bancas", icon: null, visible: value, onTap: (){_gotTo("/balanceBancas");}, selected: widget.balanceBancas,);
+                                                }
+                                              ), 
+                                            ]
+                                                                             );
+                                         }
+                                       ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _horariosNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Horarios loterias", icon: Icons.timer, selected: widget.horariosloterias, visible: value, onTap: (){_gotTo("/horariosloterias");},);
+                                        }
                                       ),
-                                      _myListTile(title: "Horarios loterias", icon: Icons.timer, selected: widget.horariosloterias, onTap: (){_gotTo("/horariosloterias");},),
-                                      _myListTile(title: "Monedas", icon: Icons.attach_money_rounded, selected: widget.monedas, onTap: (){_gotTo("/monedas");},),
-                                      _myListTile(title: "Entidades", icon: Icons.apartment_outlined, selected: widget.entidades, onTap: (){_gotTo("/entidades");},),
-                                      _myListTile(title: "Bancas", icon: Icons.account_balance, selected: widget.bancas, onTap: (){_gotTo("/bancas");},),
-                                      _myListTile(title: "Loterias", icon: Icons.group_work_outlined, selected: widget.loterias, onTap: (){_gotTo("/loterias");},),
-                                      _myListTile(title: "Grupos", icon: Icons.group_work, selected: widget.grupos, onTap: (){_gotTo("/grupos");},),
-                                      _myListTile(title: "Ajustes", icon: Icons.settings, selected: widget.ajustes, onTap: (){_gotTo("/ajustes");},),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _monedasNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Monedas", icon: Icons.attach_money_rounded, selected: widget.monedas, visible: value, onTap: (){_gotTo("/monedas");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _entidadesNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Entidades", icon: Icons.apartment_outlined, selected: widget.entidades, visible: value, onTap: (){_gotTo("/entidades");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _bancasNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Bancas", icon: Icons.account_balance, selected: widget.bancas, visible: value, onTap: (){_gotTo("/bancas");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _loteriasNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Loterias", icon: Icons.group_work_outlined, selected: widget.loterias, visible: value, onTap: (){_gotTo("/loterias");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _gruposNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Grupos", icon: Icons.group_work, selected: widget.grupos, visible: value, onTap: (){_gotTo("/grupos");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _ajustesNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Ajustes", icon: Icons.settings, selected: widget.ajustes, visible: value, onTap: (){_gotTo("/ajustes");},);
+                                        }
+                                      ),
                                     ],),
                                   ),
                                 );
