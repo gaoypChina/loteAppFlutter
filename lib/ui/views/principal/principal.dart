@@ -1226,7 +1226,8 @@ Future<bool> _requestPermisionChannel() async {
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
       // var parsed = data.cast<String, dynamic>();
       var parsed = await compute(Utils.parseDatosDynamic, data);
-      await Realtime.usuario(context: _scaffoldKey.currentContext, usuario: parsed["user"]);
+      print("PrincipalView socket usuario: ${context == null}");
+      await Realtime.usuario(context:  _scaffoldKey.currentContext != null ? _scaffoldKey.currentContext : context, usuario: parsed["user"]);
       await _getPermisos();
     });
     socket.on("lotteries:App\\Events\\LotteriesEvent", (data) async {   //sample event

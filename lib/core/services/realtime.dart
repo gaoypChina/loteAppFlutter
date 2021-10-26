@@ -30,6 +30,8 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:ntp/ntp.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../main.dart';
+
 class Realtime{
 
    static Map<String, String> header = {
@@ -856,6 +858,8 @@ class Realtime{
         print("Permiso: ${p.toJson()}");
         await Db.insert('Permissions', p.toJson());
       }
+
+      PERMISSIONS_CHANGED = true;
 
       print("Realtime:Usuario existePermiso: ${await Db.existePermiso("Jugar como cualquier banca")}");
     }

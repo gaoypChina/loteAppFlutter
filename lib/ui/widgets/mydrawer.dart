@@ -12,6 +12,8 @@ import 'package:loterias/ui/widgets/mylisttile.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../../main.dart';
+
 class MyDrawerType {
   const MyDrawerType._(this.index);
 
@@ -73,6 +75,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   bool _cargandoAbrirCaja = false;
   bool _visibleByClick = true;
   bool _visibleOnHover = false;
+  Timer _timer;
   Stopwatch calculateMouseDuration;
   StreamController<MyListTileType> _streamControllerListTile;
 
@@ -173,7 +176,9 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     _gruposNotifier.value = await Db.existePermiso("Manejar grupos");
     _ajustesNotifier.value  = await Db.existePermiso("Ver ajustes");
 
-
+    if(PERMISSIONS_CHANGED){
+      PERMISSIONS_CHANGED = false;
+    }
 
     // bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
     // bool permisoAccesoAlSistema = await Db.existePermiso("Acceso al sistema");
@@ -182,6 +187,12 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     // bool tienePermisoVerBalanceBancas = await Db.existePermiso("Ver lista de balances de bancas");
     // bool tienePermisoManejarManejarReglas = await Db.existePermiso("Manejar reglas");
     // bool tienePermisoJugarSinDisponibilidad = await Db.existePermiso("Jugar sin disponibilidad");
+  }
+
+  _updatePermissions() async {
+    if(PERMISSIONS_CHANGED){
+      await _getPermision();
+    }
   }
 
   @override
@@ -199,6 +210,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   //   parent: _controller,
   //   curve: Curves.fastOutSlowIn,
   // );
+  _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _updatePermissions());
 _streamControllerListTile = BehaviorSubject();
 
   _controller = AnimationController(duration: const Duration(milliseconds: 350), vsync: this);
@@ -235,6 +247,7 @@ _streamControllerListTile = BehaviorSubject();
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+    _timer.cancel();
     _controller.dispose();
   }
 
