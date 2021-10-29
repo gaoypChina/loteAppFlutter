@@ -38,4 +38,38 @@ class ServidorService{
     return parsed;
   }
 
+  static Future<Map<String, dynamic>> index({BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    map["servidor"] = await Db.servidor();
+    map["idUsuario"] = await Db.idUsuario();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+    var response = await http.post(Uri.parse(Utils.URL + "/api/servidores"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("servidorservice index: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ServidorService index: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+      print("servidorservice index parsed: ${parsed}");
+
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error servidorservice index: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
 }

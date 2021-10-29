@@ -359,4 +359,16 @@ class MyDate {
     return datetime != null ? datetime : DateTime.now();
   }
 
+  static int daysDifference(DateTime from, [DateTime to]) {
+    if(from == null)
+      return null;
+
+    if(to == null)
+      to = DateTime.now();
+
+     from = DateTime(from.year, from.month, from.day);
+     to = DateTime(to.year, to.month, to.day);
+   return (to.difference(from).inHours / 24).round();
+  }
+
 }
