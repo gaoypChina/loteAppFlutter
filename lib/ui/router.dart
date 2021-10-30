@@ -25,6 +25,7 @@ import 'package:loterias/ui/views/monedas/monedasscreen.dart';
 import 'package:loterias/ui/views/monitoreo/monitoreo.dart';
 import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
+import 'package:loterias/ui/views/pagos/pagosscreen.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/principal/probarnullsafety.dart';
@@ -207,6 +208,10 @@ class MyRouter {
         case '/balancebancos' :
           return MaterialPageRoute(
             builder: (_)=> BalanceBancosScreen()
+          ) ;
+        case '/pagos' :
+          return MaterialPageRoute(
+            builder: (_)=> ServidoresScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

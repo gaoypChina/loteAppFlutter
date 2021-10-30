@@ -22,6 +22,14 @@ Servidor.fromMap(Map snapshot) :
       "id": id,
       "descripcion": descripcion,
       "pordefecto": pordefecto,
+    };
+  }
+
+  toJsonFull() {
+    return {
+      "id": id,
+      "descripcion": descripcion,
+      "pordefecto": pordefecto,
       "cliente": cliente,
       "fechaProximoPago": fechaProximoPago != null ? fechaProximoPago.toString() : null,
     };

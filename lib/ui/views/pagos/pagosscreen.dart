@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/services/servidorservice.dart';
 import 'package:loterias/ui/views/pagos/servidoressearch.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
@@ -15,7 +17,7 @@ class ServidoresScreen extends StatefulWidget {
 }
 
 class _ServidoresScreenState extends State<ServidoresScreen> {
-  Future _future;
+  Future<List<Servidor>> _future;
   TextEditingController _txtSearch = TextEditingController();
   List<Servidor> listData = [];
 
@@ -52,6 +54,73 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
     );
   }
 
+   _avatarScreen(Servidor data){
+
+     int daysDifference = MyDate.daysDifference(data.fechaProximoPago);
+     Color backgroundColor;
+     Color iconColor;
+     IconData iconData;
+
+     if(daysDifference == null || daysDifference > 0){
+       backgroundColor =  Colors.green;
+       iconColor = Colors.green[100];
+       iconData = Icons.done;
+     }
+     else if(daysDifference == 0){
+       backgroundColor =  Colors.orange;
+       iconColor = Colors.orange[100];
+       iconData = Icons.warning;
+     }
+     else if(daysDifference < 0){
+       backgroundColor =  Colors.pink;
+       iconColor = Colors.pink[100];
+       iconData = Icons.unpublished;
+     }
+
+    return CircleAvatar(
+      backgroundColor: backgroundColor,
+      child: Icon(iconData, color: iconColor,),
+    );
+  }
+
+  _listTile(List<Servidor> listData, int index){
+    return ListTile(
+      leading: _avatarScreen(listData[index]),
+      title: Text("${listData[index].cliente}"),
+      isThreeLine: true,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("${listData[index].descripcion}"),
+          // Text("${e.sorteos}"),
+        ],
+      ),
+      onTap: (){
+        // close(context, listData[index]);
+      },
+    );
+    // return ListView.builder(
+    //   itemCount: listData.length,
+    //   itemBuilder: (context, index){
+    //     return ListTile(
+    //         leading: _avatarScreen(listData[index]),
+    //         title: Text("${listData[index].cliente}"),
+    //         isThreeLine: true,
+    //         subtitle: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             Text("${listData[index].descripcion}"),
+    //             // Text("${e.sorteos}"),
+    //           ],
+    //         ),
+    //         onTap: (){
+    //           // close(context, listData[index]);
+    //         },
+    //       );
+    //   },
+    // );
+  }
+
   _subtitle(bool isSmallOrMedium){
          return isSmallOrMedium 
            ?
@@ -60,7 +129,7 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
              child: _mysearch(),
            )
            :
-           "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.";
+           "Administre y realize pagos para los servidores";
   }
 
   @override
@@ -76,22 +145,34 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
     return myScaffold(
       context: context,
       isSliverAppBar: true,
+      cargando: false,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
-          title: "Servidores"
+          title: "Servidores",
+          subtitle: _subtitle(isSmallOrMedium),
+          expandedHeight: isSmallOrMedium ? 105 : 0,
         ), 
-        sliver: FutureBuilder<Object>(
+        sliver: FutureBuilder<List<Servidor>>(
           future: _future,
           builder: (context, snapshot) {
             if(snapshot.connectionState != ConnectionState.done)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
 
-            return SliverList(delegate: SliverChildListDelegate([
-              Text("Hola")
-            ]));
+            if(snapshot.data.length == 0)
+              return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay servidores", titleButton: "No hay servidores registrados", icon: Icons.computer,)),);
+
+            
+
+            return SliverList(delegate: SliverChildBuilderDelegate(
+              (context, index){
+                return _listTile(snapshot.data, index);
+              },
+              childCount: snapshot.data.length
+            ));
           }
         )
       )
     );
   }
 }
+

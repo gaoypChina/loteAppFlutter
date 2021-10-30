@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
@@ -83,6 +85,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as webSocketstatus;
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../../../main.dart';
 
 
 class PrincipalApp extends StatefulWidget {
@@ -631,6 +635,53 @@ Future<bool> _requestPermisionChannel() async {
     focusNode = FocusNode();
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) { 
+      RemoteNotification notification = message.notification;
+      AndroidNotification android = message.notification?.android;
+
+      if(notification != null && android != null){
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode, 
+          notification.title, 
+          notification.body, 
+          NotificationDetails(
+            android:AndroidNotificationDetails(
+              channel.id, 
+              channel.name, 
+              channelDescription: channel.description, 
+              color: Colors.blue, 
+              playSound: true,
+              icon: "@mipmap/ic_launcher"
+            )
+          )
+        );
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) { 
+      RemoteNotification notification = message.notification;
+      AndroidNotification android = message.notification?.android;
+
+      if(notification != null && android != null){
+        showDialog(
+          context: context, 
+          builder: (context){
+            return AlertDialog(
+              title: Text(notification.title),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Text(notification.body),
+                    
+                  ],
+                ),
+              )
+            );
+          }
+        );
+      }
+    });
+  
     
     //_montoFuture = fetchMonto();
     
@@ -3891,7 +3942,15 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
 
                       },
                     ),
-                    
+                    ListTile(
+                      title: Text('Pagos servidores'),
+                      leading: Icon(Icons.payment),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/pagos");
+                        _scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
                     Visibility(
                       visible: _tienePermisoVerDashboard,
                       child: ListTile(

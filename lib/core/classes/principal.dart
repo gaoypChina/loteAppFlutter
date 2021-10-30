@@ -910,6 +910,7 @@ class Principal{
    var c = await DB.create();
    print("Principal.cerrarSesion");
    try {
+      await Utils.unSubscribeFromTopic();
       await Db.deleteDB();
    } catch (e) {
    }

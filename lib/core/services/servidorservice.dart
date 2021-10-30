@@ -44,8 +44,7 @@ class ServidorService{
     map["servidor"] = await Db.servidor();
     map["idUsuario"] = await Db.idUsuario();
     var jwt = await Utils.createJwt(map);
-    mapDatos["datos"] = jwt;
-    var response = await http.post(Uri.parse(Utils.URL + "/api/servidores"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.get(Uri.parse(Utils.URL + "/api/servidores?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
