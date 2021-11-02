@@ -236,7 +236,7 @@ _showSnackBar(String content){
                               if(_formKey.currentState.validate()){
                                 try{
                                   setState(() => _cargando = true);
-                                  var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), scaffoldkey: _scaffoldKey);
+                                  var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), context: context);
                                   var c = await DB.create();
                                   await c.add("recordarme", _recordarme);
                                   await c.add("apiKey", parsed["apiKey"]);

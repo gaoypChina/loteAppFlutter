@@ -63,11 +63,12 @@ class PremiosService{
 
     if(statusCode < 200 || statusCode > 400){
       print("premiosService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor premiosService guardar", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor premiosService guardar", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor premiosService guardar");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor premiosService guardar: ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
@@ -131,6 +132,7 @@ class PremiosService{
     listaLoteria.add(loteria);
 
     map["idLoteria"] = loteria.id;
+    map["descripcionLoteria"] = loteria.descripcion;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
     map["layout"] = "";
@@ -146,12 +148,12 @@ class PremiosService{
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
-      print("premiosService borrar: ${response.body}");
+     var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor premiosService borrar", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor premiosService borrar", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor premiosService borrar");
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor premiosService borrar: ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);

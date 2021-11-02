@@ -321,7 +321,7 @@ Future<bool> _requestPermisionChannel() async {
 
   _dateToDateTime(var parsed){
     try {
-      DateTime fecha = parsed["created_at"] is String ? DateTime.parse(parsed["created_at"]) : DateTime.parse(parsed["created_at"]["date"]);
+      DateTime fecha = DateTime.parse(parsed["created_at"]);
       return fecha;
     } on Exception catch (e) {
       // TODO
@@ -348,7 +348,7 @@ Future<bool> _requestPermisionChannel() async {
       listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.codigoBarra = listaDatos[3];
       listaDatos[0].ticket.idBanca = listaDatos[0].idBanca;
-      // listaDatos[0].created_at = parsed["created_at"] != null ? _dateToDateTime(parsed) : listaDatos[0].created_at;
+      listaDatos[0].created_at = parsed["created_at"] != null ? _dateToDateTime(parsed) : listaDatos[0].created_at;
 
       setState(() => _cargando = false);
      _seleccionarPrimeraLoteria();

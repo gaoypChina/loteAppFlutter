@@ -213,7 +213,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
 
               try{
                 setState(() => _cargando = true);
-                listaLoteria = await PremiosService.guardar(scaffoldKey: _scaffoldKey, loteria: loteria, date: _date.start, actualizarTransacciones: _actualizarTransacciones);
+                listaLoteria = await PremiosService.guardar(context: context, loteria: loteria, date: _date.start, actualizarTransacciones: _actualizarTransacciones);
                 setState(() => _cargando = false);
                 _streamControllerLoteria.add(listaLoteria);
                 Navigator.pop(context);

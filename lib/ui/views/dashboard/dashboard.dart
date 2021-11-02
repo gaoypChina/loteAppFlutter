@@ -53,6 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int bancasConVentas = 0;
   double promedioVentas = 0;
   double promedioPremios = 0;
+  Moneda _moneda;
 
   @override
   initState(){
@@ -68,9 +69,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try{
       // setState(() => _cargando = true);
       _streamControllerGrafica.add(null);
-      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start);
+      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start, idMoneda: _moneda != null ? _moneda.id : null);
       if(_onCreate){
         listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
+        if(listaMoneda != null){
+          if(listaMoneda.length > 0)
+            _moneda = listaMoneda[0];
+        }
         _streamControllerMonedas.add(listaMoneda);
         setState(() => _onCreate = false);
       }
@@ -101,11 +106,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try{
       setState(() => _cargando = true);
       var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _fecha, idMoneda: listaMoneda[_indexMoneda].id);
-      if(_onCreate){
-        listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
-        _streamControllerMonedas.add(listaMoneda);
-        setState(() => _onCreate = false);
-      }
+      // if(_onCreate){
+      //   listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
+      //   _streamControllerMonedas.add(listaMoneda);
+      //   setState(() => _onCreate = false);
+      // }
 
       listaVentasGrafica = datos["ventasGrafica"] != null ? datos["ventasGrafica"].map<GraficaVentas>((e) => GraficaVentas.fromMap(e)).toList() : [];
       listaLoteria = List.from(datos["loterias"]);
@@ -222,6 +227,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
           
 }
 
+
+
+_showBottomSheetMoneda() async {
+    var data = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape:  RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+      builder: (context){
+        _back({Moneda moneda}){
+              Navigator.pop(context, moneda);
+            }
+            monedaChanged(moneda){
+              _back(moneda: moneda);
+            }
+        return Container(
+              height: 150,
+              child: Column(
+                children: [
+                  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                        ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: listaMoneda.length,
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+
+                          value: _moneda == listaMoneda[index],
+                          // value: true,
+                          onChanged: (data){
+                            monedaChanged(listaMoneda[index]);
+                          },
+                          title: Text("${listaMoneda[index].descripcion}",),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+        
+      
+      }
+  );
+    if(data != null)
+      setState((){
+        _moneda = data;
+        _dashboard();
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
@@ -238,6 +301,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           showDivider: false,
           expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
+            MySliverButton(
+              padding: EdgeInsets.all(0),
+              title: StreamBuilder<List<Moneda>>(
+                stream: _streamControllerMonedas.stream,
+                builder: (context, snapshot) {
+                  return TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary)));
+                }
+              ),
+              // iconWhenSmallScreen: Icons.date_range,
+              showOnlyOnSmall: true,
+              onTap: _showBottomSheetMoneda,
+            ),
             MySliverButton(
               title: "", 
               iconWhenSmallScreen: Icons.date_range,
