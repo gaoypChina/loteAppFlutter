@@ -9,5 +9,11 @@ void main() {
       print("data: $data");
       expect(data == null, false);
     });
+
+    test("Testing lastMonth", () async {
+      var data = Utils.getLastMonth(DateTime.parse("2021-03-01"), dayOfTheMonth: 31);
+      print("data: $data");
+      expect(data == null, false);
+    });
   });
 }

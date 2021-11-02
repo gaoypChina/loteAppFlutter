@@ -5,6 +5,7 @@ class Servidor{
    String descripcion;
    String cliente;
    int pordefecto;
+   int diaPago;
    DateTime fechaProximoPago;
 
   Servidor({this.id, this.descripcion, this.pordefecto, this.cliente, this.fechaProximoPago});
@@ -14,7 +15,8 @@ Servidor.fromMap(Map snapshot) :
         descripcion = snapshot['descripcion'] ?? '',
         pordefecto = Utils.toInt(snapshot['pordefecto']) ?? 0,
         cliente = snapshot['cliente'] ?? '',
-        fechaProximoPago = snapshot['fechaProximoPago'] != null ? DateTime.parse(snapshot['fechaProximoPago']) : null
+        fechaProximoPago = snapshot['fechaProximoPago'] != null ? DateTime.parse(snapshot['fechaProximoPago']) : null,
+        diaPago = Utils.toInt(snapshot['id'], returnNullIfNotInt: true)
         ;
 
   toJson() {
@@ -32,6 +34,7 @@ Servidor.fromMap(Map snapshot) :
       "pordefecto": pordefecto,
       "cliente": cliente,
       "fechaProximoPago": fechaProximoPago != null ? fechaProximoPago.toString() : null,
+      "diaPago": diaPago,
     };
   }
 

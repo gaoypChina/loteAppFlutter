@@ -941,11 +941,61 @@ class  Utils {
       DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
       DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
       nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+      print("Utils getNextMonth: ${nextMonth.day}");
     }
     else
       nextMonth = new DateTime(date.year, date.month + monthsToAdd, date.day);
 
     return nextMonth;
+  }
+
+  static DateTime getNextMonthV2(DateTime date, {int dayOfTheMonth, int monthsToAdd = 1}){
+    DateTime nextMonth;
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (date.day > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${nextMonth.day}");
+    }
+    else
+      nextMonth = new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth == null ? date.day : dayOfTheMonth);
+
+    return nextMonth;
+  }
+
+  static DateTime getLastMonth(DateTime date, {int dayOfTheMonth, int monthsToSub = 1}){
+    DateTime lastMonth;
+    int subtractedMonth = date.month - monthsToSub;
+
+    if(subtractedMonth <= 0)
+      subtractedMonth = 12 - subtractedMonth.abs();
+
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (date.day > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (dayOfTheMonth > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${lastMonth.day}");
+    }
+    else if(dayOfTheMonth != null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (dayOfTheMonth > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${lastMonth.day}");
+    }
+    else
+      lastMonth = new DateTime(date.year, subtractedMonth, dayOfTheMonth == null ? date.day : dayOfTheMonth);
+
+    return lastMonth;
   }
 
   static int getIdDia(){

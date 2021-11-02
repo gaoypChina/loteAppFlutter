@@ -9,14 +9,16 @@ class Pagodetalle{
    Pago pago;
    int idTipo;
    Tipo tipo;
-   String cliente;
    int diasUsados;
    double precioPorDia;
+   double aPagar;
    DateTime fechaHasta;
    DateTime fechaPagado;
    String nota;
+   String codigoBanca;
+   String descripcionBanca;
 
-  Pagodetalle({this.id, this.idPago, this.pago, this.idTipo, this.tipo, this.precioPorDia, this.diasUsados, this.cliente, this.fechaHasta, this.fechaPagado, this.nota});
+  Pagodetalle({this.id, this.idPago, this.pago, this.idTipo, this.tipo, this.precioPorDia, this.aPagar, this.diasUsados, this.fechaHasta, this.fechaPagado, this.nota,this.codigoBanca, this.descripcionBanca});
 
 Pagodetalle.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
@@ -25,11 +27,13 @@ Pagodetalle.fromMap(Map snapshot) :
         idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
         tipo = snapshot['tipo'] != null ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipo'])) : null,
         diasUsados = Utils.toInt(snapshot['diasUsados']) ?? 0,
-        cliente = snapshot['cliente'] ?? '',
         fechaHasta = snapshot['fechaHasta'] != null ? DateTime.parse(snapshot['fechaHasta']) : null,
         fechaPagado = snapshot['fechaPagado'] != null ? DateTime.parse(snapshot['fechaPagado']) : null,
         precioPorDia = Utils.toDouble(snapshot['precioPorDia']) ?? 0,
-        nota = snapshot['nota'] ?? ''
+        aPagar = Utils.toDouble(snapshot['aPagar']) ?? 0,
+        nota = snapshot['nota'] ?? '',
+        codigoBanca = snapshot['codigoBanca'] ?? '',
+        descripcionBanca = snapshot['descripcionBanca'] ?? ''
         ;
 
   toJson() {
@@ -43,11 +47,12 @@ Pagodetalle.fromMap(Map snapshot) :
       "fechaPagado": fechaPagado != null ? fechaPagado.toString() : null,
       "precioPorDia": precioPorDia,
       "diasUsados": diasUsados,
+      "aPagar": aPagar,
       "nota": nota,
     };
   }
 
-  static List PagodetalleToJson(List<Pagodetalle> lista) {
+  static List pagodetalleToJson(List<Pagodetalle> lista) {
     List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widget Function(BuildContext context, OverlayEntry overlayEntry) builder, double right}) {
+OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widget Function(BuildContext context, OverlayEntry overlayEntry) builder, double right, double left = 0, double top = 0}) {
 
     RenderBox renderBox = context.findRenderObject();
     var size = renderBox.size;
@@ -28,9 +28,11 @@ OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widge
             // top: offset.dy + size.height,
             // left: offset.dx,
             // left: right == null ? offset.dx - (size.width + 140)  : null,
-            left: right == null ? offset.dx : null,
+            // left: right == null ? offset.dx : null,
+            left: right == null ? offset.dx + left : null,
             right: right,
-            top: offset.dy + size.height,
+            // top: offset.dy + size.height,
+            top: (offset.dy + size.height) + top,
             child:
             Material(
               elevation: 4,
