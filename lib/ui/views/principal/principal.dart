@@ -105,10 +105,11 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   bool _jugadaOmonto = true;
   // var listaBanca = List<String>.generate(10, (i) => "Banca $i");
   List<Banca> listaBanca = List<Banca>.generate(1, (i) => Banca(descripcion: 'No hay bancas', id: 0));
-  List<Loteria> listaLoteria = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay bancas', id: 0));
+  List<Loteria> listaLoteria = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay loterias', id: 0));
+  List<Loteria> listaLoteriaTmp = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay loterias', id: 0));
   List<Venta> listaVenta = List<Venta>.generate(1, (i) => Venta(idTicket: BigInt.from(0), id: BigInt.from(0)));
-  List<Jugada> listaJugadas = List<Jugada>();
-  List<EstadisticaJugada> listaEstadisticaJugada = List<EstadisticaJugada>();
+  List<Jugada> listaJugadas = [];
+  List<EstadisticaJugada> listaEstadisticaJugada = [];
 
 String currentTimeZone;
 Future<String> _montoFuture;
@@ -245,6 +246,7 @@ Future<bool> _requestPermisionChannel() async {
         _streamControllerBanca.add(true);
         _streamControllerVenta.add(true);
         listaLoteria = datos['loterias'];
+        listaLoteriaTmp = datos['loterias'];
         _streamControllerLoteria.add(datos['loterias']);
         _seleccionarPrimeraLoteria();
         (seleccionarBancaPertenecienteAUsuario) ? _seleccionarBancaPertenecienteAUsuario() : null;
@@ -790,28 +792,58 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _updateBranchesList(Map<String, dynamic> parsed) async {
-    print("Dentro principal view _updateBranchesList 1:");
-    if(parsed["branch"] == null)
-      return;
+    print("Dentro principal view _updateBranchesList 1: $parsed");
+    
     print("Dentro principal view _updateBranchesList paso parsed != null _administrador: $_tienePermisoJugarComoCualquierBanca");
     
     print("Dentro principal view _updateBranchesList 2");
+        
 
       try {
-        Banca banca = Banca.fromMap(parsed["branch"]);
+        // if(parsed["branch"] == null){
+        //   if(parsed['id'] == null)
+        //     return
+
+        //   banca = Banca.fromMap(parsed);
+        //   print("Dentro principal view _updateBranchesList 3 is null id-descripcion: ${parsed['id']}-${parsed['descripcion']} ${parsed['id'] == null}-${parsed['descripcion'] == null} banca:${banca == null}");
+        //   // return;
+        // }else{
+        //   banca = Banca.fromMap(parsed["branch"]);
+        // }
+
+        if(parsed["branch"] == null && parsed["id"] == null)
+          return;
+
+        Banca banca = parsed["branch"] == null ? Banca.fromMap(parsed) : Banca.fromMap(parsed["branch"]);
+
+        print("Dentro principal view _updateBranchesList 3 is null: ${banca == null}");
+
+        if(banca == null)
+          return;
+        
         if(_tienePermisoJugarComoCualquierBanca){
           int idx = listaBanca.indexWhere((element) => element.id == banca.id);
-          print("Dentro principal view _updateBranchesList 3: $idx");
-          print("Dentro principal view _updateBranchesList 4 la primera pertenece: ${banca.loterias.indexWhere((element) => element.descripcion == "La Primera") == -1}");
+          // print("Dentro principal view _updateBranchesList 3: $idx");
+          // print("Dentro principal view _updateBranchesList 4 la primera pertenece: ${banca.loterias.indexWhere((element) => element.descripcion == "La Primera") == -1}");
 
-          if(idx != -1 && idx == _indexBanca)
+          if(idx != -1 && idx == _indexBanca){
             listaBanca[idx] = banca;
+            quitarLoteriasProvenientesDelSocketQueEstenCerradas(null, loterias: listaLoteriaTmp);
+            print("Principal view _updateBranchesList admin quitarLoterias");
+          }
         }
         
 
         if(await Db.idBanca() == banca.id){
           await Db.delete("Branches");
           await Db.insert('Branches', banca.toJson());
+
+          int idx = listaBanca.indexWhere((element) => element.id == banca.id);
+          if(idx != -1 && idx == _indexBanca){
+            listaBanca[idx] = banca;
+            quitarLoteriasProvenientesDelSocketQueEstenCerradas(null, loterias: listaLoteriaTmp);
+            print("Principal view _updateBranchesList quitarLoterias");
+          }
         }
         
       } catch (e) {
@@ -1211,14 +1243,14 @@ Future<bool> _requestPermisionChannel() async {
         await _addVentaSubidaToListVenta(data);
         print("Socket recibirVenta from server after: $data");
       });
-      socket.on("obtenerVentasDelDia", (data){
+      socket.on("obtenerVentasDelDia", (data) async {
         print("Socket obtenerVentasDelDia 1: $data");
         if(data == null)
           return;
 
         var parsed = data.cast<String, dynamic>();
         print("Socket obtenerVentasDelDia 2: $data");
-        _updateBranchesList(parsed);
+        await _updateBranchesList(parsed);
         print("Socket obtenerVentasDelDia 3: $data");
       });
     }
@@ -6613,9 +6645,34 @@ Future quitarLoteriasCerradasViejo()
   
 }
 
-quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed) async {
-  List<Loteria> listaLoteriaEvent = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
-  List<int> listaIdloteriasAEliminar = List();
+Future<List<Loteria>> quitarLoterasNoPertenecenABanca(List<Loteria> loterias) async {
+  List<Loteria> loteriasPertenecientesABanca = [];
+  Banca banca = await getBanca();
+
+  if(banca == null)
+    return [];
+
+  if(banca.loterias == null)
+    return [];
+
+  for (var loteria in loterias) {
+    if(banca.loterias.indexWhere((element) => element.id == loteria.id) == -1)
+      continue;
+
+     loteriasPertenecientesABanca.add(loteria); 
+  }
+
+  return loteriasPertenecientesABanca;  
+}
+
+quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> loterias}) async {
+  // List<Loteria> listaLoteriaEvent = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+  List<Loteria> listaLoteriaEvent = await quitarLoterasNoPertenecenABanca(loterias != null ? loterias : parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList());
+  List<int> listaIdloteriasAEliminar = [];
+
+  if(parsed != null)
+    listaLoteriaTmp = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+
    listaLoteriaEvent.forEach((l) async {
     print("dentro foreach loterias: ${l.descripcion}");
 
