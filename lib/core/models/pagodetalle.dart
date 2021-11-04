@@ -24,7 +24,7 @@ Pagodetalle.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
         idPago = Utils.toInt(snapshot['idPago']) ?? 0,
         pago = snapshot['pago'] != null ? Pago.fromMap(Utils.parsedToJsonOrNot(snapshot['pago'])) : null,
-        idTipo = Utils.toInt(snapshot['idTipo']) ?? 0,
+        idTipo = Utils.toInt(snapshot['idTipo'], returnNullIfNotInt: true),
         tipo = snapshot['tipo'] != null ? Tipo.fromMap(Utils.parsedToJsonOrNot(snapshot['tipo'])) : null,
         diasUsados = Utils.toInt(snapshot['diasUsados']) ?? 0,
         fechaHasta = snapshot['fechaHasta'] != null ? DateTime.parse(snapshot['fechaHasta']) : null,
