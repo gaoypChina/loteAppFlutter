@@ -11,14 +11,15 @@ class Pagodetalle{
    Tipo tipo;
    int diasUsados;
    double precioPorDia;
-   double aPagar;
+   double total;
    DateTime fechaHasta;
    DateTime fechaPagado;
    String nota;
+   int idBanca;
    String codigoBanca;
    String descripcionBanca;
 
-  Pagodetalle({this.id, this.idPago, this.pago, this.idTipo, this.tipo, this.precioPorDia, this.aPagar, this.diasUsados, this.fechaHasta, this.fechaPagado, this.nota,this.codigoBanca, this.descripcionBanca});
+  Pagodetalle({this.id, this.idPago, this.pago, this.idTipo, this.tipo, this.precioPorDia, this.total, this.diasUsados, this.fechaHasta, this.fechaPagado, this.nota,this.codigoBanca, this.descripcionBanca});
 
 Pagodetalle.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
@@ -30,8 +31,9 @@ Pagodetalle.fromMap(Map snapshot) :
         fechaHasta = snapshot['fechaHasta'] != null ? DateTime.parse(snapshot['fechaHasta']) : null,
         fechaPagado = snapshot['fechaPagado'] != null ? DateTime.parse(snapshot['fechaPagado']) : null,
         precioPorDia = Utils.toDouble(snapshot['precioPorDia']) ?? 0,
-        aPagar = Utils.toDouble(snapshot['aPagar']) ?? 0,
+        total = Utils.toDouble(snapshot['total']) ?? 0,
         nota = snapshot['nota'] ?? '',
+        idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
         codigoBanca = snapshot['codigoBanca'] ?? '',
         descripcionBanca = snapshot['descripcionBanca'] ?? ''
         ;
@@ -47,8 +49,11 @@ Pagodetalle.fromMap(Map snapshot) :
       "fechaPagado": fechaPagado != null ? fechaPagado.toString() : null,
       "precioPorDia": precioPorDia,
       "diasUsados": diasUsados,
-      "aPagar": aPagar,
+      "total": total,
       "nota": nota,
+      "idBanca": idBanca,
+      "codigoBanca": codigoBanca,
+      "descripcionBanca": descripcionBanca,
     };
   }
 

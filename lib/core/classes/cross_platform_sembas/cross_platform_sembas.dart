@@ -4,6 +4,7 @@
 
 if (dart.library.io) 'mobile_sembas.dart'
     if (dart.library.js) 'web_sembas.dart';
+import 'package:loterias/core/models/pago.dart';
 
 abstract class CrossSembas {
   // QueryExecutor getMoorCrossConstructor();
@@ -30,6 +31,12 @@ abstract class CrossSembas {
   getIdBanca();
 
   getPrinter();
+
+  Future<void> addOrRemovePagoPendiente(Pago pago);
+
+  Future<Pago> getPagoPendiente();
+  Future<void> removePagoPendiente();
+
   factory CrossSembas() => getSembas();
   
 }

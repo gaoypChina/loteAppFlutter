@@ -27,6 +27,7 @@ import 'package:loterias/ui/views/notificacion/notificacion.dart';
 import 'package:loterias/ui/views/notificacion/ver.dart';
 import 'package:loterias/ui/views/pagos/pagosaddscreen.dart';
 import 'package:loterias/ui/views/pagos/pagosscreen.dart';
+import 'package:loterias/ui/views/pagos/pagosverscreen.dart';
 import 'package:loterias/ui/views/premios/registrarpremios.dart';
 import 'package:loterias/ui/views/principal/principal.dart';
 import 'package:loterias/ui/views/principal/probarnullsafety.dart';
@@ -210,13 +211,21 @@ class MyRouter {
           return MaterialPageRoute(
             builder: (_)=> BalanceBancosScreen()
           ) ;
-        case '/pagos' :
+        case '/pagos/servidores' :
           return MaterialPageRoute(
             builder: (_)=> ServidoresScreen()
+          ) ;
+        case '/pagos' :
+          return MaterialPageRoute(
+            builder: (_)=> PagosScreen(servidor: settings.arguments)
           ) ;
         case '/pagos/agregar' :
           return MaterialPageRoute(
             builder: (_)=> PagosAddScreen(servidor: (settings.arguments as List)[0], pago: (settings.arguments as List)[1])
+          ) ;
+        case '/pagos/ver' :
+          return MaterialPageRoute(
+            builder: (_)=> PagosVerScreen(id: settings.arguments)
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

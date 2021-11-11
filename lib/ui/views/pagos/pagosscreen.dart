@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/pago.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/services/pagosservice.dart';
 import 'package:loterias/core/services/servidorservice.dart';
 import 'package:loterias/ui/views/pagos/servidoressearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -14,6 +19,7 @@ import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ServidoresScreen extends StatefulWidget {
   const ServidoresScreen({ Key key }) : super(key: key);
@@ -108,7 +114,7 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
   _agregarFechaProximoPago(Servidor servidor) async {
     print("PagosScreen _agregarFechaProximoPago: ${servidor.diaPago}");
     DateTime _diaPago = servidor.diaPago != null ? MyDate.getDateFromDiaPago(servidor.diaPago) : null;
-    print("PagosScreen _agregarFechaProximoPago 2: ${_diaPago.day}");
+    // print("PagosScreen _agregarFechaProximoPago 2: ${_diaPago.day}");
     _txtDiaPago.text = servidor.diaPago != null ? "${servidor.diaPago}" : null;
     DateTimeRange _fechaProximoPago = _diaPago != null ? DateTimeRange(start: _diaPago, end: Utils.getNextMonth(_diaPago)) : null;
     bool _cargando = false;
@@ -218,7 +224,11 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
       ),
       onTap: (){
         // close(context, listData[index]);
-        Navigator.pushNamed(context, "/pagos/agregar", arguments: [listData[index], null]);
+        if(listData[index].fechaProximoPago == null){
+          Utils.showAlertDialog(context: context, title: "Error", content: "No tiene fecha del proximo pago, debe generarla");
+          return;
+        }
+        Navigator.pushNamed(context, "/pagos", arguments: listData[index]);
       },
     );
     // return ListView.builder(
@@ -298,3 +308,214 @@ class _ServidoresScreenState extends State<ServidoresScreen> {
   }
 }
 
+class PagosScreen extends StatefulWidget {
+  final Servidor servidor;
+  const PagosScreen({ Key key, @required this.servidor }) : super(key: key);
+
+  @override
+  _PagosScreenState createState() => _PagosScreenState();
+}
+
+class _PagosScreenState extends State<PagosScreen> {
+  StreamController<List<Pago>> _streamController;
+  List<Pago> listData = [];
+  bool _tienePermisoProgramador = false;
+  bool _tienePermisoAdministrador = false;
+  Future<bool> _futureEsProgramador;
+
+  _init() async {
+    List<Servidor> data = [];
+    var parsed = await PagosService.index(context: context, servidor: widget.servidor);
+    listData = parsed["pagos"] != null ? parsed["pagos"].map<Pago>((json) => Pago.fromMap(json)).toList() : [];
+    _streamController.add(listData);
+  }
+
+  Future<bool> _esProgramador() async {
+    _tienePermisoAdministrador  = await (await DB.create()).getValue("administrador");
+    _tienePermisoProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+
+    return _tienePermisoProgramador;
+  }
+
+  _addOrUpdatePayment({Pago pago}) async {
+    if(_tienePermisoAdministrador == false && _tienePermisoProgramador == false)
+      return;
+
+    var data = await Navigator.pushNamed(context, "/pagos/agregar", arguments: [widget.servidor, pago]);
+    _updateDataFromList(data);
+  }
+
+  _updateDataFromList(Pago data){
+    if(data == null)
+      return;
+
+    if(listData == null)
+      return;
+
+    var index = listData.indexWhere((element) => element.id == data.id);
+    if(index == -1){
+      listData.add(data);
+      _streamController.add(listData);
+    }else{
+      listData[index] = data;
+      _streamController.add(listData);
+    }
+  }
+  // _avatarScreen(Servidor data){
+
+  //    int daysDifference = MyDate.daysDifference(data.fechaProximoPago);
+  //    print("PagosScren _avatarScreen: ${data.descripcion} $daysDifference");
+  //    Color backgroundColor;
+  //    Color iconColor;
+  //    IconData iconData;
+
+  //   if(daysDifference == null || daysDifference < 0){
+  //      backgroundColor =  Colors.green;
+  //      iconColor = Colors.green[100];
+  //      iconData = Icons.done;
+  //    }
+  //    else if(daysDifference > 0){
+  //      backgroundColor =  Colors.pink;
+  //      iconColor = Colors.pink[100];
+  //      iconData = Icons.unpublished;
+  //    }
+  //    else if(daysDifference == 0){
+  //      backgroundColor =  Colors.orange;
+  //      iconColor = Colors.orange[100];
+  //      iconData = Icons.warning;
+  //    }
+
+  //   return CircleAvatar(
+  //     backgroundColor: backgroundColor,
+  //     child: Icon(iconData, color: iconColor,),
+  //   );
+  // }
+
+  _avatarScreen(Pago data){
+    
+    int daysDifference = MyDate.daysDifference(data.fechaDiaPago);
+    //  print("PagosScren _avatarScreen: ${data.descripcion} $daysDifference");
+     Color backgroundColor;
+     Color iconColor;
+     IconData iconData;
+
+    if(data.fechaPagado != null){
+      backgroundColor =  Colors.green;
+      iconColor = Colors.green[100];
+      iconData = Icons.payment;
+    }
+
+    else if(daysDifference == null || daysDifference < 0){
+       backgroundColor =  Utils.colorPrimary;
+      //  iconColor = Colors.green[100];
+       iconColor = Colors.blue[100];
+       iconData = Icons.done;
+     }
+     else if(daysDifference > 0 && data.fechaPagado == null){
+       backgroundColor =  Colors.pink;
+       iconColor = Colors.pink[100];
+       iconData = Icons.unpublished;
+     }
+     else if(daysDifference == 0 && data.fechaPagado == null){
+       backgroundColor =  Colors.orange;
+       iconColor = Colors.orange[100];
+       iconData = Icons.warning;
+     }
+
+    return CircleAvatar(
+      backgroundColor: backgroundColor,
+      child: Icon(iconData, color: iconColor,),
+    );
+
+    // return CircleAvatar(
+    //   backgroundColor: data.fechaPagado != null ? Colors.green : Colors.pink,
+    //   child: data.fechaPagado != null ? Icon(Icons.done, color: Colors.green[100],) : Icon(Icons.unpublished, color: Colors.pink[100],),
+    // );
+  }
+
+
+  _verPago(Pago pago){
+    Navigator.pushNamed(context, "/pagos/ver", arguments: pago.id);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _streamController = BehaviorSubject();
+    _futureEsProgramador = _esProgramador();
+    _init();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return myScaffold(
+      context: context,
+      isSliverAppBar: true,
+      floatingActionButton: FutureBuilder<bool>(
+        future: _futureEsProgramador,
+        builder: (context, snapshot) {
+          // if(snapshot.data != true)
+          //   return null;
+
+          return Visibility(visible: snapshot.data == true, child: FloatingActionButton(onPressed: _addOrUpdatePayment, child: Icon(Icons.add),));
+        }
+      ),
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          expandedHeight: 75,
+          title: "Facturas",
+          subtitle: MyCollapseChanged(
+            actionWhenCollapse: MyCollapseAction.hide,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 50.0),
+              child: Text("${widget.servidor.cliente}(${widget.servidor.descripcion})"),
+            ),
+          ),
+        ), 
+        sliver: StreamBuilder<List<Pago>>(
+          stream: _streamController.stream,
+          builder: (context, snapshot) {
+            if(snapshot.data == null)
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+            if(snapshot.data.length == 0)
+              return SliverFillRemaining(child: Center(child: MyEmpty(title: "No hay facturas generadas", titleButton: "No hay facturas", icon: Icons.payment,)));
+
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index){
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: snapshot.data.length - 1 == index ? 50.0 : 0, top: index == 0 ? 20 : 0),
+                    child: ListTile(
+                      leading: _avatarScreen(snapshot.data[index]),
+                      title: Text("${MyDate.dateRangeToNameOrString(DateTimeRange(start: snapshot.data[index].fechaDiaPago, end: snapshot.data[index].fechaDiaPago))}"),
+                      subtitle: Text("${snapshot.data[index].detallesCount} bancas"),
+                      // Column(
+                      //   crossAxisAlignment: CrossAxisAlignment.start,
+                      //   children: [
+                      //     Text("${Utils.toCurrency(snapshot.data[index].total)}"),
+                      //     Text("${snapshot.data[index].detallesCount} bancas"),
+                      //   ],
+                      // ),
+                      trailing: Text("${Utils.toCurrency(snapshot.data[index].total)}"),
+                      // Wrap(
+                      //   children: [
+                      //     IconButton(onPressed: (){_sendNotification(snapshot.data[index]);}, icon: Icon(Icons.notifications), tooltip: "Enviar notificacion",),
+                      //     IconButton(onPressed: (){_watchPay(snapshot.data[index]);}, icon: Icon(Icons.remove_red_eye), tooltip: "Ver pago",),
+                      //     IconButton(onPressed: (){_pay(snapshot.data[index]);}, icon: Icon(Icons.payment), tooltip: "Marcar como pagado",),
+                      //   ],
+                      // ),
+                      onTap: (){_verPago(snapshot.data[index]);},
+                    ),
+                  );
+                },
+                childCount: snapshot.data.length,
+              )
+            );
+          }
+        )
+      )
+    );
+  }
+}

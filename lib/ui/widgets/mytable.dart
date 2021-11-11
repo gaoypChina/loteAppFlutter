@@ -44,7 +44,8 @@ class MyTable extends StatefulWidget {
   final bool putDeleteIconOnlyOnTheFirstRow;
   final bool showColorWhenImpar;
   final MyTableType type;
-  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal}) : super(key: key);
+  final headerColor;
+  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor}) : super(key: key);
   @override
   _MyTableState createState() => _MyTableState();
 }
@@ -242,10 +243,12 @@ class _MyTableState extends State<MyTable> {
           child: DataTable(
             showCheckboxColumn: false,
             headingRowHeight: 46,
+            // columnSpacing: 10,
+            
             decoration: BoxDecoration(
               // color: Colors.grey[100],
               // color: Colors.grey[300],
-              // color: Utils.colorPrimary,
+              color: widget.headerColor,
               borderRadius: BorderRadius.circular(5),
               border: Border(top: BorderSide.none, bottom: BorderSide.none) 
             ),
@@ -261,7 +264,10 @@ class _MyTableState extends State<MyTable> {
       children: [
         DataTable(
           showCheckboxColumn: false,
+          headingRowHeight: 46,
           decoration: BoxDecoration(
+            color: widget.headerColor,
+              borderRadius: BorderRadius.circular(5),
             border: Border(top: BorderSide.none, bottom: BorderSide.none) 
           ),
           columns: _initColumn(),

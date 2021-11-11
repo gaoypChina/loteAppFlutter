@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jose/jose.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
@@ -18,6 +19,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/servidores.dart';
 import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -123,6 +125,7 @@ class  Utils {
   }
 
   static double redondear(numero, [decimales = 2]){
+    // print("Utils. redondear: $numero ${double.parse((numero).toStringAsFixed(decimales))}");
     return double.parse((numero).toStringAsFixed(decimales));
   }
 
@@ -1283,5 +1286,26 @@ class  Utils {
   }
   
 
+  static DateTimeRange getFechaProximoPago(Servidor servidor){
+    DateTime _diaPago = servidor.diaPago != null ? MyDate.getDateFromDiaPago(servidor.diaPago) : null;
+    // print("PagosScreen _agregarFechaProximoPago 2: ${_diaPago.day}");
+    // _txtDiaPago.text = servidor.diaPago != null ? "${servidor.diaPago}" : null;
+    DateTimeRange _fechaProximoPago = _diaPago != null ? DateTimeRange(start: _diaPago, end: Utils.getNextMonth(_diaPago)) : null;
+    return _fechaProximoPago;
+  }
+
+  static showScaffoldMessanger(BuildContext context, String content,{ Color color = Colors.pink}){
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        content: Text("${content != null ? content : ''}", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+        backgroundColor: color,
+        // leading: const Icon(Icons.info),
+        actions: [
+          IconButton(onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(), 
+          icon: Icon(Icons.clear, color: Colors.white))
+        ]
+      )
+    );
+  }
  
 }

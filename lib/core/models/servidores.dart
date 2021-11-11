@@ -6,9 +6,11 @@ class Servidor{
    String cliente;
    int pordefecto;
    int diaPago;
+   int diasGracia;
+   double precioPorBanca;
    DateTime fechaProximoPago;
 
-  Servidor({this.id, this.descripcion, this.pordefecto, this.cliente, this.fechaProximoPago});
+  Servidor({this.id, this.descripcion, this.pordefecto, this.cliente, this.precioPorBanca, this.fechaProximoPago, this.diaPago, this.diasGracia});
 
 Servidor.fromMap(Map snapshot) :
         id = Utils.toInt(snapshot['id']) ?? 0,
@@ -16,7 +18,9 @@ Servidor.fromMap(Map snapshot) :
         pordefecto = Utils.toInt(snapshot['pordefecto']) ?? 0,
         cliente = snapshot['cliente'] ?? '',
         fechaProximoPago = snapshot['fechaProximoPago'] != null ? DateTime.parse(snapshot['fechaProximoPago']) : null,
-        diaPago = Utils.toInt(snapshot['id'], returnNullIfNotInt: true)
+        diaPago = Utils.toInt(snapshot['diaPago'], returnNullIfNotInt: true),
+        diasGracia = Utils.toInt(snapshot['diasGracia'], returnNullIfNotInt: true),
+        precioPorBanca = Utils.toDouble(snapshot['precioPorBanca'],)
         ;
 
   toJson() {
@@ -35,6 +39,8 @@ Servidor.fromMap(Map snapshot) :
       "cliente": cliente,
       "fechaProximoPago": fechaProximoPago != null ? fechaProximoPago.toString() : null,
       "diaPago": diaPago,
+      "diasGracia": diasGracia,
+      "precioPorBanca": precioPorBanca,
     };
   }
 

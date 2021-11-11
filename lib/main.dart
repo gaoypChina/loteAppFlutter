@@ -25,6 +25,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'core/classes/databasesingleton.dart';
 bool DRAWER_IS_OPEN = false;
 bool PERMISSIONS_CHANGED = false;
+bool SHOW_PAYMENT_APPBAR = false;
 
 // void main() => runApp(Prueba2());
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
