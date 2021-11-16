@@ -135,6 +135,8 @@ class LoginService{
       await Db.insert('Servers', s.toJson());
     }
 
+    await Utils.subscribeToTopic();
+
 
   }
 }

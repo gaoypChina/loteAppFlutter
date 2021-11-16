@@ -214,6 +214,7 @@ class _MyButtonState extends State<MyButton> {
   //     child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
   //   )
   // );
+  var text = Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),);
   return InkWell(
     onTap: widget.function,
     child: AnimatedContainer(
@@ -223,7 +224,21 @@ class _MyButtonState extends State<MyButton> {
         color: _color(),
         borderRadius: BorderRadius.circular(5)
       ),
-      child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+      child: 
+      widget.cargandoNotify == null
+      ?
+      text
+      :
+      ValueListenableBuilder(
+        valueListenable: widget.cargandoNotify,
+        builder: (context, value, __){
+          return !value
+          ?
+          text
+          :
+          CircularProgressIndicator();
+        }
+      )
     )
   );
   }

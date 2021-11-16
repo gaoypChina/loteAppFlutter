@@ -8,7 +8,8 @@ class MyDateRangeDialog extends StatefulWidget {
   final Function(dynamic value) onOk;
   final DateTimeRange date;
   final listaFecha;
-  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha}) : super(key: key);
+  final double width;
+  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha, this.width = 600}) : super(key: key);
   @override
   _MyDateRangeDialogState createState() => _MyDateRangeDialogState();
 }
@@ -186,8 +187,9 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 600,
+      width: widget.width,
       // height: 500,
+      // color: Colors.black,
       child: Row(
         children: [
           Container(

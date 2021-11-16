@@ -41,10 +41,10 @@ class _EntidadesAddScreenState extends State<EntidadesAddScreen> {
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
     listaTipo = (parsed["tipos"] != null) ? parsed["tipos"].map<Tipo>((json) => Tipo.fromMap(json)).toList() : [];
     print("EntidadesScreen _init: $parsed");
-    _setsAllFields();
+    _setAllFields();
   }
 
-  _setsAllFields(){
+  _setAllFields(){
     _data = widget.data;
     _txtNombre.text = _data != null ? _data.nombre : '';
     _tipo = _data != null ? _data.tipo != null ? listaTipo.firstWhere((element) => element.id == _data.tipo.id) : null : null;

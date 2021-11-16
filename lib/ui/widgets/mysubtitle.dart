@@ -10,7 +10,8 @@ class MySubtitle extends StatefulWidget {
   final bool showOnlyOnSmall;
   final bool showOnlyOnLarge;
   final MainAxisAlignment mainAxisAlignment;
-  MySubtitle({Key key, @required this.title, this.fontSize = 20, this.fontWeight = FontWeight.w500, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.letterSpacing = 0.3, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.mainAxisAlignment = MainAxisAlignment.start}) : super(key: key);
+  final Color color;
+  MySubtitle({Key key, @required this.title, this.fontSize = 20, this.fontWeight = FontWeight.w500, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.letterSpacing = 0.3, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.mainAxisAlignment = MainAxisAlignment.start, this.color}) : super(key: key);
   @override
   _MySubtitleState createState() => _MySubtitleState();
 }
@@ -32,7 +33,7 @@ class _MySubtitleState extends State<MySubtitle> {
       children: [
         Padding(
           padding: widget.padding,
-          child: Text(widget.title, style: TextStyle(fontSize: widget.fontSize, fontWeight: widget.fontWeight, fontFamily: "GoogleSans", letterSpacing: widget.letterSpacing),),
+          child: Text(widget.title, style: TextStyle(fontSize: widget.fontSize, fontWeight: widget.fontWeight, fontFamily: "GoogleSans", letterSpacing: widget.letterSpacing, color: widget.color),),
         ),
       ],
     );

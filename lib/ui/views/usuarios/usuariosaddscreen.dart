@@ -74,7 +74,7 @@ StreamController<List<Usuario>> _streamController;
 
     listaTipoUsuario = widget.listaTipoUsuario;
     listaPermiso = widget.listaPermiso;
-    _setsAllFields();
+    _setAllFields();
     _fillEntityList();
 
     _txtPassword.addListener(() {
@@ -85,7 +85,7 @@ StreamController<List<Usuario>> _streamController;
     // print("UsuarioScreen _init: ${parsed["usuariosTipos"]}");
   }
 
-  _setsAllFields(){
+  _setAllFields(){
     _txtUsuario.text = usuario != null ? usuario.usuario : '';
     _txtNombres.text = usuario != null ? usuario.nombres : '';
     _txtTelefono.text = usuario != null ? usuario.telefono : '';

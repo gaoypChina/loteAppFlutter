@@ -910,6 +910,7 @@ class Principal{
    var c = await DB.create();
    print("Principal.cerrarSesion");
    try {
+      await Utils.unSubscribeFromTopic();
       await Db.deleteDB();
    } catch (e) {
    }
@@ -918,7 +919,8 @@ class Principal{
      await c.delete("administrador");
       await c.delete("apiKey");
       await c.delete("tipoUsuario");
-        await c.delete("banca");
+      await c.delete("banca");
+      await c.removePagoPendiente();
       // await Db.deleteDB();
       if(salir){
         await c.add("recordarme", false);

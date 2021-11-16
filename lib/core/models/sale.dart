@@ -42,7 +42,7 @@ class Sale {
         idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
         total = Utils.toDouble(snapshot['total'].toString()) ?? 0,
         subTotal = Utils.toDouble(snapshot['subTotal'].toString()) ?? 0,
-        descuentoMonto = Utils.toInt(snapshot['descuentoMonto']) ?? 0,
+        descuentoMonto = Utils.toInt(Utils.toDouble(snapshot['descuentoMonto']).toInt()) ?? 0,
         hayDescuento = Utils.toInt(snapshot['hayDescuento']) ?? 0,
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         idTicket = (snapshot['idTicket'] != null) ? BigInt.from(snapshot['idTicket']) : BigInt.zero ,

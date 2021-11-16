@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/myfilemanager.dart';
 import 'package:loterias/core/classes/mynotification.dart';
 import 'package:loterias/core/classes/mysocket.dart';
@@ -20,6 +23,7 @@ import 'package:loterias/core/models/blocksplaysjugadas.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/montodisponible.dart';
 import 'package:loterias/core/models/notificacion.dart';
+import 'package:loterias/core/models/pago.dart';
 import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/servidores.dart';
@@ -84,6 +88,8 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as webSocketstatus;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../../main.dart';
+
 
 class PrincipalApp extends StatefulWidget {
   final bool callThisScreenFromLogin;
@@ -93,6 +99,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  Future<Pago> _futureFactura;
   var valueNotifyDrawer = ValueNotifier<bool>(false);
   IO.Socket socket;
   var _scrollController = ItemScrollController();
@@ -633,6 +640,58 @@ Future<bool> _requestPermisionChannel() async {
     focusNode = FocusNode();
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) { 
+      RemoteNotification notification = message.notification;
+      AndroidNotification android = message.notification?.android;
+
+      if(notification != null && android != null){
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode, 
+          notification.title, 
+          notification.body, 
+          NotificationDetails(
+            android:AndroidNotificationDetails(
+              channel.id, 
+              channel.name, 
+              channelDescription: channel.description, 
+              color: Colors.blue, 
+              playSound: true,
+              icon: "@mipmap/ic_loteria"
+            )
+          ),
+          // payload: "Hola mi panaaaaaaaaaaaaaaaaaa"
+        );
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) { 
+      RemoteNotification notification = message.notification;
+      AndroidNotification android = message.notification?.android;
+
+      
+
+      if(notification != null && android != null){
+        print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
+        Navigator.pushNamed(context, "/pagos/ver", arguments:message.data["idPago"] != null ? Utils.toInt(message.data["idPago"]) : null);
+        // showDialog(
+        //   context: context, 
+        //   builder: (context){
+        //     return AlertDialog(
+        //       title: Text(notification.title),
+        //       content: SingleChildScrollView(
+        //         child: Column(
+        //           children: [
+        //             Text(notification.body),
+                    
+        //           ],
+        //         ),
+        //       )
+        //     );
+        //   }
+        // );
+      }
+    });
+  
     
     //_montoFuture = fetchMonto();
     
@@ -1042,6 +1101,43 @@ Future<bool> _requestPermisionChannel() async {
     // print("PricipalView deleteSubidaYesterdaysSale todaySale: $sales");
   }
 
+  Future<void> updatePayment(var parsed) async {
+    var c = await DB.create();
+    if(parsed != null){
+        await c.addOrRemovePagoPendiente(Pago.fromMap(parsed));
+    }else{
+        await c.removePagoPendiente();
+    }
+    _futureFactura = c.getPagoPendiente();
+    if(_tienePermisoAdministrador || _tienePermisoProgramador){
+      if((await c.getPagoPendiente()) != null){
+        SHOW_PAYMENT_APPBAR = true;
+        Utils.showScaffoldMessanger(context, "Tiene una factura pendiente por pagar");
+      }else{
+        SHOW_PAYMENT_APPBAR = false;
+      }
+    }
+      
+    // ScaffoldMessenger.of(context).showMaterialBanner(
+    //           MaterialBanner(
+    //             content: const Text('Hello, I am a Material Banner'),
+    //             leading: const Icon(Icons.info),
+    //             backgroundColor: Colors.yellow,
+    //             actions: [
+    //               // TextButton(
+    //               //   child: const Text('Dismiss'),
+    //               //   onPressed: () => ScaffoldMessenger.of(context)
+    //               //       .hideCurrentMaterialBanner()
+    //               // ),
+    //             ],
+    //           ),
+    //         )
+    //       ),
+    //     ),
+    //   );
+    print("PrincipalVIew updatePayment holaa: $parsed");
+  }
+
   initSocket() async {
     // var builder = new JWTBuilder();
     // var token = builder
@@ -1130,6 +1226,7 @@ Future<bool> _requestPermisionChannel() async {
       await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["datos"]);
       _connectionNotify.value = true;
       await _getPermisos();
+      await updatePayment(parsed["datos"]["payment"]);
       deleteSubidaYesterdaysSale();
       print("PrincipalView initSocket sincronizarTodos from server after: $data");
     });
@@ -1277,6 +1374,12 @@ Future<bool> _requestPermisionChannel() async {
     socket.on("branches:App\\Events\\BranchesEvent", (data) async {   //sample event
       var parsed = data.cast<String, dynamic>();
       _updateBranchesList(parsed);
+      // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+    });
+    socket.on("payment:App\\Events\\PaymentEvent", (data) async {   //sample event
+      var parsed = data.cast<String, dynamic>();
+      await updatePayment(parsed["payment"]);
+      print("PrincipalVIew PaymentEvent holaa: $parsed");
       // await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
     });
     socket.on("error", (data){   //sample event
@@ -3923,7 +4026,43 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
 
                       },
                     ),
-                    
+                    Visibility(
+                      visible: _tienePermisoProgramador || _tienePermisoAdministrador,
+                      child: FutureBuilder<Pago>(
+                        future: _futureFactura,
+                        builder: (context, snapshot) {
+                          return ListTile(
+                            title: Text('Facturas'),
+                            leading: Icon(Icons.payment),
+                            dense: true,
+                            onTap: () async {
+                              if(_tienePermisoProgramador)
+                                Navigator.of(context).pushNamed("/pagos/servidores");
+                              else if(_tienePermisoAdministrador)
+                                // Navigator.of(context).pushNamed("/pagos", arguments: Servidor(descripcion: await Db.servidor()));
+                                Navigator.of(context).pushNamed("/pagos/ver", arguments: snapshot.data != null ? snapshot.data.id : null);
+                                          
+                              _scaffoldKey.currentState.openEndDrawer();
+                            },
+                            subtitle: snapshot.data == null ? null : Row(
+                              children: [
+                                
+                                Text("${snapshot.data.fechaDiasGracia != null ? 'Pagar antes del ' + MyDate.dateRangeToNameOrString(DateTimeRange(start: snapshot.data.fechaDiasGracia, end: snapshot.data.fechaDiasGracia)) : 'Tiene factura pendiente'}", style: TextStyle(color: Colors.pink)),
+                              ],
+                            )
+                            // FutureBuilder<int>(
+                            //   future: _futureFactura,
+                            //   builder: (context, snapshot) {
+                            //     return Visibility(
+                            //       visible: snapshot.data != null, 
+                            //       child: Text("Tiene factura pendiente", style: TextStyle(color: Colors.pink)
+                            //     ));
+                            //   }
+                            // )
+                          );
+                        }
+                      ),
+                    ),
                     Visibility(
                       visible: _tienePermisoVerDashboard,
                       child: ListTile(
@@ -4707,7 +4846,7 @@ void _getTime() {
 
     _txtLoteriasSeleccionadasParaLigar.text = "";
     _txtMontoLigar.text = "";
-    List<Loteria> _selectedLoteriasLigar = List();
+    List<Loteria> _selectedLoteriasLigar = [];
 
     return await showDialog(
       context: context,

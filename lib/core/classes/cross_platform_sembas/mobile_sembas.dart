@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
@@ -5,6 +7,7 @@ import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/pago.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast.dart';
@@ -201,6 +204,37 @@ static final MobileSembas _singleton = MobileSembas._internal();
     // TODO: implement getPlantForm
     print("Mobile Platform Sembas");
     // throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addOrRemovePagoPendiente(Pago pago) async {
+    // TODO: implement addOrRemoveIdPagoPendiente
+    if(pago.fechaPagado != null){
+      await this.delete("pago");
+      return;
+    }
+
+    await this.add("pago", json.encode(pago.toJson()));
+  }
+
+  @override
+  Future<Pago> getPagoPendiente() async {
+    // TODO: implement getIdPagoPendiente
+    try {
+      dynamic pagoMap = await _store.record("pago").get(_db) as dynamic;
+      if(pagoMap == null)
+        return null;
+
+      return Pago.fromMap(json.decode(pagoMap));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> removePagoPendiente() async {
+    // TODO: implement removePagoPendiente
+    await this.delete("pago");
   }
 
   

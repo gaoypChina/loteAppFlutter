@@ -85,7 +85,8 @@ class MySliverButton extends StatefulWidget {
   final Color color;
   final bool showOnlyOnSmall;
   final bool showOnlyOnLarge;
-  MySliverButton({Key key, @required this.title, this.iconWhenSmallScreen, @required this.onTap, this.isFlatButton = false, this.visibleOnlyWhenSmall = false, this.padding = const EdgeInsets.symmetric(horizontal: 10), this.fontSize = 14, this.color, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false}) : super(key: key);
+  final ValueNotifier<bool> cargandoNotifier;
+  MySliverButton({Key key, @required this.title, this.iconWhenSmallScreen, @required this.onTap, this.isFlatButton = false, this.visibleOnlyWhenSmall = false, this.padding = const EdgeInsets.symmetric(horizontal: 10), this.fontSize = 14, this.color, this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.cargandoNotifier}) : super(key: key);
 
   @override
   _MySliverButtonState createState() => _MySliverButtonState();
@@ -140,6 +141,7 @@ class _MySliverButtonState extends State<MySliverButton> {
            title: (widget.title is Widget) ? "" : widget.title,
            function: widget.onTap,
            color: widget.color,
+           cargandoNotify: widget.cargandoNotifier,
          )
         //  myButton(
         //     text: (widget.title is Widget) ? "" : widget.title,

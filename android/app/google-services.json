@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "553232454336",
+    "project_id": "loterias-c5cca",
+    "storage_bucket": "loterias-c5cca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553232454336:android:3bf384a6de863672aa5325",
+        "android_client_info": {
+          "package_name": "com.example.cloudmessaging"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "553232454336-loqmeiu42s51ih48srapj2fmpgk71odp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNJh8umd2FuZgLLDVn6bVv7qi0dlOFg2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "553232454336-loqmeiu42s51ih48srapj2fmpgk71odp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553232454336:android:0b61a60aa9ed138aaa5325",
+        "android_client_info": {
+          "package_name": "com.loterias.jean"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "553232454336-loqmeiu42s51ih48srapj2fmpgk71odp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNJh8umd2FuZgLLDVn6bVv7qi0dlOFg2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "553232454336-loqmeiu42s51ih48srapj2fmpgk71odp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

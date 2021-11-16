@@ -9,6 +9,7 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/ticketimage.dart';
+import 'package:loterias/core/classes/ticketimagev2.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/grupo.dart';
@@ -485,7 +486,9 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
                     print("_compartirTicket datos: ${parsed}");
                     List<Salesdetails> salesdetails = (parsed["salesdetails"] != null) ? parsed["salesdetails"].map<Salesdetails>((json) => Salesdetails.fromMap(json)).toList() : [];
-                    Uint8List image = await TicketImage.create(sale, salesdetails);
+                    // Uint8List image = await TicketImage.create(sale, salesdetails);
+                    Uint8List image = await TicketImageV2.create(sale, salesdetails);
+                    print("_compartirTicket datos descuento: ${sale.descuentoMonto} hayDescuento: ${sale.hayDescuento}");
 
                     // ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
                     ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: image, codigoQr: sale.ticket.codigoBarra, sms_o_whatsapp: true);

@@ -4,10 +4,13 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 // import 'package:corsac_jwt/corsac_jwt.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jose/jose.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'dart:convert';
 
@@ -16,6 +19,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/servidores.dart';
 import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -121,6 +125,7 @@ class  Utils {
   }
 
   static double redondear(numero, [decimales = 2]){
+    // print("Utils. redondear: $numero ${double.parse((numero).toStringAsFixed(decimales))}");
     return double.parse((numero).toStringAsFixed(decimales));
   }
 
@@ -939,11 +944,61 @@ class  Utils {
       DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
       DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
       nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+      print("Utils getNextMonth: ${nextMonth.day}");
     }
     else
       nextMonth = new DateTime(date.year, date.month + monthsToAdd, date.day);
 
     return nextMonth;
+  }
+
+  static DateTime getNextMonthV2(DateTime date, {int dayOfTheMonth, int monthsToAdd = 1}){
+    DateTime nextMonth;
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (date.day > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime nextMonthFirstDay = new DateTime(date.year, date.month + monthsToAdd, 1);
+      DateTime nextMonthLastDay = getLastDayOfMonth(nextMonthFirstDay);
+      nextMonth = (dayOfTheMonth > nextMonthLastDay.day) ? nextMonthLastDay : new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${nextMonth.day}");
+    }
+    else
+      nextMonth = new DateTime(date.year, date.month + monthsToAdd, dayOfTheMonth == null ? date.day : dayOfTheMonth);
+
+    return nextMonth;
+  }
+
+  static DateTime getLastMonth(DateTime date, {int dayOfTheMonth, int monthsToSub = 1}){
+    DateTime lastMonth;
+    int subtractedMonth = date.month - monthsToSub;
+
+    if(subtractedMonth <= 0)
+      subtractedMonth = 12 - subtractedMonth.abs();
+
+    if(date.day > 28 && dayOfTheMonth == null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (date.day > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, date.day);
+    }
+    else if(date.day >= 28 && dayOfTheMonth != null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (dayOfTheMonth > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${lastMonth.day}");
+    }
+    else if(dayOfTheMonth != null){
+      DateTime lastMonthFirstDay = new DateTime(date.year, subtractedMonth, 1);
+      DateTime lastMonthLastDay = getLastDayOfMonth(lastMonthFirstDay);
+      lastMonth = (dayOfTheMonth > lastMonthLastDay.day) ? lastMonthLastDay : new DateTime(date.year, subtractedMonth, dayOfTheMonth);
+      print("Utils getNextMonthV2: ${lastMonth.day}");
+    }
+    else
+      lastMonth = new DateTime(date.year, subtractedMonth, dayOfTheMonth == null ? date.day : dayOfTheMonth);
+
+    return lastMonth;
   }
 
   static int getIdDia(){
@@ -1203,7 +1258,54 @@ class  Utils {
 
     return true;
   }
+
+  static Future<void> subscribeToTopic() async{
+    if(kIsWeb)
+      return;
+
+    var tipoUsuario = (await (await DB.create()).getValue("tipoUsuario"));
+    if(tipoUsuario == "Programador"){
+      await FirebaseMessaging.instance.subscribeToTopic("programador");
+    }
+    else if(tipoUsuario == "Administrador"){
+      await FirebaseMessaging.instance.subscribeToTopic(await Db.servidor());
+    }
+  }
+
+  static Future<void> unSubscribeFromTopic() async{
+    if(kIsWeb)
+      return;
+
+    var tipoUsuario = (await (await DB.create()).getValue("tipoUsuario"));
+    if(tipoUsuario == "Programador"){
+      await FirebaseMessaging.instance.unsubscribeFromTopic("programador");
+    }
+    else if(tipoUsuario == "Administrador"){
+      await FirebaseMessaging.instance.unsubscribeFromTopic(await Db.servidor());
+    }
+  }
   
 
+  static DateTimeRange getFechaProximoPago(Servidor servidor){
+    DateTime _diaPago = servidor.diaPago != null ? MyDate.getDateFromDiaPago(servidor.diaPago) : null;
+    // print("PagosScreen _agregarFechaProximoPago 2: ${_diaPago.day}");
+    // _txtDiaPago.text = servidor.diaPago != null ? "${servidor.diaPago}" : null;
+    DateTimeRange _fechaProximoPago = _diaPago != null ? DateTimeRange(start: _diaPago, end: Utils.getNextMonth(_diaPago)) : null;
+    return _fechaProximoPago;
+  }
+
+  static showScaffoldMessanger(BuildContext context, String content,{ Color color = Colors.pink}){
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        content: Text("${content != null ? content : ''}", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+        backgroundColor: color,
+        // leading: const Icon(Icons.info),
+        actions: [
+          IconButton(onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(), 
+          icon: Icon(Icons.clear, color: Colors.white))
+        ]
+      )
+    );
+  }
  
 }

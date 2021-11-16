@@ -137,12 +137,12 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     for (var item in listaUsuario) {
       print("id: ${item.id} usuario: ${item.usuario}");
     }
-    _setsAllFields(parsed);
+    _setAllFields(parsed);
   }
 
-  _setsAllFields(parsed){
+  _setAllFields(parsed){
     _data = parsed["data"] != null ? Banca.fromMap(parsed["data"]) : null;
-    // print("BancasAddScreen _setsAllFields: ${parsed['data']['minutosCancelarTicket']} - ${_data.minutosCancelarTicket}");
+    // print("BancasAddScreen _setAllFields: ${parsed['data']['minutosCancelarTicket']} - ${_data.minutosCancelarTicket}");
     _txtDescripcion.text = (_data != null) ? _data.descripcion : '';
     _txtCodigo.text = (_data != null) ? _data.codigo : '';
     _txtDueno.text = (_data != null) ? _data.dueno : '';

@@ -23,8 +23,9 @@ class MyAlertDialog extends StatefulWidget {
   final double large;
   final double xlarge;
   // final double padding;
+  final Widget Function(BuildContext context, double width) builder;
 
-  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5,}) : super(key: key);
+  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5,}) : super(key: key);
   @override
   _MyAlertDialogState createState() => _MyAlertDialogState();
 }
@@ -109,7 +110,21 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                 // width: MediaQuery.of(context).size.width / 2.5,
                 width: getWidth(width),
                 child: MyScrollbar(
-                  child: (widget.content != null) ? widget.content : SizedBox(),
+                  child: 
+                  widget.builder == null
+                  ?
+                  (widget.content != null) 
+                  ? 
+                  widget.content 
+                  : 
+                  SizedBox()
+                  :
+                  LayoutBuilder(
+                    builder: (context, boxconstraints){
+                      return widget.builder(context,getWidth(width));
+                    }
+                  )
+                  ,
                 ),
                 // Wrap(
                 //   children: [

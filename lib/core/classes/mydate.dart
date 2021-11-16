@@ -359,4 +359,25 @@ class MyDate {
     return datetime != null ? datetime : DateTime.now();
   }
 
+  static int daysDifference(DateTime from, [DateTime to]) {
+    if(from == null)
+      return null;
+
+    if(to == null)
+      to = DateTime.now();
+
+     from = DateTime(from.year, from.month, from.day);
+     to = DateTime(to.year, to.month, to.day);
+   return (to.difference(from).inHours / 24).round();
+  }
+
+  static DateTime getDateFromDiaPago(int diaPago, [DateTime date]){
+    DateTime fechaActual = date != null ? date : DateTime.now();
+    int lastMonth = fechaActual.month == 1 ? 12 : fechaActual.month - 1;
+    DateTime lastMonthFirstDay = DateTime.parse("${fechaActual.year}-${Utils.toDosDigitos(lastMonth.toString())}-${Utils.toDosDigitos('1')} 00:00");
+      print("MyDate getDateFromDiaPago: ${diaPago}");
+
+    return Utils.getNextMonthV2(lastMonthFirstDay, dayOfTheMonth: diaPago);
+  }
+ 
 }
