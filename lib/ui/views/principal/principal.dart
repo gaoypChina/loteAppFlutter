@@ -654,9 +654,10 @@ Future<bool> _requestPermisionChannel() async {
               channelDescription: channel.description, 
               color: Colors.blue, 
               playSound: true,
-              icon: "@mipmap/ic_launcher"
+              icon: "@mipmap/ic_loteria"
             )
-          )
+          ),
+          // payload: "Hola mi panaaaaaaaaaaaaaaaaaa"
         );
       }
     });
@@ -669,7 +670,7 @@ Future<bool> _requestPermisionChannel() async {
 
       if(notification != null && android != null){
         print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
-        Navigator.pushNamed(context, "/pagos/ver", arguments: message.data["idPago"]);
+        Navigator.pushNamed(context, "/pagos/ver", arguments:message.data["idPago"] != null ? Utils.toInt(message.data["idPago"]) : null);
         // showDialog(
         //   context: context, 
         //   builder: (context){
