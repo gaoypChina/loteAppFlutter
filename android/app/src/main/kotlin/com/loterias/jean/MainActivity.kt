@@ -383,7 +383,7 @@ class MainActivity: FlutterActivity() {
                     notify(id, builder.build())
                 }
             }catch (e:Exception){
-                Log.e("errorNotificationNative",e.message);
+                Log.e("errorNotificationNative", e.message ?: "Error Notification Navtive null");
             }
 
         }

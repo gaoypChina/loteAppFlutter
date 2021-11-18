@@ -101,8 +101,11 @@ class BluetoothManager : Activity {
             val action: String = intent.action!!
             when (action) {
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    returnDevice(device, true)// MAC address
+//                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+//                    returnDevice(device, true)// MAC address
+
+                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    device?.let { returnDevice(device, true) }// MAC address
                 }
             }
         }
@@ -123,6 +126,7 @@ class BluetoothManager : Activity {
         ret["escaneado"] = escaneadoOemparejado
 //        ret["type"] = device.type
 
+        Log.i("BlueManKotlin", device?.address ?: "Device null")
         this.sink.success(ret);
     }
 

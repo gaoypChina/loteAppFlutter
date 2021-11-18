@@ -5,6 +5,7 @@ import 'package:loterias/core/classes/cmd.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:rxdart/rxdart.dart';
 
 class BluetoothScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   List<Map<String, dynamic>> _listaEscaneados;
   List<Map<String, dynamic>> _listaEmparejados;
   bool _existeImpresora = false;
+  Map<String, dynamic> _printer;
  
                   
 
@@ -89,6 +91,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     var c = await DB.create();
     await c.add("printer", _printer);
     var printer = await c.getValue("printer");
+    _printer = printer;
     if(printer != null)
       _updateStreamGuardado(Map<String, dynamic>.from(printer));
   }
@@ -107,6 +110,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       _streamControllerGuardado.add(Map<String, dynamic>.from(printer));
     }else
       _streamControllerGuardado.add(null);
+
+    _printer = printer;
   }
 
   deleteItemFromListaEscaneados(int index){
@@ -298,10 +303,55 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       );
   }
 
+  _isSavedPrinter(String address){
+    if(_printer == null)
+      return false;
+    
+    return _printer["address"] == address;
+  }
+
   _showDialog(context){
     showDialog(
       context: context,
       builder: (context){
+        _scan(){
+          _initSearch();
+        }
+
+        return MyAlertDialog(
+          title: "Dispositivos", 
+          content: StreamBuilder(
+                  stream: _streamControllerEscaneados.stream,
+                  builder: (BuildContext context, snapshot){
+                    if(snapshot.hasData){
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _listaEscaneados.length,
+                        itemBuilder: (context, index){
+                          return ListTile(
+                            title: Text('${_listaEscaneados[index]["name"]}'),
+                            subtitle: Text('${_listaEscaneados[index]["address"]}'),
+                            dense: true,
+                            trailing: IconButton(
+                              icon: _isSavedPrinter(_listaEscaneados[index]["address"]) ? Icon(Icons.check) : Icon(Icons.save),
+                              onPressed: () async {
+                                await savePrinter(_listaEscaneados[index]);
+                                Navigator.pop(context);
+                                Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha guardado correctamente');
+                                // deleteItemFromListaEscaneados(index);
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return Text('No hay datos');
+                  },
+                ), 
+          okDescription: "Escanear",
+          okFunction: _scan
+        );
+
         return AlertDialog(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -340,6 +390,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   builder: (BuildContext context, snapshot){
                     if(snapshot.hasData){
                       return ListView.builder(
+                        shrinkWrap: true,
                         itemCount: _listaEscaneados.length,
                         itemBuilder: (context, index){
                           return ListTile(

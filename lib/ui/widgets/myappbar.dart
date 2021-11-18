@@ -561,133 +561,267 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
     _createOverlayEntry(context);
   }
 
-  
 
-  return AppBar(
-    automaticallyImplyLeading: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? true : false,
-    leadingWidth: 20,
-        title: Row(children: [
-          // IconButton(icon: Icon(Icons.menu, color: Colors.black), onPressed: (){},),
-          Visibility(
-            visible: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: IconButton(icon: Icon(Icons.menu), onPressed: onTap,),
+  Widget _titleWidget(){
+    return Row(children: [
+            // IconButton(icon: Icon(Icons.menu, color: Colors.black), onPressed: (){},),
+            Visibility(
+              visible: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 10.0),
+                child: IconButton(icon: Icon(Icons.menu), onPressed: onTap,),
+              ),
             ),
-          ),
-          // Text("Prestamo", style: TextStyle(color: Colors.black),),
-          Padding(
-                padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 0, left: 10.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  // BorderRadius.only(
-                  //   topRight: Radius.circular(32),
-                  //   bottomRight: Radius.circular(32),
-                  // ),
-                  child: Container(
-                    // color: Colors.red,
-                    // width: 150,
-                    height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 45,
-                    child:  Container(
-                      child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+            // Text("Prestamo", style: TextStyle(color: Colors.black),),
+            Padding(
+                  padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 0, left: 10.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    // BorderRadius.only(
+                    //   topRight: Radius.circular(32),
+                    //   bottomRight: Radius.circular(32),
+                    // ),
+                    child: Container(
+                      // color: Colors.red,
+                      // width: 150,
+                      height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 35,
+                      child:  Container(
+                        child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                      ),
                     ),
                   ),
                 ),
+            Padding(
+              padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 2.0, left: 10.0),
+              child: Container(
+                // color: Colors.red,
+                // width: 150,
+                // height: 45,
+                child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
               ),
-          Padding(
-                padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 2.0, left: 10.0),
+            ),
+            Expanded(
                 child: Container(
                   // color: Colors.red,
-                  // width: 150,
-                  // height: 45,
-                  child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 90.0, top: 8),
+                      child: MySearchField(
+                        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                        borderRadius: BorderRadius.circular(8),
+                        iconPadding: EdgeInsets.only(left: 10, right: 16),
+                        xlarge: 1.5,
+                        large: 1.4,
+                        medium: 1.7,
+                        controller: _txtSearch,
+                        hint: "Buscar clientes, bancas, loterias, entidades",
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              Expanded(
-                  child: Container(
-                    // color: Colors.red,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 90.0, top: 8),
-                        child: MySearchField(
-                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-                          borderRadius: BorderRadius.circular(8),
-                          iconPadding: EdgeInsets.only(left: 10, right: 16),
-                          xlarge: 1.5,
-                          large: 1.4,
-                          medium: 1.7,
-                          controller: _txtSearch,
-                          hint: "Buscar clientes, bancas, loterias, entidades",
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Column(
+              
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: Visibility(
+                      visible: cargando,
+                      child: Theme(
+                        data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                        child: new CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
                         ),
-                      ),
-                    ),
-                  ),
-                )
-        ],),
-        // leading: Icon(
-        //   Icons.menu,
-        //   color: Colors.black
-        // ),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: <Widget>[
-          Column(
-
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: Visibility(
-                    visible: cargando,
-                    child: Theme(
-                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                      child: new CircularProgressIndicator(),
-                    ),
-                  ),
-                ),
+                        Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: IconButton(
+                onPressed: (){},
+                icon: Icon(Icons.info_outline, color: Colors.black, size: 26,),
               ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: IconButton(
-              onPressed: (){},
-              icon: Icon(Icons.info_outline, color: Colors.black, size: 26,),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: IconButton(
-              onPressed: (){},
-              icon: Icon(Icons.help_outline, color: Colors.black, size: 26,),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: IconButton(
-              onPressed: (){},
-              icon: Icon(Icons.notifications_none, color: Colors.black, size: 26,),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Builder(
-              builder: (context) {
-                return InkWell(
-                  onTap: (){_showOptions(context);},
-                  child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.grey[300],
-                        child: Icon(Icons.person, color: Colors.grey,)
-                      ),
-                );
-              }
-            ),
-          )
-        ],
-      );
+                        ),
+                        Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: IconButton(
+                onPressed: (){},
+                icon: Icon(Icons.help_outline, color: Colors.black, size: 26,),
+              ),
+                        ),
+                        Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: IconButton(
+                onPressed: (){},
+                icon: Icon(Icons.notifications_none, color: Colors.black, size: 26,),
+              ),
+                        ),
+                        Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Builder(
+                builder: (context) {
+                  return InkWell(
+                    onTap: (){_showOptions(context);},
+                    child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.grey[300],
+                          child: Icon(Icons.person, color: Colors.grey,)
+                        ),
+                  );
+                }
+              ),
+                        )
+                ],
+              )
+          ],);
+          
+  }
+
+  
+
+  return PreferredSize(
+    preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.081),
+    child: _titleWidget() 
+    // AppBar(
+    //   automaticallyImplyLeading: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? true : false,
+    //   leadingWidth: 20,
+    //       title: 
+    //       _titleWidget(),
+    //       // Row(children: [
+    //       //   // IconButton(icon: Icon(Icons.menu, color: Colors.black), onPressed: (){},),
+    //       //   Visibility(
+    //       //     visible: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width),
+    //       //     child: Padding(
+    //       //       padding: const EdgeInsets.only(top: 8.0),
+    //       //       child: IconButton(icon: Icon(Icons.menu), onPressed: onTap,),
+    //       //     ),
+    //       //   ),
+    //       //   // Text("Prestamo", style: TextStyle(color: Colors.black),),
+    //       //   Padding(
+    //       //         padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 0, left: 10.0),
+    //       //         child: ClipRRect(
+    //       //           borderRadius: BorderRadius.circular(10),
+    //       //           // BorderRadius.only(
+    //       //           //   topRight: Radius.circular(32),
+    //       //           //   bottomRight: Radius.circular(32),
+    //       //           // ),
+    //       //           child: Container(
+    //       //             // color: Colors.red,
+    //       //             // width: 150,
+    //       //             height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 45,
+    //       //             child:  Container(
+    //       //               child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+    //       //             ),
+    //       //           ),
+    //       //         ),
+    //       //       ),
+    //       //   Padding(
+    //       //         padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 2.0, left: 10.0),
+    //       //         child: Container(
+    //       //           // color: Colors.red,
+    //       //           // width: 150,
+    //       //           // height: 45,
+    //       //           child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+    //       //         ),
+    //       //       ),
+    //       //       Expanded(
+    //       //           child: Container(
+    //       //             // color: Colors.red,
+    //       //             child: Align(
+    //       //               alignment: Alignment.centerLeft,
+    //       //               child: Padding(
+    //       //                 padding: const EdgeInsets.only(left: 90.0, top: 8),
+    //       //                 child: MySearchField(
+    //       //                   padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+    //       //                   borderRadius: BorderRadius.circular(8),
+    //       //                   iconPadding: EdgeInsets.only(left: 10, right: 16),
+    //       //                   xlarge: 1.5,
+    //       //                   large: 1.4,
+    //       //                   medium: 1.7,
+    //       //                   controller: _txtSearch,
+    //       //                   hint: "Buscar clientes, bancas, loterias, entidades",
+    //       //                 ),
+    //       //               ),
+    //       //             ),
+    //       //           ),
+    //       //         )
+    //       // ],),
+          
+
+    //       // leading: Icon(
+    //       //   Icons.menu,
+    //       //   color: Colors.black
+    //       // ),
+    //       elevation: 0,
+    //       backgroundColor: Colors.white,
+    //       actions: <Widget>[
+    //         Column(
+  
+    //           mainAxisAlignment: MainAxisAlignment.center,
+    //           children: <Widget>[
+    //             Padding(
+    //               padding: const EdgeInsets.all(8.0),
+    //               child: SizedBox(
+    //                 width: 30,
+    //                 height: 30,
+    //                 child: Visibility(
+    //                   visible: cargando,
+    //                   child: Theme(
+    //                     data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+    //                     child: new CircularProgressIndicator(),
+    //                   ),
+    //                 ),
+    //               ),
+    //             ),
+    //           ],
+    //         ),
+    //         Padding(
+    //           padding: const EdgeInsets.all(5.0),
+    //           child: IconButton(
+    //             onPressed: (){},
+    //             icon: Icon(Icons.info_outline, color: Colors.black, size: 26,),
+    //           ),
+    //         ),
+    //         Padding(
+    //           padding: const EdgeInsets.all(5.0),
+    //           child: IconButton(
+    //             onPressed: (){},
+    //             icon: Icon(Icons.help_outline, color: Colors.black, size: 26,),
+    //           ),
+    //         ),
+    //         Padding(
+    //           padding: const EdgeInsets.all(5.0),
+    //           child: IconButton(
+    //             onPressed: (){},
+    //             icon: Icon(Icons.notifications_none, color: Colors.black, size: 26,),
+    //           ),
+    //         ),
+    //         Padding(
+    //           padding: const EdgeInsets.symmetric(horizontal: 12.0),
+    //           child: Builder(
+    //             builder: (context) {
+    //               return InkWell(
+    //                 onTap: (){_showOptions(context);},
+    //                 child: CircleAvatar(
+    //                       radius: 16,
+    //                       backgroundColor: Colors.grey[300],
+    //                       child: Icon(Icons.person, color: Colors.grey,)
+    //                     ),
+    //               );
+    //             }
+    //           ),
+    //         )
+    //       ],
+    //     ),
+  
+  );
 }
