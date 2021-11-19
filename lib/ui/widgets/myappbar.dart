@@ -602,24 +602,94 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
             ),
             Expanded(
                 child: Container(
-                  // color: Colors.red,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 90.0, top: 8),
-                      child: MySearchField(
-                        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-                        borderRadius: BorderRadius.circular(8),
-                        iconPadding: EdgeInsets.only(left: 10, right: 16),
-                        xlarge: 1.5,
-                        large: 1.4,
-                        medium: 1.7,
-                        controller: _txtSearch,
-                        hint: "Buscar clientes, bancas, loterias, entidades",
-                      ),
-                    ),
-                  ),
-                ),
+                            // color: Colors.red,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 90.0, top: 8),
+                                child: MyResizedContainer(
+                                  xlarge: 1.5,
+                                  large: 1.4,
+                                  medium: 1.7,
+                                  builder: (context, width){
+                                    return Builder(
+                                      builder: (context) {
+                                        return MouseRegion(
+                                          cursor: SystemMouseCursors.text,
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              print("MyAppBar MySearchField onTamp");
+                                                
+                                            },
+                                            child: MySearchField(
+                                              type: MySearchFieldType.manualHover,
+                                              hasFocusManual: false,
+                                              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                                              borderRadius: BorderRadius.circular(8),
+                                              iconPadding: EdgeInsets.only(left: 10, right: 16),
+                                              xlarge: 1.5,
+                                              large: 1.4,
+                                              medium: 1.7,
+                                        
+                                              
+                                              enabled: true,
+                                              // controller: _txtSearch,
+                                              hint: "Buscar clientes, bancas, loterias, entidades",
+                                              focusChanged: (focus){
+                                                // showMyOverlayEntry(
+                                                //   context: context, 
+                                                //   builder: (builder)
+                                                // );
+                                              },
+                                              onTap: (){
+                                                showMyOverlayEntry(
+                                                  context: context, 
+                                                  top: -50,
+                                                  builder: (context, overlay){
+                                                    return Container(
+                                                      width: width,
+                                                      child: MySearchField(
+                                                        autofocus: true,
+                                                        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        iconPadding: EdgeInsets.only(left: 10, right: 16),
+                                                        xlarge: 1,
+                                                        large: 1,
+                                                        medium: 1,
+                                                        enabled: true,
+                                                        hasFocusManual: true,
+                                                        // controller: _txtSearch,
+                                                        hint: "Buscar clientes, bancas, loterias, entidades",
+                                                        focusChanged: (focus){
+                                                          // showMyOverlayEntry(
+                                                          //   context: context, 
+                                                          //   builder: (builder)
+                                                          // );
+                                                        },
+                                                        onChanged: (data){
+                                                          
+                                                          print("MyAppBar buscarClientes changed: $data");
+                                                        },
+                                                      ),
+                                                    );
+                                                  }
+                                                );
+                                              },
+                                              onChanged: (data){
+                                                
+                                                print("MyAppBar buscarClientes changed: $data");
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    );
+                                  }
+                                ),
+                              ),
+                            ),
+                          )
+                        
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -686,10 +756,10 @@ myAppBar({bool cargando = false, BuildContext context, Function onTap}){
           
   }
 
-  
 
   return PreferredSize(
-    preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.081),
+    // preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.081),
+    preferredSize: Size.fromHeight(57),
     child: _titleWidget() 
     // AppBar(
     //   automaticallyImplyLeading: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? true : false,
