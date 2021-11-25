@@ -26,6 +26,7 @@ import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/pago.dart';
 import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
+import 'package:loterias/core/models/searchdata.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/stockjugada.dart';
 import 'package:loterias/core/models/ticket.dart';
@@ -42,12 +43,14 @@ import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
+import 'package:loterias/ui/widgets/mymultiselectdialog.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -109,6 +112,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   var _connectionNotify = ValueNotifier<bool>(false);
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _formLigarKey = GlobalKey<FormState>();
+  var _myMultiselectKey = GlobalKey<MyMultiSelectDialogState>();
   bool _jugadaOmonto = true;
   // var listaBanca = List<String>.generate(10, (i) => "Banca $i");
   List<Banca> listaBanca = List<Banca>.generate(1, (i) => Banca(descripcion: 'No hay bancas', id: 0));
@@ -2393,15 +2397,46 @@ Widget _bancasScreen(){
                                       
   }
 
-Widget _loteriasScreen([bool isSmallOrMedium = true]){
+Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, double width]){
     return Padding(
       padding: EdgeInsets.only(left: _isLargeAndWeb() ? 0 : 8.0, right: 8.0, top: _isLargeAndWeb() ? 5.0 : 0.0),
       child: GestureDetector(
         onTap: (){
+          if(isSmallOrMedium)
           _showMultiSelect(context);
+          else{
+            showMyOverlayEntry(
+              context: mContext, 
+              onClose: (){
+                var values = _myMultiselectKey.currentState.getValues();
+                // if(values != null){
+                //   setState(() => _selectedLoterias = []);
+                //   return;
+                // }
+                // if(values.length == 0){
+                //   setState(() => _selectedLoterias = []);
+                //   return;
+                // }
+
+                setState(() => _selectedLoterias = values);
+                print("PrincipalView _loteriasScreen showMyOverlayEntry: $values");
+              },
+              builder: (context, overlay){
+                return Container(
+                  width: width,
+                  child: MyMultiSelectDialog<Loteria>(
+                    key: _myMultiselectKey,
+                    type: MyMultiselectType.overlay,
+                    initialSelectedValues: _selectedLoterias != null ? _selectedLoterias : null,
+                    items: listaLoteria.map<MyMultiSelectDialogItem<Loteria>>((e) => MyMultiSelectDialogItem<Loteria>(e, _getLoteriaStream(e, isSmallOrMedium: isSmallOrMedium))).toList(),
+                  ),
+                );
+              }
+            );
+          }
         },
           child: Container(
-          width: MediaQuery.of(context).size.width,
+          width: !isSmallOrMedium ? width : MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height * 0.058,
           // padding: EdgeInsets.only(top: 13, bottom: 13),
           decoration: BoxDecoration(
@@ -3256,6 +3291,20 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
     // print("prueba alertdialog: $prueba");
   }
 
+  _appBarDuplicarTicket(SearchData searchData) async {
+    Map<String, dynamic> datos = await TicketService.duplicar(codigoBarra: searchData.title, context: context);
+
+    if(datos == null)
+      return;
+
+    if(datos.isEmpty)
+      return
+    
+    print("_showDialogDuplicar datos2: $datos");
+      await _duplicar(datos);
+    // print("prueba alertdialog: $prueba");
+  }
+
   _directoPaleTripletaScreen(double width, bool isSmallOrMedium){
     if(ScreenSize.isXLarge(width) || ScreenSize.isLarge(width))
       return Wrap(
@@ -3519,8 +3568,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
         isSliverAppBar: true,
         inicio: true,
         valueNotifyDrawer: valueNotifyDrawer,
+        appBarDuplicarTicket: _appBarDuplicarTicket,
         onDrawerChanged: (){
-          valueNotifyDrawer.value = !valueNotifyDrawer.value;
+          // valueNotifyDrawer.value = !valueNotifyDrawer.value;
         },
         // showDrawerOnSmallOrMedium: true,
         sliverBody: MySliver(
@@ -3591,7 +3641,16 @@ Widget _loteriasScreen([bool isSmallOrMedium = true]){
                               padding: const EdgeInsets.only(top: 19.0),
                               child: MyResizedContainer(xlarge: 14, large: 8, medium: 11, child: _ckbDescuentoScreen(isSmallOrMedium)),
                             ),
-                            MyResizedContainer(xlarge: 4,  child: _loteriasScreen(isSmallOrMedium)),
+                            MyResizedContainer(
+                              xlarge: 4,  
+                              builder: (context, width){
+                                return Builder(
+                                  builder: (context) {
+                                    return _loteriasScreen(isSmallOrMedium, context, width);
+                                  }
+                                );
+                              }
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
                               child: MyResizedContainer(xlarge: 8, large: 8, medium: 8, child: _jugadaTextField(isSmallOrMedium)),
@@ -4525,7 +4584,7 @@ void _getTime() {
     // return dateString;
   }
 
-  StreamBuilder _getLoteriaStream(Loteria loteria){
+  StreamBuilder _getLoteriaStream(Loteria loteria, {bool isSmallOrMedium = true}){
     
 
     return StreamBuilder(
@@ -4536,7 +4595,7 @@ void _getTime() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("${loteria.descripcion}"),
+            Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : null)),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             _getLoteriaRemainingTime(loteria)
           ],
@@ -4563,7 +4622,7 @@ void _getTime() {
           return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
 
         if(_selectedLoterias.length > 1 || _selectedLoterias.length == 0)
-          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
+          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),);
 
         return 
         isSmallOrMedium
@@ -4573,7 +4632,7 @@ void _getTime() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),
+            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toLowerCase(), style: TextStyle(color: _colorSegundary),),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             _getLoteriaRemainingTime(_selectedLoterias[0])
           ],
@@ -4584,7 +4643,7 @@ void _getTime() {
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),
+            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
@@ -5850,10 +5909,11 @@ void _getTime() {
   }
 
   _showSnackBar(String content){
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text(content),
-        action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
-      ));
+    Utils.showAlertDialog(context: context, content: content, title: "Error");
+    // _scaffoldKey.currentState.showSnackBar(SnackBar(
+    //     content: Text(content),
+    //     action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
+    //   ));
   }
 
   _seleccionarPrimeraLoteria({bool quitarSoloLoteriasCerradas = false}){

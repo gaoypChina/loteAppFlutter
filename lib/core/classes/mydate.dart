@@ -282,7 +282,11 @@ class MyDate {
   }
 
   static String dateRangeToNameOrString(DateTimeRange date){
-    var dateString = null;
+    var dateString;
+
+    if(date.start == null || date.end == null)
+      return '';
+      
     if(MyDate.isHoy(date.start, date.end))
       dateString = "Hoy";
     else if(MyDate.isAyer(date.start, date.end))

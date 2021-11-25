@@ -10,12 +10,18 @@ import 'dart:convert';
 
 
 class UsuarioService{
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, int idGrupo}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, int idGrupo, bool retornarUsuarios = false, bool retornarRoles = false, bool retornarPermisos = false, bool retornarGrupos = false, Usuario usuario}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
     map["idUsuario"] = await Db.idUsuario();
+    map["usuario"] = usuario != null ? usuario.toJson() : null;
     map["idGrupo"] = idGrupo;
+    map["retornarUsuarios"] = retornarUsuarios;
+    map["retornarRoles"] = retornarRoles;
+    map["retornarPermisos"] = retornarPermisos;
+    map["retornarGrupos"] = retornarGrupos;
+
     var jwt = await Utils.createJwt(map);
     var response = await http.get(Uri.parse(Utils.URL + "/api/usuarios/v2?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;

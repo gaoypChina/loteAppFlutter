@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/grupopermiso.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/rol.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
@@ -21,6 +23,7 @@ class RolScreen extends StatefulWidget {
 }
 
 class _RolScreenState extends State<RolScreen> {
+  ScrollController _scrollController;
   TipoUsuario tipoUsuario;
   bool cargando = false;
   TipoUsuario _tipoUsuarioDialog;
@@ -31,7 +34,7 @@ class _RolScreenState extends State<RolScreen> {
 
 
   _init(){
-    tipoUsuario = widget.tipoUsuario;
+    tipoUsuario = widget.tipoUsuario != null ? widget.tipoUsuario : widget.listaTipoUsuario[0];
     _tipoUsuarioDialog = tipoUsuario;
     listaGrupo = List.from(widget.listaGrupo);
     listaTipoUsuario = List.from(widget.listaTipoUsuario);
@@ -219,15 +222,29 @@ class _RolScreenState extends State<RolScreen> {
   }
 
 
+  Widget _screen(List<Widget> widgets){
+    return Scrollbar(controller: _scrollController, isAlwaysShown: true, child: SingleChildScrollView(controller: _scrollController, child: Wrap(children: widgets)));
+  }
+
+
   @override
   void initState() {
     // TODO: implement initState
+    _scrollController = ScrollController();
     _init();
     super.initState();
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     
             
         listaWidget = listaGrupo.map<Widget>((e) => _permissionScreen(e)).toList();
@@ -245,6 +262,13 @@ class _RolScreenState extends State<RolScreen> {
                 ),
               ),
             ],));
+
+    if(!isSmallOrMedium)
+      return MyAlertDialog(
+        title: "Roles", 
+        content: _screen(listaWidget), 
+        okFunction: _guardar
+      );
 
     return myScaffold(
       context: context, cargando: false, 

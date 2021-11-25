@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widget Function(BuildContext context, OverlayEntry overlayEntry) builder, double right, double left = 0, double top = 0}) {
+OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widget Function(BuildContext context, OverlayEntry overlayEntry) builder, double right, double left = 0, double top = 0, Function onClose}) {
 
     RenderBox renderBox = context.findRenderObject();
     var size = renderBox.size;
@@ -12,7 +12,12 @@ OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widge
         children: [
           Positioned.fill(
                 child: GestureDetector(
-                  onTap: (){print("Todaa la pantallaaaaaaaaaaaaaaaaaaa"); _removeOverlay(overlayEntry);},
+                  onTap: (){
+                    print("Todaa la pantallaaaaaaaaaaaaaaaaaaa");
+                    if(onClose != null)
+                      onClose();
+                    _removeOverlay(overlayEntry);
+                  },
                   child: Container(
                     color: Colors.transparent,
                   ),

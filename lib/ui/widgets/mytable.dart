@@ -176,7 +176,10 @@ class _MyTableState extends State<MyTable> {
     return (widget.customTotals != null) ? widget.customTotals : SizedBox();
   }
 
-  
+  _onTap(dynamic value){
+    if(widget.onTap != null)
+      widget.onTap(value);
+  }
 
   _myCustomRow(boxconstraint, index){
     var wrap = Wrap(
@@ -186,24 +189,28 @@ class _MyTableState extends State<MyTable> {
         ? 
         SizedBox.shrink() 
         : 
-        Container(
-          // padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
-          // color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,
-          width: boxconstraint.maxWidth / (widget.rows[index].length - 1), 
-          child: value is Widget 
-          ?  
-          Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value, color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
-          : 
-          value is MyTableCell
-          ?
-          Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value.child, color: value.color)
-          :
-          Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: Center(child: Text("$value")), color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
+        InkWell(
+          onTap: () => _onTap(widget.rows[index][0]),
+          child: Container(
+            // padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
+            // color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,
+            width: boxconstraint.maxWidth / (widget.rows[index].length - 1), 
+            child: value is Widget 
+            ?  
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value, color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
+            : 
+            value is MyTableCell
+            ?
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value.child, color: value.color)
+            :
+            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: Center(child: Text("$value")), color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
+          ),
         )
       )
       ).values.toList(),
     );
     wrap.children.add(Divider(height: 1,));
+
     return wrap;
   }
 
@@ -261,6 +268,7 @@ class _MyTableState extends State<MyTable> {
     )
     :
     Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DataTable(
           showCheckboxColumn: false,

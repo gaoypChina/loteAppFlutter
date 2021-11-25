@@ -315,7 +315,7 @@ class _HorariosScreenState extends State<HorariosScreen> {
         return;
 
       if(selectedLoteria.dias.indexWhere((element) => element.id == dia.id) == -1)
-        setState(() => selectedLoteria.dias.add(dia));
+        setState(() => selectedLoteria.dias.add(Dia(id: dia.id, descripcion: dia.descripcion, wday: dia.wday, created_at: dia.created_at, horaApertura: dia.horaApertura, horaCierre: dia.horaCierre, minutosExtras: dia.minutosExtras)));
     }else{
       if(selectedLoteria == null)
         return;

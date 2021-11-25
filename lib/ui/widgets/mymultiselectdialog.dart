@@ -2,6 +2,24 @@ import 'package:flutter/material.dart';
 
 //https://stackoverflow.com/questions/51975690/is-there-an-equivalent-widget-in-flutter-to-the-select-multiple-element-in-htm
 
+class MyMultiselectType {
+  const MyMultiselectType._(this.index);
+
+  /// The encoded integer value of this font weight.
+  final int index;
+
+  /// Thin, the least thick
+  static const MyMultiselectType dialog = MyMultiselectType._(0);
+
+  /// Extra-light
+  static const MyMultiselectType overlay = MyMultiselectType._(1);
+
+  /// A list of all the font weights.
+  static const List<MyMultiselectType> values = <MyMultiselectType>[
+    dialog, overlay
+  ];
+}
+
 class MyMultiSelectDialogItem<V> {
   const MyMultiSelectDialogItem(this.value, this.label, {this.unSelectOthersItems = false});
 
@@ -11,17 +29,18 @@ class MyMultiSelectDialogItem<V> {
 }
 
 class MyMultiSelectDialog<V> extends StatefulWidget {
-  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues}) : super(key: key);
+  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog}) : super(key: key);
 
   final List<MyMultiSelectDialogItem<V>> items;
-  final Set<V> initialSelectedValues;
+  final List<V> initialSelectedValues;
+  final MyMultiselectType type;
 
   @override
-  State<StatefulWidget> createState() => _MyMultiSelectDialogState<V>();
+  State<StatefulWidget> createState() => MyMultiSelectDialogState<V>();
 }
 
-class _MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
-  final _selectedValues = Set<V>();
+class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
+  final List<V> _selectedValues = [];
   bool _unSelectOthersItems = false;
   var _itemValueDoNotUnSelect = 0;
 
@@ -86,32 +105,50 @@ class _MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
     Navigator.pop(context, _selectedValues);
   }
 
+  Widget _dataScreen(){
+   return SingleChildScrollView(
+        child: ListTileTheme(
+          contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+          child: ListBody(
+            children: widget.items.map(_buildItem).toList(),
+          ),
+        ),
+      );
+  }
+
+  Widget _screen(){
+    return 
+    widget.type == MyMultiselectType.dialog
+    ?
+    AlertDialog(
+      title: Text('Select loterias'),
+      contentPadding: EdgeInsets.only(top: 12.0),
+      content: _dataScreen(),
+      actions: <Widget>[
+        TextButton(
+          child: Text('CANCEL'),
+          onPressed: _onCancelTap,
+        ),
+        TextButton(
+          child: Text('OK'),
+          onPressed: _onSubmitTap,
+        )
+      ],
+    )
+    :
+    _dataScreen()
+    ;
+  }
+
+  List<V> getValues(){
+    return _selectedValues;
+  }
+
   @override
   Widget build(BuildContext context) {
     return StatefulBuilder(
       builder: (context, setState) {
-        return AlertDialog(
-          title: Text('Select loterias'),
-          contentPadding: EdgeInsets.only(top: 12.0),
-          content: SingleChildScrollView(
-            child: ListTileTheme(
-              contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-              child: ListBody(
-                children: widget.items.map(_buildItem).toList(),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('CANCEL'),
-              onPressed: _onCancelTap,
-            ),
-            FlatButton(
-              child: Text('OK'),
-              onPressed: _onSubmitTap,
-            )
-          ],
-        );
+        return _screen();
       }
     );
   }

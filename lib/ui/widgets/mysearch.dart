@@ -55,7 +55,16 @@ class MySearchField extends StatefulWidget {
   final MySearchFieldType type;
   final bool hasFocusManual;
   final bool autofocus;
-  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.contentPadding = const EdgeInsets.only(top: 15, bottom: 15), this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.enabled = true, this.onTap, this.focusChanged, this.type = MySearchFieldType.automaticHover, this.hasFocusManual = false, this.autofocus = false}) : super(key: key);
+  final List<BoxShadow> boxShadow;
+  MySearchField({Key key, this.title = "", this.labelText = "", this.controller, this.focusNode, this.onSelected, this.onChanged, this.hint, this.maxLines = 1, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.all(2.5), this.borderRadius, this.iconPadding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.contentPadding = const EdgeInsets.only(top: 15, bottom: 15), this.showOnlyOnSmall = false, this.showOnlyOnLarge = false, this.enabled = true, this.onTap, this.focusChanged, this.type = MySearchFieldType.automaticHover, this.hasFocusManual = false, this.autofocus = false, 
+      this.boxShadow = const [
+                          BoxShadow(
+                            color: Colors.grey,
+                            // spreadRadius: 2,
+                            blurRadius: 2,
+                            offset: Offset(0, 1.0), // changes position of shadow
+                          ),
+                        ]}) : super(key: key);
   @override
   _MySearchFieldState createState() => _MySearchFieldState();
 }
@@ -166,14 +175,15 @@ class _MySearchFieldState extends State<MySearchField> {
                         borderRadius: _borderRadius,
                         // BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
                         // border: Border.all(color: Colors.grey, width: 1, style: BorderStyle.solid),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            // spreadRadius: 2,
-                            blurRadius: 2,
-                            offset: Offset(0, 1.0), // changes position of shadow
-                          ),
-                        ],
+                        boxShadow: widget.boxShadow
+                        // [
+                        //   BoxShadow(
+                        //     color: Colors.grey,
+                        //     // spreadRadius: 2,
+                        //     blurRadius: 2,
+                        //     offset: Offset(0, 0.0), // changes position of shadow
+                        //   ),
+                        // ],
                       )
                       :
                       BoxDecoration(

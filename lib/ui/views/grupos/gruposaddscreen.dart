@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/services/gruposservice.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycolor.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
@@ -14,8 +15,8 @@ import 'package:loterias/ui/widgets/mytringle.dart';
 
 
 class GruposAddScreen extends StatefulWidget {
-  final Grupo grupo;
-  GruposAddScreen({Key key, this.grupo}) : super(key: key);
+  final Grupo data;
+  GruposAddScreen({Key key, this.data}) : super(key: key);
   @override
   _GruposAddScreenState createState() => _GruposAddScreenState();
 }
@@ -28,8 +29,9 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
   bool _status = true;
   Grupo grupo;
 
-  _init(){
-    grupo = widget.grupo;
+  _init() async {
+    var parsed = await GrupoService.index(context: context, data: widget.data);
+    grupo = widget.data;
     _txtDescripcion.text = (grupo != null) ? grupo.descripcion : '';
     _txtCodigo.text = (grupo != null) ? grupo.codigo : '';
     _status = (grupo != null) ? grupo.status == 1 ? true : false : true;
@@ -72,7 +74,7 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
       
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: MyDropdown(title: "Estado", isSideTitle: true, xlarge: 1.6, elements: [[true, "Activo"], [false, "Desactivado"]], onTap: _statusChanged,),
+        child: MyDropdown(title: "Estado", isSideTitle: true, xlarge: 1.6, large: 1.37, medium: 1.37, hint: "${_status ? 'Activo' : 'Desactivado'}", elements: [[true, "Activo"], [false, "Desactivado"]], onTap: _statusChanged,),
       );
     }
 
@@ -81,19 +83,19 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
     }
 
     _bancasScreen(bool isSmallOrMedium){
-      if(widget.grupo == null)
+      if(widget.data == null)
         return SizedBox();
 
-      if(widget.grupo.bancas == null)
+      if(widget.data.bancas == null)
         return SizedBox();
 
-      if(widget.grupo.bancas.length == 0)
+      if(widget.data.bancas.length == 0)
         return SizedBox();
 
       if(isSmallOrMedium)
         return ListTile(
           leading: Icon(Icons.ballot),
-          title: Text(widget.grupo.bancas.map((e) => e.descripcion).join(", ")),
+          title: Text(widget.data.bancas.map((e) => e.descripcion).join(", ")),
           onTap: () async {
             // var sorteosRetornados = await showDialog(
             //   context: context, 
@@ -137,6 +139,66 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
 
 
 
+  _screen(bool isSmallOrMedium){
+    return Form(
+      key: _formKey,
+      child: Wrap(
+        children: [
+          // MySubtitle(title: "Datos", showOnlyOnLarge: true,),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+            child: MyTextFormField(
+              autofocus: true,
+              leading: isSmallOrMedium ? SizedBox.shrink() : null,
+              isSideTitle: isSmallOrMedium ? false : true,
+              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+              fontSize: isSmallOrMedium ? 28 : null,
+              controller: _txtDescripcion,
+              title: !isSmallOrMedium ? "Grupo" : "",
+              hint: "Agregar grupo",
+              medium: 1,
+              xlarge: 1.6,
+              isRequired: true,
+              
+            ),
+          ),
+          MyDivider(showOnlyOnSmall: true,),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+            child: MyTextFormField(
+              leading: isSmallOrMedium ? Icon(Icons.code, color: Colors.black.withOpacity(0.7),) : null,
+              isSideTitle: isSmallOrMedium ? false : true,
+              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+              controller: _txtCodigo,
+              title: !isSmallOrMedium ? "Codigo" : "",
+              hint: "Codigo",
+              medium: 1,
+              xlarge: 1.6,
+              isRequired: true,
+              
+            ),
+          ),
+          MyDivider(showOnlyOnSmall: true,),
+          _statusScreen(isSmallOrMedium),
+          MyDivider(showOnlyOnSmall: true,),
+          _bancasScreen(isSmallOrMedium)
+          // MyDropdown(
+          //   title: "Estado",
+          //   medium: 1,
+          //   hint: "${_status == 1 ? 'Activado' : 'Desactivado'}",
+          //   elements: [["Activado", "Activado"], ["Desactivado", "Desactivado"]],
+          //   onTap: (data){
+          //     setState(() => _status = (data == 'Activado') ? 1 : 0);
+          //   },
+          // )
+        ],
+      ),
+    );
+              
+  }
+
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -148,6 +210,15 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+
+    if(!isSmallOrMedium)
+      return MyAlertDialog(
+        title: "Agregar grupo", 
+        content: _screen(isSmallOrMedium), 
+        okFunction: _guardar,
+        cargandoNotify: _cargandoNotify,
+      );
+
     return myScaffold(
       context: context,
       inicio: true,
@@ -169,60 +240,7 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
         sliver: 
 
             SliverList(delegate: SliverChildListDelegate([
-              Form(
-                key: _formKey,
-                child: Wrap(
-                  children: [
-                    MySubtitle(title: "Datos", showOnlyOnLarge: true,),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                      child: MyTextFormField(
-                        leading: isSmallOrMedium ? SizedBox.shrink() : null,
-                        isSideTitle: isSmallOrMedium ? false : true,
-                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                        fontSize: isSmallOrMedium ? 28 : null,
-                        controller: _txtDescripcion,
-                        title: !isSmallOrMedium ? "Grupo" : "",
-                        hint: "Agregar grupo",
-                        medium: 1,
-                        xlarge: 1.6,
-                        isRequired: true,
-                        
-                      ),
-                    ),
-                    MyDivider(showOnlyOnSmall: true,),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                      child: MyTextFormField(
-                        leading: isSmallOrMedium ? Icon(Icons.code, color: Colors.black.withOpacity(0.7),) : null,
-                        isSideTitle: isSmallOrMedium ? false : true,
-                        type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                        controller: _txtCodigo,
-                        title: !isSmallOrMedium ? "Codigo" : "",
-                        hint: "Codigo",
-                        medium: 1,
-                        xlarge: 1.6,
-                        isRequired: true,
-                        
-                      ),
-                    ),
-                    MyDivider(showOnlyOnSmall: true,),
-                    _statusScreen(isSmallOrMedium),
-                    MyDivider(showOnlyOnSmall: true,),
-                    _bancasScreen(isSmallOrMedium)
-                    // MyDropdown(
-                    //   title: "Estado",
-                    //   medium: 1,
-                    //   hint: "${_status == 1 ? 'Activado' : 'Desactivado'}",
-                    //   elements: [["Activado", "Activado"], ["Desactivado", "Desactivado"]],
-                    //   onTap: (data){
-                    //     setState(() => _status = (data == 'Activado') ? 1 : 0);
-                    //   },
-                    // )
-                  ],
-                ),
-              ), 
-              
+              _screen(isSmallOrMedium)
             ]))
          
       )

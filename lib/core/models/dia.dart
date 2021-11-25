@@ -12,7 +12,7 @@ class Dia{
    int minutosExtras;
 
 
-  Dia({this.id, this.descripcion, this.wday, this.created_at, this.horaApertura, this.horaCierre});
+  Dia({this.id, this.descripcion, this.wday, this.created_at, this.horaApertura, this.horaCierre, this.minutosExtras});
 
   Dia.fromMap(Map snapshot) :
         id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,

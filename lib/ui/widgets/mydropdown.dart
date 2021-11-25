@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/widgets/mycolor.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 
 import 'myresizecontainer.dart';
 import 'myscrollbar.dart';
@@ -68,7 +69,7 @@ class _MyDropdownState extends State<MyDropdown> {
             Radius.circular(8.0),
           ),
           elevation: 6,
-          child: _dropdownItemScreen(),
+          child: _dropdownItemScreen(_overlayEntry, 0),
         )
         //  Material(
         //   elevation: 4.0,
@@ -89,22 +90,25 @@ class _MyDropdownState extends State<MyDropdown> {
     );
   }
 
-  _dropdownItemScreen(){
+  _dropdownItemScreen(OverlayEntry overlay, double width){
     return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      // borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-      // border: Border.all(color: Colors.grey, width: 1, style: BorderStyle.solid),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey[50],
-          // spreadRadius: 2,
-          blurRadius: 2,
-          offset: Offset(0, 2.0), // changes position of shadow
-        ),
-      ],
-    ),
+      width: width,
+      // height: 80,
+      constraints: BoxConstraints(maxHeight: 500),
+    // decoration: BoxDecoration(
+    //   color: Colors.white,
+    //   // borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+    //   borderRadius: BorderRadius.all(Radius.circular(8)),
+    //   // border: Border.all(color: Colors.grey, width: 1, style: BorderStyle.solid),
+    //   boxShadow: [
+    //     BoxShadow(
+    //       color: Colors.grey[50],
+    //       // spreadRadius: 2,
+    //       blurRadius: 2,
+    //       offset: Offset(0, 2.0), // changes position of shadow
+    //     ),
+    //   ],
+    // ),
     child: 
     
     MyScrollbar(
@@ -116,7 +120,7 @@ class _MyDropdownState extends State<MyDropdown> {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: InkWell(
-              onTap: (){_selectDataAndClose(firstDataToReturnOnChanged, e[1]);},
+              onTap: (){_selectDataAndClose(firstDataToReturnOnChanged, e[1], overlay);},
               child: Row(
                 children: [
                   Expanded(child: Padding(
@@ -134,22 +138,48 @@ class _MyDropdownState extends State<MyDropdown> {
   }
 
   
-  _selectDataAndClose(dynamic data, String hintData){
-    if(this._overlayEntry != null){
-      this._overlayEntry.remove();
-      this._overlayEntry = null;
-    }
+  _selectDataAndClose(dynamic data, String hintData, OverlayEntry overlay){
+    // if(this._overlayEntry != null){
+    //   this._overlayEntry.remove();
+    //   this._overlayEntry = null;
+    // }
+    overlay.remove();
     setState(() => hint = hintData);
     widget.onTap(data);
   }
 
-  textChanged() async {
+  textChanged(BuildContext context, double width) async {
     // print("textChanged ${data.isEmpty} ${this._overlayEntry == null}");
-        if(this._overlayEntry == null){
-          this._overlayEntry = this._createOverlayEntry2();
-          Overlay.of(context).insert(this._overlayEntry);
-          // List<String> resultados = lista.where((element) => element.toLowerCase().indexOf(data) != -1).toList();
+
+        // if(this._overlayEntry == null){
+        //   this._overlayEntry = this._createOverlayEntry2();
+        //   Overlay.of(context).insert(this._overlayEntry);
+        //   // List<String> resultados = lista.where((element) => element.toLowerCase().indexOf(data) != -1).toList();
+        // }
+
+        double topPosition = 80;
+        double heightOfAnElement = 32;
+        //Add 10 additional to heightOfAnElement
+        // heightOfAnElement += 10;
+        if(widget.elements != null){
+          if(widget.elements.length >= 3){
+            double heightOfAllElements = heightOfAnElement * widget.elements.length;
+            double half = heightOfAllElements / 2;
+            topPosition = topPosition + half;
+          }
         }
+
+        //Convert topPosition to negative
+        topPosition = topPosition * -1;
+
+        showMyOverlayEntry(
+          context: context, 
+          top: topPosition,
+          builder: (context, overlay){
+            return _dropdownItemScreen(overlay, width);
+          }
+        );
+
     // setState(() => _tieneFoco = _myFocus.hasFocus);
   }
 
@@ -209,20 +239,28 @@ class _MyDropdownState extends State<MyDropdown> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Visibility(visible: widget.title != null, child: Text("${(widget.title == null) ? '' : widget.title}", style: TextStyle(fontFamily: "GoogleSans"),)),
-          InkWell(
-            onTap: (){
-              if(widget.elements == null && widget.enabled)
-                widget.onTap();
-              else{
-                print("Mydropdown inside Inkwell");
-                textChanged();
-              }
-            },
-            child: Container(
-              padding: widget.padding,
-              decoration: _getDecoration(),
-              child: _getContentRow(),
-            ),
+          LayoutBuilder(
+            builder: (context, boxConstraints) {
+              return Builder(
+                builder: (context) {
+                  return InkWell(
+                    onTap: (){
+                      if(widget.elements == null && widget.enabled)
+                        widget.onTap();
+                      else{
+                        print("Mydropdown inside Inkwell");
+                        textChanged(context, boxConstraints.maxWidth);
+                      }
+                    },
+                    child: Container(
+                      padding: widget.padding,
+                      decoration: _getDecoration(),
+                      child: _getContentRow(),
+                    ),
+                  );
+                }
+              );
+            }
           ),
         ],
       ),
@@ -252,36 +290,40 @@ class _MyDropdownState extends State<MyDropdown> {
                   ),
             Container(
               width: widthOfTheWidget / widget.flexOfSideField,
-              child: InkWell(
-                onTap: (){
-                  if(widget.elements == null && widget.enabled)
-                    widget.onTap();
-                  else{
-                    print("Mydropdown inside Inkwell");
-                    textChanged();
-                  }
-                },
-                child:
-                widget.helperText == null
-                ? 
-                Container(
-                  padding: widget.padding,
-                  decoration: _getDecoration(),
-                  child: 
-                  _getContentRow()
-                )
-                :
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: Builder(
+                builder: (context) {
+                  return InkWell(
+                    onTap: (){
+                      if(widget.elements == null && widget.enabled)
+                        widget.onTap();
+                      else{
+                        print("Mydropdown inside Inkwell");
+                        textChanged(context, widthOfTheWidget / widget.flexOfSideField);
+                      }
+                    },
+                    child:
+                    widget.helperText == null
+                    ? 
                     Container(
                       padding: widget.padding,
                       decoration: _getDecoration(),
-                      child: _getContentRow()
+                      child: 
+                      _getContentRow()
+                    )
+                    :
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: widget.padding,
+                          decoration: _getDecoration(),
+                          child: _getContentRow()
+                        ),
+                        Text(widget.helperText, style: TextStyle(fontSize: 13),)
+                      ],
                     ),
-                    Text(widget.helperText, style: TextStyle(fontSize: 13),)
-                  ],
-                ),
+                  );
+                }
               ),
             ),
           ],

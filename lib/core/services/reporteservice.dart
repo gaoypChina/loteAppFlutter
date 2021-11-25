@@ -280,4 +280,46 @@ class ReporteService{
     return parsed;
   }
 
+  static Future<Map<String, dynamic>> search({BuildContext context, scaffoldKey, String search, int idUsuario, int idGrupo, int idBanca}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
+
+    map["search"] = search;
+    map["idUsuario"] = idUsuario;
+    map["idGrupo"] = idGrupo;
+    map["idBanca"] = idBanca;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService search: ${map.toString()}");
+    // return listaBanca;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/search"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService historico: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      // else
+      //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+
 }

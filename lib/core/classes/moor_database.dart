@@ -38,6 +38,7 @@ class Permissions extends Table{
 
 class Users extends Table{
   IntColumn get id => integer()();
+  TextColumn get nombres => text()();
   TextColumn get usuario => text()();
   TextColumn get servidor => text()();
   DateTimeColumn get created_at => dateTime().nullable()();

@@ -42,6 +42,7 @@ import 'package:loterias/ui/views/reportes/ventasporfechascreen.dart';
 import 'package:loterias/ui/views/transaccion/add.dart';
 import 'package:loterias/ui/views/transaccion/transacciones.dart';
 import 'package:loterias/ui/views/usuarios/sesionesscreen.dart';
+import 'package:loterias/ui/views/usuarios/usuariosaddscreen.dart';
 import 'package:loterias/ui/views/usuarios/usuariosscreen.dart';
 
 import 'views/monedas/monedasaddscreen.dart';
@@ -144,13 +145,39 @@ class MyRouter {
             builder: (_)=> GrupoScreen()
           ) ;
         case '/grupos/agregar' :
-          return MaterialPageRoute(
-            builder: (_)=> GruposAddScreen(grupo: settings.arguments,)
-          ) ;
+        return PageRouteBuilder(
+            barrierDismissible: true,
+            opaque: false,
+            pageBuilder: (_, anim1, anim2) =>
+            FadeTransition(
+              opacity: anim1,
+              child: GruposAddScreen(
+                data: settings.arguments, 
+              ),
+            ),
+          );
+          // return MaterialPageRoute(
+          //   builder: (_)=> GruposAddScreen(data: settings.arguments,)
+          // ) ;
         case '/usuarios' :
           return MaterialPageRoute(
             builder: (_)=> UsuarioScreen()
           ) ;
+        case '/usuarios/agregar' :
+        return PageRouteBuilder(
+            barrierDismissible: true,
+            opaque: false,
+            pageBuilder: (_, anim1, anim2) =>
+            FadeTransition(
+              opacity: anim1,
+              child: UsuarioAddScreen(
+                usuario: settings.arguments, 
+              ),
+            ),
+          );
+          // return MaterialPageRoute(
+          //   builder: (_)=> UsuarioScreen()
+          // ) ;
         case '/sesiones' :
           return MaterialPageRoute(
             builder: (_)=> SesionesScreen()

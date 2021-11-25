@@ -16,7 +16,7 @@ class MyMultiselect<T> extends StatefulWidget {
 }
 
 class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
-  List<MyValue<T>> _selectedItems = [];
+  // List<MyValue<T>> widget.initialSelectedItems = [];
 
   _title(dynamic data){
     print("MyMultiSelect $data");
@@ -29,29 +29,29 @@ class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
   _onChanged(bool value, MyValue<T> data){
     print("MyMultiSelect onChanged: ${data.runtimeType}");
     if(value == false){
-      if(_selectedItems.length == 0)
+      if(widget.initialSelectedItems.length == 0)
         return;
 
-      setState(() => _selectedItems.removeWhere((element) => element.value == data.value));
+      setState(() => widget.initialSelectedItems.removeWhere((element) => element.value == data.value));
     }else{
-      if(_selectedItems.firstWhere((element) => element.value == data.value, orElse: () => null) == null)
-        setState(() => _selectedItems.add(data));
+      if(widget.initialSelectedItems.firstWhere((element) => element.value == data.value, orElse: () => null) == null)
+        setState(() => widget.initialSelectedItems.add(data));
     }
   }
 
   _selected(dynamic value){
-    if(_selectedItems.length == 0)
+    if(widget.initialSelectedItems.length == 0)
       return false;
 
-    print("MyMultiSelect length: ${_selectedItems.length} _selected ${value.descripcion}: ${_selectedItems.firstWhere((element) => element.value == value, orElse: () => null) != null}");
-    return _selectedItems.firstWhere((element) => element.value == value, orElse: () => null) != null;
+    print("MyMultiSelect length: ${widget.initialSelectedItems.length} _selected ${value.descripcion}: ${widget.initialSelectedItems.firstWhere((element) => element.value == value, orElse: () => null) != null}");
+    return widget.initialSelectedItems.firstWhere((element) => element.value == value, orElse: () => null) != null;
   }
 
   @override
   void initState() {
     // TODO: implement initState
-    if(widget.initialSelectedItems.length > 0)
-      _selectedItems = widget.initialSelectedItems;
+    // if(widget.initialSelectedItems.length > 0)
+    //   widget.initialSelectedItems = widget.initialSelectedItems;
       
     super.initState();
   }
@@ -63,17 +63,24 @@ class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
     if(widget.items.length == 0)
       return;
 
-    setState(() => _selectedItems = widget.items);
+    
+
+    setState((){
+      for (var item in widget.items) {
+        if(widget.initialSelectedItems.firstWhere((element) => element == item, orElse: () => null) == null)
+          widget.initialSelectedItems.add(item);
+      }
+    });
   }
 
   _limpiar(){
-    setState(() => _selectedItems = []);
+    setState(() => widget.initialSelectedItems.clear());
   }
 
   _back(){
-    var lista = _selectedItems != null ? _selectedItems.map<T>((e) => e.value).toList() : [];
-    print("MyMultiSelect _back runtimeType: ${_selectedItems.runtimeType}");
-    Navigator.pop<List<T>>(context, _selectedItems.map<T>((e) => e.value).toList());
+    var lista = widget.initialSelectedItems != null ? widget.initialSelectedItems.map<T>((e) => e.value).toList() : [];
+    print("MyMultiSelect _back runtimeType: ${widget.initialSelectedItems.runtimeType}");
+    Navigator.pop<List<T>>(context, widget.initialSelectedItems.map<T>((e) => e.value).toList());
   }
 
 

@@ -39,10 +39,16 @@ class _GrupoScreenState extends State<GrupoScreen> {
   String _selectedOpcion;
   
   _init() async {
-    var parsed = await GrupoService.index(context: context);
-    listaData = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
-    _streamController.add(listaData);
-    print("GrupoScreen _init: $parsed");
+    try {
+      var parsed = await GrupoService.index(context: context, retornarGrupos: true);
+      print("GruposService _init $parsed");
+      listaData = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
+      _streamController.add(listaData);
+      print("GrupoScreen _init: $parsed");
+    } on Exception catch (e) {
+      _streamController.add([]);
+      // TODO
+    }
   }
 
   _guardar(){
@@ -78,7 +84,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
     }
   }
 
-  _showDialogGuardar({Grupo data}) async {
+  _addOrUpdate({Grupo data}) async {
     var data2 = await Navigator.pushNamed(context, "/grupos/agregar", arguments: data);
     return;
     if(data == null)
@@ -137,7 +143,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
                   data.codigo = _txtCodigo.text;
                   setState(() => cargando = true);
                   var parsed = await GrupoService.guardar(context: context, grupo: data);
-                  print("_showDialogGuardar parsed: $parsed");
+                  print("_addOrUpdate parsed: $parsed");
                   if(parsed["grupo"] != null)
                     _addDataToList(Grupo.fromMap(parsed["grupo"]));
                   
@@ -145,7 +151,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
                   Navigator.pop(context);
 
                 } on Exception catch (e) {
-                  print("_showDialogGuardar _erroor: $e");
+                  print("_addOrUpdate _erroor: $e");
                   setState(() => cargando = false);
                 }
               }
@@ -253,6 +259,17 @@ class _GrupoScreenState extends State<GrupoScreen> {
     );
   }
 
+  _bancas(Grupo data){
+    String bancas = "-";
+    if(data == null)
+      return bancas;
+    if(data.bancas.length == 0)
+      return "-";
+
+    bancas = data.bancas.map((e) => e.descripcion).toList().join(", ");
+    return bancas.length <= 40 ? bancas : bancas.substring(0, 40);
+  }
+
   _dataScreen(AsyncSnapshot<List<Grupo>> snapshot, bool isSmallOrMedium){
     if(isSmallOrMedium){
       return SingleChildScrollView(
@@ -272,22 +289,29 @@ class _GrupoScreenState extends State<GrupoScreen> {
                 )
               ],
             ),
-            onTap: (){_showDialogGuardar(data: e);},
+            onTap: (){_addOrUpdate(data: e);},
             trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )).toList(),
         ),
       );
     }
-    return MyTable(
-      columns: ["Grupo", "Codigo", "Activo"], 
-      rows: snapshot.data.map((e) => [e, "${e.descripcion}", "${e.codigo}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
-      isScrolled: false,
-      onTap: (data){
-        _showDialogGuardar(data: data);
-      },
-      delete: (data){
-        _showDialogEliminar(data: data);
-      },
+    return Row(
+      children: [
+        Expanded(
+          child: MyTable(
+            columns: ["Grupo", "Codigo", "Bancas", "Activo"], 
+            rows: snapshot.data.map((e) => [e, "${e.descripcion}", "${e.codigo}", "${_bancas(e)}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
+            isScrolled: false,
+            
+            onTap: (data){
+              _addOrUpdate(data: data);
+            },
+            delete: (data){
+              _showDialogEliminar(data: data);
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -312,7 +336,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
         if(data == null)
           return;
   
-        _showDialogGuardar(data: data);
+        _addOrUpdate(data: data);
       },
       child: MySearchField(
         controller: _txtSearch, 
@@ -359,15 +383,16 @@ class _GrupoScreenState extends State<GrupoScreen> {
       isSliverAppBar: true,
       cargandoNotify: null,
       inicio: true,
-      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _showDialogGuardar,) : null,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _addOrUpdate,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           expandedHeight: isSmallOrMedium ? 105 : 85,
           title: "Grupos",
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
-            // MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar),
-            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
+            // MySliverButton(title: "Guardar", iconWhenSmallScreen: Icons.save, onTap: _addOrUpdate),
+            MySliverButton(title: "", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _addOrUpdate, showOnlyOnLarge: true,),
 
           ],
         ),
@@ -384,7 +409,7 @@ class _GrupoScreenState extends State<GrupoScreen> {
             if(snapshot.data.length == 0 && listaData.length == 0)
               return SliverFillRemaining(
                 child: Center(
-                    child: MyEmpty(title: "No hay grupos; registre nuevos grupos", icon: Icons.group_work_outlined, titleButton: "Crear nuevo grupo", onTap: _showDialogGuardar,)
+                    child: MyEmpty(title: "No hay grupos; registre nuevos grupos", icon: Icons.group_work_outlined, titleButton: "Crear nuevo grupo", onTap: _addOrUpdate,)
                   ),
               );
 

@@ -3,6 +3,7 @@ import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/pago.dart';
+import 'package:loterias/core/models/searchdata.dart';
 import 'package:loterias/main.dart';
 import 'package:loterias/ui/widgets/mydrawer.dart';
 
@@ -11,7 +12,7 @@ import 'mybottom.dart';
 import 'mybutton.dart';
 
 
-myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged}){
+myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged, ValueChanged<SearchData> appBarDuplicarTicket}){
   Widget widget = SizedBox();
   var _defaultValueNotifyDrawer = ValueNotifier(DRAWER_IS_OPEN);
   var _valueNotifierAppBarPago = ValueNotifier<dynamic>(null);
@@ -262,7 +263,8 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
           ) 
           :
           null
-          : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
+          // : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
+          : MyAppBar(cargando: cargando, onTap: _onMenuTap, appBarDuplicarTicket: appBarDuplicarTicket,),
           body: (myNestedScrollBar != null) ? myNestedScrollBar : widget,
           bottomNavigationBar:  myBottomWidget(context: context, onTap: bottomTap, text: textBottom, cargando: cargandoNotify),
           floatingActionButton: floatingActionButton,

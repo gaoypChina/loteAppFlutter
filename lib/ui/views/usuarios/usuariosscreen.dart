@@ -69,7 +69,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
 
   _init() async {
     _idGrupoDeEsteUsuario = await Db.idGrupo();
-    var parsed = await UsuarioService.index(context: context, idGrupo: _idGrupoDeEsteUsuario);
+    var parsed = await UsuarioService.index(context: context, idGrupo: _idGrupoDeEsteUsuario, retornarUsuarios: true);
     print("UsuariosScreen _init parsed: $parsed");
     listaData = (parsed["usuarios"] != null) ? parsed["usuarios"].map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
@@ -149,7 +149,12 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
      Usuario usuario = data;
      if(Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){
        Usuario returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
-         return UsuarioAddScreen(usuario: data, listaGrupo: listaGrupo, listaTipoUsuario: listaTipoUsuario, listaPermiso: listaPermiso,);
+         return UsuarioAddScreen(
+           usuario: data, 
+          //  listaGrupo: listaGrupo, 
+          //  listaTipoUsuario: listaTipoUsuario, 
+          //  listaPermiso: listaPermiso,
+          );
        }));
 
        if(returnedUser == null)
@@ -164,6 +169,31 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
         _streamController.add(listaData);
 
        return;
+     }else{
+      //  Usuario returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
+      //    return UsuarioAddScreen(usuario: data, listaGrupo: listaGrupo, listaTipoUsuario: listaTipoUsuario, listaPermiso: listaPermiso,);
+      //  }));
+
+       await Navigator.push(
+          context,
+          PageRouteBuilder(
+            barrierDismissible: true,
+            opaque: false,
+            pageBuilder: (_, anim1, anim2) =>
+                FadeTransition(
+              opacity: anim1,
+              child: UsuarioAddScreen(
+                usuario: data, 
+                // listaGrupo: listaGrupo, 
+                // listaTipoUsuario: listaTipoUsuario, 
+                // listaPermiso: listaPermiso,
+              ),
+            ),
+
+          ),
+        );
+
+        return;
      }
     if(usuario == null)
       usuario = Usuario();

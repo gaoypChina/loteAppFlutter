@@ -27,11 +27,11 @@ import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:rxdart/rxdart.dart';
 
 class UsuarioAddScreen extends StatefulWidget {
-  final List<Grupo> listaGrupo;
-  final List<TipoUsuario> listaTipoUsuario;
-  final List<Permiso> listaPermiso;
+  // final List<Grupo> listaGrupo;
+  // final List<TipoUsuario> listaTipoUsuario;
+  // final List<Permiso> listaPermiso;
   final Usuario usuario;
-  UsuarioAddScreen({Key key, this.usuario, this.listaGrupo, this.listaTipoUsuario, this.listaPermiso}) : super(key: key);
+  UsuarioAddScreen({Key key, this.usuario}) : super(key: key);
   @override
   _UsuarioAddScreenState createState() => _UsuarioAddScreenState();
 }
@@ -61,19 +61,25 @@ StreamController<List<Usuario>> _streamController;
   bool _cargando = false;
   bool _status = true;
   bool _showConfirmarPassword = false;
+  Future _future;
 
 
 
   _init() async {
     // _streamControllerFoto.add(Utils.getWidgetUploadFoto(usuario != null ? usuario : Usuario(), size: 80.0));
     _streamControllerFoto.add(Utils.getWidgetUploadFoto(usuario != null ? usuario : Usuario(), size: 100.0));
-    usuario = widget.usuario;
-    listaGrupo = widget.listaGrupo;
+    var parsed = await UsuarioService.index(context: context, retornarGrupos: true, retornarPermisos: true, retornarRoles: true, usuario: widget.usuario);
+    print("UsuariosAddScreen ${parsed['data']}");
+    // usuario = widget.usuario;
+    usuario = parsed["data"] != null ? Usuario.fromMap(parsed["data"]) : null;
+    listaGrupo = parsed["grupos"] != null ? parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList() : [];
     if(listaGrupo.length > 0)
       listaGrupo.insert(0, Grupo(id: 0, descripcion: "Ninguno"));
 
-    listaTipoUsuario = widget.listaTipoUsuario;
-    listaPermiso = widget.listaPermiso;
+    // listaTipoUsuario = widget.listaTipoUsuario;
+    // listaPermiso = widget.listaPermiso;
+    listaTipoUsuario = parsed["usuariosTipos"] != null ? parsed["usuariosTipos"].map<TipoUsuario>((e) => TipoUsuario.fromMap(e)).toList() : [];
+    listaPermiso = parsed["permisos"] != null ? parsed["permisos"].map<Permiso>((e) => Permiso.fromMap(e)).toList() : [];
     _setAllFields();
     _fillEntityList();
 
@@ -423,9 +429,27 @@ StreamController<List<Usuario>> _streamController;
   }
 
             
-  _seleccionarRolYPermisosAdicionales() async {
+  _seleccionarRolYPermisosAdicionales(bool isSmallOrMedium) async {
     // var tipoUsuario = await _showDialog(tipoUsuario: _tipoUsuario, permisos: permisos);
-    var tipoUsuario = await Navigator.push(context, MaterialPageRoute(builder: (context) => RolScreen(tipoUsuario: _tipoUsuario, permisos: permisos, listaGrupo: listaGrupoPermiso, listaTipoUsuario: listaTipoUsuario,)));
+    
+    var tipoUsuario = isSmallOrMedium 
+        ?
+        await Navigator.push(context, MaterialPageRoute(builder: (context) => RolScreen(tipoUsuario: _tipoUsuario, permisos: permisos, listaGrupo: listaGrupoPermiso, listaTipoUsuario: listaTipoUsuario,)))
+        :
+        await Navigator.push(
+          context,
+          PageRouteBuilder(
+            barrierDismissible: true,
+            opaque: false,
+            pageBuilder: (_, anim1, anim2) =>
+                FadeTransition(
+              opacity: anim1,
+              child: RolScreen(tipoUsuario: _tipoUsuario, permisos: permisos, listaGrupo: listaGrupoPermiso, listaTipoUsuario: listaTipoUsuario,),
+            ),
+
+          ),
+        );
+
     print("_seleccionarRolYPermisosAdicionales: ${tipoUsuario}");
     if(tipoUsuario == null)
       return;
@@ -549,32 +573,99 @@ StreamController<List<Usuario>> _streamController;
     );
   }
 
-
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    _streamControllerFoto = BehaviorSubject();
-    _init();
-    super.initState();
+  _rolTitle(){
+    return "${_tipoUsuario != null ? _tipoUsuario.descripcion : 'Agregar rol'}";
   }
-  @override
-  Widget build(BuildContext context) {
-    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
-    return myScaffold(
-      context: context, 
-      cargando: false, 
-      cargandoNotify: null,
-      isSliverAppBar: true,
-      sliverBody: MySliver(
-        sliverAppBar: MySliverAppBar(
-          title: "Agregar usuario",
-          actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar)
-          ],
-        ),
-        sliver: SliverList(delegate: SliverChildListDelegate([
-          Form(
+
+
+  _rolScreen(bool isSmallOrMedium){
+    return
+    !isSmallOrMedium
+    ?
+    Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: MyDropdown(
+        isSideTitle: !isSmallOrMedium,
+        xlarge: 1.25,
+        large: 1.25,
+        medium: 1.25,
+        title: "Rol",
+        hint: _rolTitle(),
+        onTap: () => _seleccionarRolYPermisosAdicionales(isSmallOrMedium),
+      ),
+    )
+    :
+    ListTile(
+      leading: isSmallOrMedium ? Icon(Icons.rowing_outlined) : Text("Rol"),
+      title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(textColor: Colors.pink, iconColor: Colors.pink, borderColor: Colors.grey, data: [_grupo, _rolTitle()], onTap: (data){_seleccionarRolYPermisosAdicionales(isSmallOrMedium);}))
+    );
+  }
+
+  _grupoTitle(){
+    return "${_grupo != null ? _grupo.descripcion : 'Agregar grupo'}";
+  }
+
+  _grupoScreen(bool isSmallOrMedium){
+     return
+    !isSmallOrMedium
+    ?
+    Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: MyDropdown(
+        leading: Icon(Icons.group, color: Colors.orange[700],),
+        color: Colors.orange[100],
+        textColor: Colors.orange[700],
+        isSideTitle: !isSmallOrMedium,
+        xlarge: 1.25,
+        large: 1.25,
+        medium: 1.25,
+        title: "Grupo",
+        hint: _grupoTitle(),
+        elements: listaGrupo.map((e) => [e, e.descripcion]).toList(),
+        onTap: (data) => _grupoChanged(data),
+        helperText: "Si tiene un grupo asignado, este solo podrá ver las bancas y usuarios que pertenezcan a este grupo",
+      ),
+    )
+    :
+    ListTile(
+      leading: isSmallOrMedium ? Icon(Icons.group_work) : Text("Grupo"),
+      title:  Align(alignment: Alignment.centerLeft, child: MyContainerButton(borderColor: Colors.grey, data: [_grupo, _grupoTitle()], onTap: (data){_showGrupos();}))
+    );
+  }
+
+  _estadoChanged(value) => setState(() => _status = value);
+
+  _estadoScreen(bool isSmallOrMedium){
+    return
+    !isSmallOrMedium
+    ?
+    Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: MyCheckBox(
+        isSideTitle: !isSmallOrMedium,
+        title: "Estado del usuario",
+        titleSideCheckBox: "Activo",
+        helperText: "Los usuarios desactivados no tendran acceso al sistema",
+        xlarge: 1.25,
+        large: 1.25,
+        medium: 1.25,
+        value: _status,
+        onChanged: (value) => _estadoChanged(value)
+      ),
+    )
+    :
+    MySwitch( 
+      leading: Icon(Icons.check_box),
+      title: "Activo", 
+      medium: 1,
+      value: _status, 
+      onChanged: (value) => _estadoChanged(value)
+    );
+  }
+
+
+  _screen(bool isSmallOrMedium){
+    return Form(
             key: _formKey,
                   child: Wrap(
                     children: [
@@ -648,24 +739,38 @@ StreamController<List<Usuario>> _streamController;
 
                         
                         MyDivider(showOnlyOnSmall: true,),
-                        MyTextFormField(
-                          controller: _txtUsuario,
-                          leading: Icon(Icons.person),
-                          type: MyType.noBorder,
-                          title: "Usuario",
-                          hint: "Usuario",
-                          medium: 1,
-                          // medium: usuario.id == null ? 3.1 : 2.1,
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                          child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium, 
+                            controller: _txtUsuario,
+                            leading: Icon(Icons.person),
+                            xlargeSide: 1.25,
+                            largeSide: 1.25,
+                            mediumSide: 1.25,
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            title: isSmallOrMedium ? '' : "Usuario",
+                            hint: "Usuario",
+                            medium: 1,
+                            // medium: usuario.id == null ? 3.1 : 2.1,
+                          ),
                         ),
                         MyDivider(showOnlyOnSmall: true,),
-                        MyTextFormField(
-                          controller: _txtPassword,
-                          leading: Icon(Icons.lock),
-                          type: MyType.noBorder,
-                          isPassword: true,
-                          hint: "Contraseña",
-                          title: "Contraseña",
-                          medium: 1,
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                          child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium,
+                            controller: _txtPassword,
+                            leading: Icon(Icons.lock),
+                            xlargeSide: 1.25,
+                            largeSide: 1.25,
+                            mediumSide: 1.25,
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            isPassword: true,
+                            hint: "Contraseña",
+                            title: isSmallOrMedium ? '' : "Contraseña",
+                            medium: 1,
+                          ),
                         ),
                         AnimatedSwitcher(
                           duration: Duration(milliseconds: 300),
@@ -677,61 +782,80 @@ StreamController<List<Usuario>> _streamController;
                           Wrap(
                               children: [
                                 MyDivider(showOnlyOnSmall: true,),
-                                MyTextFormField(
-                                  controller: _txtConfirmarPassword,
-                                  leading: Icon(Icons.lock_clock),
-                                  type: MyType.noBorder,
-                                  isPassword: true,
-                                  hint: "Confirmar contraseña",
-                                  title: "Confirmar contraseña",
-                                  medium: 1,
-                                  isRequired: true,
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                                  child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium, 
+                                    controller: _txtConfirmarPassword,
+                                    leading: Icon(Icons.lock_clock),
+                                    xlargeSide: 1.25,
+                                    largeSide: 1.25,
+                                    mediumSide: 1.25,
+                                    type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                    isPassword: true,
+                                    hint: "Confirmar contraseña",
+                                    title: isSmallOrMedium ? '' :"Confirmar contraseña",
+                                    medium: 1,
+                                    isRequired: true,
+                                  ),
                                 ),
                               ],
                             ),
                         ),
                         MyDivider(showOnlyOnSmall: true,),
-                        MyTextFormField(
-                          controller: _txtNombres,
-                          leading: Icon(Icons.perm_identity),
-                          type: MyType.noBorder,
-                          hint: "Nombres",
-                          medium: 1,
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                          child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium, 
+                            controller: _txtNombres,
+                            leading: Icon(Icons.perm_identity),
+                            xlargeSide: 1.25,
+                            largeSide: 1.25,
+                            mediumSide: 1.25,
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            title: isSmallOrMedium ? '' : "Nombres",
+                            hint: "Nombres",
+                            medium: 1,
+                          ),
                         ),
                         MyDivider(showOnlyOnSmall: true,),
-                        MyTextFormField(
-                          controller: _txtTelefono,
-                          leading: Icon(Icons.phone),
-                          type: MyType.noBorder,
-                          hint: "Telefono",
-                          medium: 1,
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                          child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium, 
+                            controller: _txtTelefono,
+                            leading: Icon(Icons.phone),
+                            xlargeSide: 1.25,
+                            largeSide: 1.25,
+                            mediumSide: 1.25,
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            title: isSmallOrMedium ? '' : "Telefono",
+                            hint: "Telefono",
+                            medium: 1,
+                          ),
                         ),
                         MyDivider(showOnlyOnSmall: true,),
-                        MyTextFormField(
-                          controller: _txtEmail,
-                          leading: Icon(Icons.email),
-                          type: MyType.noBorder,
-                          hint: "Correo",
-                          medium: 1,
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 8.0),
+                          child: MyTextFormField(
+                            isSideTitle: !isSmallOrMedium,
+                            controller: _txtEmail,
+                            xlargeSide: 1.25,
+                            largeSide: 1.25,
+                            mediumSide: 1.25,
+                            leading: Icon(Icons.email),
+                            type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                            title: isSmallOrMedium ? '' : "Correo",
+                            hint: "Correo",
+                            medium: 1,
+                          ),
                         ),
                         MyDivider(showOnlyOnSmall: true,),
-                        ListTile(
-                          leading: Icon(Icons.rowing_outlined),
-                          title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(textColor: Colors.pink, iconColor: Colors.pink, borderColor: Colors.grey, data: [_grupo, "${_tipoUsuario != null ? _tipoUsuario.descripcion : 'Agregar rol'}"], onTap: (data){_seleccionarRolYPermisosAdicionales();}))
-                        ),
+                        _rolScreen(isSmallOrMedium),
                         MyDivider(showOnlyOnSmall: true,),
-                        ListTile(
-                          leading: Icon(Icons.group_work),
-                          title:  Align(alignment: Alignment.centerLeft, child: MyContainerButton(borderColor: Colors.grey, data: [_grupo, "${_grupo != null ? _grupo.descripcion : 'Agregar grupo'}"], onTap: (data){_showGrupos();}))
-                        ),
+                        _grupoScreen(isSmallOrMedium),
                         MyDivider(showOnlyOnSmall: true,),
-                        MySwitch( 
-                          leading: Icon(Icons.check_box),
-                          title: "Activo", 
-                          medium: 1,
-                          value: _status, 
-                          onChanged: (value){setState(() => _status = value);}
-                        )
+                        _estadoScreen(isSmallOrMedium)
                         // MyDropdown(
                         //   medium: 3.25,
                         //   title: "Grupos",
@@ -770,9 +894,62 @@ StreamController<List<Usuario>> _streamController;
                        
                     ],
                   ),
-          ), 
-                
-        ])),
+          );
+               
+  }
+
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _streamControllerFoto = BehaviorSubject();
+    _future = _init();
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
+    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+
+    if(!isSmallOrMedium)
+      return MyAlertDialog(
+        cargando: _cargando,
+        title: "Agregar usuario",
+        content: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+            return Center(child: CircularProgressIndicator());
+
+            return _screen(isSmallOrMedium);
+          }
+        ),
+        okFunction: _guardar,
+      );
+
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Agregar usuario",
+          actions: [
+            MySliverButton(title: "Guardar", onTap: _guardar)
+          ],
+        ),
+        sliver: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+            return SliverList(delegate: SliverChildListDelegate([
+               _screen(isSmallOrMedium)
+            ]));
+          }
+        ),
       )
     );
   }

@@ -7,9 +7,11 @@ import 'package:loterias/core/models/grupo.dart';
 import 'dart:convert';
 
 class GrupoService{
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, Grupo data, bool retornarGrupos = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
+    map["data"] = data != null ? data.toJson() : null;
+    map["retornarGrupos"] = retornarGrupos;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     var response = await http.get(Uri.parse(Utils.URL + "/api/grupos?token=$jwt"), headers: Utils.header);
