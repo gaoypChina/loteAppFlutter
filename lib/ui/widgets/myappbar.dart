@@ -41,6 +41,12 @@ class MyAppBar extends StatefulWidget implements PreferredSizeWidget  {
 
 class _MyAppBarState extends State<MyAppBar> {
   ScrollController _scrollController;
+  FocusNode _focusNodeIconHelp = FocusNode();
+  FocusNode _focusNodeIconNotification = FocusNode();
+  FocusNode _focusNodeIconInfo = FocusNode();
+  var _iconHelpNotifier = ValueNotifier<Color>(Colors.grey[600]);
+  var _iconNotificationNotifier = ValueNotifier<Color>(Colors.grey[600]);
+  var _iconInfoNotifier = ValueNotifier<Color>(Colors.grey[600]);
   var _txtSearch = TextEditingController();
   StreamController<List<SearchData>> _streamControllerSearch;
   var _overlayEntry;
@@ -793,11 +799,17 @@ class _MyAppBarState extends State<MyAppBar> {
                                                     if(_txtSearch.text.isEmpty)
                                                       return SizedBox.shrink();
                                                     else
-                                                      return CircularProgressIndicator();
+                                                      return Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator()),
+                                                      );
                                                   }
                                                                                               
                                                   if(snapshot.data.length == 0)
-                                                    return Center(child: Text("No hay datos"),);
+                                                    return Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Center(child: Text("No hay datos"),),
+                                                    );
                                                                                               
                                                   return Container(
                                                     width: width,
@@ -1117,6 +1129,11 @@ class _MyAppBarState extends State<MyAppBar> {
     _scrollController = ScrollController();
     _streamControllerSearch = BehaviorSubject();
     _init();
+    
+    _focusNodeIconHelp.addListener((){
+      print("MyAppBar _focusNodeIconHelp: ${_focusNodeIconHelp.hasFocus}");
+      _iconHelpNotifier.value = _focusNodeIconHelp.hasFocus ? Colors.black : Colors.grey;
+    });
     super.initState();
   }
 
@@ -1126,6 +1143,10 @@ class _MyAppBarState extends State<MyAppBar> {
     _streamControllerSearch.close();
     _txtSearch.dispose();
     _scrollController.dispose();
+    _focusNodeIconHelp.dispose();
+    _focusNodeIconNotification.dispose();
+    _focusNodeIconInfo.dispose();
+
     super.dispose();
   }
 
@@ -1226,23 +1247,63 @@ class _MyAppBarState extends State<MyAppBar> {
             ),
             Padding(
               padding: const EdgeInsets.all(5.0),
-              child: IconButton(
-                onPressed: (){},
-                icon: Icon(Icons.info_outline, color: Colors.black, size: 26,),
+              child: MouseRegion(
+                onEnter: (value) => _iconInfoNotifier.value = Colors.black,
+                onExit: (value) => _iconInfoNotifier.value = Colors.grey[600],
+                child: IconButton(
+                  onPressed: (){},
+                  icon: ValueListenableBuilder(
+                    valueListenable: _iconInfoNotifier,
+                    builder: (context, value, __) {
+                      return Icon(Icons.info_outline, color: value, size: 26,);
+                    }
+                  ),
+                  padding: EdgeInsets.all(0),
+                  tooltip: "Informacion",
+                  splashRadius: 24,
+                  hoverColor: Colors.grey[200],
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(5.0),
-              child: IconButton(
-                onPressed: (){},
-                icon: Icon(Icons.help_outline, color: Colors.black, size: 26,),
+              child: MouseRegion(
+                onEnter: (value) => _iconHelpNotifier.value = Colors.black,
+                onExit: (value) => _iconHelpNotifier.value = Colors.grey[600],
+                child: IconButton(
+                  onPressed: (){},
+                  icon: ValueListenableBuilder(
+                    valueListenable: _iconHelpNotifier,
+                    builder: (context, value, __) {
+                      return Icon(Icons.help_outline, color: value, size: 26,);
+                    }
+                  ),
+                  padding: EdgeInsets.all(0),
+                  tooltip: "Ayuda",
+                  splashRadius: 24,
+                  hoverColor: Colors.grey[200],
+
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(5.0),
-              child: IconButton(
-                onPressed: (){},
-                icon: Icon(Icons.notifications_none, color: Colors.black, size: 26,),
+              child: MouseRegion(
+                onEnter: (value) => _iconNotificationNotifier.value = Colors.black,
+                onExit: (value) => _iconNotificationNotifier.value = Colors.grey[600],
+                child: IconButton(
+                  onPressed: (){},
+                  icon: ValueListenableBuilder(
+                    valueListenable: _iconNotificationNotifier,
+                    builder: (context, value, __) {
+                      return Icon(Icons.notifications_none, color: value, size: 26,);
+                    }
+                  ),
+                  padding: EdgeInsets.all(0),
+                  tooltip: "Notificacion",
+                  splashRadius: 24,
+                  hoverColor: Colors.grey[200],
+                ),
               ),
             ),
             Padding(

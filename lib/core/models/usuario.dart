@@ -132,6 +132,7 @@ class Usuario {
     toJson() {
     return {
       "id": id,
+      "nombres": nombres,
       "usuario": usuario,
       "servidor": servidor,
       "status": status,

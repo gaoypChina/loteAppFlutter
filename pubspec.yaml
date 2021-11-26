@@ -86,6 +86,7 @@ dev_dependencies:
   moor_generator: ^4.2.2
   build_runner:
   change_app_package_name: ^1.0.0
+  analyzer: 2.7.0
   flutter_test:
     sdk: flutter
 

@@ -2061,8 +2061,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
           title: 
           isSmallOrMedium ? 
           SizedBox.shrink() 
-          : "Agregar loteria",
-          subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus loterias.",
+          : "Agregar banca",
+          subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus bancas.",
           actions: [
             MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
           ],
