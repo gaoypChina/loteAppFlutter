@@ -4632,7 +4632,7 @@ void _getTime() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toLowerCase(), style: TextStyle(color: _colorSegundary),),
+            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             _getLoteriaRemainingTime(_selectedLoterias[0])
           ],
