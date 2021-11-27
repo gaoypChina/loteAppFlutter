@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
@@ -19,6 +20,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 
 
@@ -46,8 +48,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await MyNotification.init();
 
+  //SQFlite
+  sqfliteFfiInit();
+
   //Firebase
-  await Firebase.initializeApp();
+  // await Firebase.initializeApp();
+  await (CrossFirebase()).initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   if (!kIsWeb) {
     channel = AndroidNotificationChannel(
@@ -62,7 +68,8 @@ Future<void> main() async {
   }
   await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
     ?.createNotificationChannel(channel);
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+  // await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+  await (CrossFirebase()).setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
   
 // final appDocumentDirectory = await getApplicationDocumentsDirectory();
 

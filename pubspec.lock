@@ -888,7 +888,14 @@ packages:
       name: sqflite_common
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0+2"
+    version: "2.0.1+1"
+  sqflite_common_ffi:
+    dependency: "direct main"
+    description:
+      name: sqflite_common_ffi
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   sqlite3:
     dependency: transitive
     description:
