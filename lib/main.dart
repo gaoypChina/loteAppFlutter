@@ -20,7 +20,6 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 
 
@@ -48,8 +47,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await MyNotification.init();
 
-  //SQFlite
-  sqfliteFfiInit();
 
   //Firebase
   // await Firebase.initializeApp();

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/utils.dart';
-import 'package:moor/moor.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ShareChannel{

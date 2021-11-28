@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
-import 'package:loterias/core/classes/moor_database.dart';
+import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/grupopermiso.dart';

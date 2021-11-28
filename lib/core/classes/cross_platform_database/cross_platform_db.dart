@@ -2,7 +2,7 @@
 // import 'cross_platform_db_stub.dart'
     import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_stub.dart'
 
-if (dart.library.io) 'mobile_db.dart'
+if (dart.library.io) 'local_db.dart'
     if (dart.library.js) 'web_db.dart';
 
 abstract class CrossDB {
@@ -31,6 +31,7 @@ abstract class CrossDB {
   Future<int> idGrupo();
 
   Future<String> tipoFormatoTicket();
+  Future<void> sincronizarTodosDataBatch(var parsed);
   factory CrossDB() => getDB();
   
 }

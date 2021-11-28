@@ -54,8 +54,10 @@ dependencies:
   scrollable_positioned_list: ^0.1.10
   horizontal_data_table: ^3.5.0
   jose: ^0.3.0
-  moor: ^4.2.1
-  moor_flutter: ^4.0.0
+  # moor: ^4.2.1
+  # moor_flutter: ^4.0.0
+  drift: ^1.0.1
+  sqlite3_flutter_libs: ^0.5.0
   socket_io_client: ^1.0.1
   file_picker: ^3.0.0
   syncfusion_flutter_datepicker: ^19.1.66-beta
@@ -73,7 +75,6 @@ dependencies:
   flutter_local_notifications: ^9.0.1
   firebase_core: ^1.8.0
   firebase_core_web: ^1.1.0
-  sqflite_common_ffi: ^2.1.0
   flutter:
     sdk: flutter
 
@@ -84,7 +85,8 @@ dependencies:
   cupertino_icons: ^0.1.2
 
 dev_dependencies:
-  moor_generator: ^4.2.2
+  drift_dev:
+  # moor_generator: ^4.2.2
   build_runner:
   change_app_package_name: ^1.0.0
   analyzer: 2.7.0

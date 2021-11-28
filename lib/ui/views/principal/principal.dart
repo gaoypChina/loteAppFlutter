@@ -637,8 +637,8 @@ Future<bool> _requestPermisionChannel() async {
     
       print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
-      if(!kIsWeb)
-        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
+      // if(!kIsWeb)
+      //   _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
     
     
     focusNode = FocusNode();
@@ -1231,7 +1231,7 @@ Future<bool> _requestPermisionChannel() async {
       _connectionNotify.value = true;
       await _getPermisos();
       await updatePayment(parsed["datos"]["payment"]);
-      deleteSubidaYesterdaysSale();
+      // deleteSubidaYesterdaysSale();
       print("PrincipalView initSocket sincronizarTodos from server after: $data");
     });
     socket.on("initLoteriasOrdenadasPorHoraCierre", (data) async {
@@ -1324,19 +1324,20 @@ Future<bool> _requestPermisionChannel() async {
       });
 
       socket.on("ticket", (data) async {
-        print("Socket ticket from server before: $data");
-        if(data != null){
-          Ticket ticket = Ticket.fromMap(data);
-            print("Socket ticket from server before validation ticket: ${ticket.toJson()}");
-            print("Socket ticket from server before validation banca: ${await getIdBanca()}");
-          if(ticket.idBanca != await getIdBanca()){
-            _emitToGetNewIdTicket();
-            print("Socket ticket from server inside validation: $data");
-            return;
-          }
-        }
-        Realtime.createTicketIfNotExists(data);
-        print("Socket ticket from server after: $data");
+        // print("Socket ticket from server before: $data");
+        // if(data != null){
+        //   Ticket ticket = Ticket.fromMap(data);
+        //     print("Socket ticket from server before validation ticket: ${ticket.toJson()}");
+        //     print("Socket ticket from server before validation banca: ${await getIdBanca()}");
+        //   if(ticket.idBanca != await getIdBanca()){
+        //     _emitToGetNewIdTicket();
+        //     print("Socket ticket from server inside validation: $data");
+        //     return;
+        //   }
+        // }
+
+        // Realtime.createTicketIfNotExists(data);
+        // print("Socket ticket from server after: $data");
       });
       socket.on("recibirVenta", (data) async {
         print("Socket recibirVenta from server before: $data");

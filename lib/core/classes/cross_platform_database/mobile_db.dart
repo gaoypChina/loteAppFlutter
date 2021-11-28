@@ -165,6 +165,12 @@ class MobileDB implements CrossDB{
     // TODO: implement idGrupo
     return DBSqflite.idGrupo();
   }
+
+  @override
+  Future<void> sincronizarTodosDataBatch(parsed) {
+    // TODO: implement sincronizarTodosDataBatch
+    throw UnimplementedError();
+  }
   
 
 }

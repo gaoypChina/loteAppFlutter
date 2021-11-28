@@ -295,7 +295,26 @@ class Realtime{
     if(kIsWeb)
       return;
       
-    Batch batch = Db.database.batch();
+    // Batch batch = Db.batch();
+    if(parsed["version"] != null){
+        await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
+      }
+      if(parsed["usuario"] != null){
+        await usuario(context: _scaffoldKey.currentContext, usuario: parsed["usuario"]);
+      }
+
+      await Db.sincronizarTodosDataBatch(parsed);
+       
+
+        // await batch.commit(noResult: true);
+        print("RealtimeServer todosPrueba batch listo");
+  }
+
+  static Future sincronizarTodosDataBatchSQFlite(_scaffoldKey, var parsed) async {
+    if(kIsWeb)
+      return;
+      
+    Batch batch = Db.batch();
     if(parsed["version"] != null){
         await Principal.version(context: _scaffoldKey.currentContext, version: parsed["version"]);
       }

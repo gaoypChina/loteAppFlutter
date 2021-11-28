@@ -1,6 +1,8 @@
+import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
-import 'package:moor/moor.dart';
+import 'package:drift/drift.dart';
 // import 'package:moor/moor_web.dart';
 import 'package:loterias/core/models/draws.dart' as DrawsModel;
 import 'package:loterias/core/models/stocks.dart' as StockModel;
@@ -12,7 +14,7 @@ import 'package:loterias/core/models/blocksdirtygenerals.dart' as Blocksdirtygen
 import 'package:loterias/core/models/blocksdirty.dart' as BlocksdirtyModel;
 
 
-part 'moor_database.g.dart';
+part 'drift_database.g.dart';
 
 
 class Tasks extends Table{
@@ -97,7 +99,7 @@ class Stocks extends Table{
   IntColumn get id => integer()();
   IntColumn get idBanca => integer()();
   IntColumn get idLoteria => integer()();
-  IntColumn get idLoteriaSuperpale => integer()();
+  IntColumn get idLoteriaSuperpale => integer().nullable()();
   IntColumn get idSorteo => integer()();
   TextColumn get jugada => text()();
   RealColumn get montoInicial => real()();
@@ -217,7 +219,7 @@ class Blocksdirtygenerals extends Table{
   Set<Column> get primaryKey => {id};
 }
 
-@UseMoor(tables: [Tasks, Permissions, Users, Settings, Branchs, Servers, Stocks, Blocksgenerals, Blockslotteries, Blocksplays, Blocksplaysgenerals, Draws, Blocksdirtys, Blocksdirtygenerals])
+@DriftDatabase(tables: [Tasks, Permissions, Users, Settings, Branchs, Servers, Stocks, Blocksgenerals, Blockslotteries, Blocksplays, Blocksplaysgenerals, Draws, Blocksdirtys, Blocksdirtygenerals])
 class AppDatabase extends _$AppDatabase{
   // AppDatabase() : super(WebDatabase('app', logStatements: true));
   AppDatabase(QueryExecutor e) : super(e);
@@ -549,6 +551,186 @@ class AppDatabase extends _$AppDatabase{
       ])
     ).getSingleOrNull());
     return (e != null) ? e.cantidad : null;
+  }
+
+
+  Future sincronizarTodosDataBatch(var parsed) async {
+    await batch((batch){
+      if(parsed['stocks'] != null){
+        print('dentro stocks: ${parsed['stocks']}');
+
+          List<Stock> lista = parsed['stocks'].map<Stock>((json) => Stock(
+            id: Utils.toInt(json["id"]), 
+            idBanca: Utils.toInt(json["idBanca"]),
+            idLoteria: Utils.toInt(json["idLoteria"]),
+            idLoteriaSuperpale: Utils.toInt(json["idLoteriaSuperpale"], returnNullIfNotInt: true),
+            idSorteo: Utils.toInt(json["idSorteo"]),
+            jugada: json["jugada"],
+            montoInicial: Utils.toDouble(json["montoInicial"]),
+            monto: Utils.toDouble(json["monto"]),
+            created_at: MyDate.toDateTime(json["created_at"]),
+            esBloqueoJugada: Utils.toInt(json["esBloqueoJugada"]),
+            esGeneral: Utils.toInt(json["esGeneral"]),
+            ignorarDemasBloqueos: Utils.toInt(json["ignorarDemasBloqueos"]),
+            idMoneda: Utils.toInt(json["idMoneda"]),
+          )).toList();
+          print('Realtime sincronizarTodosDataBatch length stocks: ${lista.length}');
+          // for(Stock s in lista){
+          //   // batch.insert("Stocks", s.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Stocks(id, idBanca, idLoteria, idLoteriaSuperpale, idSorteo, jugada, montoInicial, monto, created_at, esBloqueoJugada, esGeneral, ignorarDemasBloqueos, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+          //                                           [s.id, s.idBanca, s.idLoteria, s.idLoteriaSuperpale, s.idSorteo, s.jugada, s.montoInicial, s.monto, s.created_at.toString(), s.esBloqueoJugada, s.esGeneral, s.ignorarDemasBloqueos, s.idMoneda]);
+          // }
+          batch.insertAll(stocks, lista, mode: InsertMode.replace);
+       }
+
+        if(parsed['blocksgenerals'] != null){
+          List<Blocksgeneral> listBlocksgenerals = parsed['blocksgenerals'].map<Blocksgeneral>((json) => Blocksgeneral(
+            id: Utils.toInt(json["id"]), 
+            idDia: Utils.toInt(json["idDia"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            monto: Utils.toDouble(json["monto"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksgenerals: ${listBlocksgenerals.length}');
+          // for(Blocksgenerals b in listBlocksgenerals){
+          //   // batch.insert("Blocksgenerals", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Blocksgenerals(id, idDia, idLoteria, idSorteo, monto, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?)", 
+          //                                               [b.id, b.idDia, b.idLoteria, b.idSorteo, b.monto, b.created_at.toString(), b.idMoneda]);
+          // }
+          batch.insertAll(blocksgenerals, listBlocksgenerals, mode: InsertMode.replace);
+        }
+
+        if(parsed['blockslotteries'] != null){
+          List<Blockslotterie> listBlockslotteries = parsed['blockslotteries'].map<Blockslotterie>((json) => Blockslotterie(
+            id: Utils.toInt(json["id"]), 
+            idBanca: Utils.toInt(json["idBanca"]), 
+            idDia: Utils.toInt(json["idDia"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            monto: Utils.toDouble(json["monto"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          print('Realtime sincronizarTodosDataBatch length blockslotteries: ${listBlockslotteries.length}');
+          // for(Blockslotteries b in listBlockslotteries){
+          //   //  batch.insert("Blockslotteries", b.toJson());
+          //    batch.rawInsert(
+          //     "insert or replace into Blockslotteries(id, idBanca, idDia, idLoteria, idSorteo, monto, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?)", 
+          //                                               [b.id, b.idBanca, b.idDia, b.idLoteria, b.idSorteo, b.monto, b.created_at.toString(), b.idMoneda]);
+          // }
+          batch.insertAll(blockslotteries, listBlockslotteries, mode: InsertMode.replace);
+        }
+
+        if(parsed['blocksplays'] != null){
+          List<Blocksplay> listBlocksplays = parsed['blocksplays'].map<Blocksplay>((json) => Blocksplay(
+            id: Utils.toInt(json["id"]), 
+            idBanca: Utils.toInt(json["idBanca"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            jugada: json["jugada"], 
+            montoInicial: Utils.toDouble(json["montoInicial"]), 
+            monto: Utils.toDouble(json["monto"]), 
+            fechaDesde: MyDate.toDateTime(json["fechaDesde"]), 
+            fechaHasta: MyDate.toDateTime(json["fechaHasta"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            ignorarDemasBloqueos: Utils.toInt(json["ignorarDemasBloqueos"]), 
+            status: Utils.toInt(json["status"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksplays: ${listBlocksplays.length}');
+          // for(Blocksplays b in listBlocksplays){
+          //   // batch.insert("Blocksplays", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Blocksplays(id, idBanca, idLoteria, idSorteo, jugada, montoInicial, monto, fechaDesde, fechaHasta, created_at, ignorarDemasBloqueos, status, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+          //                                           [b.id, b.idBanca, b.idLoteria, b.idSorteo, b.jugada, b.montoInicial, b.monto, b.fechaDesde.toString(), b.fechaHasta.toString(), b.created_at.toString(), b.ignorarDemasBloqueos, b.status, b.idMoneda]);
+          // }
+          batch.insertAll(blocksplays, listBlocksplays, mode: InsertMode.replace);
+        }
+
+        if(parsed['blocksplaysgenerals'] != null){
+          List<Blocksplaysgeneral> listBlocksplaysgenerals = parsed['blocksplaysgenerals'].map<Blocksplaysgeneral>((json) => Blocksplaysgeneral(
+            id: Utils.toInt(json["id"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            jugada: json["jugada"], 
+            montoInicial: Utils.toDouble(json["montoInicial"]), 
+            monto: Utils.toDouble(json["monto"]), 
+            fechaDesde: MyDate.toDateTime(json["fechaDesde"]), 
+            fechaHasta: MyDate.toDateTime(json["fechaHasta"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            ignorarDemasBloqueos: Utils.toInt(json["ignorarDemasBloqueos"]), 
+            status: Utils.toInt(json["status"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          print('Realtime sincronizarTodosDataBatch length blocksplaysgenerals: ${listBlocksplaysgenerals.length}');
+          // for(Blocksplaysgenerals b in listBlocksplaysgenerals){
+          //   // batch.insert("Blocksplaysgenerals", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Blocksplaysgenerals(id, idLoteria, idSorteo, jugada, montoInicial, monto, fechaDesde, fechaHasta, created_at, ignorarDemasBloqueos, status, idMoneda) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+          //                                                 [b.id, b.idLoteria, b.idSorteo, b.jugada, b.montoInicial, b.monto, b.fechaDesde.toString(), b.fechaHasta.toString(), b.created_at.toString(), b.ignorarDemasBloqueos, b.status, b.idMoneda]);
+          // }
+          batch.insertAll(blocksplaysgenerals, listBlocksplaysgenerals, mode: InsertMode.replace);
+        }
+
+        if(parsed['draws'] != null){
+          List<Draw> listDraws = parsed['draws'].map<Draw>((json) => Draw(
+            id: Utils.toInt(json["id"]), 
+            descripcion: json["descripcion"], 
+            bolos: Utils.toInt(json["bolos"]), 
+            cantidadNumeros: Utils.toInt(json["cantidadNumeros"]), 
+            status: Utils.toInt(json["status"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+          )).toList();
+          // for(Draws b in listDraws){
+          //   // batch.insert("Draws", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Draws(id, descripcion, bolos, cantidadNumeros, status, created_at) values(?, ?, ?, ?, ?, ?)", 
+          //                                             [b.id, b.descripcion, b.bolos, b.cantidadNumeros, b.status, b.created_at.toString()]);
+          // }
+          batch.insertAll(draws, listDraws, mode: InsertMode.replace);
+        }
+
+        if(parsed['blocksdirtygenerals'] != null){
+          List<Blocksdirtygeneral> listBlocksdirtygenerals = parsed['blocksdirtygenerals'].map<Blocksdirtygeneral>((json) => Blocksdirtygeneral(
+            id: Utils.toInt(json["id"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            cantidad: Utils.toInt(json["cantidad"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          // for(Blocksdirtygenerals b in listBlocksdirtygenerals){
+          //   // batch.insert("Blocksgenerals", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Blocksdirtygenerals(id, idLoteria, idSorteo, cantidad, created_at, idMoneda) values(?, ?, ?, ?, ?, ?)", 
+          //                                               [b.id, b.idLoteria, b.idSorteo, b.cantidad, b.created_at.toString(), b.idMoneda]);
+          // }
+          batch.insertAll(blocksdirtygenerals, listBlocksdirtygenerals, mode: InsertMode.replace);
+        }
+
+        if(parsed['blocksdirty'] != null){
+          List<Blocksdirty> listBlocksdirty = parsed['blocksdirty'].map<Blocksdirty>((json) => Blocksdirty(
+            id: Utils.toInt(json["id"]), 
+            idBanca: Utils.toInt(json["idBanca"]), 
+            idLoteria: Utils.toInt(json["idLoteria"]), 
+            idSorteo: Utils.toInt(json["idSorteo"]), 
+            cantidad: Utils.toInt(json["cantidad"]), 
+            created_at: MyDate.toDateTime(json["created_at"]), 
+            idMoneda: Utils.toInt(json["idMoneda"]), 
+          )).toList();
+          // for(Blocksdirty b in listBlocksdirty){
+          //   // batch.insert("Blocksgenerals", b.toJson());
+          //   batch.rawInsert(
+          //     "insert or replace into Blocksdirty(id, idBanca, idLoteria, idSorteo, cantidad, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?)", 
+          //                                               [b.id, b.idBanca, b.idLoteria, b.idSorteo, b.cantidad, b.created_at.toString(), b.idMoneda]);
+          // }
+          batch.insertAll(blocksdirtygenerals, listBlocksdirty, mode: InsertMode.replace);
+        }
+    });
   }
 
 }
