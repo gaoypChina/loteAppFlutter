@@ -72,7 +72,7 @@ Future<void> main() async {
 
 // await getApplicationSupportDirectory();
 // Timer.periodic(Duration(seconds: 1), (Timer t) async => await Realtime.sincronizar());
-  await Db.openConnection();
+  // await Db.openConnection();
   DRAWER_IS_OPEN = await Utils.menuIsOpen();
   // //await DB.create();
   // var crossPlatform = CrossTimezone();

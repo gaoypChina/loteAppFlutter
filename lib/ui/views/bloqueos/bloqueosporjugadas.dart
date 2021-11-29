@@ -16,6 +16,7 @@ import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
+import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
@@ -341,83 +342,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
 
 
-   getSorteo(String jugada) async {
    
-
-    Draws sorteo;
-
-   if(jugada.length == 2){
-     if(kIsWeb)
-      return Draws(1, 'Directo', 2, 1, 1, null);
-
-     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
-     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-   }
-  else if(jugada.length == 3){
-    if(kIsWeb)
-      return Draws(1, 'Pick 3 Straight', 2, 1, 1, null);
-
-    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
-  else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
-       if(kIsWeb)
-        return Draws(1, 'Pick 3 Box', 2, 1, 1, null);
-
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }else{
-      if(kIsWeb)
-        return Draws(1, 'Pale', 2, 1, 1, null);
-
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
-      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
-      //   idSorteo = 4;
-      // }else{
-      //   idSorteo = 2;
-      // }
-    }
-  }
-  else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Pick 4 Box', 2, 1, 1, null);
-
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("-") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Pick 4 Straight', 2, 1, 1, null);
-
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("s") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Super pale', 2, 1, 1, null);
-
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-  }
-  else if(jugada.length == 6){
-    if(kIsWeb)
-        return Draws(1, 'Tripleta', 2, 1, 1, null);
-
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
-
-  return sorteo;
- }
-
-
-  
 
   addJugada({String jugada, String monto}) async {
     if(_loterias.length == 0){
@@ -428,7 +353,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       jugada = Utils.ordenarMenorAMayor(jugada);
       List<Jugada> jugadasTmp = List.from(_jugadas);
       for (var loteria in _loterias) {
-        Draws sorteo = await getSorteo(jugada);
+        Draws sorteo = await SorteoService.getSorteo(jugada);
         if(sorteo == null){
           Utils.showAlertDialog(context: context, title: "Error", content: "El sorteo no existe");
           return;

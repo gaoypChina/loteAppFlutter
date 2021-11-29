@@ -2,7 +2,9 @@
 
 library singleton;
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
-var Db = (new DatabaseSingleton()).db;
+
+import 'drift_database.dart';
+AppDatabase Db = (new DatabaseSingleton()).db;
 
 class DatabaseSingleton {
   static final DatabaseSingleton _singleton = DatabaseSingleton._internal();
@@ -14,7 +16,7 @@ class DatabaseSingleton {
 
   // Db._internal();
   DatabaseSingleton._internal(){
-    db = CrossDB();
+    db = CrossDB().openConnection();
     print("DatabaseSIngleton null: ${db == null}");
   }
 }

@@ -20,6 +20,7 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -192,10 +193,11 @@ class  Utils {
   static Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo, [var transaction]) async {
     var query;
     if(transaction == null)
-      query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-    else
-      query = await transaction.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-    String sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
+      // query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+      query = await Db.drawById(idSorteo);
+    // else
+    //   query = await transaction.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+    String sorteo = (query != null) ? query['descripcion'] : '';
     if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box'  || sorteo == 'Super pale')
       jugada = jugada.substring(0, jugada.length - 1);
     
@@ -211,8 +213,9 @@ class  Utils {
 
   static Future<String> esSorteoPickAgregarUltimoCaracter(String jugada, String sorteo, [int idSorteo]) async {
     if(idSorteo != null){
-      var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-      sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
+      // var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+      var query = await Db.drawById(idSorteo);
+      sorteo = (query != null) ? query['descripcion'] : '';
     }
     
     if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Box')
@@ -225,8 +228,9 @@ class  Utils {
 
   static Future<String> esSorteoPickOSuperpaleAgregarUltimoSigno(String jugada, String sorteo, [int idSorteo]) async {
     if(idSorteo != null){
-      var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-      sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
+      // var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+      var query = await Db.drawById(idSorteo);
+      sorteo = (query != null) ? query['descripcion'] : '';
     }
     
     if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Box')
@@ -828,101 +832,8 @@ class  Utils {
   }
 
   
-  static Future<int> getIdSorteo(String jugada, [var transaction]) async {
-   int idSorteo = 0;
-
-   var db = transaction != null ? transaction : Db.database;
-
-   if(jugada.length == 2)
-    idSorteo = 1;
-  else if(jugada.length == 3){
-    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
-    idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-  }
-  else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
-      var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
-      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }else{
-      idSorteo = 2;
-      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
-      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
-      //   idSorteo = 4;
-      // }else{
-      //   idSorteo = 2;
-      // }
-    }
-  }
-  else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
-      var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
-      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-    else if(jugada.indexOf("-") != -1){
-       var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
-        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-    else if(jugada.indexOf("s") != -1){
-       var query = await db.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
-        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-  }
-  else if(jugada.length == 6)
-    idSorteo = 3;
-
-  return idSorteo;
- }
-
-  static Future<Draws> getSorteo(String jugada) async {
-    Draws sorteo;
-
-   if(jugada.length == 2){
-     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
-     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-   }
-  else if(jugada.length == 3){
-    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
-  else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }else{
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
-      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
-      //   idSorteo = 4;
-      // }else{
-      //   idSorteo = 2;
-      // }
-    }
-  }
-  else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("-") != -1){
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("s") != -1){
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-  }
-  else if(jugada.length == 6){
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
-
-  return sorteo;
- }
-
+  
+ 
  static DateTime getLastDayOfMonth(DateTime date){
     if(date == null)
     date = new DateTime.now();
@@ -1017,7 +928,8 @@ class  Utils {
     
    
     int idDia = getIdDia();
-    int idSorteo = await getIdSorteo(jugada, transaction);
+    // int idSorteo = await getIdSorteo(jugada, transaction);
+    int idSorteo = await SorteoService.getIdSorteo(jugada);
     String jugadaConSigno = jugada;
     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo, transaction);
     print("Utils getMontoDisponible banca moneda: ${banca.descripcion}");
