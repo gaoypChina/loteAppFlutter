@@ -5,6 +5,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'dart:io';
 
+import '../databasesingleton.dart';
+import '../singleton.dart';
+
 
 class LocalFirebse implements CrossFirebase{
   @override
@@ -24,6 +27,38 @@ class LocalFirebse implements CrossFirebase{
 
       print("Local_firebase setForegroundNotificationPresentationOptions not supported on Windows");
 
+    // throw UnimplementedError();
+  }
+
+  @override
+  Future subscribeToTopic() async {
+    // TODO: implement subscribeToTopic
+    if(Platform.isWindows)
+      return;
+
+    var tipoUsuario = (await (await DB.create()).getValue("tipoUsuario"));
+    if(tipoUsuario == "Programador"){
+      await FirebaseMessaging.instance.subscribeToTopic("programador");
+    }
+    else if(tipoUsuario == "Administrador"){
+      await FirebaseMessaging.instance.subscribeToTopic(await Db.servidor());
+    }
+    // throw UnimplementedError();
+  }
+
+  @override
+  Future<void> unSubscribeFromTopic() async {
+    // TODO: implement unSubscribeFromTopic
+    if(Platform.isWindows)
+      return;
+
+    var tipoUsuario = (await (await DB.create()).getValue("tipoUsuario"));
+    if(tipoUsuario == "Programador"){
+      await FirebaseMessaging.instance.unsubscribeFromTopic("programador");
+    }
+    else if(tipoUsuario == "Administrador"){
+      await FirebaseMessaging.instance.unsubscribeFromTopic(await Db.servidor());
+    }
     // throw UnimplementedError();
   }
 

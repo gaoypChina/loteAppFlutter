@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/classes/utils.dart';
@@ -146,8 +147,8 @@ class LoginService{
 
     await Db.insertListServer(servidores);
 
-    await Utils.subscribeToTopic();
-
+    // await Utils.subscribeToTopic();
+    await (CrossFirebase()).unSubscribeFromTopic();
 
   }
   // static guardarDatosSQFlite(Map<String, dynamic> parsed) async {

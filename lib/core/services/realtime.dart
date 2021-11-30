@@ -96,6 +96,7 @@ class Realtime{
     }
 
     static addBlocksgeneralsDatosNuevos(List<Blocksgenerals> blocksgenerals, bool eliminar) async {
+      print("Realtime.addBlocksgeneralsDatosNuevos: ${blocksgenerals.length} : eliminar $eliminar");
       if(blocksgenerals == null)
         return;
       if(blocksgenerals.length == 0)

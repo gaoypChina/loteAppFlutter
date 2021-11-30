@@ -14,5 +14,7 @@ if (dart.library.io) 'local_firebase.dart'
 abstract class CrossFirebase{
   Future initializeApp();
   Future setForegroundNotificationPresentationOptions({bool alert, bool badge, bool sound});
+  Future subscribeToTopic();
+  Future unSubscribeFromTopic();
   factory CrossFirebase() => getFirebase();
 }

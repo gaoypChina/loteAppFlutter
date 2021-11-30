@@ -75,6 +75,7 @@ dependencies:
   flutter_local_notifications: ^9.0.1
   firebase_core: ^1.8.0
   firebase_core_web: ^1.1.0
+  ffi: ^1.1.2
   flutter:
     sdk: flutter
 

@@ -3604,7 +3604,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
       ?
       SplashScreen()
       :
-      kIsWeb && !isSmallOrMedium
+      // kIsWeb && !isSmallOrMedium
+      Utils.showLargeScreen(isSmallOrMedium)
       ?
       myScaffold(
         context: context,
@@ -6265,7 +6266,7 @@ _selectedBanca() async {
 
  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) async {
     
-    var montoDisponible;
+    // var montoDisponible;
 
     if(kIsWeb){
       try {
@@ -6295,258 +6296,8 @@ _selectedBanca() async {
     int idDia = getIdDia();
     int idSorteo = await SorteoService.getIdSorteo(jugada, loteria);
     String jugadaConSigno = jugada;
-    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
-    print("PrincipalView getMontoDisponible banca moneda: ${banca.descripcion}");
-    Stock stockToReturn;
 
-    if(idSorteo != 4){
-      Map<String, dynamic> query = await Db.getStockMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda);
-
-      if(query != null){
-        montoDisponible = query['monto'];
-        stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: query['esBloqueoJugada']);
-      } 
-      
-      if(montoDisponible != null){
-        // query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
-        query = await Db.getStockMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          montoDisponible = query['monto'];
-          stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query['esBloqueoJugada']);
-        }else{
-          
-          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
-          // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-          if(query != null){
-            var first = query;
-            if(first["ignorarDemasBloqueos"] == 1){
-              montoDisponible = first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-        }
-      }
-
-
-      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
-      if(montoDisponible == null){
-          // query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
-          query = await Db.getStockMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
-          var stock = query;
-          if(stock["ignorarDemasBloqueos"] == 0){
-            // query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            query = await Db.getBlocksplayMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-            }else{
-              // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              query = await Db.getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-              if(query != null){
-                montoDisponible = query["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'],);
-              }
-              else{
-                montoDisponible = stock["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-              }
-            }
-          }else{
-            montoDisponible = stock["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-          }
-        }
-      }
-
-      
-
-      if(montoDisponible == null){
-        // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-        query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          var blocksplaysgenerals = query;
-          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
-            montoDisponible = null;
-          }else{
-            montoDisponible = blocksplaysgenerals["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-          }
-        }
-
-// query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
-        // print("Monto disponible blocksplaysgenrals: $query");
-
-        if(montoDisponible == null){
-          // query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          query = await Db.getBlocksplayMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-          if(query != null){
-            montoDisponible = query["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-          }else{
-            // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-
-          if(montoDisponible == null){
-            // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await Db.getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
-            }
-          }
-
-          if(montoDisponible == null){
-            // query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await Db.getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
-            }
-          }
-
-          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
-        }
-      }
-    }else{
-      // MONTO SUPER PALE
-      // Debo ordenar de menor a mayor los idloteria y idloteriaSuperpale, 
-      // el idLoteria tendra el numero menor y el idLoteriaSuper tendra el numero mayor
-
-      if(loteria.id > loteriaSuperpale.id){
-        Loteria tmp = loteriaSuperpale;
-        loteriaSuperpale = loteria;
-        loteria = tmp;
-      }
-      // List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, loteriaSuperpale.id, idSorteo, jugada, 0, banca.idMoneda]);
-      Map<String, dynamic> query = await Db.getStockMonto(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda);
-      
-      print("getMontoDisponible super pale: $query");
-
-      if(query != null){
-        montoDisponible = query['monto'];
-        stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: query['esBloqueoJugada']);
-      }
-        
-      
-      if(montoDisponible != null){
-        // query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
-        query = await Db.getStockMonto(idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          montoDisponible = query['monto'];
-          stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query['esBloqueoJugada']);
-        }else{
-          
-          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
-          // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-          if(query != null){
-            var first = query;
-            if(first["ignorarDemasBloqueos"] == 1){
-              montoDisponible = first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-        }
-      }
-
-
-      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
-      if(montoDisponible == null){
-          // query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, banca.idMoneda]);
-          query = await Db.getStockMonto(idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
-          var stock = query;
-          if(stock["ignorarDemasBloqueos"] == 0){
-            // query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            query = await Db.getBlocksplayMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-            }else{
-              // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              query = await Db.getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-              if(query != null){
-                montoDisponible = query["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
-              }
-              else{
-                montoDisponible = stock["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-              }
-            }
-          }else{
-            montoDisponible = stock["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-          }
-        }
-      }
-
-      
-
-      if(montoDisponible == null){
-        // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-        query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-        if(query != null){
-          var blocksplaysgenerals = query;
-          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
-            montoDisponible = null;
-          }else{
-            montoDisponible = blocksplaysgenerals["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-          }
-        }
-
-        if(montoDisponible == null){
-          // query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          query = await Db.getBlocksplayMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-          if(query != null){
-            montoDisponible = query["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-          }else{
-            // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            query = await Db.getBlocksplaysgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, status: 1, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-
-          if(montoDisponible == null){
-            // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await Db.getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
-            }
-          }
-
-          if(montoDisponible == null){
-            // query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await Db.getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
-            if(query != null){
-              montoDisponible = query["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
-            }
-          }
-
-          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
-        }
-      }
-    }
-
-    // setState(() {
-    //  _txtMontoDisponible.text = montoDisponible.toString(); 
-    // });
-    // print('montoDisponiblePrueba idSorteo: $montoDisponible');
+    MontoDisponible montoDisponible = await Db.getMontoDisponible(jugada, loteria, banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock);
 
   
     int idx = -1;
@@ -6557,21 +6308,24 @@ _selectedBanca() async {
       // _selectedLoterias[0].id
     // double montoDisponibleFinal = montoDisponible.toDouble();
     
-    double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
+    double montoDisponibleFinal = Utils.toDouble(montoDisponible.monto.toString());
     if(idx != -1){
       print("encontrado: ${listaJugadas[idx].monto}");
       montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
       print("encontrado y restado: ${montoDisponibleFinal}");
     }
 
-    if(stockToReturn != null)
-      stockToReturn.monto = montoDisponibleFinal;
-    else
-      stockToReturn = Stock(monto: montoDisponibleFinal);
+    // if(stockToReturn != null)
+    //   stockToReturn.monto = montoDisponibleFinal;
+    // else
+    //   stockToReturn = Stock(monto: montoDisponibleFinal);
 
-    print("principalView getMontoDisponible: ${stockToReturn.toJson()}");
-    return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
-   
+    montoDisponible.monto = montoDisponibleFinal;
+
+    print("principalView getMontoDisponible: ${montoDisponible.stock.toJson()}");
+    // return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
+    return montoDisponible;
+
  }
 
 //  Future<MontoDisponible> getMontoDisponibleSQFlite(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) async {
@@ -6896,7 +6650,7 @@ _selectedBanca() async {
     int idDia = getIdDia();
     int idSorteo = await SorteoService.getIdSorteo(jugada, loteria);
 
-    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+    jugada = await SorteoService.esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
     int idx = -1;
 
     if(stocks != null)
@@ -7129,15 +6883,7 @@ _selectedBanca() async {
 //   return sorteo;
 //  }
 
-Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
-  // var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-  var query = await Db.drawById(idSorteo);
-  String sorteo = (query != null) ? query['descripcion'] : '';
-  if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box' || sorteo == 'Super pale'){
-    jugada = jugada.substring(0, jugada.length - 1);
-  }
-  return jugada;
-}
+
 
 // Future<String> esSorteoPickQuitarUltimoCaracterSQFLite(String jugada, idSorteo) async {
 //   var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);

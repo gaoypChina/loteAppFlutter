@@ -18,6 +18,21 @@ class WebFirebse implements CrossFirebase{
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: alert, badge: badge, sound: sound);
   }
 
+  @override
+  Future subscribeToTopic() {
+    // TODO: implement subscribeToTopic
+    print("Web_firebase subscribeToTopic not supported on Windows");
+    // throw UnimplementedError();
+  }
+
+  @override
+  Future unSubscribeFromTopic() {
+    // TODO: implement unSubscribeFromTopic
+    print("Web_firebase unSubscribeFromTopic not supported on Windows");
+
+    // throw UnimplementedError();
+  }
+
 }
 
 CrossFirebase getFirebase() => WebFirebse();

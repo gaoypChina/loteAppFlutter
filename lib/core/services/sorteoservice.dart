@@ -82,7 +82,15 @@ static Future<int> getIdSorteo(String jugada, [Loteria loteria]) async {
 
   return idSorteo;
  }
- 
 
+  static Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
+    // var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+    var query = await Db.drawById(idSorteo);
+    String sorteo = (query != null) ? query['descripcion'] : '';
+    if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box' || sorteo == 'Super pale'){
+      jugada = jugada.substring(0, jugada.length - 1);
+    }
+    return jugada;
+  }
 
 }

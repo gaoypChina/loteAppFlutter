@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -277,7 +279,7 @@ _showSnackBar(String content){
                         style: TextStyle(color: Colors.grey, ),
                         textAlign: TextAlign.center,
                       ),
-                      Center(child: TextButton(onPressed: _navigateToContact, child: Text("Contacto")))
+                      Center(child: TextButton(onPressed: _navigateToContact, child: Text("Contacto"))),
                     ],
                   ),
                 ),

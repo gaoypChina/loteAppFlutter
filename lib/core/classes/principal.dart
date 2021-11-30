@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -910,7 +911,8 @@ class Principal{
    var c = await DB.create();
    print("Principal.cerrarSesion");
    try {
-      await Utils.unSubscribeFromTopic();
+      // await Utils.unSubscribeFromTopic();
+      await (CrossFirebase()).unSubscribeFromTopic();
       await Db.deleteDB();
    } catch (e) {
    }
