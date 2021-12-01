@@ -13,7 +13,6 @@ class SendTicket{
         fun send(context: Context, base64Image: Bitmap?, sms: Boolean) {
             val pack = "com.whatsapp"
             val titleImage = "ticket"
-
             val imageUri: Uri = Utils.toUri(context, base64Image!!, titleImage)!!
             if (sms) {
                 val mmsIntent = Intent(Intent.ACTION_SEND)
