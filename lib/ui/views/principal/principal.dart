@@ -6,6 +6,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
+import 'package:loterias/core/classes/cross_platform_reques_permissions/cross_platform_request_permissions.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
@@ -185,7 +186,7 @@ String _montoPrueba = '0';
   Timer _timer;
   Timer _timerSaveVentaNoSubidas;
 
-  static const platform = const MethodChannel('flutter.loterias');
+ 
   Usuario _usuario;
   Banca _banca;
   Future<Map<String, dynamic>> futureBanca;
@@ -210,18 +211,6 @@ static var manager;
 static var socketNotificaciones;
 String initSocketNotificationTask = "initSocketNotificationTask";
 
-Future<bool> _requestPermisionChannel() async {
-    bool batteryLevel;
-    try {
-      final bool result = await platform.invokeMethod('requestPermissions');
-      batteryLevel = result;
-    } on PlatformException catch (e) {
-      throw Exception("Failed to get battery level: '${e.message}'.");
-    }
-
-    print('requestPermission channel: $batteryLevel');
-    return batteryLevel;
-  }
 
 
   getIdBanca() async {
@@ -592,8 +581,7 @@ Future<bool> _requestPermisionChannel() async {
     ]);
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
-      if(kIsWeb == false)
-        _requestPermisionChannel();
+      CrossPlatformRequesPermission().requestNecesaryPermissions();
 
       indexPost(true);
       _getPermisos();
@@ -614,8 +602,7 @@ Future<bool> _requestPermisionChannel() async {
         return;
         
         _getCurrentTimeZone();
-        if(kIsWeb == false)
-          _requestPermisionChannel();
+        CrossPlatformRequesPermission().requestNecesaryPermissions();
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
@@ -1277,7 +1264,7 @@ Future<bool> _requestPermisionChannel() async {
     //     await Realtime.addStocks(parsed['stocks']);
     //   }
     // });
-    if(kIsWeb == false){
+    // if(kIsWeb == false){
       socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
         // var parsed = data.cast<String, dynamic>();
         print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent primero parsed: $data");
@@ -1364,7 +1351,7 @@ Future<bool> _requestPermisionChannel() async {
         await _updateBranchesList(parsed);
         print("Socket obtenerVentasDelDia 3: $data");
       });
-    }
+    // }
     
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
       // var parsed = data.cast<String, dynamic>();

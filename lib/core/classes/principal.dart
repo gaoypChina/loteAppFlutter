@@ -35,6 +35,7 @@ import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'cross_platform_database/cross_platform_db.dart';
+import 'cross_platform_package_info/cross_platform_package_info.dart';
 
 class Principal{
   static Future<bool> mockCheckForSession({BuildContext context, scaffoldKey}) async{
@@ -880,7 +881,8 @@ class Principal{
  }
 
  static version({Map<String, dynamic> version, BuildContext context}) async {
-   PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  //  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+   PackageInfo packageInfo = await CrossPlatformPackageInfo().fromPlatform();
    print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
   if(version["urgente"] != 1)
     return;
