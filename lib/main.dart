@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -82,6 +83,8 @@ Future<void> main() async {
   // var crossPlatform = CrossTimezone();
   //  var currentTimeZone = await crossPlatform.getCurrentTimezone();
 
+
+  print("Main holaaaa: ${Intl.defaultLocale }");
   
   runApp(MyApp());
 
