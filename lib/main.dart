@@ -49,7 +49,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await MyNotification.init();
 
-  open.overrideFor(OperatingSystem.windows, _openOnWindows);
+  if(Platform.isWindows)
+    open.overrideFor(OperatingSystem.windows, _openOnWindows);
 
   //Firebase
   // await Firebase.initializeApp();
