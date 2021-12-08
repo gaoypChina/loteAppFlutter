@@ -1007,6 +1007,9 @@ class  Utils {
     if(isSmallOrMedium)
       _showLargeScreen = false;
     else {
+      if(kIsWeb)
+        return true;
+        
       if(Platform.isWindows || kIsWeb)
         _showLargeScreen = true;
     }

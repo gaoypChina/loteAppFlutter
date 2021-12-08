@@ -3610,7 +3610,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           sliverAppBar: MySliverAppBar(
             title: Wrap(
               children: [
-                Text("Principal"),
+                // Text("Principal"),
                 MyResizedContainer(child: _bancasScreen())
               ],
             ),
@@ -4831,14 +4831,14 @@ void _getTime() {
           _cambiarFocusJugadaMonto();
         }
         else{
-          if(kIsWeb){
-            if(_txtMontoDisponible.text.toLowerCase() != "x"){
-              if(Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
-                Utils.showAlertDialog(title: "Monto insuficiente", context: context, content: "No hay monto suficiente para esta jugada");
-                return;
-              }
-            }
-          }
+          // if(kIsWeb){
+          //   if(_txtMontoDisponible.text.toLowerCase() != "x"){
+          //     if(Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
+          //       Utils.showAlertDialog(title: "Monto insuficiente", context: context, content: "No hay monto suficiente para esta jugada");
+          //       return;
+          //     }
+          //   }
+          // }
           await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
         }
       }
@@ -5384,15 +5384,15 @@ void _getTime() {
 
       // VALIDAMOS EL MONTO DISPONIBLE
       MontoDisponible montoDisponible;
-      if(!kIsWeb){
+      // if(!kIsWeb){
         montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
         if(Utils.toDouble(monto) > montoDisponible.monto){
           _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
             return;
         }
-      }
+      // }
 
-      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: kIsWeb ? Stock() : montoDisponible.stock);
+      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';
@@ -5411,14 +5411,14 @@ void _getTime() {
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           MontoDisponible montoDisponible;
-          if(!kIsWeb){
+          // if(!kIsWeb){
             montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, loteriaSuperpale: _selectedLoterias[i2]);
             if(Utils.toDouble(monto) > montoDisponible.monto){
               _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
                 return;
             }
-          }
-          listaLoteriasSuperpaleConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
+          // }
+          listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
         }
       }
 
@@ -5443,14 +5443,14 @@ void _getTime() {
       List<Jugada> listaLoteriaConStock = [];
       for (var l in selectedLoterias) {
         MontoDisponible montoDisponible;
-        if(!kIsWeb){
+        // if(!kIsWeb){
           montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
           if(Utils.toDouble(monto) > montoDisponible.monto){
             _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
               return;
           }
-        }
-        listaLoteriaConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: l));
+        // }
+        listaLoteriaConStock.add(Jugada(stock: montoDisponible.stock, loteria: l));
       }
 
       // INSERTAMOS LAS LOTERIAS
@@ -5678,14 +5678,14 @@ void _getTime() {
       // double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
       MontoDisponible montoDisponible;
 
-      if(!kIsWeb){
+      // if(!kIsWeb){
         montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
         double montoDisponibleOtraVez = montoDisponible.monto;
         if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
           _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
             return;
         }
-      }
+      // }
 
       print("insertarJugadaDuplicar jugada: ${jugada}");
 
@@ -5727,7 +5727,7 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: kIsWeb ? null : montoDisponible.stock
+          stock: montoDisponible.stock
         ));
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap), sorteo: _sorteo);
         _streamControllerJugada.add(listaJugadas);
@@ -5798,7 +5798,7 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: kIsWeb ? null : montoDisponible.stock
+          stock: montoDisponible.stock
         );
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria, sorteo: _sorteo);
         print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
@@ -6255,19 +6255,19 @@ _selectedBanca() async {
     
     // var montoDisponible;
 
-    if(kIsWeb){
-      try {
-        _txtMontoDisponible.text = "0";
-        var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
-        print("PrincipalView getMontoDisponible: $data");
-        return MontoDisponible(monto: Utils.toDouble(data["monto"]));
-      } on Exception catch (e) {
-        // TODO
-        print("PrincipalView getMontoDisponible error: ${e.toString()}");
-        return MontoDisponible(monto: 0);
+    // if(kIsWeb){
+    //   try {
+    //     _txtMontoDisponible.text = "0";
+    //     var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
+    //     print("PrincipalView getMontoDisponible: $data");
+    //     return MontoDisponible(monto: Utils.toDouble(data["monto"]));
+    //   } on Exception catch (e) {
+    //     // TODO
+    //     print("PrincipalView getMontoDisponible error: ${e.toString()}");
+    //     return MontoDisponible(monto: 0);
 
-      }
-    }
+    //   }
+    // }
     
     if(socket == null){
       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");

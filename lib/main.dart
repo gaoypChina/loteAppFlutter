@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ffi';
+// import 'dart:ffi';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +22,7 @@ import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:sqlite3/open.dart';
+// import 'package:sqlite3/open.dart';
 
 
 
@@ -50,8 +50,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await MyNotification.init();
 
-  if(Platform.isWindows)
-    open.overrideFor(OperatingSystem.windows, _openOnWindows);
+  // if(Platform.isWindows)
+  //   open.overrideFor(OperatingSystem.windows, _openOnWindows);
 
   //Firebase
   // await Firebase.initializeApp();
@@ -90,15 +90,15 @@ Future<void> main() async {
 
 }
 
-DynamicLibrary _openOnWindows() {
-   return DynamicLibrary.open('assets\\windows\\sqlite3.dll');
-}
+// DynamicLibrary _openOnWindows() {
+//    return DynamicLibrary.open('assets\\windows\\sqlite3.dll');
+// }
 
-DynamicLibrary _openOnLinux() {
-  final scriptDir = File(Platform.script.toFilePath()).parent;
-  final libraryNextToScript = File('${scriptDir.path}/sqlite3.so');
-  return DynamicLibrary.open(libraryNextToScript.path);
-}
+// DynamicLibrary _openOnLinux() {
+//   final scriptDir = File(Platform.script.toFilePath()).parent;
+//   final libraryNextToScript = File('${scriptDir.path}/sqlite3.so');
+//   return DynamicLibrary.open(libraryNextToScript.path);
+// }
 
 class MyApp extends StatelessWidget {
 

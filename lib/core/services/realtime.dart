@@ -301,8 +301,8 @@ class Realtime{
   // }
   
   static Future sincronizarTodosDataBatch(_scaffoldKey, var parsed) async {
-    if(kIsWeb)
-      return;
+    // if(kIsWeb)
+    //   return;
       
     // Batch batch = Db.batch();
     if(parsed["version"] != null){

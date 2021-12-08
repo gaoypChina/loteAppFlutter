@@ -16,6 +16,9 @@ class CrossPlatformRequesPermission {
   CrossPlatformRequesPermission._internal();
 
   Future<bool> requestNecesaryPermissions() async{
+    if(kIsWeb)
+      return false;
+      
     if(Platform.isWindows || kIsWeb || Platform.isMacOS){
       return false;
     }

@@ -13,6 +13,9 @@ class CrossPlatformPackageInfo {
   CrossPlatformPackageInfo._internal();
 
   Future<PackageInfo> fromPlatform() async{
+    if(kIsWeb){
+      return PackageInfo(appName: "Loterias", version: "4.0.3", buildNumber: "53", packageName: "loterias");
+    }
     if(Platform.isWindows || kIsWeb){
       return PackageInfo(appName: "Loterias", version: "4.0.3", buildNumber: "53", packageName: "loterias");
     }
