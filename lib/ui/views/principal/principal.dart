@@ -890,6 +890,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         if(await Db.idBanca() == banca.id){
           await Db.deleteAllBranches();
           // await Db.insertBranche('Branches', banca.toJson());
+          print("Principal view _updateBranchesList limiteVenta: ${banca.limiteVenta}");
           await Db.insertBranch(driftDatabase.Branch(
         id: banca.id, descripcion: banca.descripcion, codigo: banca.codigo, dueno: banca.dueno, idUsuario: banca.usuario != null ? banca.usuario.id : 0, 
         limiteVenta: banca.limiteVenta, descontar: banca.descontar, deCada: banca.deCada, minutosCancelarTicket: banca.minutosCancelarTicket, 

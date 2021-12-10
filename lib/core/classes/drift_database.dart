@@ -316,7 +316,7 @@ class AppDatabase extends _$AppDatabase{
   Future insertBranch(Branch branch) => into(branchs).insert(branch);
   Future updateBranch(Branch branch) => update(branchs).replace(branch);
   Future deleteBranch(Branch branch) => delete(branchs).delete(branch);
-  Future deleteAllBranches() => customStatement("delete from branches");
+  Future deleteAllBranches() => customStatement("delete from branchs");
   Future<Map<String, dynamic>> getBanca() async {
     var map = (await ((select(branchs)..limit(1)).getSingleOrNull()));
     return map != null ? map.toJson() : null;

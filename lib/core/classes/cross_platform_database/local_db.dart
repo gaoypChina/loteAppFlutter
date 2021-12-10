@@ -25,7 +25,7 @@ class LocalDrift implements CrossDB{
     // db = AppDatabase(LocalDatabase('app', logStatements: true));
     final dbTmp = LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(join(dbFolder.path, 'db.sqlite'));
+    final file = File(join(dbFolder.path, 'loterias.sqlite'));
     return NativeDatabase(file);
   });
     db = AppDatabase(dbTmp);
