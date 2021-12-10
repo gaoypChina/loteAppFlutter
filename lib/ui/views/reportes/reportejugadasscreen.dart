@@ -19,6 +19,7 @@ import 'package:loterias/ui/widgets/mycontainerbutton.dart';
 import 'package:loterias/ui/widgets/mycontainerradio.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
@@ -59,18 +60,20 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   Banca _banca;
   Grupo _grupo;
   String _jugada;
-  List<int> listaLimite = [20, 30, 50];
+  List<int> listaLimite = [20, 30, 50, 100];
   int _limite = 20;
   DateTimeRange _date;
   int _idGrupoDeEsteUsuario;
   List<MyFilterData2> listaFiltro = [];
   List<MyFilterSubData2> _filtros = [];
-
+  List<String> listaOrden = ["Por monto", "Por jugada"];
+  String _selectedOrden;
   
  
 
   _init() async {
     // setState(() => _cargando = true);
+    _selectedOrden = listaOrden[0];
     _date = MyDate.getTodayDateRange();
     _idGrupoDeEsteUsuario = await Db.idGrupo();
     var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, retornarLoterias: true, retornarSorteos: true, retornarMonedas: true, retornarBancas: true, retornarGrupos: true, idGrupo: _idGrupoDeEsteUsuario);
@@ -404,11 +407,88 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     showMyModalBottomSheet(
       context: context,
       myBottomSheet2: MyBottomSheet2(
+        height: 320,
         child: Column(
           children: listaLimite.map((e) => CheckboxListTile(title: Text("$e filas"), controlAffinity: ListTileControlAffinity.leading, value: _limite == e, onChanged: (value){setState(() => _limite = e); _filtrar(); Navigator.pop(context);},)).toList(),
         ),
       )
     );
+  }
+
+
+  Widget _avatarWidget(Jugada data){
+    return CircleAvatar(
+      backgroundColor: _drawsBackground(data.descripcion) ,
+      child: Text(_loteria != null ? _loteria.descripcion.substring(0, 1) : "T", style: TextStyle(color: Colors.white),),
+    );
+  }
+
+  Widget _montoYPremioWidget(Jugada data){
+    return (data.premio <= 0)
+          ?
+      Text(Utils.toCurrency(data.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
+          :
+      Column(
+        children: [
+          Text(Utils.toCurrency(data.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
+          Text(Utils.toCurrency(data.premio), style: TextStyle(color: Colors.pink, fontSize: 16),),
+        ],
+      );
+  }
+
+  Widget _jugadasWidget(List<Jugada> data, Draws draw){
+    return Column(
+      children: data.asMap().map((key, e){
+        Widget listTile = ListTile(
+          leading: _avatarWidget(e),
+          trailing: _montoYPremioWidget(e),
+          title: Text("${Utils.agregarSignoYletrasParaImprimir(e.jugada, draw.descripcion)}", style: TextStyle(fontWeight: FontWeight.w700),),
+          subtitle: RichText(text: TextSpan(
+              style: TextStyle(color: Colors.grey),
+              children: [
+                // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
+                TextSpan(text: "${e.cantidadVecesQueSeHaJugado != null ? 'Jugado ' + e.cantidadVecesQueSeHaJugado.toString() : ''} ${e.cantidadVecesQueSeHaJugado != null ? e.cantidadVecesQueSeHaJugado == 1 ? 'vez' : 'veces' : ''}"),
+                TextSpan(text: "${e.cantidadVecesQueHaSalido != null ? '  |  Salido ' + e.cantidadVecesQueHaSalido.toString() : ''} ${e.cantidadVecesQueHaSalido != null ? e.cantidadVecesQueHaSalido == 1 ? 'vez' : 'veces' : ''}"),
+              ]
+          )),
+        );
+
+        if(key == 0)
+          return MapEntry<dynamic, Widget>(key, Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 13),
+                // child: MySubtitle(title: draw.descripcion),
+                child: Row(
+                  children: [
+                    Text(draw.descripcion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Container(
+                        padding: EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12)
+                        ),
+                        child: Text("${data.length}", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              listTile
+            ],
+          ));
+
+        return MapEntry<dynamic, Widget>(key, listTile);
+      }).values.toList(),
+    );
+  }
+
+  _ordenChanged(orden){
+    _selectedOrden = orden;
+    _streamController.add(listaSorteo);
   }
 
 
@@ -477,7 +557,37 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
             if(listaJugada.length == 0)
                 return SliverFillRemaining(child: MyEmpty(title: "No hay jugadas realizadas", icon: Icons.format_list_numbered_rounded, titleButton: "No hay jugadas",));
 
+            return SliverList(delegate: SliverChildBuilderDelegate(
+                (context, index){
+                  var lista = listaJugada.where((element) => element.idSorteo == snapshot.data[index].id).toList();
+                  if(_selectedOrden == "Por monto")
+                    lista.sort((b, a) => a.monto.compareTo(b.monto));
+                  else
+                    lista.sort((element, value) => element.jugada.compareTo(value.jugada));
 
+                  if(index == 0)
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
+                          child: MyDropdown(
+                              small: 1.3,
+                              color: Colors.grey[100],
+                              textColor: Colors.black,
+                              leading: Icon(Icons.low_priority, color: Colors.black),
+                              elements: listaOrden.map((e) => [e, e]).toList(),
+                              hint: "Ordenado por: ${_selectedOrden ?? ''}",
+                              onTap: _ordenChanged
+                          ),
+                        ),
+                        _jugadasWidget(lista, snapshot.data[index]),
+                      ],
+                    );
+                  return _jugadasWidget(lista, snapshot.data[index]);
+                },
+              childCount: snapshot.data.length
+            ));
             return SliverFillRemaining(
               child: ListView.builder(
                 itemCount: snapshot.data.length,
@@ -486,21 +596,8 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
                   return Column(
                     children: lista.asMap().map((key, e){
                       Widget listTile = ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: _drawsBackground(snapshot.data[index].descripcion) ,
-                        child: Text(_loteria != null ? _loteria.descripcion.substring(0, 1) : "T", style: TextStyle(color: Colors.white),),
-                      ),
-                      trailing: 
-                      (e.premio <= 0)
-                      ?
-                      Text(Utils.toCurrency(e.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
-                      :
-                      Column(
-                        children: [
-                          Text(Utils.toCurrency(e.monto), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                          Text(Utils.toCurrency(e.premio), style: TextStyle(color: Colors.pink, fontSize: 16),),
-                        ],
-                      ),
+                      leading: _avatarWidget(e),
+                      trailing: _montoYPremioWidget(e),
                       title: Text("${Utils.agregarSignoYletrasParaImprimir(e.jugada, snapshot.data[index].descripcion)}", style: TextStyle(fontWeight: FontWeight.w700),),
                       subtitle: RichText(text: TextSpan(
                         style: TextStyle(color: Colors.grey),

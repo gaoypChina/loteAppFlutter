@@ -166,6 +166,36 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
     setState(() => _myDate = myDate);
   }
 
+  _myDateWidget(){
+    return Container(
+      decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: Colors.black, width: 0.3))
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: _listaFecha.map((e) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 14),
+            child: InkWell(
+              onTap: (){
+                _fechaChanged(e[0]);
+                widget.onOk(_date);},
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 3, horizontal: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: e[0] == _myDate ? Theme.of(context).primaryColor : null,
+                  ),
+                  child: Text("${e[1]}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
+            ),
+          )).toList(),
+        ),
+      ),
+    );
+  }
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -192,30 +222,7 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
       // color: Colors.black,
       child: Row(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: Colors.black, width: 0.3))
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _listaFecha.map((e) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 14),
-                child: InkWell(
-                  onTap: (){
-                    _fechaChanged(e[0]);
-                    widget.onOk(_date);},
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 3, horizontal: 7),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: e[0] == _myDate ? Theme.of(context).primaryColor : null,
-                    ),
-                    child: Text("${e[1]}", style: TextStyle(color: e[0] == _myDate ? Colors.white : null),)),
-                ),
-              )).toList(),
-            ),
-          ),
+          _myDateWidget(),
           // VerticalDivider(),
           Expanded(
             child: Theme(
