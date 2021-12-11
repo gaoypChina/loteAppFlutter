@@ -214,7 +214,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
 
 
   getIdBanca() async {
-    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")} : ${listaBanca.length}");
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca].id;
     else
@@ -243,7 +242,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         _cargando = false;
         _idVenta = datos['idVenta'];
         listaBanca = datos["bancas"];
-        print("indexPost listaBanca: ${listaBanca.length}");
         listaVenta = datos["ventas"];
         _streamControllerBanca.add(true);
         _streamControllerVenta.add(true);
@@ -268,7 +266,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     }
 
     var c = await DB.create();
-    print("PrincipalView guardar printer: ${await c.getPrinter()}");
 
     if(_ckbPrint){
       if(await Utils.exiseImpresora() == false){
@@ -348,7 +345,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       var listaDatos = await Db.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
       // var parsed = await TicketService.guardarGzipV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
-      print("PrincipalView _guardarLocal: $parsed");
+      // print("PrincipalView _guardarLocal: $parsed");
       listaDatos[0].idTicket = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.codigoBarra = listaDatos[3];
@@ -359,7 +356,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
      _seleccionarPrimeraLoteria();
       listaJugadas = [];
       _streamControllerJugada.add(listaJugadas);
-      print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
       if(_ckbPrint)
         BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
       else{
@@ -405,7 +401,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       int cantidadPick4 = 0;
       listaEstadisticaJugada.sort((a, b) => a.idLoteria.compareTo(b.idLoteria));
       for(int i=0; i < listaEstadisticaJugada.length; i++){
-        print("sendNotification for: ${listaEstadisticaJugada[i].descripcionSorteo}");
         if(listaEstadisticaJugada[i].descripcionSorteo == "Directo"){
            cantidadDirectos = listaEstadisticaJugada[i].cantidad;
           List<Jugada> listaDirectos = listaJugadas.where((element) => element.sorteo == "Directo" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
@@ -488,7 +483,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       if(pick4.isNotEmpty)
         contenido += pick4 +"\n\n";
 
-      print("sendNotification contenido: $contenido");
 
       var notificacion = Notificacion(titulo: "Jugadas sucias", subtitulo: "Se ha detectado jugadas sucias en la banca ${banca.descripcion}", contenido: contenido);
       await NotificationService.guardar(context: context, notificacion: notificacion);
@@ -528,7 +522,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
      http.post(Uri.parse(Utils.URL +"/api/principal/montodisponible"), body: json.encode(map2), headers: header ).then((http.Response resp){
       final int statusCode = resp.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {
-        print('futuro: ${resp.body}');
         throw new Exception("Error while fetching data");
       }
       final parsed = json.decode(resp.body).cast<String, dynamic>();
@@ -555,7 +548,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
   Future<bool> _getDatosSessionUsuario() async {
     setState(() => _cargandoDatosSesionUsuario = true);
     bool seGuardaronLosDatosDeLaSesion = await Principal.mockCheckForSession(scaffoldKey: _scaffoldKey);
-    print("PrincipalScreen inside function seGuardaronLosDatosDeLaSesion: $seGuardaronLosDatosDeLaSesion");
+    // print("PrincipalScreen inside function seGuardaronLosDatosDeLaSesion: $seGuardaronLosDatosDeLaSesion");
     if(seGuardaronLosDatosDeLaSesion == false){
       await Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -595,9 +588,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       futureUsuario = Db.getUsuario();
       // _showIntentNotificationIfExists();
     }else{
-      print("PrincipalScreen before _getDatosSessionUsuaro");
       _getDatosSessionUsuario().then((value){
-      print("PrincipalScreen _getDatosSessionUsuaro inside then function");
        if(value == false)
         return;
         
@@ -625,7 +616,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     _streamControllerJugada.add(listaJugadas);
     
     
-      print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
       // if(!kIsWeb)
       //   _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
@@ -665,7 +655,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       
 
       if(notification != null && android != null){
-        print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
+        // print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
         Navigator.pushNamed(context, "/pagos/ver", arguments:message.data["idPago"] != null ? Utils.toInt(message.data["idPago"]) : null);
         // showDialog(
         //   context: context, 
@@ -700,7 +690,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
   _getUsuarioYBanca() async {
     var usuario = await Db.getUsuario();
     var banca = await Db.getBanca();
-    print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
+    // print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
     if(usuario != null){
       _usuario = Usuario.fromMap(usuario);
       if(banca != null)
@@ -711,7 +701,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       }
     }else{
       await Principal.cerrarSesion(context);
-      print("PrincipalScreen _getUsuarioYBanca null: ${usuario}");
     }
   }
 
@@ -736,8 +725,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     _streamControllerBanca.close();
     _streamControllerVenta.close();
     _streamControllerLoteria.close();
-    print("dispose desconectar socket");
-    print("Desconectando socket desde dispose de la ventana principal");
     // await manager.clearInstance(socket);
     await _disconnectSocket();
     
@@ -778,8 +765,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     bool tienePermisoManejarHorariosDeLoterias = await Db.existePermiso("Manejar horarios de loterias");
     bool tienePermisoManejarMonedas = await Db.existePermiso("Manejar monedas");
     bool tienePermisoManejarEntidadesContables = await Db.existePermiso("Manejar entidades contables");
-    print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    print("_getPermisos tiene permiso permisoAccesoAlSistema: $permisoAccesoAlSistema");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -822,7 +807,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
   }
 
   Future _desconectarYConectarNuevamente() async {
-    print("_desconectarYConectarNuevamente desconectar socket y conectar");
     // await manager.clearInstance(socket);
     await _disconnectSocket();
     _socketContadorErrores = 0;
@@ -830,7 +814,6 @@ String initSocketNotificationTask = "initSocketNotificationTask";
   }
 
   static Future _desconectarYConectarNuevamenteSocketNotificacion() async {
-    print("_desconectarYConectarNuevamente desconectar socket y conectar");
     await manager.clearInstance(socketNotificaciones);
     _socketNotificacionContadorErrores = 0;
     initSocketNoticacion();
@@ -845,12 +828,9 @@ String initSocketNotificationTask = "initSocketNotificationTask";
   }
 
   _updateBranchesList(Map<String, dynamic> parsed) async {
-    print("Dentro principal view _updateBranchesList 1: $parsed");
-    
-    print("Dentro principal view _updateBranchesList paso parsed != null _administrador: $_tienePermisoJugarComoCualquierBanca");
-    
-    print("Dentro principal view _updateBranchesList 2");
-        
+
+
+
 
       try {
         // if(parsed["branch"] == null){
@@ -1531,7 +1511,7 @@ _showIntentNotificationIfExists() async {
   var notificacion = await MyNotification.getIntentDataNotification();
   
   if(notificacion != null){
-    print("_showIntentNotificationIfExists ${notificacion.toJson()}");
+    // print("_showIntentNotificationIfExists ${notificacion.toJson()}");
     Navigator.pushNamed(context, "/verNotificaciones", arguments: notificacion);
   }
 }
@@ -1582,7 +1562,7 @@ _showIntentNotificationIfExists() async {
           if(l["duplicar"] == '- NO MOVER -'){
             if(jugada["sorteo"] != "Super pale"){
               jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-              print("duplicarSuperpale ${l["duplicarSuperpale"]}");
+              // print("duplicarSuperpale ${l["duplicarSuperpale"]}");
               await addJugada(loteriaMap: l, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
             }else{
               Map<String, dynamic> mapLoteria = Map<String, dynamic>();
@@ -1591,13 +1571,13 @@ _showIntentNotificationIfExists() async {
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
-                  print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
+                  // print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
                   jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-                  print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
+                  // print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
-                  print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
                   mapLoteria = Map<String, dynamic>();
                   loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
                   Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
@@ -1607,7 +1587,7 @@ _showIntentNotificationIfExists() async {
                     loteria = tmp;
                   }
 
-                  print("loteriaSuperpale show: ${loteriaSuperpale.toJson()}");
+                  // print("loteriaSuperpale show: ${loteriaSuperpale.toJson()}");
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
@@ -1638,7 +1618,7 @@ _showIntentNotificationIfExists() async {
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
-                  print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
                   mapLoteria = Map<String, dynamic>();
                   loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
                   Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
@@ -1665,7 +1645,6 @@ _showIntentNotificationIfExists() async {
   }
 
   _cambiarServidor() async {
-    print("Holaaaaaaaaaaaaaaaaa");
     var c = await DB.create();
     var tipoUsuario = await c.getValue("tipoUsuario");
     if(tipoUsuario == "Programador"){
@@ -1675,7 +1654,7 @@ _showIntentNotificationIfExists() async {
 
       List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json.toJson())).toList();
       String servidorActual = await Db.servidor();
-      print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
+      // print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
       int indexServidor = (listaServidor.length > 0) ? listaServidor.indexWhere((element) => element.descripcion == servidorActual) : -1;
       Servidor servidorSeleccionado = (indexServidor != -1) ? listaServidor[indexServidor] : null;
       if(servidorSeleccionado == null)
@@ -1689,7 +1668,6 @@ _showIntentNotificationIfExists() async {
         // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
         // usuario.servidor = servidor;
         // await Db.update("Users", usuario.toJson(), usuario.id);
-        print("_cambiarServidor entrooooooooooooooooo");
         // await manager.clearInstance(socket);
         await _disconnectSocket();
         futureUsuario = Db.getUsuario();
@@ -1760,7 +1738,6 @@ _showIntentNotificationIfExists() async {
               });
               Usuario usuario = Usuario.fromMap(await Db.getUsuario());
               var parsed = await LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor.descripcion, context: context);
-              print("Principal.dar drawer cambiar: ${parsed["apiKey"]}");
               await Principal.cerrarSesion(context, false);
               await Db.deleteDB();
               var c = await DB.create();
@@ -1769,7 +1746,6 @@ _showIntentNotificationIfExists() async {
               await c.add("administrador", parsed["administrador"]);
               await c.add("tipoUsuario", parsed["tipoUsuario"]);
               await LoginService.guardarDatos(parsed);
-              print("Principal.dar drawer cambiar: ${await c.getValue("apiKey")}");
             }
         return StatefulBuilder(
           builder: (context, setState) {
@@ -2186,7 +2162,6 @@ AppBar _appBar(bool screenHeightIsSmall){
                       // print("PrincipalView cloud: $query");
 
                       // deleteSubidaYesterdaysSale();
-                      print("PrincipalView Icons.cloud_done file length: ${await MyFileManager().length()}");
 
                       
                     },);
@@ -2237,7 +2212,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                     ScanMode.QR
                                                     );
 
-                print("_appBar codigoQr duplicar: $codigoQr");
+                // print("_appBar codigoQr duplicar: $codigoQr");
 
                 setState(() => _cargando = true);
                 var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
@@ -2452,7 +2427,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 // }
 
                 setState(() => _selectedLoterias = values);
-                print("PrincipalView _loteriasScreen showMyOverlayEntry: $values");
+                // print("PrincipalView _loteriasScreen showMyOverlayEntry: $values");
               },
               builder: (context, overlay){
                 return Container(
@@ -2502,10 +2477,10 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     return RawKeyboardListener(
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
-        print("Event runtimeType is ${event.runtimeType}");
+        // print("Event runtimeType is ${event.runtimeType}");
         if(event.runtimeType.toString() != 'RawKeyUpEvent')
           return;
-        print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
+        // print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
         if(event.logicalKey == LogicalKeyboardKey.backspace)
           return;
 
@@ -3304,7 +3279,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     if(datos.isEmpty)
       return
 
-      print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
       Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
   }
   
@@ -3319,7 +3293,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     if(datos.isEmpty)
       return
     
-    print("_showDialogDuplicar datos2: $datos");
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
   }
@@ -3333,7 +3306,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     if(datos.isEmpty)
       return
     
-    print("_showDialogDuplicar datos2: $datos");
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
   }
@@ -4486,7 +4458,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         // socket.dispose();
                         _disconnectSocket();
                         await Principal.cerrarSesion(context);
-                        print("Cerra sesion after _disconnectSocket");
                         await stopSocketNoticacionInForeground();
                       },
                     )
@@ -4544,8 +4515,6 @@ void _getTime() {
     // var currentTimeZoneFechaActual = TZDateTime.now(currentTimeZoneLocation);
     // var fechaLoteriaCurrentTimeZone = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre}");
     var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
-    print("_convertirHoraCierreLoteria currentTImeZone: $currentTimeZone");
-    print("hora actual currentTimeZone: ${fechaLoteriaCurrentTimeZone.toString()} santoDomingo: ${fechaLoteriaRD.toString()}");
 
     return fechaLoteriaCurrentTimeZone;
   }
@@ -4625,7 +4594,6 @@ void _getTime() {
       stream: Stream.periodic(Duration(seconds: 1), (i) => i),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         String dateString = "";
-        print(dateString);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -4651,7 +4619,6 @@ void _getTime() {
       stream: Stream.periodic(Duration(seconds: 1), (i) => i),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         String dateString = "";
-        print(dateString);
         if(_selectedLoterias == null)
           return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
 
@@ -4745,12 +4712,10 @@ void _getTime() {
       },
     );
 
-    _selectedLoterias = List();
+    _selectedLoterias = [];
     if(selectedValues != null){
       final selectedValuesMap = selectedValues.toList().asMap();
       for(int c=0; c < selectedValuesMap.length; c++){
-        print("Principal selectedLoterias: ${ selectedValuesMap[c]}");
-        print("Principal selectedLoterias: ${ listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null)}");
         Loteria data = listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null);
         if(data != null)
           _selectedLoterias.add(data);
@@ -4771,10 +4736,8 @@ void _getTime() {
           color: color,
           onPressed: (){
             if(text_or_icon is Text){
-              print('es tipo: ${text_or_icon.data}');
               _escribir(value != null ? value : text_or_icon.data);
             }else{
-              print('Nooo es tipo');
               _escribir(value != null ? value : 'backspace');
             }
           },
@@ -4797,12 +4760,10 @@ void _getTime() {
 
     setState((){
       _jugadaOmonto = !_jugadaOmonto;
-      print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
     });
   }
 
   Future<void> _escribir(String caracter) async {
-    print("Hey: $caracter");
     _jugadaOmonto = _isLargeAndWeb() ? _jugadaFocusNode.hasFocus : _jugadaOmonto;
     if(caracter == '.'){
       if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
@@ -5193,7 +5154,6 @@ void _getTime() {
         listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada);
       }
     }
-    print("dentro _ligarPale");
 
     //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
     // Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
@@ -5243,7 +5203,6 @@ void _getTime() {
           listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada + listaJugadaDirectos[i3].jugada);
       }
     }
-    print("dentro _ligarTripleta");
 
     //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
     // Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
@@ -5281,12 +5240,10 @@ void _getTime() {
     if((_txtJugada.text.indexOf('+') != -1 && !_isLargeAndWeb()) || (_txtJugada.text.indexOf('+') == -1 && _isLargeAndWeb()))
       return;
 
-    print("PrincipalView ponerSignoMas 1");
 
     if(_txtJugada.text.length != 3 && _txtJugada.text.length != 4 && !_isLargeAndWeb())
       return;
     
-    print("PrincipalView ponerSignoMas 2");
 
     if(!_isLargeAndWeb())
       _txtJugada.text = _txtJugada.text + '+';
@@ -5427,7 +5384,6 @@ void _getTime() {
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == _selectedLoterias[i].id && element.loteriaSuperPale.id == _selectedLoterias[i2].id);
-          print("Loteria-JugadaLoteria: ${_selectedLoterias[i].descripcion} ${jugadaConStock.loteria.descripcion} loteriaSuper-jugadaLoteriaSuper: ${_selectedLoterias[i].descripcion} ${jugadaConStock.loteriaSuperPale.descripcion}");
           insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
         }
       }
@@ -5485,8 +5441,6 @@ void _getTime() {
       if(cantidad == null)
         cantidad = await Db.getBlocksdirtygeneralCantidad(idLoteria: listaEstadisticaJugada[i].idLoteria, idSorteo: listaEstadisticaJugada[i].idSorteo, idMoneda: banca.idMoneda);
         
-      print("hayJugadasSuciasNuevo query: $cantidad");
-      print("hayJugadasSuciasNuevo estadisticaJugada: ${listaEstadisticaJugada[i].toJson()}");
       // if(query.isNotEmpty){
       //   if(listaEstadisticaJugada[i].cantidad > query.first["cantidad"]){
       //     Utils.showAlertDialog(context: context, title: "Jugadas sucias", content: "Hay jugadas sucias en la loteria ${listaEstadisticaJugada[i].descripcion}, comuniquese con el administrador o esta banca sera monitoreada y si se encuentran jugadas sucias pues se tomaran medidas severas contra usted.");
@@ -5521,7 +5475,6 @@ void _getTime() {
     if(cantidad == null)
       return false;
 
-    print("hayJugadasSucias query: ${sorteo.id}");
     if(sorteo.descripcion == "Directo"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 2 && e.idLoteria == loteria.id).length;
       // if(tamanoJugadas >= query.first["cantidad"])
@@ -5529,7 +5482,6 @@ void _getTime() {
       if(tamanoJugadas >= cantidad)
         return true;
 
-      print("hayJugadasSucias tam: $tamanoJugadas");
     }
     if(sorteo.descripcion == "Pale"){
       int tamanoJugadas = listaJugadas.where((e) => Utils.toInt(e.jugada) != 0 && e.idLoteria == loteria.id).length;
@@ -5688,7 +5640,6 @@ void _getTime() {
         }
       // }
 
-      print("insertarJugadaDuplicar jugada: ${jugada}");
 
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteriaMap["id"]) : -1;
       if(idx != -1){
@@ -5753,9 +5704,6 @@ void _getTime() {
           return;
       }
 
-      print("insertarJugadaDuplicar jugadaSuperpale: ${jugada["jugada"]}");
-      print("insertarJugadaDuplicar superpale: ${loteriaSuperpale.toJson()}");
-      print("insertarJugadaDuplicar normal: ${loteria.toJson()}");
 
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
       if(idx != -1){
@@ -5802,7 +5750,6 @@ void _getTime() {
           stock: montoDisponible.stock
         );
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria, sorteo: _sorteo);
-        print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
         listaJugadas.add(j);
         _streamControllerJugada.add(listaJugadas);
 
@@ -6030,7 +5977,6 @@ _seleccionarBancaPertenecienteAUsuario() async {
   // print("_seleccionarBancaPertenecienteAUsuario bancaMap: ${bancaMap}");
   if(banca != null){
     int idx = listaBanca.indexWhere((b) => b.id == banca.id);
-    print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
     setState(() {
       _indexBanca = (idx != -1) ? idx : 0;
       _emitToGetNewIdTicket();
@@ -6039,7 +5985,6 @@ _seleccionarBancaPertenecienteAUsuario() async {
   }else{
     setState(() {
       _indexBanca = 0;
-      print("_seleccionarBancaPertenecienteAUsuario listaBanca: ${listaBanca.length}");
       _emitToGetNewIdTicket();
       _emitToGetVentasDelDia();
     });
@@ -6298,9 +6243,7 @@ _selectedBanca() async {
     
     double montoDisponibleFinal = Utils.toDouble(montoDisponible.monto.toString());
     if(idx != -1){
-      print("encontrado: ${listaJugadas[idx].monto}");
       montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
-      print("encontrado y restado: ${montoDisponibleFinal}");
     }
 
     // if(stockToReturn != null)
@@ -6310,7 +6253,6 @@ _selectedBanca() async {
 
     montoDisponible.monto = montoDisponibleFinal;
 
-    print("principalView getMontoDisponible: ${montoDisponible.stock.toJson()}");
     // return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
     return montoDisponible;
 
@@ -6723,7 +6665,6 @@ _selectedBanca() async {
           }
         }
 
-    print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
 
         
       }
@@ -6992,14 +6933,12 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> l
     listaLoteriaTmp = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
 
    listaLoteriaEvent.forEach((l) async {
-    print("dentro foreach loterias: ${l.descripcion}");
 
     DateTime fechaLoteria = _horaCierreLoteriaToCurrentTimeZone(l);
     DateTime now = DateTime.now();
 
     if(now.isAfter(fechaLoteria)){
       if(!_tienePermisoJugarFueraDeHorario){
-      print("dentro foreach loterias eliminar: ${l.descripcion}");
         if(_tienePermisoJugarMinutosExtras){
           var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
           if(now.isAfter(fechaLoteriaMinutosExtras)){
@@ -7019,12 +6958,10 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> l
     var _index = listaLoteriaEvent.indexWhere((lo) => lo.id == l);
     if(_index != -1){
       setState(() => listaLoteriaEvent.removeAt(_index));
-      print("listaIdloteriasAEliminar: ${listaLoteriaEvent[_index]}");
     }
 
   });
 
-  print("listaIdloteriasAEliminar: ${listaIdloteriasAEliminar}");
 
   
   setState((){
