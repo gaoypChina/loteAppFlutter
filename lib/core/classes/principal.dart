@@ -195,7 +195,7 @@ class Principal{
               content: _widget(),
               actions: <Widget>[
                 TextButton(child: Text("Cancelar"), onPressed: (){
-                Navigator.of(context).pop(Map<String, dynamic>());
+                Navigator.of(context).pop(null);
                 },),
                 TextButton(child: Text("Ok"), onPressed: _duplicar,
                 )
@@ -464,7 +464,7 @@ class Principal{
             actions: <Widget>[
              
               TextButton(child: Text("Cancelar"), onPressed: (){
-              Navigator.of(context).pop(Map<String, dynamic>());
+              Navigator.of(context).pop(null);
               },),
               TextButton(child: Text("Buscar"), onPressed: _pagar,
               )
