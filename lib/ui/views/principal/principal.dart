@@ -4317,7 +4317,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                     Visibility(
                       visible: _tienePermisoVerListaDeBalancesDeBancos || _tienePermisoVerListaDeBalancesDeBancass,
                       child: ExpansionTile(
-                        leading: Icon(Icons.six_ft_apart),
+                        leading: Icon(Icons.six__ft_apart),
                         title: Text("Balances"),
                         children: [
                           Visibility(
@@ -5004,7 +5004,8 @@ void _getTime() {
                       controller: _txtMontoLigar,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
-                        WhitelistingTextInputFormatter.digitsOnly
+                        // WhitelistingTextInputFormatter.digitsOnly
+                        FilteringTextInputFormatter.digitsOnly
                       ],
                       validator: (data){
                         if(data.isEmpty)
