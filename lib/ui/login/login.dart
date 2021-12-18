@@ -245,7 +245,17 @@ _showSnackBar(String content){
                                   await c.add("tipoUsuario", parsed["tipoUsuario"]);
                                   await c.add("usuario", _txtUsuarioController.text.toString());
                                   await c.add("password", _txtPasswordController.text.toString());
-                                  
+                                  if(parsed["ajustes"] != null){
+                                    if(parsed["ajustes"]["whatsapp"] != null && parsed["ajustes"]["whatsapp"] != '')
+                                      await c.add("ajusteWhatsapp", parsed["ajustes"]["whatsapp"]);
+                                    else
+                                      await c.delete("ajusteWhatsapp");
+                                    if(parsed["ajustes"]["email"] != null && parsed["ajustes"]["email"] != '')
+                                      await c.add("ajusteEmail", parsed["ajustes"]["email"]);
+                                    else
+                                      await c.delete("ajusteEmail");
+                                  }
+
 
                                   await LoginService.guardarDatos(parsed);
                                   await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["realtime"]);

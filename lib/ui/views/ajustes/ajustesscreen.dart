@@ -5,6 +5,11 @@ import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/ajustesservice.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
+import 'package:loterias/ui/widgets/mydivider.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/myswitch.dart';
+import 'package:loterias/ui/widgets/mytextformfield.dart';
 
 class AjustesScreen extends StatefulWidget {
   @override
@@ -14,6 +19,8 @@ class AjustesScreen extends StatefulWidget {
 class _AjustesScreenState extends State<AjustesScreen> {
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _txtConsorcio = TextEditingController();
+  var _txtWhatsapp = TextEditingController();
+  var _txtEmail = TextEditingController();
   bool _cargando = false;
   Future _future;
   List<Tipo> listaTipo = [];
@@ -143,6 +150,15 @@ class _AjustesScreenState extends State<AjustesScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    _txtConsorcio.dispose();
+    _txtWhatsapp.dispose();
+    _txtEmail.dispose();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
@@ -150,6 +166,118 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+        context: context,
+        cargando: false,
+        cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+          sliverAppBar: MySliverAppBar(
+            title: "Ajustes",
+            actions: [
+              MySliverButton(
+                  title: "Guardar",
+                  onTap: _guardar
+              )
+            ],
+          ),
+          sliver: FutureBuilder<void>(
+            future: _future,
+            builder: (context, snapshot) {
+              print("_futureBUildeer snapshot: ${snapshot.hasData} : ${snapshot.connectionState}");
+              if(snapshot.connectionState != ConnectionState.done)
+                return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+              return SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                    child: MyTextFormField(
+                      autofocus: true,
+                      leading: isSmallOrMedium ? SizedBox.shrink() : null,
+                      isSideTitle: isSmallOrMedium ? false : true,
+                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                      fontSize: isSmallOrMedium ? 28 : null,
+                      controller: _txtConsorcio,
+                      title: !isSmallOrMedium ? "Agregar consorcio *" : "",
+                      hint: "Agregar consorcio",
+                      medium: 1,
+                      isRequired: true,
+                      helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
+                    ),
+                  ),
+                  MyDivider(showOnlyOnSmall: true,),
+                  MySwitch(
+                      leading: Icon(Icons.print_rounded),
+                      title: "Imprimir consorcio",
+                      value: _imprimirNombreConsorcio,
+                      onChanged: _imprimirNombreConsorcioChanged
+                  ),
+                  MySwitch(
+                      leading: Icon(Icons.home_work_sharp),
+                      title: "Imprimir nombre banca",
+                      value: _imprimirNombreBanca,
+                      onChanged: _imprimirNombreBancaChanged
+                  ),
+                  MySwitch(
+                      leading: FaIcon(FontAwesomeIcons.removeFormat),
+                      title: "Cancelar tickets WhatsApp",
+                      value: _cancelarTicketWhatsapp,
+                      onChanged: _cancelarTicketWhatsappChanged
+                  ),
+                  MySwitch(
+                      leading: Icon(Icons.payment),
+                      title: "Pagar desde cualquier banca",
+                      value: _pagarTicketEnCualquierBanca,
+                      onChanged: _pagarTicketEnCualquierBancaChanged
+                  ),
+                  MyDivider(showOnlyOnSmall: true,),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                    child: MyTextFormField(
+                      leading: isSmallOrMedium ? FaIcon(FontAwesomeIcons.whatsapp) : null,
+                      isSideTitle: isSmallOrMedium ? false : true,
+                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                      controller: _txtWhatsapp,
+                      title: !isSmallOrMedium ? "+1 (809) 222-8778" : "",
+                      hint: "+1 (809) 222-8778",
+                      medium: 1,
+                      isRequired: true,
+                      helperText: "Este whatsapp aparecerá en la ventana para acceder al sistema",
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                    child: MyTextFormField(
+                      leading: isSmallOrMedium ? Icon(Icons.email,) : null,
+                      isSideTitle: isSmallOrMedium ? false : true,
+                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                      controller: _txtEmail,
+                      title: !isSmallOrMedium ? "Correo" : "",
+                      hint: "Correo",
+                      medium: 1,
+                      isRequired: true,
+                      helperText: "Este correo aparecerá en la ventana para acceder al sistema",
+                    ),
+                  ),
+                  MyDivider(showOnlyOnSmall: true, padding: EdgeInsets.symmetric(vertical: 13),),
+                  ListTile(
+                    leading: Icon(Icons.confirmation_number_outlined),
+                    trailing: IconButton(icon: Icon(Icons.remove_red_eye, color: Colors.pink,), onPressed: (){}),
+                    title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_tipo, "${_tipo != null ? _tipo.descripcion : 'Ninguno'}"], onTap: (data){_showSorteos();})),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Divider(thickness: 1,),
+                  ),
+                ]),
+
+              );
+            }
+          )
+      )
+    );
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,

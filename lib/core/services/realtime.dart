@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/cross_device_info.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/principal.dart';
+import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -882,6 +883,9 @@ class Realtime{
               "cancelarTicketWhatsapp" : a.cancelarTicketWhatsapp,
               "pagarTicketEnCualquierBanca" : a.pagarTicketEnCualquierBanca,
             });
+
+            //Insertamos ajustes en sembas
+            await (await DB.create()).addAjuste(a);
         
           print("RealTime ajustes, se guardaron correctamente: ${await Db.ajustes()}");
           print("RealTime ajustes, se guardaron correctamente2: ${a.toJson()}");

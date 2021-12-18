@@ -11,6 +11,8 @@ class Ajuste {
   int cancelarTicketWhatsapp;
   int imprimirNombreBanca;
   int pagarTicketEnCualquierBanca;
+  String whatsapp;
+  String email;
 
   Ajuste({this.id, this.consorcio, this.imprimirNombreConsorcio, this.tipoFormatoTicket, this.descripcionTipoFormatoTicket, this.pagarTicketEnCualquierBanca});
 
@@ -23,9 +25,11 @@ class Ajuste {
         descripcionTipoFormatoTicket = (snapshot['descripcionTipoFormatoTicket'] != null) ? snapshot["descripcionTipoFormatoTicket"] : '',
         cancelarTicketWhatsapp = snapshot['cancelarTicketWhatsapp'] != null ? Utils.toInt(snapshot['cancelarTicketWhatsapp']) : 1,
         imprimirNombreBanca = snapshot['imprimirNombreBanca'] != null ? Utils.toInt(snapshot['imprimirNombreBanca']) : 1,
-        pagarTicketEnCualquierBanca = snapshot['pagarTicketEnCualquierBanca'] != null ? Utils.toInt(snapshot['pagarTicketEnCualquierBanca']) : 1
+        pagarTicketEnCualquierBanca = snapshot['pagarTicketEnCualquierBanca'] != null ? Utils.toInt(snapshot['pagarTicketEnCualquierBanca']) : 1,
         // permisos = permisosToMap(snapshot['permisos']) ?? List()
-        ;
+        whatsapp = snapshot['whatsapp'] ?? '',
+        email = snapshot['email'] ?? ''
+  ;
 
 
 
@@ -40,6 +44,8 @@ class Ajuste {
       "cancelarTicketWhatsapp": cancelarTicketWhatsapp,
       "imprimirNombreBanca": imprimirNombreBanca,
       "pagarTicketEnCualquierBanca": pagarTicketEnCualquierBanca,
+      "whatsapp": whatsapp ?? '',
+      "email": email ?? '',
     };
   }
 }

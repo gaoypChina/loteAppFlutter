@@ -337,6 +337,7 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
           alignLabelWithHint: true,
           // border: InputBorder.none,
           fillColor: Colors.transparent,
+          // helperText: widget.helperText
           // filled: true,
           // hintStyle: TextStyle(fontWeight: FontWeight.bold),
           // focusedBorder: new OutlineInputBorder(

@@ -4,6 +4,7 @@
 
 if (dart.library.io) 'mobile_sembas.dart'
     if (dart.library.js) 'web_sembas.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/pago.dart';
 
 abstract class CrossSembas {
@@ -36,6 +37,7 @@ abstract class CrossSembas {
 
   Future<Pago> getPagoPendiente();
   Future<void> removePagoPendiente();
+  Future<void> addAjuste(Ajuste ajuste);
 
   factory CrossSembas() => getSembas();
   

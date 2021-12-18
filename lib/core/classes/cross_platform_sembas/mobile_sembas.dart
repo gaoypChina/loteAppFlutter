@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
@@ -235,6 +236,18 @@ static final MobileSembas _singleton = MobileSembas._internal();
   Future<void> removePagoPendiente() async {
     // TODO: implement removePagoPendiente
     await this.delete("pago");
+  }
+
+  @override
+  Future<void> addAjuste(Ajuste ajuste) async {
+    // TODO: implement addAjuste
+    try {
+      await this.delete("ajuste");
+      await this.add("ajuste", json.encode(ajuste.toJson()));
+    } on Exception catch (e) {
+      print("Mobile_sembas Exception: error ${e.toString()}");
+      // TODO
+    }
   }
 
   
