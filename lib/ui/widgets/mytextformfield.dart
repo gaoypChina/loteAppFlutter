@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/country.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 
 class MyType {
   const MyType._(this.index);
@@ -21,10 +23,11 @@ class MyType {
 
   static const MyType noBorder = MyType._(3);
   static const MyType floatingLabelWithBorder = MyType._(4);
+  static const MyType phone = MyType._(5);
 
   /// A list of all the font weights.
   static const List<MyType> values = <MyType>[
-    normal, border, rounded, floatingLabelWithBorder
+    normal, border, rounded, floatingLabelWithBorder, phone
   ];
 }
 
@@ -68,7 +71,9 @@ class MyTextFormField extends StatefulWidget {
   final TextAlign textAlign;
   final Function onTap;
   final FocusNode focusNode;
-  MyTextFormField({Key key, this.focusNode, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap}) : super(key: key);
+  final Country phoneCountryValue;
+  final ValueChanged<dynamic> phoneCountryChanged;
+  MyTextFormField({Key key, this.focusNode, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap, this.phoneCountryValue, this.phoneCountryChanged}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -78,13 +83,19 @@ class _MyTextFormFieldState extends State<MyTextFormField> {
   static const _locale = 'en';
   // String _formatNumber(String s) => NumberFormat.decimalPattern(_locale).format(int.parse(s));
   String _formatNumber(String s) => NumberFormat.decimalPattern(_locale).format(Utils.toDouble(s));
-String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigits: 2).currencySymbol;
+  String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigits: 2).currencySymbol;
+  Country _selectedPhoneCountry;
+  FocusNode _phoneFocusNode = FocusNode();
+  var _valueNotifierPhoneDropdownButtonIsOpen = ValueNotifier(false);
+
   @override
   void initState() {
     // TODO: implement initState
     // _width = getWidth();
-              print("_mytextFormField isDanger: ${widget.isDanger}");
-
+    print("_mytextFormField isDanger: ${widget.isDanger}");
+    _phoneFocusNode.addListener(() {
+      print("MyTextformfield initState _phoneFocusNode: ${_phoneFocusNode.hasFocus}");
+    });
     super.initState();
   }
 
@@ -167,6 +178,9 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
     if(widget.isMoneyFormat){
       return _currency;
     }
+    // else if(widget.type == MyType.phone){
+    //   return widget.phoneCountryValue != null ? widget.phoneCountryValue.isoCode : null;
+    // }
     return null;
   }
  
@@ -406,6 +420,144 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
       return txt;
   }
 
+  _phoneWidget(){
+    return PopupMenuButton(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 5.0),
+        child: Text("${widget.phoneCountryValue != null ? widget.phoneCountryValue.emoji + ' ' + widget.phoneCountryValue.countryCode + ' ' : ''}"),
+      ),
+      onSelected: (value) => widget.phoneCountryChanged(value),
+      itemBuilder: (context) {
+        return Country.get().map((e) {
+          return PopupMenuItem(
+            child: Text('${e.emoji} ${e.name}'),
+            value: e,
+          );
+        }).toList();
+      },
+    );
+  }
+
+  _textFormFieldPhone(){
+    var txt = Padding(
+      padding: widget.padding,
+      child: TextFormField(
+        focusNode: widget.focusNode,
+        enabled: widget.enabled,
+        controller: widget.controller,
+        maxLines: widget.maxLines,
+        autofocus: widget.autofocus,
+        textAlign: widget.textAlign,
+        style: TextStyle(color: widget.isDanger ? Colors.red : null, fontSize: widget.fontSize),
+        decoration: InputDecoration(
+          prefixIcon: _phoneWidget(),
+          // DropdownButtonHideUnderline(
+          //   child: ButtonTheme(
+          //     alignedDropdown: false,
+          //     child: DropdownButton(
+          //       // isExpanded: true,
+          //       isDense: true,
+          //       focusNode: _phoneFocusNode,
+          //       selectedItemBuilder: (context) => Country.get().map<Widget>((e) => Text("${e.emoji}")).toList(),
+          //       items: Country.get().map<DropdownMenuItem>((e) => DropdownMenuItem(child: Row(
+          //         children: [
+          //           Expanded(child: Text("${e.emoji} ${e.name}")),
+          //         ],
+          //       ), value: e.isoCode,)).toList(),
+          //       value: widget.phoneCountryValue != null ? widget.phoneCountryValue.isoCode : null,
+          //       onChanged: (e) => widget.phoneCountryChanged(e),
+          //     ),
+          //   ),
+          // ),
+          // MyDropdown(
+          //   small: 10,
+          //   large: 10,
+          //   medium: 10,
+          //   isFlat: true,
+          //   textColor: Colors.black,
+          //   elements: Country.get().map((e) => [e, "${e.emoji} ${e.name}"]).toList(),
+          //   hint: "${widget.phoneCountryValue.emoji} ${widget.phoneCountryValue.name} hola",
+          //   onTap: (country) => widget.phoneCountryChanged(country),
+          // ),
+          // prefixText: _getPrefixText(),
+          hintText: widget.hint,
+          // contentPadding: EdgeInsets.only(left: 2, right: 2, top: 20, bottom: 20),
+          isDense: true,
+          border: InputBorder.none,
+          // contentPadding: EdgeInsets.all(0),
+          alignLabelWithHint: true,
+          // border: InputBorder.none,
+          fillColor: Colors.transparent,
+          // helperText: widget.helperText
+          // filled: true,
+          // hintStyle: TextStyle(fontWeight: FontWeight.bold),
+          // focusedBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // errorBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // focusedErrorBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // enabledBorder: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          //   borderRadius: BorderRadius.all(Radius.circular(10))
+          // ),
+          // border: new OutlineInputBorder(
+          //   // borderRadius: new BorderRadius.circular(25.0),
+          //   borderSide: new BorderSide(width: 0.2, color: Colors.black),
+          // ),
+        ),
+        obscureText: widget.isPassword,
+        keyboardType: _getkeyboardType(),
+        inputFormatters: _getInputFormatters(),
+        //  [
+        //   // WhitelistingTextInputFormatter.digitsOnly
+        //   FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
+
+        // ],
+        validator: (widget.validator != null)
+            ?
+        widget.validator
+            :
+            (data){
+          if(data.isEmpty && widget.isRequired)
+            return "Campo requerido";
+          return null;
+        },
+        onChanged: (data){
+          // print("_converToMoneyFormat2 $data");
+
+
+
+          if(widget.isMoneyFormat){
+            _converToMoneyFormat(data);
+          }
+
+          if(widget.onChanged != null)
+            widget.onChanged(data);
+
+        },
+      ),
+    );
+
+      if(widget.leading != null)
+        return ListTile(
+          leading: widget.leading,
+          title: txt,
+        );
+
+      return txt;
+  }
+
   Color _textColor(){
     return widget.isDanger ? Colors.red[900] : null;
   }
@@ -630,6 +782,9 @@ String get _currency => NumberFormat.simpleCurrency(locale: _locale, decimalDigi
         break;
       case MyType.floatingLabelWithBorder:
         return _textFormFieldFloatingLabelWithBorder();
+        break;
+      case MyType.phone:
+        return _textFormFieldPhone();
         break;
       default:
         return _textFormFieldWithoutLabel();
