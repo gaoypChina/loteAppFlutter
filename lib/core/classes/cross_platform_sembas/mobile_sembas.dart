@@ -250,6 +250,20 @@ static final MobileSembas _singleton = MobileSembas._internal();
     }
   }
 
+  @override
+  Future<Ajuste> getAjuste() async {
+    // TODO: implement getIdPagoPendiente
+    try {
+      dynamic dataMap = await _store.record("ajuste").get(_db) as dynamic;
+      if(dataMap == null)
+        return null;
+
+      return Ajuste.fromMap(json.decode(dataMap));
+    } catch (e) {
+      return null;
+    }
+  }
+
   
 }
 

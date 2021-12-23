@@ -73,7 +73,8 @@ class MyTextFormField extends StatefulWidget {
   final FocusNode focusNode;
   final Country phoneCountryValue;
   final ValueChanged<dynamic> phoneCountryChanged;
-  MyTextFormField({Key key, this.focusNode, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap, this.phoneCountryValue, this.phoneCountryChanged}) : super(key: key);
+  final TextInputType textInputType;
+  MyTextFormField({Key key, this.focusNode, this.title = "", this.leading, this.helperText, this.onChanged, this.sideTitle, this.labelText = "", this.controller, this.hint, this.maxLines = 1, this.enabled = true, this.small = 1, this.validator, this.medium = 3, this.large = 4, this.xlarge = 5, this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0), this.isRequired = false, this.isDigitOnly = false, this.isDecimal = false, this.isMoneyFormat = false, this.isPassword = false, this.type = MyType.border, this.isSideTitle = false, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isDanger = false, this.fontSize, this.autofocus = false, this.textAlign = TextAlign.start, this.onTap, this.phoneCountryValue, this.phoneCountryChanged, this.textInputType}) : super(key: key);
   @override
   _MyTextFormFieldState createState() => _MyTextFormFieldState();
 }
@@ -149,11 +150,14 @@ class _MyTextFormFieldState extends State<MyTextFormField> {
   }
 
   _getkeyboardType(){
-    if(widget.maxLines != 1) 
-      return TextInputType.multiline;
-    if(widget.isDigitOnly || widget.isDecimal || widget.isMoneyFormat)
-      return TextInputType.number;
-    
+    if(widget.textInputType == null) {
+      if(widget.maxLines != 1)
+        return TextInputType.multiline;
+      if(widget.isDigitOnly || widget.isDecimal || widget.isMoneyFormat)
+        return TextInputType.number;
+    }else
+      return widget.textInputType;
+
     return null;
   }
 

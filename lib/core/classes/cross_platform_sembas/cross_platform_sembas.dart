@@ -38,6 +38,7 @@ abstract class CrossSembas {
   Future<Pago> getPagoPendiente();
   Future<void> removePagoPendiente();
   Future<void> addAjuste(Ajuste ajuste);
+  Future<Ajuste> getAjuste();
 
   factory CrossSembas() => getSembas();
   
