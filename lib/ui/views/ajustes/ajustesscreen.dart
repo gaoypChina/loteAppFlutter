@@ -71,7 +71,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     // _selectedPhoneCountry = Country.get().firstWhere((element) => element.isoCode == 'DO', orElse: () => null);
     // _txtWhatsapp.text = (_ajuste != null) ? _ajuste.whatsapp : null;
     if(_ajuste != null){
-      _txtWhatsapp = PhoneController(PhoneNumber(nsn: _ajuste.whatsapp, isoCode: 'US'));
+      _txtWhatsapp = PhoneController(PhoneNumber(nsn: _ajuste.whatsapp, isoCode: _ajuste.isoCode ?? 'US'));
       _addOrRemoveLabel();
     }
     _txtEmail.text = (_ajuste != null) ? _ajuste.email : null;
@@ -90,6 +90,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
       _ajuste.cancelarTicketWhatsapp = (_cancelarTicketWhatsapp) ? 1 : 0;
       _ajuste.pagarTicketEnCualquierBanca = (_pagarTicketEnCualquierBanca) ? 1 : 0;
       _ajuste.whatsapp = _txtWhatsapp.value != null ? _txtWhatsapp.value.nsn != null ? _txtWhatsapp.value.nsn : '' : '';
+      _ajuste.isoCode = _txtWhatsapp.value != null ? _txtWhatsapp.value.isoCode != null ? _txtWhatsapp.value.isoCode : null : null;
       _ajuste.email = _txtEmail.text;
       var parsed = await AjustesService.guardar(scaffoldKey: _scaffoldKey, ajuste: _ajuste);
       _ajuste = parsed;
@@ -301,6 +302,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
                         ),
                         validator: PhoneValidator.validMobile(),   // default PhoneValidator.valid()
                         selectorNavigator: const BottomSheetNavigator(), // default to bottom sheet but you can customize how the selector is shown by extending CountrySelectorNavigator
+                        // selectorNavigator: const PopupNavigator(), // default to bottom sheet but you can customize how the selector is shown by extending CountrySelectorNavigator
                         showFlagInInput: true,  // default
                         flagSize: 16,           // default
                         autofillHints: [AutofillHints.telephoneNumber], // default to null

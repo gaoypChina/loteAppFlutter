@@ -244,8 +244,9 @@ static final MobileSembas _singleton = MobileSembas._internal();
     try {
       await this.delete("ajuste");
       await this.add("ajuste", json.encode(ajuste.toJson()));
+      print("Mobile_sembas addAjuste: ${ajuste.toJson()}");
     } on Exception catch (e) {
-      print("Mobile_sembas Exception: error ${e.toString()}");
+      print("Mobile_sembas Exception addAjuste: error ${e.toString()}");
       // TODO
     }
   }
@@ -258,8 +259,10 @@ static final MobileSembas _singleton = MobileSembas._internal();
       if(dataMap == null)
         return null;
 
+      print("Mobile_sembas getAjuste: $dataMap");
       return Ajuste.fromMap(json.decode(dataMap));
     } catch (e) {
+      print("Mobile_sembas error getAjuste: ${e.toString()}");
       return null;
     }
   }

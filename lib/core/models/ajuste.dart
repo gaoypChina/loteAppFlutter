@@ -13,8 +13,9 @@ class Ajuste {
   int pagarTicketEnCualquierBanca;
   String whatsapp;
   String email;
+  String isoCode;
 
-  Ajuste({this.id, this.consorcio, this.imprimirNombreConsorcio, this.tipoFormatoTicket, this.descripcionTipoFormatoTicket, this.pagarTicketEnCualquierBanca});
+  Ajuste({this.id, this.consorcio, this.imprimirNombreConsorcio, this.tipoFormatoTicket, this.descripcionTipoFormatoTicket, this.pagarTicketEnCualquierBanca, this.isoCode});
 
   Ajuste.fromMap(Map snapshot) :
         id = snapshot['id'] != null ? Utils.toInt(snapshot['id']) : 0,
@@ -28,7 +29,8 @@ class Ajuste {
         pagarTicketEnCualquierBanca = snapshot['pagarTicketEnCualquierBanca'] != null ? Utils.toInt(snapshot['pagarTicketEnCualquierBanca']) : 1,
         // permisos = permisosToMap(snapshot['permisos']) ?? List()
         whatsapp = snapshot['whatsapp'] ?? '',
-        email = snapshot['email'] ?? ''
+        email = snapshot['email'] ?? '',
+        isoCode = snapshot['isoCode'] ?? null
   ;
 
 
@@ -46,6 +48,7 @@ class Ajuste {
       "pagarTicketEnCualquierBanca": pagarTicketEnCualquierBanca,
       "whatsapp": whatsapp ?? '',
       "email": email ?? '',
+      "isoCode": isoCode ?? null,
     };
   }
 }

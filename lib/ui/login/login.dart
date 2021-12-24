@@ -27,8 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
   FocusNode _txtPasswordFocusNode;
   Future<Ajuste> _futureAjuste;
 
-  _init() async {
-    _futureAjuste = await (await DB.create()).getAjuste();
+  Future<Ajuste> _getAjuste() async {
+    Ajuste ajuste=  await (await DB.create()).getAjuste();
+    print("LoginScreen _getAjuste: ${ajuste != null ? ajuste.toJson() : 'null'}");
+    return ajuste;
   }
 
 _showSnackBar(String content){
@@ -103,7 +105,7 @@ _showSnackBar(String content){
     // TODO: implement initState
     super.initState();
     _txtPasswordFocusNode = FocusNode();
-    _init();
+    _futureAjuste = _getAjuste();
   }
 
   @override
