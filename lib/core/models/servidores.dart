@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/ui/widgets/mymultiselect.dart';
 
 class Servidor{
    int id;
@@ -50,6 +53,30 @@ Servidor.fromMap(Map snapshot) :
       jsonList.add(u.toJson())
     ).toList();
     return jsonList;
+  }
+
+  static Future<List<Servidor>> all(BuildContext context) async {
+    var datosServidor = await Db.query("Servers");
+    if(datosServidor == null)
+      return [];
+
+    List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
+
+    var dataRetornada = await showDialog(
+      context: context, 
+      builder: (context){
+        return MyMultiselect(
+          title: "Selecc. servidores",
+          items: listaServidor.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+          initialSelectedItems: []
+        );
+      }
+    );
+
+    if(dataRetornada != null)
+      return List<Servidor>.from(dataRetornada);
+    else
+      return [];
   }
 
 }

@@ -383,5 +383,30 @@ class MyDate {
 
     return Utils.getNextMonthV2(lastMonthFirstDay, dayOfTheMonth: diaPago);
   }
+
+  static String listDateTimeToNameOrString(List<DateTime> dates){
+    var dateString;
+
+    if(dates == null)
+      return '';
+    if(dates.length == 0)
+      return '';
+      
+    
+    for (var i=0; i < dates.length; i++) {
+      var date = dates[i];
+
+      if(dateString == null)
+        dateString = '';
+
+      var string = MyDate.dateRangeToNameOrString(DateTimeRange(start: date, end: date));
+      if(string != '')
+        dateString += (i + 1) < dates.length ? "$string, " : string;
+    }
+    
+    print("MyDate listDateTimeToNameOrString: $dateString");
+    return dateString != null ? dateString : '';
+  }
+
  
 }

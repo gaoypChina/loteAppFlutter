@@ -239,13 +239,16 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 10.0),
-                                      child: TextButton(child: Text("Cancelar", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)), onPressed: (){Navigator.pop(context);}),
+                                    Visibility(
+                                      visible: widget.okFunction != null,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(bottom: 10.0),
+                                        child: TextButton(child: Text("Cancelar", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)), onPressed: (){Navigator.pop(context);}),
+                                      ),
                                     ),
                                   // FlatButton(child: Text("Agregar", style: TextStyle(color: Utils.colorPrimaryBlue)), onPressed: () => _retornarReferencia(referencia: Referencia(nombre: _txtNombre.text, telefono: _txtTelefono.text, tipo: _tipo, parentesco: _parentesco)),),
                                     Visibility(
-                                      visible: !widget.isDeleteDialog,
+                                      visible: !widget.isDeleteDialog && widget.okFunction != null,
                                       child: Padding(
                                         padding: EdgeInsets.only(bottom: 10, left: 20, right: 20),
                                         child: AbsorbPointer(

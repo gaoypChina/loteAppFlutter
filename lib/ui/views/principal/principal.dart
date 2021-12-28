@@ -944,7 +944,7 @@ Future<bool> _requestPermisionChannel() async {
       return;
 
     var saleMap = await Db.getSaleNoSubida();
-    print("PrincipalView _emitToSaveTicketsNoSubidos: ${saleMap}");
+    // print("PrincipalView _emitToSaveTicketsNoSubidos: ${saleMap}");
     // var saleMapAll = await Db.query("Sales");
 
     // print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
@@ -2419,7 +2419,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 // }
 
                 setState(() => _selectedLoterias = values);
-                print("PrincipalView _loteriasScreen showMyOverlayEntry: $values");
+                // print("PrincipalView _loteriasScreen showMyOverlayEntry: $values");
               },
               builder: (context, overlay){
                 return Container(
@@ -4348,6 +4348,18 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                       ),
                     ),
                     Visibility(
+                      visible: _tienePermisoProgramador,
+                      child: ListTile(
+                        title: Text('Cierres loterias'),
+                        leading: Icon(Icons.timer_off_rounded),
+                        dense: true,
+                        onTap: (){
+                          Navigator.of(context).pushNamed("/cierresloterias");
+                          _scaffoldKey.currentState.openEndDrawer();
+                        },
+                      ),
+                    ),
+                    Visibility(
                       visible: _tienePermisoManejarHorariosDeLoterias,
                       child: ListTile(
                         title: Text('Horarios loterias'),
@@ -4617,7 +4629,7 @@ void _getTime() {
       stream: Stream.periodic(Duration(seconds: 1), (i) => i),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         String dateString = "";
-        print(dateString);
+        // print(dateString);
         if(_selectedLoterias == null)
           return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
 

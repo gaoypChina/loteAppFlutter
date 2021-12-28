@@ -13,6 +13,8 @@ import 'package:loterias/ui/views/bancas/bancasscreen.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporjugadas.dart';
 import 'package:loterias/ui/views/bloqueos/bloqueosporloteriasscreen.dart';
 import 'package:loterias/ui/views/bluetoothdevice/bluetooth.dart';
+import 'package:loterias/ui/views/cerrarloterias/cerrarloteriasaddscreen.dart';
+import 'package:loterias/ui/views/cerrarloterias/cerrarloteriasscreen.dart';
 import 'package:loterias/ui/views/dashboard/dashboard.dart';
 import 'package:loterias/ui/views/entidades/entidadesaddscreen.dart';
 import 'package:loterias/ui/views/entidades/entidadesscreen.dart';
@@ -253,6 +255,14 @@ class MyRouter {
         case '/pagos/ver' :
           return MaterialPageRoute(
             builder: (_)=> PagosVerScreen(id: settings.arguments)
+          ) ;
+        case '/cierresloterias' :
+          return MaterialPageRoute(
+            builder: (_)=> CerrarLoteriasScreen()
+          ) ;
+        case '/cierresloterias/agregar' :
+          return MaterialPageRoute(
+            builder: (_)=> CerrarLoteriasAddScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

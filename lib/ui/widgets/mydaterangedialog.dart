@@ -6,16 +6,18 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 class MyDateRangeDialog extends StatefulWidget {
   final Function onCancel;
   final Function(dynamic value) onOk;
-  final DateTimeRange date;
+  final dynamic date;
   final listaFecha;
   final double width;
-  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha, this.width = 600}) : super(key: key);
+  final DateRangePickerSelectionMode selectionMode;
+  final bool showLeftStringDate;
+  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha, this.width = 600, this.selectionMode = DateRangePickerSelectionMode.range, this.showLeftStringDate = true}) : super(key: key);
   @override
   _MyDateRangeDialogState createState() => _MyDateRangeDialogState();
 }
 
 class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
-  DateTimeRange _date;
+  dynamic _date;
   MyDate _myDate;
   List<dynamic> _listaFecha;
 
@@ -128,7 +130,10 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
  
 
   _seleccionarFechaSencillaSiPertenece(){
-    var myDate = null;
+    var myDate;
+    if(widget.selectionMode !=  DateRangePickerSelectionMode.range)
+      return;
+      
     if(MyDate.isHoy(_date.start, _date.end))
       myDate = MyDate.hoy;
     else if(MyDate.isAyer(_date.start, _date.end))
@@ -195,43 +200,24 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
     );
   }
 
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    setsFields();
-    _listaFecha = widget.listaFecha == null ? MyDate.listaFechaLarga : widget.listaFecha;
-    super.initState();
-  }
-
-  
-  @override
-  void didUpdateWidget(covariant MyDateRangeDialog oldWidget) {
-    // TODO: implement didUpdateWidget
-    if(oldWidget.date != widget.date){
-      setsFields();
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  _screen(){
     return Container(
       width: widget.width,
       // height: 500,
       // color: Colors.black,
       child: Row(
         children: [
-          _myDateWidget(),
+         Visibility(visible: widget.showLeftStringDate, child:  _myDateWidget()),
           // VerticalDivider(),
           Expanded(
             child: Theme(
               data: ThemeData(),
               child: SfDateRangePicker(
                 onSelectionChanged: (DateRangePickerSelectionChangedArgs args){print("SfDateRangePicker: ${args.value}");},
-                selectionMode: DateRangePickerSelectionMode.range,
+                selectionMode: widget.selectionMode,
                 showActionButtons: true,
-                initialSelectedRange: widget.date != null ? PickerDateRange(widget.date.start, widget.date.end) : null,
+                initialSelectedDates: widget.selectionMode == DateRangePickerSelectionMode.multiple ? widget.date != null ? widget.date is List<DateTime> ? widget.date : [] : [] : [],
+                initialSelectedRange: widget.selectionMode == DateRangePickerSelectionMode.range ? widget.date != null ? PickerDateRange(widget.date.start, widget.date.end) : null : null,
                 onSubmit: (date){
                   if(date is PickerDateRange){
                     var _fechaInicial = (date.startDate != null) ? DateTime.parse("${date.startDate.year}-${Utils.toDosDigitos(date.startDate.month.toString())}-${Utils.toDosDigitos(date.startDate.day.toString())} 00:00:00") : null;
@@ -240,6 +226,8 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
                       _fechaFinal = (date.startDate != null) ? DateTime.parse("${date.startDate.year}-${Utils.toDosDigitos(date.startDate.month.toString())}-${Utils.toDosDigitos(date.startDate.day.toString())} 23:59:59") : null;
                     widget.onOk(DateTimeRange(start: _fechaInicial, end: _fechaFinal));
                   }
+                  if(date is List<DateTime>)
+                    widget.onOk(date);
                 },
                 onCancel: widget.onCancel,
                 // initialSelectedRange: PickerDateRange(_date.start, _date.end)
@@ -261,6 +249,30 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
       // )
       
     );
-                        
+           
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    setsFields();
+    _listaFecha = widget.listaFecha == null ? MyDate.listaFechaLarga : widget.listaFecha;
+    super.initState();
+  }
+
+  
+  @override
+  void didUpdateWidget(covariant MyDateRangeDialog oldWidget) {
+    // TODO: implement didUpdateWidget
+    if(oldWidget.date != widget.date){
+      setsFields();
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _screen();           
   }
 }
