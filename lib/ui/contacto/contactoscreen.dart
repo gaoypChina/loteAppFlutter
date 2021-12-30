@@ -47,7 +47,7 @@ class _ContactoScreenState extends State<ContactoScreen> {
                      Visibility(
                        visible: widget.data.email != null && widget.data.email != '',
                        child: ListTile(
-                         leading: FaIcon(FontAwesomeIcons.google, color: Colors.red, ),
+                         leading: Icon(Icons.mail, color: Colors.red, ),
                          title: Text("${widget.data.email}"),
                          subtitle: Text("Contactame por correo"),
                        ),
