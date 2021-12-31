@@ -336,7 +336,7 @@ class _HorariosScreenState extends State<HorariosScreen> {
         title: "",
         hint: "${selectedLoteria != null ? selectedLoteria.dias.length > 0 ? selectedLoteria.dias.length != listaDia.length ? selectedLoteria.dias.map((e) => e.descripcion).toList().join(", ") : 'Todos los dias' : 'Seleccionar dias...' : 'Seleccionar dias...'}",
         onTap: () async {
-          var diasSeleccionados = await showDialog(
+          var diasSeleccionadosDynamic = await showDialog(
             context: context, 
             builder: (context){
               return MyMultiselect(
@@ -347,18 +347,28 @@ class _HorariosScreenState extends State<HorariosScreen> {
             }
           );
     
-          if(selectedLoteria == null)
+          if(diasSeleccionadosDynamic == null)
             return;
     
-          if(diasSeleccionados == null)
+          if(diasSeleccionadosDynamic == null)
             return;
     
-          if(diasSeleccionados.length == 0){
+          if(diasSeleccionadosDynamic.length == 0){
             setState(() => selectedLoteria.dias = []);
             return;
           }
     
-          diasSeleccionados = List<Dia>.from(diasSeleccionados);
+          List<Dia> diasSeleccionados = List<Dia>.from(diasSeleccionadosDynamic);
+          diasSeleccionados = diasSeleccionados.map((e) => Dia(
+            id: e.id, 
+            descripcion: e.descripcion,
+            wday: e.wday,
+            created_at: e.created_at,
+            horaApertura: e.horaApertura,
+            horaCierre: e.horaCierre,
+            minutosExtras: e.minutosExtras,
+          )
+          ).toList();
     
           List<Dia> diasSeleccionadosToAdd = [];
           List<Dia> diasSeleccionadosToRemove = [];
