@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/models/country.dart';
 import 'package:loterias/core/models/tipos.dart';
 import 'package:loterias/core/services/ajustesservice.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
+import 'package:loterias/ui/widgets/mydivider.dart';
+import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/myswitch.dart';
+import 'package:loterias/ui/widgets/mytextformfield.dart';
+import 'package:flutter_emoji/flutter_emoji.dart';
+import 'package:emojis/emojis.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 
 class AjustesScreen extends StatefulWidget {
   @override
@@ -14,6 +23,7 @@ class AjustesScreen extends StatefulWidget {
 class _AjustesScreenState extends State<AjustesScreen> {
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _txtConsorcio = TextEditingController();
+  var _txtEmail = TextEditingController();
   bool _cargando = false;
   Future _future;
   List<Tipo> listaTipo = [];
@@ -23,11 +33,30 @@ class _AjustesScreenState extends State<AjustesScreen> {
   bool _imprimirNombreBanca = true;
   bool _cancelarTicketWhatsapp = false;
   bool _pagarTicketEnCualquierBanca = false;
+  List<String> lista = ["Republica Dominicana", "Estados Unidos"];
+  // Country _selectedPhoneCountry;
+  FocusNode _txtWhatsappFocusNode;
+  bool _showPhoneLabel = true;
+  PhoneController _txtWhatsapp;
+  var _formKey = GlobalKey<FormState>();
+
   
   Future _init() async{
     var parsed = await AjustesService.index(scaffoldKey: _scaffoldKey);
     _setAllFields(parsed);
     print("AjustesScreen _init cargo: $parsed");
+  }
+
+  _addOrRemoveLabel() {
+    bool campoVacio = false;
+    if (_txtWhatsapp.value == null)
+      campoVacio = true;
+    else {
+      if (_txtWhatsapp.value.nsn == null || _txtWhatsapp.value.nsn == '')
+        campoVacio = true;
+    }
+    setState(() =>
+    _showPhoneLabel = !_txtWhatsappFocusNode.hasFocus && campoVacio);
   }
 
   _setAllFields(var parsed){
@@ -37,12 +66,22 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _tipo = (_ajuste != null) ? listaTipo.firstWhere((element) => element.id == _ajuste.tipoFormatoTicket.id) : listaTipo[0];
     _imprimirNombreConsorcio = (_ajuste != null) ? _ajuste.imprimirNombreConsorcio == 1 : true; 
     _imprimirNombreBanca = (_ajuste != null) ? _ajuste.imprimirNombreBanca == 1 : true; 
-    _cancelarTicketWhatsapp = (_ajuste != null) ? _ajuste.cancelarTicketWhatsapp == 1 : true; 
-    _pagarTicketEnCualquierBanca = (_ajuste != null) ? _ajuste.pagarTicketEnCualquierBanca == 1 : false; 
+    _cancelarTicketWhatsapp = (_ajuste != null) ? _ajuste.cancelarTicketWhatsapp == 1 : true;
+    _pagarTicketEnCualquierBanca = (_ajuste != null) ? _ajuste.pagarTicketEnCualquierBanca == 1 : false;
+    // _selectedPhoneCountry = Country.get().firstWhere((element) => element.isoCode == 'DO', orElse: () => null);
+    // _txtWhatsapp.text = (_ajuste != null) ? _ajuste.whatsapp : null;
+    if(_ajuste != null){
+      _txtWhatsapp = PhoneController(PhoneNumber(nsn: _ajuste.whatsapp, isoCode: _ajuste.isoCode ?? 'US'));
+      _addOrRemoveLabel();
+    }
+    _txtEmail.text = (_ajuste != null) ? _ajuste.email : null;
   }
 
   _guardar() async {
     try {
+      if(!_formKey.currentState.validate())
+        return;
+
       setState(() => _cargando = true);
       _ajuste.consorcio = _txtConsorcio.text;
       _ajuste.tipoFormatoTicket = _tipo;
@@ -50,6 +89,9 @@ class _AjustesScreenState extends State<AjustesScreen> {
       _ajuste.imprimirNombreBanca = (_imprimirNombreBanca) ? 1 : 0;
       _ajuste.cancelarTicketWhatsapp = (_cancelarTicketWhatsapp) ? 1 : 0;
       _ajuste.pagarTicketEnCualquierBanca = (_pagarTicketEnCualquierBanca) ? 1 : 0;
+      _ajuste.whatsapp = _txtWhatsapp.value != null ? _txtWhatsapp.value.nsn != null ? _txtWhatsapp.value.nsn : '' : '';
+      _ajuste.isoCode = _txtWhatsapp.value != null ? _txtWhatsapp.value.isoCode != null ? _txtWhatsapp.value.isoCode : null : null;
+      _ajuste.email = _txtEmail.text;
       var parsed = await AjustesService.guardar(scaffoldKey: _scaffoldKey, ajuste: _ajuste);
       _ajuste = parsed;
       setState(() => _cargando = false);
@@ -138,8 +180,31 @@ class _AjustesScreenState extends State<AjustesScreen> {
   @override
   void initState() {
     // TODO: implement initState
+    _txtWhatsappFocusNode = FocusNode();
+    _txtWhatsappFocusNode.addListener(_addOrRemoveLabel);
+    _txtWhatsapp = PhoneController(null);
+    _txtWhatsappFocusNode.addListener((){
+      print("AjustesScreen _init: ${_txtWhatsappFocusNode.hasFocus} _showPhoneLabel: $_showPhoneLabel text: ${_txtWhatsapp.value}");
+    });
+    print('initState emoji heart: ${Emojis.greenHeart} ${Emojis.flagDominicanRepublic}');
+    var parser = EmojiParser();
+    var coffee = Emoji('coffee', '');
+    var heart  = Emoji('heart', '❤');
+
+// Get emoji info
+    var emojiHeart = parser.info('heart');
+    print("initState emoji heart: 🇩🇴");
     _future = _init();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _txtConsorcio.dispose();
+    _txtWhatsapp.dispose();
+    _txtEmail.dispose();
+    super.dispose();
   }
 
   @override
@@ -150,6 +215,168 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    return myScaffold(
+        context: context,
+        cargando: false,
+        cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+          sliverAppBar: MySliverAppBar(
+            title: "Ajustes",
+            actions: [
+              MySliverButton(
+                  title: "Guardar",
+                  onTap: _guardar
+              )
+            ],
+          ),
+          sliver: FutureBuilder<void>(
+            future: _future,
+            builder: (context, snapshot) {
+              print("_futureBUildeer snapshot: ${snapshot.hasData} : ${snapshot.connectionState}");
+              if(snapshot.connectionState != ConnectionState.done)
+                return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+
+              return SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                    child: MyTextFormField(
+                      autofocus: true,
+                      leading: isSmallOrMedium ? SizedBox.shrink() : null,
+                      isSideTitle: isSmallOrMedium ? false : true,
+                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                      fontSize: isSmallOrMedium ? 28 : null,
+                      controller: _txtConsorcio,
+                      title: !isSmallOrMedium ? "Agregar consorcio *" : "",
+                      hint: "Agregar consorcio",
+                      medium: 1,
+                      isRequired: true,
+                      helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
+                    ),
+                  ),
+                  MyDivider(showOnlyOnSmall: true,),
+                  MySwitch(
+                      leading: Icon(Icons.print_rounded),
+                      title: "Imprimir consorcio",
+                      value: _imprimirNombreConsorcio,
+                      onChanged: _imprimirNombreConsorcioChanged
+                  ),
+                  MySwitch(
+                      leading: Icon(Icons.home_work_sharp),
+                      title: "Imprimir nombre banca",
+                      value: _imprimirNombreBanca,
+                      onChanged: _imprimirNombreBancaChanged
+                  ),
+                  MySwitch(
+                      leading: FaIcon(FontAwesomeIcons.removeFormat),
+                      title: "Cancelar tickets WhatsApp",
+                      value: _cancelarTicketWhatsapp,
+                      onChanged: _cancelarTicketWhatsappChanged
+                  ),
+                  MySwitch(
+                      leading: Icon(Icons.payment),
+                      title: "Pagar desde cualquier banca",
+                      value: _pagarTicketEnCualquierBanca,
+                      onChanged: _pagarTicketEnCualquierBancaChanged
+                  ),
+                  MyDivider(showOnlyOnSmall: true,),
+                  ListTile(
+                    leading: isSmallOrMedium ? FaIcon(FontAwesomeIcons.whatsapp) : null,
+                    title: Form(
+                      key: _formKey,
+                      child: PhoneFormField(
+                        key: Key('phone-field'),
+                        controller: _txtWhatsapp,     // controller & initialValue value
+                        initialValue: null,   // can't be supplied simultaneously
+                        shouldFormat: true,    // default
+                        defaultCountry: 'US',
+                        focusNode: _txtWhatsappFocusNode,// default
+                        decoration: InputDecoration(
+                            labelText: _showPhoneLabel ? 'Phone' : null,          // default to null
+                            border: InputBorder.none, // default to UnderlineInputBorder(),
+                            hintText: "Whatsapp",
+                          helperText: "Este numero aparecerá en la ventana para acceder al sistema"
+                          // ...
+                        ),
+                        validator: PhoneValidator.validMobile(),   // default PhoneValidator.valid()
+                        selectorNavigator: const BottomSheetNavigator(), // default to bottom sheet but you can customize how the selector is shown by extending CountrySelectorNavigator
+                        // selectorNavigator: const PopupNavigator(), // default to bottom sheet but you can customize how the selector is shown by extending CountrySelectorNavigator
+                        showFlagInInput: true,  // default
+                        flagSize: 16,           // default
+                        autofillHints: [AutofillHints.telephoneNumber], // default to null
+                        enabled: true,          // default
+                        autofocus: false,       // default
+                        autovalidateMode: AutovalidateMode.onUserInteraction, // default
+                        onSaved: (PhoneNumber p) => print('saved $p'),   // default null
+                        onChanged: (PhoneNumber p) => print('saved $p'), // default null
+                        // ... + other textfield params
+                      ),
+                    ),
+                  ),
+                  // Padding(
+                  //   padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                  //   child: MyTextFormField(
+                  //     leading: isSmallOrMedium ? FaIcon(FontAwesomeIcons.whatsapp) : null,
+                  //     isSideTitle: isSmallOrMedium ? false : true,
+                  //     type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                  //     padding: EdgeInsets.only(left: 0.0, right: 0.0, top: 12),
+                  //     // phoneCountryValue: _selectedPhoneCountry,
+                  //     textInputType: TextInputType.phone,
+                  //     // phoneCountryChanged: (country) => setState(() => _selectedPhoneCountry = country),
+                  //     controller: _txtWhatsapp,
+                  //     title: !isSmallOrMedium ? "WhatsApp" : "",
+                  //     hint: "WhatsApp",
+                  //     medium: 1,
+                  //     isRequired: true,
+                  //     helperText: "Este whatsapp aparecerá en la ventana para acceder al sistema",
+                  //   ),
+                  // ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                    child: MyTextFormField(
+                      leading: isSmallOrMedium ? Icon(Icons.email,) : null,
+                      isSideTitle: isSmallOrMedium ? false : true,
+                      type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                      controller: _txtEmail,
+                      title: !isSmallOrMedium ? "Correo" : "",
+                      hint: "Correo",
+                      medium: 1,
+                      isRequired: true,
+                      helperText: "Este correo aparecerá en la ventana para acceder al sistema",
+                    ),
+                  ),
+                  MyDivider(showOnlyOnSmall: true, padding: EdgeInsets.symmetric(vertical: 13),),
+                  ListTile(
+                    leading: Icon(Icons.confirmation_number_outlined),
+                    trailing: IconButton(icon: Icon(Icons.remove_red_eye, color: Colors.pink,), onPressed: (){}),
+                    title: Align(alignment: Alignment.centerLeft, child: MyContainerButton(data: [_tipo, "${_tipo != null ? _tipo.descripcion : 'Ninguno'}"], onTap: (data){_showSorteos();})),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Divider(thickness: 1,),
+                  ),
+                  DropdownButton(
+                      items: lista.map((e) => DropdownMenuItem(
+                        child: Row(children: [
+                          Text("${e == 'Republica Dominicana' ? Emojis.flagDominicanRepublic : Emojis.flagUnitedStates}"),
+                          Text("$e"),
+                        ],),
+                        value: e,
+                        onTap: (){
+
+                        },
+                      )).toList(),
+                      onChanged: (data){}
+                  )
+                ]),
+
+              );
+            }
+          )
+      )
+    );
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,

@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
@@ -17,6 +18,7 @@ import 'package:loterias/ui/widgets/mycolor.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytabbar.dart';
+import 'package:phone_form_field/l10n/generated/phone_field_localization.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -93,6 +95,19 @@ class MyApp extends StatelessWidget {
     //   ],
     //   child: 
       return MaterialApp(
+        localizationsDelegates: [
+          ...GlobalMaterialLocalizations.delegates,
+          PhoneFieldLocalization.delegate
+        ],
+        supportedLocales: [
+          const Locale('en', ''),
+          const Locale('es', ''),
+          const Locale('de', ''),
+          const Locale('fr', ''),
+          const Locale('it', ''),
+          const Locale('ru', ''),
+          // ...
+        ],
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           applyElevationOverlayColor: true,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
@@ -234,7 +235,31 @@ static final SembasWeb _singleton = SembasWeb._internal();
     await this.delete("pago");
   }
 
-  
+  @override
+  Future<void> addAjuste(Ajuste ajuste) async {
+    // TODO: implement addAjuste
+    try {
+      await this.delete("ajuste");
+      await this.add("ajuste", json.encode(ajuste.toJson()));
+    } on Exception catch (e) {
+      print("Mobile_sembas Exception: error ${e.toString()}");
+      // TODO
+    }
+  }
+
+  @override
+  Future<Ajuste> getAjuste() async {
+    // TODO: implement getPagoPendiente
+    try {
+      dynamic dataMap = await _store.record("ajuste").get(_db) as dynamic;
+      if(dataMap == null)
+        return null;
+
+      return Ajuste.fromMap(json.decode(dataMap));
+    } catch (e) {
+      return null;
+    }
+  }
   
 }
 

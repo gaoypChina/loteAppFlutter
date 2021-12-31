@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -135,6 +136,7 @@ class LoginService{
       await Db.insert('Servers', s.toJson());
     }
 
+    await (await DB.create()).addAjuste(a);
     await Utils.subscribeToTopic();
 
 

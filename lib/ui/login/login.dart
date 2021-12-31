@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
@@ -24,7 +25,13 @@ class _LoginScreenState extends State<LoginScreen> {
   var _recordarme = false;
   bool _cargando = false;
   FocusNode _txtPasswordFocusNode;
+  Future<Ajuste> _futureAjuste;
 
+  Future<Ajuste> _getAjuste() async {
+    Ajuste ajuste=  await (await DB.create()).getAjuste();
+    print("LoginScreen _getAjuste: ${ajuste != null ? ajuste.toJson() : 'null'}");
+    return ajuste;
+  }
 
 _showSnackBar(String content){
       _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -71,8 +78,14 @@ _showSnackBar(String content){
     Navigator.pushReplacementNamed(context, "/principal", arguments: true);
   }
 
-  _navigateToContact(){
+  _navigateToContact() async{
     // Navigator.pushNamed(context, "/contacto", arguments: true);
+
+    Ajuste ajuste = await (await DB.create()).getAjuste();
+    if(ajuste == null)
+      return;
+
+
     showModalBottomSheet(
       context: context, 
       shape:  RoundedRectangleBorder(
@@ -82,7 +95,7 @@ _showSnackBar(String content){
       ),
       clipBehavior: Clip.antiAliasWithSaveLayer,
       builder: (context){
-      return ContactoScreen();
+      return ContactoScreen(data: ajuste,);
     });
   }
   
@@ -92,6 +105,7 @@ _showSnackBar(String content){
     // TODO: implement initState
     super.initState();
     _txtPasswordFocusNode = FocusNode();
+    _futureAjuste = _getAjuste();
   }
 
   @override
@@ -245,7 +259,18 @@ _showSnackBar(String content){
                                   await c.add("tipoUsuario", parsed["tipoUsuario"]);
                                   await c.add("usuario", _txtUsuarioController.text.toString());
                                   await c.add("password", _txtPasswordController.text.toString());
-                                  
+                                  // if(parsed["ajustes"] != null){
+                                  //   if(parsed["ajustes"]["whatsapp"] != null && parsed["ajustes"]["whatsapp"] != '')
+                                  //     await c.add("ajusteWhatsapp", parsed["ajustes"]["whatsapp"]);
+                                  //   else
+                                  //     await c.delete("ajusteWhatsapp");
+                                  //   if(parsed["ajustes"]["email"] != null && parsed["ajustes"]["email"] != '')
+                                  //     await c.add("ajusteEmail", parsed["ajustes"]["email"]);
+                                  //   else
+                                  //     await c.delete("ajusteEmail");
+                                  // }
+
+
 
                                   await LoginService.guardarDatos(parsed);
                                   await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["realtime"]);
@@ -277,7 +302,18 @@ _showSnackBar(String content){
                         style: TextStyle(color: Colors.grey, ),
                         textAlign: TextAlign.center,
                       ),
-                      Center(child: TextButton(onPressed: _navigateToContact, child: Text("Contacto")))
+                      FutureBuilder<Ajuste>(
+                        future: _futureAjuste,
+                        builder: (context, snapshot) {
+                          if(snapshot.connectionState != ConnectionState.done || !snapshot.hasData)
+                            return SizedBox.shrink();
+
+                          if((snapshot.data.email == null && snapshot.data.whatsapp == null) || (snapshot.data.email == '' && snapshot.data.whatsapp == ''))
+                            return SizedBox.shrink();
+
+                          return Center(child: TextButton(onPressed: _navigateToContact, child: Text("Contacto")));
+                        }
+                      )
                     ],
                   ),
                 ),

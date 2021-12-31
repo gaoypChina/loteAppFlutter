@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
+import 'package:loterias/core/models/ajuste.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
@@ -235,6 +236,35 @@ static final MobileSembas _singleton = MobileSembas._internal();
   Future<void> removePagoPendiente() async {
     // TODO: implement removePagoPendiente
     await this.delete("pago");
+  }
+
+  @override
+  Future<void> addAjuste(Ajuste ajuste) async {
+    // TODO: implement addAjuste
+    try {
+      await this.delete("ajuste");
+      await this.add("ajuste", json.encode(ajuste.toJson()));
+      print("Mobile_sembas addAjuste: ${ajuste.toJson()}");
+    } on Exception catch (e) {
+      print("Mobile_sembas Exception addAjuste: error ${e.toString()}");
+      // TODO
+    }
+  }
+
+  @override
+  Future<Ajuste> getAjuste() async {
+    // TODO: implement getIdPagoPendiente
+    try {
+      dynamic dataMap = await _store.record("ajuste").get(_db) as dynamic;
+      if(dataMap == null)
+        return null;
+
+      print("Mobile_sembas getAjuste: $dataMap");
+      return Ajuste.fromMap(json.decode(dataMap));
+    } catch (e) {
+      print("Mobile_sembas error getAjuste: ${e.toString()}");
+      return null;
+    }
   }
 
   

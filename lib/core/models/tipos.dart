@@ -16,7 +16,7 @@ Tipo.fromMap(Map snapshot) :
         descripcion = snapshot['descripcion'] ?? '',
         renglon = snapshot['renglon'] ?? '',
         status = Utils.toInt(snapshot['status']) ?? 0,
-        created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
+        created_at = (snapshot['created_at'] != null) ? DateTime.tryParse(snapshot['created_at']) : null
         ;
 
   toJson() {
