@@ -24,15 +24,15 @@ import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class  Utils {
-  static final String URL = 'http://127.0.0.1:8000';
-  static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  // static final String URL = 'http://127.0.0.1:8000';
+  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
   // static final String URL_SOCKET = 'http://148.255.160.175:3000';
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  // static final String URL = 'https://loteriasdo.gq';
-  // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
+  static final String URL = 'https://loteriasdo.gq';
+  static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',

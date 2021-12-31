@@ -11,8 +11,6 @@ import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
-import 'package:flutter_emoji/flutter_emoji.dart';
-import 'package:emojis/emojis.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
 class AjustesScreen extends StatefulWidget {
@@ -183,17 +181,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _txtWhatsappFocusNode = FocusNode();
     _txtWhatsappFocusNode.addListener(_addOrRemoveLabel);
     _txtWhatsapp = PhoneController(null);
-    _txtWhatsappFocusNode.addListener((){
-      print("AjustesScreen _init: ${_txtWhatsappFocusNode.hasFocus} _showPhoneLabel: $_showPhoneLabel text: ${_txtWhatsapp.value}");
-    });
-    print('initState emoji heart: ${Emojis.greenHeart} ${Emojis.flagDominicanRepublic}');
-    var parser = EmojiParser();
-    var coffee = Emoji('coffee', '');
-    var heart  = Emoji('heart', '❤');
+    
 
-// Get emoji info
-    var emojiHeart = parser.info('heart');
-    print("initState emoji heart: 🇩🇴");
     _future = _init();
     super.initState();
   }
@@ -204,6 +193,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _txtConsorcio.dispose();
     _txtWhatsapp.dispose();
     _txtEmail.dispose();
+    _txtWhatsappFocusNode.dispose();
     super.dispose();
   }
 
@@ -357,19 +347,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Divider(thickness: 1,),
                   ),
-                  DropdownButton(
-                      items: lista.map((e) => DropdownMenuItem(
-                        child: Row(children: [
-                          Text("${e == 'Republica Dominicana' ? Emojis.flagDominicanRepublic : Emojis.flagUnitedStates}"),
-                          Text("$e"),
-                        ],),
-                        value: e,
-                        onTap: (){
-
-                        },
-                      )).toList(),
-                      onChanged: (data){}
-                  )
+                  
                 ]),
 
               );

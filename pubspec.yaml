@@ -77,8 +77,6 @@ dependencies:
 #  phone_form_field:
 #    git:
 #      url: https://github.com/jeancc29/phone_form_field
-  flutter_emoji: ^2.2.1+1
-  emojis: ^0.9.9
   flutter_localizations: # Add this line
     sdk: flutter
   flutter:
