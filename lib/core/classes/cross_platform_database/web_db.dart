@@ -1,6 +1,10 @@
 import 'package:drift/web.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/drift_database.dart';
+import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/montodisponible.dart';
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
@@ -237,6 +241,78 @@ class WebDrift implements CrossDB{
     // TODO: implement sincronizarTodosDataBatch
     var database = WebDrift();
     return database.db.sincronizarTodosDataBatch(parsed);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> drawById(int id, [var sqfliteTransaction]) {
+    // TODO: implement drawById
+    var database = WebDrift();
+    return database.db.drawById(id);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List> guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad, sqfliteTransaction}) {
+    // TODO: implement guardarVentaV2
+    var database = WebDrift();
+    return database.db.guardarVentaV2(banca: banca, jugadas: jugadas, socket: socket, listaLoteria: listaLoteria, compartido: compartido, descuentoMonto: descuentoMonto, currentTimeZone: currentTimeZone, tienePermisoJugarFueraDeHorario: tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: tienePermisoJugarSinDisponibilidad);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> draw(String descripcion, [var sqfliteTransaction]) {
+    // TODO: implement draw
+    var database = WebDrift();
+    return database.db.draw(descripcion);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) {
+    // TODO: implement getMontoDisponible
+    var database = WebDrift();
+    return database.db.getMontoDisponible(jugada, loteria,banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock );
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllBranches() {
+    // TODO: implement deleteAllBranches
+    var database = WebDrift();
+    return database.db.deleteAllBranches();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future insertBranch(Branch branch) {
+    // TODO: implement insertBranch
+    var database = WebDrift();
+    return database.db.insertBranch(branch);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllPermission() {
+    // TODO: implement deleteAllPermission
+    var database = WebDrift();
+    return database.db.deleteAllPermission();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllUser() {
+    // TODO: implement deleteAllUser
+    var database = WebDrift();
+    return database.db.deleteAllUser();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Server>> getAllServer() {
+    // TODO: implement deleteAllUser
+    var database = WebDrift();
+    return database.db.getAllServer();
     throw UnimplementedError();
   }
 

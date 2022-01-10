@@ -4,6 +4,12 @@
 
 if (dart.library.io) 'local_db.dart'
     if (dart.library.js) 'web_db.dart';
+import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/montodisponible.dart';
+
+import '../drift_database.dart';
 
 abstract class CrossDB {
   // QueryExecutor getMoorCrossConstructor();
@@ -32,6 +38,20 @@ abstract class CrossDB {
 
   Future<String> tipoFormatoTicket();
   Future<void> sincronizarTodosDataBatch(var parsed);
+
+  Future<Map<String, dynamic>> drawById(int id, [var sqfliteTransaction]);
+  Future<Map<String, dynamic>> draw(String descripcion, [var sqfliteTransaction]);
+  Future<List> guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad});
+  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false, });
+  
+  Future insertBranch(Branch branch);
+  Future deleteAllBranches();
+
+  Future deleteAllPermission();
+  Future deleteAllUser();
+
+  Future<List<Server>> getAllServer();
+
   factory CrossDB() => getDB();
   
 }
