@@ -3,7 +3,8 @@
     import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_stub.dart'
 
-if (dart.library.io) 'local_db.dart'
+// if (dart.library.io) 'local_db.dart'
+if (dart.library.io) 'mobile_db.dart'
     if (dart.library.js) 'web_db.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
@@ -17,6 +18,8 @@ import 'package:loterias/core/models/blocksgenerals.dart' as BlocksgeneralsModel
 import 'package:loterias/core/models/blockslotteries.dart' as BlockslotteriesModel;
 import 'package:loterias/core/models/blocksplays.dart' as BlocksplaysModel;
 import 'package:loterias/core/models/blocksplaysgenerals.dart' as BlocksplaysgeneralsModel;
+import 'package:loterias/core/models/blocksdirtygenerals.dart' as BlocksdirtygeneralsModel;
+import 'package:loterias/core/models/blocksdirty.dart' as BlocksdirtyModel;
 
 import '../drift_database.dart';
 
@@ -78,6 +81,8 @@ abstract class CrossDB {
   Future insertOrDeleteBlockslotteries(List<BlockslotteriesModel.Blockslotteries> elements, bool delete);
   Future insertOrDeleteBlocksplays(List<BlocksplaysModel.Blocksplays> elements, bool delete);
   Future insertOrDeleteBlocksplaysgenerals(List<BlocksplaysgeneralsModel.Blocksplaysgenerals> elements, bool delete);
+  Future insertOrDeleteBlocksdirtygenerals(List<BlocksdirtygeneralsModel.Blocksdirtygenerals> elements, bool delete);
+  Future insertOrDeleteBlocksdirtys(List<BlocksdirtyModel.Blocksdirty> elements, bool delete);
 
   Future deleteAllSetting();
 

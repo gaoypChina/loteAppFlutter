@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
+import 'package:loterias/core/models/blocksdirty.dart';
+import 'package:loterias/core/models/blocksdirtygenerals.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
@@ -887,7 +889,7 @@ class MobileDB implements CrossDB{
     elements.forEach((s) async {
       List<Map<String, dynamic>> query = await DBSqflite.database.query('Blocksplaysgenerals' , where: '"id" = ?', whereArgs: [s.id]);
       if(query.isEmpty == false){
-        print('Blocksplaysgenerals existe, eliminar: $delete');
+        print('mobile_db Blocksplaysgenerals existe, eliminar: $delete');
         if(delete)
           await DBSqflite.delete('Blocksplaysgenerals', s.id);
         else
@@ -899,7 +901,46 @@ class MobileDB implements CrossDB{
           await insert('Blocksplaysgenerals', s.toJson());
       }
     });
-    throw UnimplementedError();
+  }
+
+  @override
+  Future insertOrDeleteBlocksdirtygenerals(List<Blocksdirtygenerals> elements, bool delete) {
+    // TODO: implement insertOrDeleteBlocksdirtygenerals
+    elements.forEach((s) async {
+      List<Map<String, dynamic>> query = await DBSqflite.database.query('Blocksdirtygenerals' , where: '"id" = ?', whereArgs: [s.id]);
+      if(query.isEmpty == false){
+        print('mobile_db insertOrDeleteBlocksdirtygenerals query dentro y eliminar:$delete');
+        if(delete)
+          await DBSqflite.delete('Blocksdirtygenerals', s.id);
+        else
+          await update('Blocksdirtygenerals', s.toJson(), s.id);
+      }else{
+        if(delete)
+          await DBSqflite.delete('Blocksdirtygenerals', s.id);
+        else
+          await insert('Blocksdirtygenerals', s.toJson());
+      }
+    });
+  }
+
+  @override
+  Future insertOrDeleteBlocksdirtys(List<Blocksdirty> elements, bool delete) {
+    // TODO: implement insertOrDeleteBlocksdirtys
+    elements.forEach((s) async {
+      List<Map<String, dynamic>> query = await DBSqflite.database.query('Blocksdirty' , where: '"id" = ?', whereArgs: [s.id]);
+      if(query.isEmpty == false){
+        print('mobile_db insertOrDeleteBlocksdirtys: query dentro y eliminar:$delete');
+        if(delete)
+          await DBSqflite.delete('Blocksdirty', s.id);
+        else
+          await update('Blocksdirty', s.toJson(), s.id);
+      }else{
+        if(delete)
+          await DBSqflite.delete('Blocksdirty', s.id);
+        else
+          await insert('Blocksdirty', s.toJson());
+      }
+    });
   }
   
 
