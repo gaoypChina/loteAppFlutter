@@ -789,6 +789,28 @@ class MobileDB implements CrossDB{
     }
     batch.commit(noResult: true);
   }
+
+  @override
+  Future insertOrDeleteStocks(List<Stock> elements, bool delete) {
+    // TODO: implement insertOrDeleteStocks
+    elements.forEach((s) async {
+      List<Map<String, dynamic>> query = await DBSqflite.database.query('Stocks' , where: '"id" = ?', whereArgs: [s.id]);
+      if(query.isEmpty == false){
+        print("Realtime addStocks parsed actualizar: ${s.toJson()}");
+
+        if(delete)
+          await DBSqflite.delete('Stocks', s.id);
+        else
+          await update('Stocks', s.toJson(), s.id);
+      }else{
+        print("Realtime addStocks parsed insertart: ${s.toJson()}");
+        if(delete)
+          await DBSqflite.delete('Stocks', s.id);
+        else
+          await insert('Stocks', s.toJson());
+      }
+    });
+  }
   
 
 }

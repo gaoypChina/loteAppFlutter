@@ -8,6 +8,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/montodisponible.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/models/stocks.dart' as stockModel;
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
@@ -373,6 +374,13 @@ class WebDrift implements CrossDB{
     // TODO: implement insertListServer
     var database = WebDrift();
     await database.db.insertListServer(servidores);
+  }
+
+  @override
+  Future insertOrDeleteStocks(List<stockModel.Stock> elements, bool delete) async {
+    // TODO: implement insertOrDeleteStocks
+    var database = WebDrift();
+    await database.db.insertOrDeleteStocks(elements, delete);
   }
 
 }
