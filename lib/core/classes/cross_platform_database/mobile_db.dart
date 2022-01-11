@@ -3,13 +3,16 @@ import 'dart:io';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
+import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/montodisponible.dart';
+import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
+import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
@@ -739,7 +742,52 @@ class MobileDB implements CrossDB{
   Future insertUser(drift.User user) {
     // TODO: implement insertUser
     return insert("Users", user.toJson());
-    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> insertListLoteria(List<Loteria> loterias) async {
+    // TODO: implement insertListLoteria
+    var batch = DBSqflite.database.batch();
+    for(Loteria l in loterias){
+        await batch.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status}, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    batch.commit(noResult: true);
+  }
+
+  @override
+  Future<void> insertListDay(List<Dia> dias) async {
+    // TODO: implement insertListDay
+    var batch = DBSqflite.database.batch();
+    for(Dia d in dias){
+      await batch.insert('Days', d.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    batch.commit(noResult: true);
+  }
+
+  @override
+  Future insertSetting(drift.Setting setting) async {
+    // TODO: implement insertSetting
+    await insert("Settings", setting.toJson());
+  }
+
+  @override
+  Future<void> insertListPermission(List<Permiso> permisos) async {
+    // TODO: implement insertListPermission
+    var batch = DBSqflite.database.batch();
+    for(Permiso p in permisos){
+      await batch.insert('Permissions', p.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    batch.commit(noResult: true);
+  }
+
+  @override
+  Future<void> insertListServer(List<Servidor> servidores) async {
+    // TODO: implement insertListServer
+    var batch = DBSqflite.database.batch();
+    for(Servidor s in servidores){
+      await batch.insert('Servers', s.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    batch.commit(noResult: true);
   }
   
 

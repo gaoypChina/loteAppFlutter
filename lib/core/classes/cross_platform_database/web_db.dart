@@ -1,10 +1,13 @@
 import 'package:drift/web.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/drift_database.dart';
+import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/montodisponible.dart';
+import 'package:loterias/core/models/permiso.dart';
+import 'package:loterias/core/models/servidores.dart';
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
@@ -321,7 +324,6 @@ class WebDrift implements CrossDB{
     // TODO: implement getBlocksdirtyCantidad
     var database = WebDrift();
     return database.db.getBlocksdirtyCantidad(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
-    throw UnimplementedError();
   }
 
   @override
@@ -329,7 +331,6 @@ class WebDrift implements CrossDB{
     // TODO: implement getBlocksdirtygeneralCantidad
     var database = WebDrift();
     return database.db.getBlocksdirtygeneralCantidad(idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
-    throw UnimplementedError();
   }
 
   @override
@@ -337,7 +338,41 @@ class WebDrift implements CrossDB{
     // TODO: implement insertUser
     var database = WebDrift();
     return database.db.insertUser(user);
-    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> insertListLoteria(List<Loteria> loterias) async {
+    // TODO: implement insertListLoteria
+    var database = WebDrift();
+    await database.db.insertListLoteria(loterias);
+  }
+
+  @override
+  Future<void> insertListDay(List<Dia> dias) async {
+    // TODO: implement insertListDay
+    var database = WebDrift();
+    await database.db.insertListDay(dias);
+  }
+
+  @override
+  Future insertSetting(Setting setting) async {
+    // TODO: implement insertSetting
+    var database = WebDrift();
+    await database.db.insertSetting(setting);
+  }
+
+  @override
+  Future<void> insertListPermission(List<Permiso> permisos) async {
+    // TODO: implement insertListPermission
+    var database = WebDrift();
+    await database.db.insertListPermission(permisos);
+  }
+
+  @override
+  Future<void> insertListServer(List<Servidor> servidores) async {
+    // TODO: implement insertListServer
+    var database = WebDrift();
+    await database.db.insertListServer(servidores);
   }
 
 }

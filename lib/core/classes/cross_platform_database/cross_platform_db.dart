@@ -6,9 +6,12 @@ import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_
 if (dart.library.io) 'local_db.dart'
     if (dart.library.js) 'web_db.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/montodisponible.dart';
+import 'package:loterias/core/models/permiso.dart';
+import 'package:loterias/core/models/servidores.dart';
 
 import '../drift_database.dart';
 
@@ -48,15 +51,22 @@ abstract class CrossDB {
   Future insertBranch(Branch branch);
   Future deleteAllBranches();
 
+  Future<void> insertListPermission(List<Permiso> permisos);
   Future deleteAllPermission();
 
   Future insertUser(User user);
   Future deleteAllUser();
 
-  Future<List<Server>> getAllServer();
-
   Future<int> getBlocksdirtyCantidad({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idMoneda});
   Future<int> getBlocksdirtygeneralCantidad({@required int idLoteria, @required int idSorteo, @required int idMoneda});
+
+  Future<void> insertListLoteria(List<Loteria> loterias);
+
+  Future<void> insertListDay(List<Dia> dias);
+  Future insertSetting(Setting setting);
+
+  Future<List<Server>> getAllServer();
+  Future<void> insertListServer(List<Servidor> servidores);
 
   factory CrossDB() => getDB();
   
