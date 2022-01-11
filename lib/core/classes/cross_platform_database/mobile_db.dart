@@ -5,6 +5,7 @@ import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
+import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -850,6 +851,25 @@ class MobileDB implements CrossDB{
           await DBSqflite.delete('Blockslotteries', s.id);
         else
           await insert('Blockslotteries', s.toJson());
+      }
+    });
+  }
+
+  @override
+  Future insertOrDeleteBlocksplays(List<Blocksplays> elements, bool delete) {
+    // TODO: implement insertOrDeleteBlocksplays
+    elements.forEach((s) async {
+      List<Map<String, dynamic>> query = await DBSqflite.database.query('Blocksplays' , where: '"id" = ?', whereArgs: [s.id]);
+      if(query.isEmpty == false){
+        if(delete)
+          await DBSqflite.delete('Blocksplays', s.id);
+        else
+          await update('Blocksplays', s.toJson(), s.id);
+      }else{
+        if(delete)
+          await DBSqflite.delete('Blocksplays', s.id);
+        else
+          await insert('Blocksplays', s.toJson());
       }
     });
   }
