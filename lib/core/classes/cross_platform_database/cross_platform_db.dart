@@ -1,6 +1,7 @@
 
 // import 'cross_platform_db_stub.dart'
-    import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_stub.dart'
+    import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_stub.dart'
 
 if (dart.library.io) 'local_db.dart'
     if (dart.library.js) 'web_db.dart';
@@ -48,9 +49,14 @@ abstract class CrossDB {
   Future deleteAllBranches();
 
   Future deleteAllPermission();
+
+  Future insertUser(User user);
   Future deleteAllUser();
 
   Future<List<Server>> getAllServer();
+
+  Future<int> getBlocksdirtyCantidad({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idMoneda});
+  Future<int> getBlocksdirtygeneralCantidad({@required int idLoteria, @required int idSorteo, @required int idMoneda});
 
   factory CrossDB() => getDB();
   

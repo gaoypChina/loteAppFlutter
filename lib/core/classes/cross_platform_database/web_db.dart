@@ -316,6 +316,30 @@ class WebDrift implements CrossDB{
     throw UnimplementedError();
   }
 
+  @override
+  Future<int> getBlocksdirtyCantidad({int idBanca, int idLoteria, int idSorteo, int idMoneda}) {
+    // TODO: implement getBlocksdirtyCantidad
+    var database = WebDrift();
+    return database.db.getBlocksdirtyCantidad(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> getBlocksdirtygeneralCantidad({int idLoteria, int idSorteo, int idMoneda}) {
+    // TODO: implement getBlocksdirtygeneralCantidad
+    var database = WebDrift();
+    return database.db.getBlocksdirtygeneralCantidad(idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future insertUser(User user) {
+    // TODO: implement insertUser
+    var database = WebDrift();
+    return database.db.insertUser(user);
+    throw UnimplementedError();
+  }
+
 }
 
 CrossDB getDB() => WebDrift();

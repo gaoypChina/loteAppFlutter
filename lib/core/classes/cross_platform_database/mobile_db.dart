@@ -709,6 +709,38 @@ class MobileDB implements CrossDB{
       return [];
     }
   }
+
+  @override
+  Future<int> getBlocksdirtyCantidad({int idBanca, int idLoteria, int idSorteo, int idMoneda}) async {
+    // TODO: implement getBlocksdirtyCantidad
+    try {
+      var query = await DBSqflite.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [idBanca, idLoteria, idSorteo, idMoneda], orderBy: '"id" desc' );
+      return query.isNotEmpty ? query.first["cantidad"] : null;
+    } on Exception catch (e) {
+      // TODO
+      return null;
+    }
+    
+  }
+
+  @override
+  Future<int> getBlocksdirtygeneralCantidad({int idLoteria, int idSorteo, int idMoneda}) async {
+    // TODO: implement getBlocksdirtygeneralCantidad
+    try {
+      var query  = await DBSqflite.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [idLoteria, idSorteo, idMoneda], orderBy: '"id" desc' );
+      return query.isNotEmpty ? query.first["cantidad"] : null;
+    } on Exception catch (e) {
+      // TODO
+      return null;
+    }
+  }
+
+  @override
+  Future insertUser(drift.User user) {
+    // TODO: implement insertUser
+    return insert("Users", user.toJson());
+    throw UnimplementedError();
+  }
   
 
 }
