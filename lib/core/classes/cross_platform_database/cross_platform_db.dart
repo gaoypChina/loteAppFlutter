@@ -14,6 +14,7 @@ import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/stocks.dart' as StockModel;
 import 'package:loterias/core/models/blocksgenerals.dart' as BlocksgeneralsModel;
+import 'package:loterias/core/models/blockslotteries.dart' as BlockslotteriesModel;
 
 import '../drift_database.dart';
 
@@ -72,6 +73,7 @@ abstract class CrossDB {
 
   Future insertOrDeleteStocks(List<StockModel.Stock> elements, bool delete);
   Future insertOrDeleteBlocksgenerals(List<BlocksgeneralsModel.Blocksgenerals> elements, bool delete);
+  Future insertOrDeleteBlockslotteries(List<BlockslotteriesModel.Blockslotteries> elements, bool delete);
 
   factory CrossDB() => getDB();
   

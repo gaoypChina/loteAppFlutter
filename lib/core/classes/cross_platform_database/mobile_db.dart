@@ -4,6 +4,7 @@ import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
 import 'package:loterias/core/models/blocksgenerals.dart';
+import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -829,6 +830,26 @@ class MobileDB implements CrossDB{
           await DBSqflite.delete('Blocksgenerals', s.id);
         else
           await insert('Blocksgenerals', s.toJson());
+      }
+    });
+  }
+
+  @override
+  Future insertOrDeleteBlockslotteries(List<Blockslotteries> elements, bool delete) {
+    // TODO: implement insertOrDeleteBlockslotteries
+    elements.forEach((s) async {
+      List<Map<String, dynamic>> query = await DBSqflite.database.query('Blockslotteries' , where: '"id" = ?', whereArgs: [s.id]);
+      print("PrincipalClass addBlockslotteriesDatosNuevos: ${s.toJson()}");
+      if(query.isEmpty == false){
+        if(delete)
+          await DBSqflite.delete('Blockslotteries', s.id);
+        else
+          await update('Blockslotteries', s.toJson(), s.id);
+      }else{
+        if(delete)
+          await DBSqflite.delete('Blockslotteries', s.id);
+        else
+          await insert('Blockslotteries', s.toJson());
       }
     });
   }
