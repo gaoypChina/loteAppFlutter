@@ -4,6 +4,7 @@ import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/models/blocksgenerals.dart';
 import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
+import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/jugadas.dart';
@@ -15,6 +16,7 @@ import 'package:loterias/core/models/stocks.dart' as StockModel;
 import 'package:loterias/core/models/blocksgenerals.dart' as BlocksgeneralsModel;
 import 'package:loterias/core/models/blockslotteries.dart' as BlockslotteriesModel;
 import 'package:loterias/core/models/blocksplays.dart' as BlocksplaysModel;
+import 'package:loterias/core/models/blocksplaysgenerals.dart' as BlocksplaysgeneralsModel;
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
@@ -408,6 +410,20 @@ class WebDrift implements CrossDB{
     // TODO: implement insertOrDeleteBlocksplays
     var database = WebDrift();
     await database.db.insertOrDeleteBlocksplays(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlocksplaysgenerals(List<BlocksplaysgeneralsModel.Blocksplaysgenerals> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksplaysgenerals
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksplaysgenerals(elements, delete);
+  }
+
+  @override
+  Future deleteAllSetting() {
+    // TODO: implement deleteAllSetting
+    var database = WebDrift();
+    return database.db.deleteAllSetting();
   }
 
 }
