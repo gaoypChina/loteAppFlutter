@@ -150,7 +150,7 @@ class LoginService{
     await Db.insertListServer(servidores);
 
     // await Utils.subscribeToTopic();
-    await (CrossFirebase()).unSubscribeFromTopic();
+    await (CrossFirebase()).subscribeToTopic();
 
   }
   // static guardarDatosSQFlite(Map<String, dynamic> parsed) async {
