@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
-import 'package:loterias/core/classes/moor_database.dart';
+import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/sesion.dart';
 import 'package:loterias/core/models/usuario.dart';

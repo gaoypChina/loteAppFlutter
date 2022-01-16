@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/singleton.dart';
@@ -34,6 +35,7 @@ import 'package:package_info/package_info.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'cross_platform_database/cross_platform_db.dart';
+import 'cross_platform_package_info/cross_platform_package_info.dart';
 
 class Principal{
   static Future<bool> mockCheckForSession({BuildContext context, scaffoldKey}) async{
@@ -193,7 +195,7 @@ class Principal{
               content: _widget(),
               actions: <Widget>[
                 TextButton(child: Text("Cancelar"), onPressed: (){
-                Navigator.of(context).pop(Map<String, dynamic>());
+                Navigator.of(context).pop(null);
                 },),
                 TextButton(child: Text("Ok"), onPressed: _duplicar,
                 )
@@ -206,6 +208,7 @@ class Principal{
   }
 
    static showDialogDuplicar({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+    
     return await showDialog(
       context: context,
       builder: (context){
@@ -462,7 +465,7 @@ class Principal{
             actions: <Widget>[
              
               TextButton(child: Text("Cancelar"), onPressed: (){
-              Navigator.of(context).pop(Map<String, dynamic>());
+              Navigator.of(context).pop(null);
               },),
               TextButton(child: Text("Buscar"), onPressed: _pagar,
               )
@@ -879,7 +882,8 @@ class Principal{
  }
 
  static version({Map<String, dynamic> version, BuildContext context}) async {
-   PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  //  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+   PackageInfo packageInfo = await CrossPlatformPackageInfo().fromPlatform();
    print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
   if(version["urgente"] != 1)
     return;
@@ -910,7 +914,8 @@ class Principal{
    var c = await DB.create();
    print("Principal.cerrarSesion");
    try {
-      await Utils.unSubscribeFromTopic();
+      // await Utils.unSubscribeFromTopic();
+      await (CrossFirebase()).unSubscribeFromTopic();
       await Db.deleteDB();
    } catch (e) {
    }

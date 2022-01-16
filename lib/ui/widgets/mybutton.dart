@@ -48,7 +48,7 @@ class MyButton extends StatefulWidget {
   final Widget trailing;
   final bool cargando;
   final ValueNotifier<bool> cargandoNotify;
-  final fontSize;
+  final double fontSize;
   final bool isResponsive;
   MyButton({Key key, this.title = "", this.function, this.enabled = true, this.fontSize = 14, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 5, this.padding = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 23, left: 23.0), this.paddingSmallScreen = const EdgeInsets.only(top: 9.0, bottom: 9.0, right: 18, left: 18.0), this.color, this.textColor, this.type = MyButtonType.normal, this.leading, this.trailing, this.letterSpacing = 0.4, this.cargando = false, this.cargandoNotify, this.isResponsive = true}) : super(key: key);
 

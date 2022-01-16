@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'moor_database.dart';
+part of 'drift_database.dart';
 
 // **************************************************************************
 // MoorGenerator
@@ -17,8 +17,7 @@ class Task extends DataClass implements Insertable<Task> {
       @required this.name,
       this.created_at,
       @required this.status});
-  factory Task.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Task.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Task(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -62,7 +61,7 @@ class Task extends DataClass implements Insertable<Task> {
 
   factory Task.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Task(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
@@ -72,7 +71,7 @@ class Task extends DataClass implements Insertable<Task> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
@@ -253,7 +252,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Task map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Task.fromData(data, _db,
+    return Task.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -267,14 +266,15 @@ class Permission extends DataClass implements Insertable<Permission> {
   final int id;
   final String descripcion;
   final DateTime created_at;
+  final int idTipo;
   final int status;
   Permission(
       {@required this.id,
       @required this.descripcion,
       this.created_at,
+      @required this.idTipo,
       @required this.status});
-  factory Permission.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Permission.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Permission(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -282,6 +282,8 @@ class Permission extends DataClass implements Insertable<Permission> {
           .mapFromDatabaseResponse(data['${effectivePrefix}descripcion']),
       created_at: const DateTimeType()
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      idTipo: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id_tipo']),
       status: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}status']),
     );
@@ -298,6 +300,9 @@ class Permission extends DataClass implements Insertable<Permission> {
     if (!nullToAbsent || created_at != null) {
       map['created_at'] = Variable<DateTime>(created_at);
     }
+    if (!nullToAbsent || idTipo != null) {
+      map['id_tipo'] = Variable<int>(idTipo);
+    }
     if (!nullToAbsent || status != null) {
       map['status'] = Variable<int>(status);
     }
@@ -313,6 +318,8 @@ class Permission extends DataClass implements Insertable<Permission> {
       created_at: created_at == null && nullToAbsent
           ? const Value.absent()
           : Value(created_at),
+      idTipo:
+          idTipo == null && nullToAbsent ? const Value.absent() : Value(idTipo),
       status:
           status == null && nullToAbsent ? const Value.absent() : Value(status),
     );
@@ -320,31 +327,38 @@ class Permission extends DataClass implements Insertable<Permission> {
 
   factory Permission.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Permission(
       id: serializer.fromJson<int>(json['id']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
+      idTipo: serializer.fromJson<int>(json['idTipo']),
       status: serializer.fromJson<int>(json['status']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'descripcion': serializer.toJson<String>(descripcion),
       'created_at': serializer.toJson<DateTime>(created_at),
+      'idTipo': serializer.toJson<int>(idTipo),
       'status': serializer.toJson<int>(status),
     };
   }
 
   Permission copyWith(
-          {int id, String descripcion, DateTime created_at, int status}) =>
+          {int id,
+          String descripcion,
+          DateTime created_at,
+          int idTipo,
+          int status}) =>
       Permission(
         id: id ?? this.id,
         descripcion: descripcion ?? this.descripcion,
         created_at: created_at ?? this.created_at,
+        idTipo: idTipo ?? this.idTipo,
         status: status ?? this.status,
       );
   @override
@@ -353,13 +367,14 @@ class Permission extends DataClass implements Insertable<Permission> {
           ..write('id: $id, ')
           ..write('descripcion: $descripcion, ')
           ..write('created_at: $created_at, ')
+          ..write('idTipo: $idTipo, ')
           ..write('status: $status')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, descripcion, created_at, status);
+  int get hashCode => Object.hash(id, descripcion, created_at, idTipo, status);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -367,6 +382,7 @@ class Permission extends DataClass implements Insertable<Permission> {
           other.id == this.id &&
           other.descripcion == this.descripcion &&
           other.created_at == this.created_at &&
+          other.idTipo == this.idTipo &&
           other.status == this.status);
 }
 
@@ -374,30 +390,36 @@ class PermissionsCompanion extends UpdateCompanion<Permission> {
   final Value<int> id;
   final Value<String> descripcion;
   final Value<DateTime> created_at;
+  final Value<int> idTipo;
   final Value<int> status;
   const PermissionsCompanion({
     this.id = const Value.absent(),
     this.descripcion = const Value.absent(),
     this.created_at = const Value.absent(),
+    this.idTipo = const Value.absent(),
     this.status = const Value.absent(),
   });
   PermissionsCompanion.insert({
     this.id = const Value.absent(),
     @required String descripcion,
     this.created_at = const Value.absent(),
+    @required int idTipo,
     @required int status,
   })  : descripcion = Value(descripcion),
+        idTipo = Value(idTipo),
         status = Value(status);
   static Insertable<Permission> custom({
     Expression<int> id,
     Expression<String> descripcion,
     Expression<DateTime> created_at,
+    Expression<int> idTipo,
     Expression<int> status,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (descripcion != null) 'descripcion': descripcion,
       if (created_at != null) 'created_at': created_at,
+      if (idTipo != null) 'id_tipo': idTipo,
       if (status != null) 'status': status,
     });
   }
@@ -406,11 +428,13 @@ class PermissionsCompanion extends UpdateCompanion<Permission> {
       {Value<int> id,
       Value<String> descripcion,
       Value<DateTime> created_at,
+      Value<int> idTipo,
       Value<int> status}) {
     return PermissionsCompanion(
       id: id ?? this.id,
       descripcion: descripcion ?? this.descripcion,
       created_at: created_at ?? this.created_at,
+      idTipo: idTipo ?? this.idTipo,
       status: status ?? this.status,
     );
   }
@@ -427,6 +451,9 @@ class PermissionsCompanion extends UpdateCompanion<Permission> {
     if (created_at.present) {
       map['created_at'] = Variable<DateTime>(created_at.value);
     }
+    if (idTipo.present) {
+      map['id_tipo'] = Variable<int>(idTipo.value);
+    }
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
@@ -439,6 +466,7 @@ class PermissionsCompanion extends UpdateCompanion<Permission> {
           ..write('id: $id, ')
           ..write('descripcion: $descripcion, ')
           ..write('created_at: $created_at, ')
+          ..write('idTipo: $idTipo, ')
           ..write('status: $status')
           ..write(')'))
         .toString();
@@ -469,6 +497,12 @@ class $PermissionsTable extends Permissions
   GeneratedColumn<DateTime> get created_at =>
       _created_at ??= GeneratedColumn<DateTime>('created_at', aliasedName, true,
           typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _idTipoMeta = const VerificationMeta('idTipo');
+  GeneratedColumn<int> _idTipo;
+  @override
+  GeneratedColumn<int> get idTipo =>
+      _idTipo ??= GeneratedColumn<int>('id_tipo', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
   final VerificationMeta _statusMeta = const VerificationMeta('status');
   GeneratedColumn<int> _status;
   @override
@@ -476,7 +510,8 @@ class $PermissionsTable extends Permissions
       _status ??= GeneratedColumn<int>('status', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, descripcion, created_at, status];
+  List<GeneratedColumn> get $columns =>
+      [id, descripcion, created_at, idTipo, status];
   @override
   String get aliasedName => _alias ?? 'permissions';
   @override
@@ -503,6 +538,12 @@ class $PermissionsTable extends Permissions
           created_at.isAcceptableOrUnknown(
               data['created_at'], _created_atMeta));
     }
+    if (data.containsKey('id_tipo')) {
+      context.handle(_idTipoMeta,
+          idTipo.isAcceptableOrUnknown(data['id_tipo'], _idTipoMeta));
+    } else if (isInserting) {
+      context.missing(_idTipoMeta);
+    }
     if (data.containsKey('status')) {
       context.handle(_statusMeta,
           status.isAcceptableOrUnknown(data['status'], _statusMeta));
@@ -516,7 +557,7 @@ class $PermissionsTable extends Permissions
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Permission map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Permission.fromData(data, _db,
+    return Permission.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -526,9 +567,670 @@ class $PermissionsTable extends Permissions
   }
 }
 
+class Day extends DataClass implements Insertable<Day> {
+  final int id;
+  final String descripcion;
+  final DateTime created_at;
+  final int wday;
+  final DateTime horaApertura;
+  final DateTime horaCierre;
+  Day(
+      {@required this.id,
+      @required this.descripcion,
+      this.created_at,
+      @required this.wday,
+      @required this.horaApertura,
+      @required this.horaCierre});
+  factory Day.fromData(Map<String, dynamic> data, {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return Day(
+      id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      descripcion: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}descripcion']),
+      created_at: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      wday: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}wday']),
+      horaApertura: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}hora_apertura']),
+      horaCierre: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}hora_cierre']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || descripcion != null) {
+      map['descripcion'] = Variable<String>(descripcion);
+    }
+    if (!nullToAbsent || created_at != null) {
+      map['created_at'] = Variable<DateTime>(created_at);
+    }
+    if (!nullToAbsent || wday != null) {
+      map['wday'] = Variable<int>(wday);
+    }
+    if (!nullToAbsent || horaApertura != null) {
+      map['hora_apertura'] = Variable<DateTime>(horaApertura);
+    }
+    if (!nullToAbsent || horaCierre != null) {
+      map['hora_cierre'] = Variable<DateTime>(horaCierre);
+    }
+    return map;
+  }
+
+  DaysCompanion toCompanion(bool nullToAbsent) {
+    return DaysCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      descripcion: descripcion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(descripcion),
+      created_at: created_at == null && nullToAbsent
+          ? const Value.absent()
+          : Value(created_at),
+      wday: wday == null && nullToAbsent ? const Value.absent() : Value(wday),
+      horaApertura: horaApertura == null && nullToAbsent
+          ? const Value.absent()
+          : Value(horaApertura),
+      horaCierre: horaCierre == null && nullToAbsent
+          ? const Value.absent()
+          : Value(horaCierre),
+    );
+  }
+
+  factory Day.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Day(
+      id: serializer.fromJson<int>(json['id']),
+      descripcion: serializer.fromJson<String>(json['descripcion']),
+      created_at: serializer.fromJson<DateTime>(json['created_at']),
+      wday: serializer.fromJson<int>(json['wday']),
+      horaApertura: serializer.fromJson<DateTime>(json['horaApertura']),
+      horaCierre: serializer.fromJson<DateTime>(json['horaCierre']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'descripcion': serializer.toJson<String>(descripcion),
+      'created_at': serializer.toJson<DateTime>(created_at),
+      'wday': serializer.toJson<int>(wday),
+      'horaApertura': serializer.toJson<DateTime>(horaApertura),
+      'horaCierre': serializer.toJson<DateTime>(horaCierre),
+    };
+  }
+
+  Day copyWith(
+          {int id,
+          String descripcion,
+          DateTime created_at,
+          int wday,
+          DateTime horaApertura,
+          DateTime horaCierre}) =>
+      Day(
+        id: id ?? this.id,
+        descripcion: descripcion ?? this.descripcion,
+        created_at: created_at ?? this.created_at,
+        wday: wday ?? this.wday,
+        horaApertura: horaApertura ?? this.horaApertura,
+        horaCierre: horaCierre ?? this.horaCierre,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Day(')
+          ..write('id: $id, ')
+          ..write('descripcion: $descripcion, ')
+          ..write('created_at: $created_at, ')
+          ..write('wday: $wday, ')
+          ..write('horaApertura: $horaApertura, ')
+          ..write('horaCierre: $horaCierre')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, descripcion, created_at, wday, horaApertura, horaCierre);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Day &&
+          other.id == this.id &&
+          other.descripcion == this.descripcion &&
+          other.created_at == this.created_at &&
+          other.wday == this.wday &&
+          other.horaApertura == this.horaApertura &&
+          other.horaCierre == this.horaCierre);
+}
+
+class DaysCompanion extends UpdateCompanion<Day> {
+  final Value<int> id;
+  final Value<String> descripcion;
+  final Value<DateTime> created_at;
+  final Value<int> wday;
+  final Value<DateTime> horaApertura;
+  final Value<DateTime> horaCierre;
+  const DaysCompanion({
+    this.id = const Value.absent(),
+    this.descripcion = const Value.absent(),
+    this.created_at = const Value.absent(),
+    this.wday = const Value.absent(),
+    this.horaApertura = const Value.absent(),
+    this.horaCierre = const Value.absent(),
+  });
+  DaysCompanion.insert({
+    this.id = const Value.absent(),
+    @required String descripcion,
+    this.created_at = const Value.absent(),
+    @required int wday,
+    @required DateTime horaApertura,
+    @required DateTime horaCierre,
+  })  : descripcion = Value(descripcion),
+        wday = Value(wday),
+        horaApertura = Value(horaApertura),
+        horaCierre = Value(horaCierre);
+  static Insertable<Day> custom({
+    Expression<int> id,
+    Expression<String> descripcion,
+    Expression<DateTime> created_at,
+    Expression<int> wday,
+    Expression<DateTime> horaApertura,
+    Expression<DateTime> horaCierre,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (descripcion != null) 'descripcion': descripcion,
+      if (created_at != null) 'created_at': created_at,
+      if (wday != null) 'wday': wday,
+      if (horaApertura != null) 'hora_apertura': horaApertura,
+      if (horaCierre != null) 'hora_cierre': horaCierre,
+    });
+  }
+
+  DaysCompanion copyWith(
+      {Value<int> id,
+      Value<String> descripcion,
+      Value<DateTime> created_at,
+      Value<int> wday,
+      Value<DateTime> horaApertura,
+      Value<DateTime> horaCierre}) {
+    return DaysCompanion(
+      id: id ?? this.id,
+      descripcion: descripcion ?? this.descripcion,
+      created_at: created_at ?? this.created_at,
+      wday: wday ?? this.wday,
+      horaApertura: horaApertura ?? this.horaApertura,
+      horaCierre: horaCierre ?? this.horaCierre,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (descripcion.present) {
+      map['descripcion'] = Variable<String>(descripcion.value);
+    }
+    if (created_at.present) {
+      map['created_at'] = Variable<DateTime>(created_at.value);
+    }
+    if (wday.present) {
+      map['wday'] = Variable<int>(wday.value);
+    }
+    if (horaApertura.present) {
+      map['hora_apertura'] = Variable<DateTime>(horaApertura.value);
+    }
+    if (horaCierre.present) {
+      map['hora_cierre'] = Variable<DateTime>(horaCierre.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DaysCompanion(')
+          ..write('id: $id, ')
+          ..write('descripcion: $descripcion, ')
+          ..write('created_at: $created_at, ')
+          ..write('wday: $wday, ')
+          ..write('horaApertura: $horaApertura, ')
+          ..write('horaCierre: $horaCierre')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DaysTable extends Days with TableInfo<$DaysTable, Day> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $DaysTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedColumn<int> _id;
+  @override
+  GeneratedColumn<int> get id =>
+      _id ??= GeneratedColumn<int>('id', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _descripcionMeta =
+      const VerificationMeta('descripcion');
+  GeneratedColumn<String> _descripcion;
+  @override
+  GeneratedColumn<String> get descripcion => _descripcion ??=
+      GeneratedColumn<String>('descripcion', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _created_atMeta = const VerificationMeta('created_at');
+  GeneratedColumn<DateTime> _created_at;
+  @override
+  GeneratedColumn<DateTime> get created_at =>
+      _created_at ??= GeneratedColumn<DateTime>('created_at', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _wdayMeta = const VerificationMeta('wday');
+  GeneratedColumn<int> _wday;
+  @override
+  GeneratedColumn<int> get wday =>
+      _wday ??= GeneratedColumn<int>('wday', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _horaAperturaMeta =
+      const VerificationMeta('horaApertura');
+  GeneratedColumn<DateTime> _horaApertura;
+  @override
+  GeneratedColumn<DateTime> get horaApertura => _horaApertura ??=
+      GeneratedColumn<DateTime>('hora_apertura', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _horaCierreMeta = const VerificationMeta('horaCierre');
+  GeneratedColumn<DateTime> _horaCierre;
+  @override
+  GeneratedColumn<DateTime> get horaCierre => _horaCierre ??=
+      GeneratedColumn<DateTime>('hora_cierre', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, descripcion, created_at, wday, horaApertura, horaCierre];
+  @override
+  String get aliasedName => _alias ?? 'days';
+  @override
+  String get actualTableName => 'days';
+  @override
+  VerificationContext validateIntegrity(Insertable<Day> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('descripcion')) {
+      context.handle(
+          _descripcionMeta,
+          descripcion.isAcceptableOrUnknown(
+              data['descripcion'], _descripcionMeta));
+    } else if (isInserting) {
+      context.missing(_descripcionMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+          _created_atMeta,
+          created_at.isAcceptableOrUnknown(
+              data['created_at'], _created_atMeta));
+    }
+    if (data.containsKey('wday')) {
+      context.handle(
+          _wdayMeta, wday.isAcceptableOrUnknown(data['wday'], _wdayMeta));
+    } else if (isInserting) {
+      context.missing(_wdayMeta);
+    }
+    if (data.containsKey('hora_apertura')) {
+      context.handle(
+          _horaAperturaMeta,
+          horaApertura.isAcceptableOrUnknown(
+              data['hora_apertura'], _horaAperturaMeta));
+    } else if (isInserting) {
+      context.missing(_horaAperturaMeta);
+    }
+    if (data.containsKey('hora_cierre')) {
+      context.handle(
+          _horaCierreMeta,
+          horaCierre.isAcceptableOrUnknown(
+              data['hora_cierre'], _horaCierreMeta));
+    } else if (isInserting) {
+      context.missing(_horaCierreMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Day map(Map<String, dynamic> data, {String tablePrefix}) {
+    return Day.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $DaysTable createAlias(String alias) {
+    return $DaysTable(_db, alias);
+  }
+}
+
+class Lotterie extends DataClass implements Insertable<Lotterie> {
+  final int id;
+  final String descripcion;
+  final String abreviatura;
+  final DateTime created_at;
+  final int status;
+  Lotterie(
+      {@required this.id,
+      @required this.descripcion,
+      @required this.abreviatura,
+      this.created_at,
+      @required this.status});
+  factory Lotterie.fromData(Map<String, dynamic> data, {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return Lotterie(
+      id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      descripcion: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}descripcion']),
+      abreviatura: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}abreviatura']),
+      created_at: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      status: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}status']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || descripcion != null) {
+      map['descripcion'] = Variable<String>(descripcion);
+    }
+    if (!nullToAbsent || abreviatura != null) {
+      map['abreviatura'] = Variable<String>(abreviatura);
+    }
+    if (!nullToAbsent || created_at != null) {
+      map['created_at'] = Variable<DateTime>(created_at);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<int>(status);
+    }
+    return map;
+  }
+
+  LotteriesCompanion toCompanion(bool nullToAbsent) {
+    return LotteriesCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      descripcion: descripcion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(descripcion),
+      abreviatura: abreviatura == null && nullToAbsent
+          ? const Value.absent()
+          : Value(abreviatura),
+      created_at: created_at == null && nullToAbsent
+          ? const Value.absent()
+          : Value(created_at),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+    );
+  }
+
+  factory Lotterie.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Lotterie(
+      id: serializer.fromJson<int>(json['id']),
+      descripcion: serializer.fromJson<String>(json['descripcion']),
+      abreviatura: serializer.fromJson<String>(json['abreviatura']),
+      created_at: serializer.fromJson<DateTime>(json['created_at']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'descripcion': serializer.toJson<String>(descripcion),
+      'abreviatura': serializer.toJson<String>(abreviatura),
+      'created_at': serializer.toJson<DateTime>(created_at),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  Lotterie copyWith(
+          {int id,
+          String descripcion,
+          String abreviatura,
+          DateTime created_at,
+          int status}) =>
+      Lotterie(
+        id: id ?? this.id,
+        descripcion: descripcion ?? this.descripcion,
+        abreviatura: abreviatura ?? this.abreviatura,
+        created_at: created_at ?? this.created_at,
+        status: status ?? this.status,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Lotterie(')
+          ..write('id: $id, ')
+          ..write('descripcion: $descripcion, ')
+          ..write('abreviatura: $abreviatura, ')
+          ..write('created_at: $created_at, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, descripcion, abreviatura, created_at, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Lotterie &&
+          other.id == this.id &&
+          other.descripcion == this.descripcion &&
+          other.abreviatura == this.abreviatura &&
+          other.created_at == this.created_at &&
+          other.status == this.status);
+}
+
+class LotteriesCompanion extends UpdateCompanion<Lotterie> {
+  final Value<int> id;
+  final Value<String> descripcion;
+  final Value<String> abreviatura;
+  final Value<DateTime> created_at;
+  final Value<int> status;
+  const LotteriesCompanion({
+    this.id = const Value.absent(),
+    this.descripcion = const Value.absent(),
+    this.abreviatura = const Value.absent(),
+    this.created_at = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  LotteriesCompanion.insert({
+    this.id = const Value.absent(),
+    @required String descripcion,
+    @required String abreviatura,
+    this.created_at = const Value.absent(),
+    @required int status,
+  })  : descripcion = Value(descripcion),
+        abreviatura = Value(abreviatura),
+        status = Value(status);
+  static Insertable<Lotterie> custom({
+    Expression<int> id,
+    Expression<String> descripcion,
+    Expression<String> abreviatura,
+    Expression<DateTime> created_at,
+    Expression<int> status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (descripcion != null) 'descripcion': descripcion,
+      if (abreviatura != null) 'abreviatura': abreviatura,
+      if (created_at != null) 'created_at': created_at,
+      if (status != null) 'status': status,
+    });
+  }
+
+  LotteriesCompanion copyWith(
+      {Value<int> id,
+      Value<String> descripcion,
+      Value<String> abreviatura,
+      Value<DateTime> created_at,
+      Value<int> status}) {
+    return LotteriesCompanion(
+      id: id ?? this.id,
+      descripcion: descripcion ?? this.descripcion,
+      abreviatura: abreviatura ?? this.abreviatura,
+      created_at: created_at ?? this.created_at,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (descripcion.present) {
+      map['descripcion'] = Variable<String>(descripcion.value);
+    }
+    if (abreviatura.present) {
+      map['abreviatura'] = Variable<String>(abreviatura.value);
+    }
+    if (created_at.present) {
+      map['created_at'] = Variable<DateTime>(created_at.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LotteriesCompanion(')
+          ..write('id: $id, ')
+          ..write('descripcion: $descripcion, ')
+          ..write('abreviatura: $abreviatura, ')
+          ..write('created_at: $created_at, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LotteriesTable extends Lotteries
+    with TableInfo<$LotteriesTable, Lotterie> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $LotteriesTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedColumn<int> _id;
+  @override
+  GeneratedColumn<int> get id =>
+      _id ??= GeneratedColumn<int>('id', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _descripcionMeta =
+      const VerificationMeta('descripcion');
+  GeneratedColumn<String> _descripcion;
+  @override
+  GeneratedColumn<String> get descripcion => _descripcion ??=
+      GeneratedColumn<String>('descripcion', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _abreviaturaMeta =
+      const VerificationMeta('abreviatura');
+  GeneratedColumn<String> _abreviatura;
+  @override
+  GeneratedColumn<String> get abreviatura => _abreviatura ??=
+      GeneratedColumn<String>('abreviatura', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _created_atMeta = const VerificationMeta('created_at');
+  GeneratedColumn<DateTime> _created_at;
+  @override
+  GeneratedColumn<DateTime> get created_at =>
+      _created_at ??= GeneratedColumn<DateTime>('created_at', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _statusMeta = const VerificationMeta('status');
+  GeneratedColumn<int> _status;
+  @override
+  GeneratedColumn<int> get status =>
+      _status ??= GeneratedColumn<int>('status', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, descripcion, abreviatura, created_at, status];
+  @override
+  String get aliasedName => _alias ?? 'lotteries';
+  @override
+  String get actualTableName => 'lotteries';
+  @override
+  VerificationContext validateIntegrity(Insertable<Lotterie> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    }
+    if (data.containsKey('descripcion')) {
+      context.handle(
+          _descripcionMeta,
+          descripcion.isAcceptableOrUnknown(
+              data['descripcion'], _descripcionMeta));
+    } else if (isInserting) {
+      context.missing(_descripcionMeta);
+    }
+    if (data.containsKey('abreviatura')) {
+      context.handle(
+          _abreviaturaMeta,
+          abreviatura.isAcceptableOrUnknown(
+              data['abreviatura'], _abreviaturaMeta));
+    } else if (isInserting) {
+      context.missing(_abreviaturaMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+          _created_atMeta,
+          created_at.isAcceptableOrUnknown(
+              data['created_at'], _created_atMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status'], _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Lotterie map(Map<String, dynamic> data, {String tablePrefix}) {
+    return Lotterie.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $LotteriesTable createAlias(String alias) {
+    return $LotteriesTable(_db, alias);
+  }
+}
+
 class User extends DataClass implements Insertable<User> {
   final int id;
   final String nombres;
+  final String email;
   final String usuario;
   final String servidor;
   final DateTime created_at;
@@ -537,18 +1239,20 @@ class User extends DataClass implements Insertable<User> {
   User(
       {@required this.id,
       @required this.nombres,
+      @required this.email,
       @required this.usuario,
       @required this.servidor,
       this.created_at,
       @required this.status,
       this.idGrupo});
-  factory User.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory User.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return User(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
       nombres: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}nombres']),
+      email: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}email']),
       usuario: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}usuario']),
       servidor: const StringType()
@@ -569,6 +1273,9 @@ class User extends DataClass implements Insertable<User> {
     }
     if (!nullToAbsent || nombres != null) {
       map['nombres'] = Variable<String>(nombres);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
     }
     if (!nullToAbsent || usuario != null) {
       map['usuario'] = Variable<String>(usuario);
@@ -594,6 +1301,8 @@ class User extends DataClass implements Insertable<User> {
       nombres: nombres == null && nullToAbsent
           ? const Value.absent()
           : Value(nombres),
+      email:
+          email == null && nullToAbsent ? const Value.absent() : Value(email),
       usuario: usuario == null && nullToAbsent
           ? const Value.absent()
           : Value(usuario),
@@ -613,10 +1322,11 @@ class User extends DataClass implements Insertable<User> {
 
   factory User.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return User(
       id: serializer.fromJson<int>(json['id']),
       nombres: serializer.fromJson<String>(json['nombres']),
+      email: serializer.fromJson<String>(json['email']),
       usuario: serializer.fromJson<String>(json['usuario']),
       servidor: serializer.fromJson<String>(json['servidor']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
@@ -626,10 +1336,11 @@ class User extends DataClass implements Insertable<User> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'nombres': serializer.toJson<String>(nombres),
+      'email': serializer.toJson<String>(email),
       'usuario': serializer.toJson<String>(usuario),
       'servidor': serializer.toJson<String>(servidor),
       'created_at': serializer.toJson<DateTime>(created_at),
@@ -641,6 +1352,7 @@ class User extends DataClass implements Insertable<User> {
   User copyWith(
           {int id,
           String nombres,
+          String email,
           String usuario,
           String servidor,
           DateTime created_at,
@@ -649,6 +1361,7 @@ class User extends DataClass implements Insertable<User> {
       User(
         id: id ?? this.id,
         nombres: nombres ?? this.nombres,
+        email: email ?? this.email,
         usuario: usuario ?? this.usuario,
         servidor: servidor ?? this.servidor,
         created_at: created_at ?? this.created_at,
@@ -660,6 +1373,7 @@ class User extends DataClass implements Insertable<User> {
     return (StringBuffer('User(')
           ..write('id: $id, ')
           ..write('nombres: $nombres, ')
+          ..write('email: $email, ')
           ..write('usuario: $usuario, ')
           ..write('servidor: $servidor, ')
           ..write('created_at: $created_at, ')
@@ -670,14 +1384,15 @@ class User extends DataClass implements Insertable<User> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, nombres, usuario, servidor, created_at, status, idGrupo);
+  int get hashCode => Object.hash(
+      id, nombres, email, usuario, servidor, created_at, status, idGrupo);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
           other.id == this.id &&
           other.nombres == this.nombres &&
+          other.email == this.email &&
           other.usuario == this.usuario &&
           other.servidor == this.servidor &&
           other.created_at == this.created_at &&
@@ -688,6 +1403,7 @@ class User extends DataClass implements Insertable<User> {
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<int> id;
   final Value<String> nombres;
+  final Value<String> email;
   final Value<String> usuario;
   final Value<String> servidor;
   final Value<DateTime> created_at;
@@ -696,6 +1412,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   const UsersCompanion({
     this.id = const Value.absent(),
     this.nombres = const Value.absent(),
+    this.email = const Value.absent(),
     this.usuario = const Value.absent(),
     this.servidor = const Value.absent(),
     this.created_at = const Value.absent(),
@@ -705,18 +1422,21 @@ class UsersCompanion extends UpdateCompanion<User> {
   UsersCompanion.insert({
     this.id = const Value.absent(),
     @required String nombres,
+    @required String email,
     @required String usuario,
     @required String servidor,
     this.created_at = const Value.absent(),
     @required int status,
     this.idGrupo = const Value.absent(),
   })  : nombres = Value(nombres),
+        email = Value(email),
         usuario = Value(usuario),
         servidor = Value(servidor),
         status = Value(status);
   static Insertable<User> custom({
     Expression<int> id,
     Expression<String> nombres,
+    Expression<String> email,
     Expression<String> usuario,
     Expression<String> servidor,
     Expression<DateTime> created_at,
@@ -726,6 +1446,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (nombres != null) 'nombres': nombres,
+      if (email != null) 'email': email,
       if (usuario != null) 'usuario': usuario,
       if (servidor != null) 'servidor': servidor,
       if (created_at != null) 'created_at': created_at,
@@ -737,6 +1458,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   UsersCompanion copyWith(
       {Value<int> id,
       Value<String> nombres,
+      Value<String> email,
       Value<String> usuario,
       Value<String> servidor,
       Value<DateTime> created_at,
@@ -745,6 +1467,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     return UsersCompanion(
       id: id ?? this.id,
       nombres: nombres ?? this.nombres,
+      email: email ?? this.email,
       usuario: usuario ?? this.usuario,
       servidor: servidor ?? this.servidor,
       created_at: created_at ?? this.created_at,
@@ -761,6 +1484,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     }
     if (nombres.present) {
       map['nombres'] = Variable<String>(nombres.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
     }
     if (usuario.present) {
       map['usuario'] = Variable<String>(usuario.value);
@@ -785,6 +1511,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     return (StringBuffer('UsersCompanion(')
           ..write('id: $id, ')
           ..write('nombres: $nombres, ')
+          ..write('email: $email, ')
           ..write('usuario: $usuario, ')
           ..write('servidor: $servidor, ')
           ..write('created_at: $created_at, ')
@@ -810,6 +1537,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   @override
   GeneratedColumn<String> get nombres =>
       _nombres ??= GeneratedColumn<String>('nombres', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _emailMeta = const VerificationMeta('email');
+  GeneratedColumn<String> _email;
+  @override
+  GeneratedColumn<String> get email =>
+      _email ??= GeneratedColumn<String>('email', aliasedName, false,
           typeName: 'TEXT', requiredDuringInsert: true);
   final VerificationMeta _usuarioMeta = const VerificationMeta('usuario');
   GeneratedColumn<String> _usuario;
@@ -843,7 +1576,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
           typeName: 'INTEGER', requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, nombres, usuario, servidor, created_at, status, idGrupo];
+      [id, nombres, email, usuario, servidor, created_at, status, idGrupo];
   @override
   String get aliasedName => _alias ?? 'users';
   @override
@@ -861,6 +1594,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
           nombres.isAcceptableOrUnknown(data['nombres'], _nombresMeta));
     } else if (isInserting) {
       context.missing(_nombresMeta);
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+          _emailMeta, email.isAcceptableOrUnknown(data['email'], _emailMeta));
+    } else if (isInserting) {
+      context.missing(_emailMeta);
     }
     if (data.containsKey('usuario')) {
       context.handle(_usuarioMeta,
@@ -897,7 +1636,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   User map(Map<String, dynamic> data, {String tablePrefix}) {
-    return User.fromData(data, _db,
+    return User.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -915,6 +1654,7 @@ class Setting extends DataClass implements Insertable<Setting> {
   final String descripcionTipoFormatoTicket;
   final int cancelarTicketWhatsapp;
   final int imprimirNombreBanca;
+  final int pagarTicketEnCualquierBanca;
   Setting(
       {@required this.id,
       @required this.consorcio,
@@ -922,9 +1662,9 @@ class Setting extends DataClass implements Insertable<Setting> {
       @required this.imprimirNombreConsorcio,
       @required this.descripcionTipoFormatoTicket,
       @required this.cancelarTicketWhatsapp,
-      @required this.imprimirNombreBanca});
-  factory Setting.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+      @required this.imprimirNombreBanca,
+      @required this.pagarTicketEnCualquierBanca});
+  factory Setting.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Setting(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -940,6 +1680,8 @@ class Setting extends DataClass implements Insertable<Setting> {
           data['${effectivePrefix}cancelar_ticket_whatsapp']),
       imprimirNombreBanca: const IntType().mapFromDatabaseResponse(
           data['${effectivePrefix}imprimir_nombre_banca']),
+      pagarTicketEnCualquierBanca: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}pagar_ticket_en_cualquier_banca']),
     );
   }
   @override
@@ -967,6 +1709,10 @@ class Setting extends DataClass implements Insertable<Setting> {
     if (!nullToAbsent || imprimirNombreBanca != null) {
       map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca);
     }
+    if (!nullToAbsent || pagarTicketEnCualquierBanca != null) {
+      map['pagar_ticket_en_cualquier_banca'] =
+          Variable<int>(pagarTicketEnCualquierBanca);
+    }
     return map;
   }
 
@@ -992,12 +1738,16 @@ class Setting extends DataClass implements Insertable<Setting> {
       imprimirNombreBanca: imprimirNombreBanca == null && nullToAbsent
           ? const Value.absent()
           : Value(imprimirNombreBanca),
+      pagarTicketEnCualquierBanca:
+          pagarTicketEnCualquierBanca == null && nullToAbsent
+              ? const Value.absent()
+              : Value(pagarTicketEnCualquierBanca),
     );
   }
 
   factory Setting.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Setting(
       id: serializer.fromJson<int>(json['id']),
       consorcio: serializer.fromJson<String>(json['consorcio']),
@@ -1011,11 +1761,13 @@ class Setting extends DataClass implements Insertable<Setting> {
           serializer.fromJson<int>(json['cancelarTicketWhatsapp']),
       imprimirNombreBanca:
           serializer.fromJson<int>(json['imprimirNombreBanca']),
+      pagarTicketEnCualquierBanca:
+          serializer.fromJson<int>(json['pagarTicketEnCualquierBanca']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'consorcio': serializer.toJson<String>(consorcio),
@@ -1026,6 +1778,8 @@ class Setting extends DataClass implements Insertable<Setting> {
           serializer.toJson<String>(descripcionTipoFormatoTicket),
       'cancelarTicketWhatsapp': serializer.toJson<int>(cancelarTicketWhatsapp),
       'imprimirNombreBanca': serializer.toJson<int>(imprimirNombreBanca),
+      'pagarTicketEnCualquierBanca':
+          serializer.toJson<int>(pagarTicketEnCualquierBanca),
     };
   }
 
@@ -1036,7 +1790,8 @@ class Setting extends DataClass implements Insertable<Setting> {
           int imprimirNombreConsorcio,
           String descripcionTipoFormatoTicket,
           int cancelarTicketWhatsapp,
-          int imprimirNombreBanca}) =>
+          int imprimirNombreBanca,
+          int pagarTicketEnCualquierBanca}) =>
       Setting(
         id: id ?? this.id,
         consorcio: consorcio ?? this.consorcio,
@@ -1048,6 +1803,8 @@ class Setting extends DataClass implements Insertable<Setting> {
         cancelarTicketWhatsapp:
             cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
         imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
+        pagarTicketEnCualquierBanca:
+            pagarTicketEnCualquierBanca ?? this.pagarTicketEnCualquierBanca,
       );
   @override
   String toString() {
@@ -1059,7 +1816,8 @@ class Setting extends DataClass implements Insertable<Setting> {
           ..write(
               'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
           ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
-          ..write('imprimirNombreBanca: $imprimirNombreBanca')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
+          ..write('pagarTicketEnCualquierBanca: $pagarTicketEnCualquierBanca')
           ..write(')'))
         .toString();
   }
@@ -1072,7 +1830,8 @@ class Setting extends DataClass implements Insertable<Setting> {
       imprimirNombreConsorcio,
       descripcionTipoFormatoTicket,
       cancelarTicketWhatsapp,
-      imprimirNombreBanca);
+      imprimirNombreBanca,
+      pagarTicketEnCualquierBanca);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1084,7 +1843,9 @@ class Setting extends DataClass implements Insertable<Setting> {
           other.descripcionTipoFormatoTicket ==
               this.descripcionTipoFormatoTicket &&
           other.cancelarTicketWhatsapp == this.cancelarTicketWhatsapp &&
-          other.imprimirNombreBanca == this.imprimirNombreBanca);
+          other.imprimirNombreBanca == this.imprimirNombreBanca &&
+          other.pagarTicketEnCualquierBanca ==
+              this.pagarTicketEnCualquierBanca);
 }
 
 class SettingsCompanion extends UpdateCompanion<Setting> {
@@ -1095,6 +1856,7 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
   final Value<String> descripcionTipoFormatoTicket;
   final Value<int> cancelarTicketWhatsapp;
   final Value<int> imprimirNombreBanca;
+  final Value<int> pagarTicketEnCualquierBanca;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.consorcio = const Value.absent(),
@@ -1103,6 +1865,7 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     this.descripcionTipoFormatoTicket = const Value.absent(),
     this.cancelarTicketWhatsapp = const Value.absent(),
     this.imprimirNombreBanca = const Value.absent(),
+    this.pagarTicketEnCualquierBanca = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -1112,12 +1875,14 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     @required String descripcionTipoFormatoTicket,
     @required int cancelarTicketWhatsapp,
     @required int imprimirNombreBanca,
+    @required int pagarTicketEnCualquierBanca,
   })  : consorcio = Value(consorcio),
         idTipoFormatoTicket = Value(idTipoFormatoTicket),
         imprimirNombreConsorcio = Value(imprimirNombreConsorcio),
         descripcionTipoFormatoTicket = Value(descripcionTipoFormatoTicket),
         cancelarTicketWhatsapp = Value(cancelarTicketWhatsapp),
-        imprimirNombreBanca = Value(imprimirNombreBanca);
+        imprimirNombreBanca = Value(imprimirNombreBanca),
+        pagarTicketEnCualquierBanca = Value(pagarTicketEnCualquierBanca);
   static Insertable<Setting> custom({
     Expression<int> id,
     Expression<String> consorcio,
@@ -1126,6 +1891,7 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     Expression<String> descripcionTipoFormatoTicket,
     Expression<int> cancelarTicketWhatsapp,
     Expression<int> imprimirNombreBanca,
+    Expression<int> pagarTicketEnCualquierBanca,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1140,6 +1906,8 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
         'cancelar_ticket_whatsapp': cancelarTicketWhatsapp,
       if (imprimirNombreBanca != null)
         'imprimir_nombre_banca': imprimirNombreBanca,
+      if (pagarTicketEnCualquierBanca != null)
+        'pagar_ticket_en_cualquier_banca': pagarTicketEnCualquierBanca,
     });
   }
 
@@ -1150,7 +1918,8 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       Value<int> imprimirNombreConsorcio,
       Value<String> descripcionTipoFormatoTicket,
       Value<int> cancelarTicketWhatsapp,
-      Value<int> imprimirNombreBanca}) {
+      Value<int> imprimirNombreBanca,
+      Value<int> pagarTicketEnCualquierBanca}) {
     return SettingsCompanion(
       id: id ?? this.id,
       consorcio: consorcio ?? this.consorcio,
@@ -1162,6 +1931,8 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
       cancelarTicketWhatsapp:
           cancelarTicketWhatsapp ?? this.cancelarTicketWhatsapp,
       imprimirNombreBanca: imprimirNombreBanca ?? this.imprimirNombreBanca,
+      pagarTicketEnCualquierBanca:
+          pagarTicketEnCualquierBanca ?? this.pagarTicketEnCualquierBanca,
     );
   }
 
@@ -1192,6 +1963,10 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
     if (imprimirNombreBanca.present) {
       map['imprimir_nombre_banca'] = Variable<int>(imprimirNombreBanca.value);
     }
+    if (pagarTicketEnCualquierBanca.present) {
+      map['pagar_ticket_en_cualquier_banca'] =
+          Variable<int>(pagarTicketEnCualquierBanca.value);
+    }
     return map;
   }
 
@@ -1205,7 +1980,8 @@ class SettingsCompanion extends UpdateCompanion<Setting> {
           ..write(
               'descripcionTipoFormatoTicket: $descripcionTipoFormatoTicket, ')
           ..write('cancelarTicketWhatsapp: $cancelarTicketWhatsapp, ')
-          ..write('imprimirNombreBanca: $imprimirNombreBanca')
+          ..write('imprimirNombreBanca: $imprimirNombreBanca, ')
+          ..write('pagarTicketEnCualquierBanca: $pagarTicketEnCualquierBanca')
           ..write(')'))
         .toString();
   }
@@ -1264,6 +2040,14 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
   GeneratedColumn<int> get imprimirNombreBanca => _imprimirNombreBanca ??=
       GeneratedColumn<int>('imprimir_nombre_banca', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _pagarTicketEnCualquierBancaMeta =
+      const VerificationMeta('pagarTicketEnCualquierBanca');
+  GeneratedColumn<int> _pagarTicketEnCualquierBanca;
+  @override
+  GeneratedColumn<int> get pagarTicketEnCualquierBanca =>
+      _pagarTicketEnCualquierBanca ??= GeneratedColumn<int>(
+          'pagar_ticket_en_cualquier_banca', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1272,7 +2056,8 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
         imprimirNombreConsorcio,
         descripcionTipoFormatoTicket,
         cancelarTicketWhatsapp,
-        imprimirNombreBanca
+        imprimirNombreBanca,
+        pagarTicketEnCualquierBanca
       ];
   @override
   String get aliasedName => _alias ?? 'settings';
@@ -1333,6 +2118,15 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
     } else if (isInserting) {
       context.missing(_imprimirNombreBancaMeta);
     }
+    if (data.containsKey('pagar_ticket_en_cualquier_banca')) {
+      context.handle(
+          _pagarTicketEnCualquierBancaMeta,
+          pagarTicketEnCualquierBanca.isAcceptableOrUnknown(
+              data['pagar_ticket_en_cualquier_banca'],
+              _pagarTicketEnCualquierBancaMeta));
+    } else if (isInserting) {
+      context.missing(_pagarTicketEnCualquierBancaMeta);
+    }
     return context;
   }
 
@@ -1340,7 +2134,7 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Setting map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Setting.fromData(data, _db,
+    return Setting.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -1352,53 +2146,88 @@ class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
 
 class Branch extends DataClass implements Insertable<Branch> {
   final int id;
-  final int idMoneda;
   final String descripcion;
   final String codigo;
+  final String dueno;
+  final int idUsuario;
+  final double limiteVenta;
+  final double descontar;
+  final double deCada;
+  final int minutosCancelarTicket;
+  final String piepagina1;
+  final String piepagina2;
+  final String piepagina3;
+  final String piepagina4;
+  final int idMoneda;
   final String moneda;
   final String monedaAbreviatura;
   final String monedaColor;
-  final double descontar;
-  final double deCada;
-  final DateTime created_at;
   final int status;
+  final DateTime created_at;
+  final double ventasDelDia;
   Branch(
       {@required this.id,
-      @required this.idMoneda,
       @required this.descripcion,
       @required this.codigo,
+      @required this.dueno,
+      @required this.idUsuario,
+      @required this.limiteVenta,
+      @required this.descontar,
+      @required this.deCada,
+      @required this.minutosCancelarTicket,
+      @required this.piepagina1,
+      @required this.piepagina2,
+      @required this.piepagina3,
+      @required this.piepagina4,
+      @required this.idMoneda,
       @required this.moneda,
       @required this.monedaAbreviatura,
       @required this.monedaColor,
-      @required this.descontar,
-      @required this.deCada,
+      @required this.status,
       this.created_at,
-      @required this.status});
-  factory Branch.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+      @required this.ventasDelDia});
+  factory Branch.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Branch(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
-      idMoneda: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
       descripcion: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}descripcion']),
       codigo: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}codigo']),
+      dueno: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}dueno']),
+      idUsuario: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id_usuario']),
+      limiteVenta: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}limite_venta']),
+      descontar: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}descontar']),
+      deCada: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}de_cada']),
+      minutosCancelarTicket: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}minutos_cancelar_ticket']),
+      piepagina1: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}piepagina1']),
+      piepagina2: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}piepagina2']),
+      piepagina3: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}piepagina3']),
+      piepagina4: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}piepagina4']),
+      idMoneda: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
       moneda: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}moneda']),
       monedaAbreviatura: const StringType().mapFromDatabaseResponse(
           data['${effectivePrefix}moneda_abreviatura']),
       monedaColor: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}moneda_color']),
-      descontar: const RealType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}descontar']),
-      deCada: const RealType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}de_cada']),
-      created_at: const DateTimeType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       status: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}status']),
+      created_at: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      ventasDelDia: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}ventas_del_dia']),
     );
   }
   @override
@@ -1407,14 +2236,44 @@ class Branch extends DataClass implements Insertable<Branch> {
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || idMoneda != null) {
-      map['id_moneda'] = Variable<int>(idMoneda);
-    }
     if (!nullToAbsent || descripcion != null) {
       map['descripcion'] = Variable<String>(descripcion);
     }
     if (!nullToAbsent || codigo != null) {
       map['codigo'] = Variable<String>(codigo);
+    }
+    if (!nullToAbsent || dueno != null) {
+      map['dueno'] = Variable<String>(dueno);
+    }
+    if (!nullToAbsent || idUsuario != null) {
+      map['id_usuario'] = Variable<int>(idUsuario);
+    }
+    if (!nullToAbsent || limiteVenta != null) {
+      map['limite_venta'] = Variable<double>(limiteVenta);
+    }
+    if (!nullToAbsent || descontar != null) {
+      map['descontar'] = Variable<double>(descontar);
+    }
+    if (!nullToAbsent || deCada != null) {
+      map['de_cada'] = Variable<double>(deCada);
+    }
+    if (!nullToAbsent || minutosCancelarTicket != null) {
+      map['minutos_cancelar_ticket'] = Variable<int>(minutosCancelarTicket);
+    }
+    if (!nullToAbsent || piepagina1 != null) {
+      map['piepagina1'] = Variable<String>(piepagina1);
+    }
+    if (!nullToAbsent || piepagina2 != null) {
+      map['piepagina2'] = Variable<String>(piepagina2);
+    }
+    if (!nullToAbsent || piepagina3 != null) {
+      map['piepagina3'] = Variable<String>(piepagina3);
+    }
+    if (!nullToAbsent || piepagina4 != null) {
+      map['piepagina4'] = Variable<String>(piepagina4);
+    }
+    if (!nullToAbsent || idMoneda != null) {
+      map['id_moneda'] = Variable<int>(idMoneda);
     }
     if (!nullToAbsent || moneda != null) {
       map['moneda'] = Variable<String>(moneda);
@@ -1425,17 +2284,14 @@ class Branch extends DataClass implements Insertable<Branch> {
     if (!nullToAbsent || monedaColor != null) {
       map['moneda_color'] = Variable<String>(monedaColor);
     }
-    if (!nullToAbsent || descontar != null) {
-      map['descontar'] = Variable<double>(descontar);
-    }
-    if (!nullToAbsent || deCada != null) {
-      map['de_cada'] = Variable<double>(deCada);
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<int>(status);
     }
     if (!nullToAbsent || created_at != null) {
       map['created_at'] = Variable<DateTime>(created_at);
     }
-    if (!nullToAbsent || status != null) {
-      map['status'] = Variable<int>(status);
+    if (!nullToAbsent || ventasDelDia != null) {
+      map['ventas_del_dia'] = Variable<double>(ventasDelDia);
     }
     return map;
   }
@@ -1443,14 +2299,42 @@ class Branch extends DataClass implements Insertable<Branch> {
   BranchsCompanion toCompanion(bool nullToAbsent) {
     return BranchsCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      idMoneda: idMoneda == null && nullToAbsent
-          ? const Value.absent()
-          : Value(idMoneda),
       descripcion: descripcion == null && nullToAbsent
           ? const Value.absent()
           : Value(descripcion),
       codigo:
           codigo == null && nullToAbsent ? const Value.absent() : Value(codigo),
+      dueno:
+          dueno == null && nullToAbsent ? const Value.absent() : Value(dueno),
+      idUsuario: idUsuario == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idUsuario),
+      limiteVenta: limiteVenta == null && nullToAbsent
+          ? const Value.absent()
+          : Value(limiteVenta),
+      descontar: descontar == null && nullToAbsent
+          ? const Value.absent()
+          : Value(descontar),
+      deCada:
+          deCada == null && nullToAbsent ? const Value.absent() : Value(deCada),
+      minutosCancelarTicket: minutosCancelarTicket == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minutosCancelarTicket),
+      piepagina1: piepagina1 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(piepagina1),
+      piepagina2: piepagina2 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(piepagina2),
+      piepagina3: piepagina3 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(piepagina3),
+      piepagina4: piepagina4 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(piepagina4),
+      idMoneda: idMoneda == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idMoneda),
       moneda:
           moneda == null && nullToAbsent ? const Value.absent() : Value(moneda),
       monedaAbreviatura: monedaAbreviatura == null && nullToAbsent
@@ -1459,215 +2343,362 @@ class Branch extends DataClass implements Insertable<Branch> {
       monedaColor: monedaColor == null && nullToAbsent
           ? const Value.absent()
           : Value(monedaColor),
-      descontar: descontar == null && nullToAbsent
-          ? const Value.absent()
-          : Value(descontar),
-      deCada:
-          deCada == null && nullToAbsent ? const Value.absent() : Value(deCada),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
       created_at: created_at == null && nullToAbsent
           ? const Value.absent()
           : Value(created_at),
-      status:
-          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      ventasDelDia: ventasDelDia == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ventasDelDia),
     );
   }
 
   factory Branch.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Branch(
       id: serializer.fromJson<int>(json['id']),
-      idMoneda: serializer.fromJson<int>(json['idMoneda']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
       codigo: serializer.fromJson<String>(json['codigo']),
+      dueno: serializer.fromJson<String>(json['dueno']),
+      idUsuario: serializer.fromJson<int>(json['idUsuario']),
+      limiteVenta: serializer.fromJson<double>(json['limiteVenta']),
+      descontar: serializer.fromJson<double>(json['descontar']),
+      deCada: serializer.fromJson<double>(json['deCada']),
+      minutosCancelarTicket:
+          serializer.fromJson<int>(json['minutosCancelarTicket']),
+      piepagina1: serializer.fromJson<String>(json['piepagina1']),
+      piepagina2: serializer.fromJson<String>(json['piepagina2']),
+      piepagina3: serializer.fromJson<String>(json['piepagina3']),
+      piepagina4: serializer.fromJson<String>(json['piepagina4']),
+      idMoneda: serializer.fromJson<int>(json['idMoneda']),
       moneda: serializer.fromJson<String>(json['moneda']),
       monedaAbreviatura: serializer.fromJson<String>(json['monedaAbreviatura']),
       monedaColor: serializer.fromJson<String>(json['monedaColor']),
-      descontar: serializer.fromJson<double>(json['descontar']),
-      deCada: serializer.fromJson<double>(json['deCada']),
-      created_at: serializer.fromJson<DateTime>(json['created_at']),
       status: serializer.fromJson<int>(json['status']),
+      created_at: serializer.fromJson<DateTime>(json['created_at']),
+      ventasDelDia: serializer.fromJson<double>(json['ventasDelDia']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'idMoneda': serializer.toJson<int>(idMoneda),
       'descripcion': serializer.toJson<String>(descripcion),
       'codigo': serializer.toJson<String>(codigo),
+      'dueno': serializer.toJson<String>(dueno),
+      'idUsuario': serializer.toJson<int>(idUsuario),
+      'limiteVenta': serializer.toJson<double>(limiteVenta),
+      'descontar': serializer.toJson<double>(descontar),
+      'deCada': serializer.toJson<double>(deCada),
+      'minutosCancelarTicket': serializer.toJson<int>(minutosCancelarTicket),
+      'piepagina1': serializer.toJson<String>(piepagina1),
+      'piepagina2': serializer.toJson<String>(piepagina2),
+      'piepagina3': serializer.toJson<String>(piepagina3),
+      'piepagina4': serializer.toJson<String>(piepagina4),
+      'idMoneda': serializer.toJson<int>(idMoneda),
       'moneda': serializer.toJson<String>(moneda),
       'monedaAbreviatura': serializer.toJson<String>(monedaAbreviatura),
       'monedaColor': serializer.toJson<String>(monedaColor),
-      'descontar': serializer.toJson<double>(descontar),
-      'deCada': serializer.toJson<double>(deCada),
-      'created_at': serializer.toJson<DateTime>(created_at),
       'status': serializer.toJson<int>(status),
+      'created_at': serializer.toJson<DateTime>(created_at),
+      'ventasDelDia': serializer.toJson<double>(ventasDelDia),
     };
   }
 
   Branch copyWith(
           {int id,
-          int idMoneda,
           String descripcion,
           String codigo,
+          String dueno,
+          int idUsuario,
+          double limiteVenta,
+          double descontar,
+          double deCada,
+          int minutosCancelarTicket,
+          String piepagina1,
+          String piepagina2,
+          String piepagina3,
+          String piepagina4,
+          int idMoneda,
           String moneda,
           String monedaAbreviatura,
           String monedaColor,
-          double descontar,
-          double deCada,
+          int status,
           DateTime created_at,
-          int status}) =>
+          double ventasDelDia}) =>
       Branch(
         id: id ?? this.id,
-        idMoneda: idMoneda ?? this.idMoneda,
         descripcion: descripcion ?? this.descripcion,
         codigo: codigo ?? this.codigo,
+        dueno: dueno ?? this.dueno,
+        idUsuario: idUsuario ?? this.idUsuario,
+        limiteVenta: limiteVenta ?? this.limiteVenta,
+        descontar: descontar ?? this.descontar,
+        deCada: deCada ?? this.deCada,
+        minutosCancelarTicket:
+            minutosCancelarTicket ?? this.minutosCancelarTicket,
+        piepagina1: piepagina1 ?? this.piepagina1,
+        piepagina2: piepagina2 ?? this.piepagina2,
+        piepagina3: piepagina3 ?? this.piepagina3,
+        piepagina4: piepagina4 ?? this.piepagina4,
+        idMoneda: idMoneda ?? this.idMoneda,
         moneda: moneda ?? this.moneda,
         monedaAbreviatura: monedaAbreviatura ?? this.monedaAbreviatura,
         monedaColor: monedaColor ?? this.monedaColor,
-        descontar: descontar ?? this.descontar,
-        deCada: deCada ?? this.deCada,
-        created_at: created_at ?? this.created_at,
         status: status ?? this.status,
+        created_at: created_at ?? this.created_at,
+        ventasDelDia: ventasDelDia ?? this.ventasDelDia,
       );
   @override
   String toString() {
     return (StringBuffer('Branch(')
           ..write('id: $id, ')
-          ..write('idMoneda: $idMoneda, ')
           ..write('descripcion: $descripcion, ')
           ..write('codigo: $codigo, ')
+          ..write('dueno: $dueno, ')
+          ..write('idUsuario: $idUsuario, ')
+          ..write('limiteVenta: $limiteVenta, ')
+          ..write('descontar: $descontar, ')
+          ..write('deCada: $deCada, ')
+          ..write('minutosCancelarTicket: $minutosCancelarTicket, ')
+          ..write('piepagina1: $piepagina1, ')
+          ..write('piepagina2: $piepagina2, ')
+          ..write('piepagina3: $piepagina3, ')
+          ..write('piepagina4: $piepagina4, ')
+          ..write('idMoneda: $idMoneda, ')
           ..write('moneda: $moneda, ')
           ..write('monedaAbreviatura: $monedaAbreviatura, ')
           ..write('monedaColor: $monedaColor, ')
-          ..write('descontar: $descontar, ')
-          ..write('deCada: $deCada, ')
+          ..write('status: $status, ')
           ..write('created_at: $created_at, ')
-          ..write('status: $status')
+          ..write('ventasDelDia: $ventasDelDia')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, idMoneda, descripcion, codigo, moneda,
-      monedaAbreviatura, monedaColor, descontar, deCada, created_at, status);
+  int get hashCode => Object.hash(
+      id,
+      descripcion,
+      codigo,
+      dueno,
+      idUsuario,
+      limiteVenta,
+      descontar,
+      deCada,
+      minutosCancelarTicket,
+      piepagina1,
+      piepagina2,
+      piepagina3,
+      piepagina4,
+      idMoneda,
+      moneda,
+      monedaAbreviatura,
+      monedaColor,
+      status,
+      created_at,
+      ventasDelDia);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Branch &&
           other.id == this.id &&
-          other.idMoneda == this.idMoneda &&
           other.descripcion == this.descripcion &&
           other.codigo == this.codigo &&
+          other.dueno == this.dueno &&
+          other.idUsuario == this.idUsuario &&
+          other.limiteVenta == this.limiteVenta &&
+          other.descontar == this.descontar &&
+          other.deCada == this.deCada &&
+          other.minutosCancelarTicket == this.minutosCancelarTicket &&
+          other.piepagina1 == this.piepagina1 &&
+          other.piepagina2 == this.piepagina2 &&
+          other.piepagina3 == this.piepagina3 &&
+          other.piepagina4 == this.piepagina4 &&
+          other.idMoneda == this.idMoneda &&
           other.moneda == this.moneda &&
           other.monedaAbreviatura == this.monedaAbreviatura &&
           other.monedaColor == this.monedaColor &&
-          other.descontar == this.descontar &&
-          other.deCada == this.deCada &&
+          other.status == this.status &&
           other.created_at == this.created_at &&
-          other.status == this.status);
+          other.ventasDelDia == this.ventasDelDia);
 }
 
 class BranchsCompanion extends UpdateCompanion<Branch> {
   final Value<int> id;
-  final Value<int> idMoneda;
   final Value<String> descripcion;
   final Value<String> codigo;
+  final Value<String> dueno;
+  final Value<int> idUsuario;
+  final Value<double> limiteVenta;
+  final Value<double> descontar;
+  final Value<double> deCada;
+  final Value<int> minutosCancelarTicket;
+  final Value<String> piepagina1;
+  final Value<String> piepagina2;
+  final Value<String> piepagina3;
+  final Value<String> piepagina4;
+  final Value<int> idMoneda;
   final Value<String> moneda;
   final Value<String> monedaAbreviatura;
   final Value<String> monedaColor;
-  final Value<double> descontar;
-  final Value<double> deCada;
-  final Value<DateTime> created_at;
   final Value<int> status;
+  final Value<DateTime> created_at;
+  final Value<double> ventasDelDia;
   const BranchsCompanion({
     this.id = const Value.absent(),
-    this.idMoneda = const Value.absent(),
     this.descripcion = const Value.absent(),
     this.codigo = const Value.absent(),
+    this.dueno = const Value.absent(),
+    this.idUsuario = const Value.absent(),
+    this.limiteVenta = const Value.absent(),
+    this.descontar = const Value.absent(),
+    this.deCada = const Value.absent(),
+    this.minutosCancelarTicket = const Value.absent(),
+    this.piepagina1 = const Value.absent(),
+    this.piepagina2 = const Value.absent(),
+    this.piepagina3 = const Value.absent(),
+    this.piepagina4 = const Value.absent(),
+    this.idMoneda = const Value.absent(),
     this.moneda = const Value.absent(),
     this.monedaAbreviatura = const Value.absent(),
     this.monedaColor = const Value.absent(),
-    this.descontar = const Value.absent(),
-    this.deCada = const Value.absent(),
-    this.created_at = const Value.absent(),
     this.status = const Value.absent(),
+    this.created_at = const Value.absent(),
+    this.ventasDelDia = const Value.absent(),
   });
   BranchsCompanion.insert({
     this.id = const Value.absent(),
-    @required int idMoneda,
     @required String descripcion,
     @required String codigo,
+    @required String dueno,
+    @required int idUsuario,
+    @required double limiteVenta,
+    @required double descontar,
+    @required double deCada,
+    @required int minutosCancelarTicket,
+    @required String piepagina1,
+    @required String piepagina2,
+    @required String piepagina3,
+    @required String piepagina4,
+    @required int idMoneda,
     @required String moneda,
     @required String monedaAbreviatura,
     @required String monedaColor,
-    @required double descontar,
-    @required double deCada,
-    this.created_at = const Value.absent(),
     @required int status,
-  })  : idMoneda = Value(idMoneda),
-        descripcion = Value(descripcion),
+    this.created_at = const Value.absent(),
+    @required double ventasDelDia,
+  })  : descripcion = Value(descripcion),
         codigo = Value(codigo),
+        dueno = Value(dueno),
+        idUsuario = Value(idUsuario),
+        limiteVenta = Value(limiteVenta),
+        descontar = Value(descontar),
+        deCada = Value(deCada),
+        minutosCancelarTicket = Value(minutosCancelarTicket),
+        piepagina1 = Value(piepagina1),
+        piepagina2 = Value(piepagina2),
+        piepagina3 = Value(piepagina3),
+        piepagina4 = Value(piepagina4),
+        idMoneda = Value(idMoneda),
         moneda = Value(moneda),
         monedaAbreviatura = Value(monedaAbreviatura),
         monedaColor = Value(monedaColor),
-        descontar = Value(descontar),
-        deCada = Value(deCada),
-        status = Value(status);
+        status = Value(status),
+        ventasDelDia = Value(ventasDelDia);
   static Insertable<Branch> custom({
     Expression<int> id,
-    Expression<int> idMoneda,
     Expression<String> descripcion,
     Expression<String> codigo,
+    Expression<String> dueno,
+    Expression<int> idUsuario,
+    Expression<double> limiteVenta,
+    Expression<double> descontar,
+    Expression<double> deCada,
+    Expression<int> minutosCancelarTicket,
+    Expression<String> piepagina1,
+    Expression<String> piepagina2,
+    Expression<String> piepagina3,
+    Expression<String> piepagina4,
+    Expression<int> idMoneda,
     Expression<String> moneda,
     Expression<String> monedaAbreviatura,
     Expression<String> monedaColor,
-    Expression<double> descontar,
-    Expression<double> deCada,
-    Expression<DateTime> created_at,
     Expression<int> status,
+    Expression<DateTime> created_at,
+    Expression<double> ventasDelDia,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (idMoneda != null) 'id_moneda': idMoneda,
       if (descripcion != null) 'descripcion': descripcion,
       if (codigo != null) 'codigo': codigo,
+      if (dueno != null) 'dueno': dueno,
+      if (idUsuario != null) 'id_usuario': idUsuario,
+      if (limiteVenta != null) 'limite_venta': limiteVenta,
+      if (descontar != null) 'descontar': descontar,
+      if (deCada != null) 'de_cada': deCada,
+      if (minutosCancelarTicket != null)
+        'minutos_cancelar_ticket': minutosCancelarTicket,
+      if (piepagina1 != null) 'piepagina1': piepagina1,
+      if (piepagina2 != null) 'piepagina2': piepagina2,
+      if (piepagina3 != null) 'piepagina3': piepagina3,
+      if (piepagina4 != null) 'piepagina4': piepagina4,
+      if (idMoneda != null) 'id_moneda': idMoneda,
       if (moneda != null) 'moneda': moneda,
       if (monedaAbreviatura != null) 'moneda_abreviatura': monedaAbreviatura,
       if (monedaColor != null) 'moneda_color': monedaColor,
-      if (descontar != null) 'descontar': descontar,
-      if (deCada != null) 'de_cada': deCada,
-      if (created_at != null) 'created_at': created_at,
       if (status != null) 'status': status,
+      if (created_at != null) 'created_at': created_at,
+      if (ventasDelDia != null) 'ventas_del_dia': ventasDelDia,
     });
   }
 
   BranchsCompanion copyWith(
       {Value<int> id,
-      Value<int> idMoneda,
       Value<String> descripcion,
       Value<String> codigo,
+      Value<String> dueno,
+      Value<int> idUsuario,
+      Value<double> limiteVenta,
+      Value<double> descontar,
+      Value<double> deCada,
+      Value<int> minutosCancelarTicket,
+      Value<String> piepagina1,
+      Value<String> piepagina2,
+      Value<String> piepagina3,
+      Value<String> piepagina4,
+      Value<int> idMoneda,
       Value<String> moneda,
       Value<String> monedaAbreviatura,
       Value<String> monedaColor,
-      Value<double> descontar,
-      Value<double> deCada,
+      Value<int> status,
       Value<DateTime> created_at,
-      Value<int> status}) {
+      Value<double> ventasDelDia}) {
     return BranchsCompanion(
       id: id ?? this.id,
-      idMoneda: idMoneda ?? this.idMoneda,
       descripcion: descripcion ?? this.descripcion,
       codigo: codigo ?? this.codigo,
+      dueno: dueno ?? this.dueno,
+      idUsuario: idUsuario ?? this.idUsuario,
+      limiteVenta: limiteVenta ?? this.limiteVenta,
+      descontar: descontar ?? this.descontar,
+      deCada: deCada ?? this.deCada,
+      minutosCancelarTicket:
+          minutosCancelarTicket ?? this.minutosCancelarTicket,
+      piepagina1: piepagina1 ?? this.piepagina1,
+      piepagina2: piepagina2 ?? this.piepagina2,
+      piepagina3: piepagina3 ?? this.piepagina3,
+      piepagina4: piepagina4 ?? this.piepagina4,
+      idMoneda: idMoneda ?? this.idMoneda,
       moneda: moneda ?? this.moneda,
       monedaAbreviatura: monedaAbreviatura ?? this.monedaAbreviatura,
       monedaColor: monedaColor ?? this.monedaColor,
-      descontar: descontar ?? this.descontar,
-      deCada: deCada ?? this.deCada,
-      created_at: created_at ?? this.created_at,
       status: status ?? this.status,
+      created_at: created_at ?? this.created_at,
+      ventasDelDia: ventasDelDia ?? this.ventasDelDia,
     );
   }
 
@@ -1677,14 +2708,45 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (idMoneda.present) {
-      map['id_moneda'] = Variable<int>(idMoneda.value);
-    }
     if (descripcion.present) {
       map['descripcion'] = Variable<String>(descripcion.value);
     }
     if (codigo.present) {
       map['codigo'] = Variable<String>(codigo.value);
+    }
+    if (dueno.present) {
+      map['dueno'] = Variable<String>(dueno.value);
+    }
+    if (idUsuario.present) {
+      map['id_usuario'] = Variable<int>(idUsuario.value);
+    }
+    if (limiteVenta.present) {
+      map['limite_venta'] = Variable<double>(limiteVenta.value);
+    }
+    if (descontar.present) {
+      map['descontar'] = Variable<double>(descontar.value);
+    }
+    if (deCada.present) {
+      map['de_cada'] = Variable<double>(deCada.value);
+    }
+    if (minutosCancelarTicket.present) {
+      map['minutos_cancelar_ticket'] =
+          Variable<int>(minutosCancelarTicket.value);
+    }
+    if (piepagina1.present) {
+      map['piepagina1'] = Variable<String>(piepagina1.value);
+    }
+    if (piepagina2.present) {
+      map['piepagina2'] = Variable<String>(piepagina2.value);
+    }
+    if (piepagina3.present) {
+      map['piepagina3'] = Variable<String>(piepagina3.value);
+    }
+    if (piepagina4.present) {
+      map['piepagina4'] = Variable<String>(piepagina4.value);
+    }
+    if (idMoneda.present) {
+      map['id_moneda'] = Variable<int>(idMoneda.value);
     }
     if (moneda.present) {
       map['moneda'] = Variable<String>(moneda.value);
@@ -1695,17 +2757,14 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     if (monedaColor.present) {
       map['moneda_color'] = Variable<String>(monedaColor.value);
     }
-    if (descontar.present) {
-      map['descontar'] = Variable<double>(descontar.value);
-    }
-    if (deCada.present) {
-      map['de_cada'] = Variable<double>(deCada.value);
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
     }
     if (created_at.present) {
       map['created_at'] = Variable<DateTime>(created_at.value);
     }
-    if (status.present) {
-      map['status'] = Variable<int>(status.value);
+    if (ventasDelDia.present) {
+      map['ventas_del_dia'] = Variable<double>(ventasDelDia.value);
     }
     return map;
   }
@@ -1714,16 +2773,25 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
   String toString() {
     return (StringBuffer('BranchsCompanion(')
           ..write('id: $id, ')
-          ..write('idMoneda: $idMoneda, ')
           ..write('descripcion: $descripcion, ')
           ..write('codigo: $codigo, ')
+          ..write('dueno: $dueno, ')
+          ..write('idUsuario: $idUsuario, ')
+          ..write('limiteVenta: $limiteVenta, ')
+          ..write('descontar: $descontar, ')
+          ..write('deCada: $deCada, ')
+          ..write('minutosCancelarTicket: $minutosCancelarTicket, ')
+          ..write('piepagina1: $piepagina1, ')
+          ..write('piepagina2: $piepagina2, ')
+          ..write('piepagina3: $piepagina3, ')
+          ..write('piepagina4: $piepagina4, ')
+          ..write('idMoneda: $idMoneda, ')
           ..write('moneda: $moneda, ')
           ..write('monedaAbreviatura: $monedaAbreviatura, ')
           ..write('monedaColor: $monedaColor, ')
-          ..write('descontar: $descontar, ')
-          ..write('deCada: $deCada, ')
+          ..write('status: $status, ')
           ..write('created_at: $created_at, ')
-          ..write('status: $status')
+          ..write('ventasDelDia: $ventasDelDia')
           ..write(')'))
         .toString();
   }
@@ -1739,12 +2807,6 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
   GeneratedColumn<int> get id =>
       _id ??= GeneratedColumn<int>('id', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: false);
-  final VerificationMeta _idMonedaMeta = const VerificationMeta('idMoneda');
-  GeneratedColumn<int> _idMoneda;
-  @override
-  GeneratedColumn<int> get idMoneda =>
-      _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
-          typeName: 'INTEGER', requiredDuringInsert: true);
   final VerificationMeta _descripcionMeta =
       const VerificationMeta('descripcion');
   GeneratedColumn<String> _descripcion;
@@ -1758,6 +2820,74 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
   GeneratedColumn<String> get codigo =>
       _codigo ??= GeneratedColumn<String>('codigo', aliasedName, false,
           typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _duenoMeta = const VerificationMeta('dueno');
+  GeneratedColumn<String> _dueno;
+  @override
+  GeneratedColumn<String> get dueno =>
+      _dueno ??= GeneratedColumn<String>('dueno', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _idUsuarioMeta = const VerificationMeta('idUsuario');
+  GeneratedColumn<int> _idUsuario;
+  @override
+  GeneratedColumn<int> get idUsuario =>
+      _idUsuario ??= GeneratedColumn<int>('id_usuario', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _limiteVentaMeta =
+      const VerificationMeta('limiteVenta');
+  GeneratedColumn<double> _limiteVenta;
+  @override
+  GeneratedColumn<double> get limiteVenta => _limiteVenta ??=
+      GeneratedColumn<double>('limite_venta', aliasedName, false,
+          typeName: 'REAL', requiredDuringInsert: true);
+  final VerificationMeta _descontarMeta = const VerificationMeta('descontar');
+  GeneratedColumn<double> _descontar;
+  @override
+  GeneratedColumn<double> get descontar =>
+      _descontar ??= GeneratedColumn<double>('descontar', aliasedName, false,
+          typeName: 'REAL', requiredDuringInsert: true);
+  final VerificationMeta _deCadaMeta = const VerificationMeta('deCada');
+  GeneratedColumn<double> _deCada;
+  @override
+  GeneratedColumn<double> get deCada =>
+      _deCada ??= GeneratedColumn<double>('de_cada', aliasedName, false,
+          typeName: 'REAL', requiredDuringInsert: true);
+  final VerificationMeta _minutosCancelarTicketMeta =
+      const VerificationMeta('minutosCancelarTicket');
+  GeneratedColumn<int> _minutosCancelarTicket;
+  @override
+  GeneratedColumn<int> get minutosCancelarTicket => _minutosCancelarTicket ??=
+      GeneratedColumn<int>('minutos_cancelar_ticket', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _piepagina1Meta = const VerificationMeta('piepagina1');
+  GeneratedColumn<String> _piepagina1;
+  @override
+  GeneratedColumn<String> get piepagina1 =>
+      _piepagina1 ??= GeneratedColumn<String>('piepagina1', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _piepagina2Meta = const VerificationMeta('piepagina2');
+  GeneratedColumn<String> _piepagina2;
+  @override
+  GeneratedColumn<String> get piepagina2 =>
+      _piepagina2 ??= GeneratedColumn<String>('piepagina2', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _piepagina3Meta = const VerificationMeta('piepagina3');
+  GeneratedColumn<String> _piepagina3;
+  @override
+  GeneratedColumn<String> get piepagina3 =>
+      _piepagina3 ??= GeneratedColumn<String>('piepagina3', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _piepagina4Meta = const VerificationMeta('piepagina4');
+  GeneratedColumn<String> _piepagina4;
+  @override
+  GeneratedColumn<String> get piepagina4 =>
+      _piepagina4 ??= GeneratedColumn<String>('piepagina4', aliasedName, false,
+          typeName: 'TEXT', requiredDuringInsert: true);
+  final VerificationMeta _idMonedaMeta = const VerificationMeta('idMoneda');
+  GeneratedColumn<int> _idMoneda;
+  @override
+  GeneratedColumn<int> get idMoneda =>
+      _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
   final VerificationMeta _monedaMeta = const VerificationMeta('moneda');
   GeneratedColumn<String> _moneda;
   @override
@@ -1778,43 +2908,47 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
   GeneratedColumn<String> get monedaColor => _monedaColor ??=
       GeneratedColumn<String>('moneda_color', aliasedName, false,
           typeName: 'TEXT', requiredDuringInsert: true);
-  final VerificationMeta _descontarMeta = const VerificationMeta('descontar');
-  GeneratedColumn<double> _descontar;
-  @override
-  GeneratedColumn<double> get descontar =>
-      _descontar ??= GeneratedColumn<double>('descontar', aliasedName, false,
-          typeName: 'REAL', requiredDuringInsert: true);
-  final VerificationMeta _deCadaMeta = const VerificationMeta('deCada');
-  GeneratedColumn<double> _deCada;
-  @override
-  GeneratedColumn<double> get deCada =>
-      _deCada ??= GeneratedColumn<double>('de_cada', aliasedName, false,
-          typeName: 'REAL', requiredDuringInsert: true);
-  final VerificationMeta _created_atMeta = const VerificationMeta('created_at');
-  GeneratedColumn<DateTime> _created_at;
-  @override
-  GeneratedColumn<DateTime> get created_at =>
-      _created_at ??= GeneratedColumn<DateTime>('created_at', aliasedName, true,
-          typeName: 'INTEGER', requiredDuringInsert: false);
   final VerificationMeta _statusMeta = const VerificationMeta('status');
   GeneratedColumn<int> _status;
   @override
   GeneratedColumn<int> get status =>
       _status ??= GeneratedColumn<int>('status', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _created_atMeta = const VerificationMeta('created_at');
+  GeneratedColumn<DateTime> _created_at;
+  @override
+  GeneratedColumn<DateTime> get created_at =>
+      _created_at ??= GeneratedColumn<DateTime>('created_at', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  final VerificationMeta _ventasDelDiaMeta =
+      const VerificationMeta('ventasDelDia');
+  GeneratedColumn<double> _ventasDelDia;
+  @override
+  GeneratedColumn<double> get ventasDelDia => _ventasDelDia ??=
+      GeneratedColumn<double>('ventas_del_dia', aliasedName, false,
+          typeName: 'REAL', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        idMoneda,
         descripcion,
         codigo,
+        dueno,
+        idUsuario,
+        limiteVenta,
+        descontar,
+        deCada,
+        minutosCancelarTicket,
+        piepagina1,
+        piepagina2,
+        piepagina3,
+        piepagina4,
+        idMoneda,
         moneda,
         monedaAbreviatura,
         monedaColor,
-        descontar,
-        deCada,
+        status,
         created_at,
-        status
+        ventasDelDia
       ];
   @override
   String get aliasedName => _alias ?? 'branchs';
@@ -1827,12 +2961,6 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
-    }
-    if (data.containsKey('id_moneda')) {
-      context.handle(_idMonedaMeta,
-          idMoneda.isAcceptableOrUnknown(data['id_moneda'], _idMonedaMeta));
-    } else if (isInserting) {
-      context.missing(_idMonedaMeta);
     }
     if (data.containsKey('descripcion')) {
       context.handle(
@@ -1847,6 +2975,84 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
           codigo.isAcceptableOrUnknown(data['codigo'], _codigoMeta));
     } else if (isInserting) {
       context.missing(_codigoMeta);
+    }
+    if (data.containsKey('dueno')) {
+      context.handle(
+          _duenoMeta, dueno.isAcceptableOrUnknown(data['dueno'], _duenoMeta));
+    } else if (isInserting) {
+      context.missing(_duenoMeta);
+    }
+    if (data.containsKey('id_usuario')) {
+      context.handle(_idUsuarioMeta,
+          idUsuario.isAcceptableOrUnknown(data['id_usuario'], _idUsuarioMeta));
+    } else if (isInserting) {
+      context.missing(_idUsuarioMeta);
+    }
+    if (data.containsKey('limite_venta')) {
+      context.handle(
+          _limiteVentaMeta,
+          limiteVenta.isAcceptableOrUnknown(
+              data['limite_venta'], _limiteVentaMeta));
+    } else if (isInserting) {
+      context.missing(_limiteVentaMeta);
+    }
+    if (data.containsKey('descontar')) {
+      context.handle(_descontarMeta,
+          descontar.isAcceptableOrUnknown(data['descontar'], _descontarMeta));
+    } else if (isInserting) {
+      context.missing(_descontarMeta);
+    }
+    if (data.containsKey('de_cada')) {
+      context.handle(_deCadaMeta,
+          deCada.isAcceptableOrUnknown(data['de_cada'], _deCadaMeta));
+    } else if (isInserting) {
+      context.missing(_deCadaMeta);
+    }
+    if (data.containsKey('minutos_cancelar_ticket')) {
+      context.handle(
+          _minutosCancelarTicketMeta,
+          minutosCancelarTicket.isAcceptableOrUnknown(
+              data['minutos_cancelar_ticket'], _minutosCancelarTicketMeta));
+    } else if (isInserting) {
+      context.missing(_minutosCancelarTicketMeta);
+    }
+    if (data.containsKey('piepagina1')) {
+      context.handle(
+          _piepagina1Meta,
+          piepagina1.isAcceptableOrUnknown(
+              data['piepagina1'], _piepagina1Meta));
+    } else if (isInserting) {
+      context.missing(_piepagina1Meta);
+    }
+    if (data.containsKey('piepagina2')) {
+      context.handle(
+          _piepagina2Meta,
+          piepagina2.isAcceptableOrUnknown(
+              data['piepagina2'], _piepagina2Meta));
+    } else if (isInserting) {
+      context.missing(_piepagina2Meta);
+    }
+    if (data.containsKey('piepagina3')) {
+      context.handle(
+          _piepagina3Meta,
+          piepagina3.isAcceptableOrUnknown(
+              data['piepagina3'], _piepagina3Meta));
+    } else if (isInserting) {
+      context.missing(_piepagina3Meta);
+    }
+    if (data.containsKey('piepagina4')) {
+      context.handle(
+          _piepagina4Meta,
+          piepagina4.isAcceptableOrUnknown(
+              data['piepagina4'], _piepagina4Meta));
+    } else if (isInserting) {
+      context.missing(_piepagina4Meta);
+    }
+    if (data.containsKey('id_moneda')) {
+      context.handle(_idMonedaMeta,
+          idMoneda.isAcceptableOrUnknown(data['id_moneda'], _idMonedaMeta));
+    } else if (isInserting) {
+      context.missing(_idMonedaMeta);
     }
     if (data.containsKey('moneda')) {
       context.handle(_monedaMeta,
@@ -1870,17 +3076,11 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
     } else if (isInserting) {
       context.missing(_monedaColorMeta);
     }
-    if (data.containsKey('descontar')) {
-      context.handle(_descontarMeta,
-          descontar.isAcceptableOrUnknown(data['descontar'], _descontarMeta));
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status'], _statusMeta));
     } else if (isInserting) {
-      context.missing(_descontarMeta);
-    }
-    if (data.containsKey('de_cada')) {
-      context.handle(_deCadaMeta,
-          deCada.isAcceptableOrUnknown(data['de_cada'], _deCadaMeta));
-    } else if (isInserting) {
-      context.missing(_deCadaMeta);
+      context.missing(_statusMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -1888,11 +3088,13 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
           created_at.isAcceptableOrUnknown(
               data['created_at'], _created_atMeta));
     }
-    if (data.containsKey('status')) {
-      context.handle(_statusMeta,
-          status.isAcceptableOrUnknown(data['status'], _statusMeta));
+    if (data.containsKey('ventas_del_dia')) {
+      context.handle(
+          _ventasDelDiaMeta,
+          ventasDelDia.isAcceptableOrUnknown(
+              data['ventas_del_dia'], _ventasDelDiaMeta));
     } else if (isInserting) {
-      context.missing(_statusMeta);
+      context.missing(_ventasDelDiaMeta);
     }
     return context;
   }
@@ -1901,7 +3103,7 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Branch map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Branch.fromData(data, _db,
+    return Branch.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -1921,8 +3123,7 @@ class Server extends DataClass implements Insertable<Server> {
       @required this.descripcion,
       this.created_at,
       @required this.pordefecto});
-  factory Server.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Server.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Server(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -1969,7 +3170,7 @@ class Server extends DataClass implements Insertable<Server> {
 
   factory Server.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Server(
       id: serializer.fromJson<int>(json['id']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
@@ -1979,7 +3180,7 @@ class Server extends DataClass implements Insertable<Server> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'descripcion': serializer.toJson<String>(descripcion),
@@ -2167,7 +3368,7 @@ class $ServersTable extends Servers with TableInfo<$ServersTable, Server> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Server map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Server.fromData(data, _db,
+    return Server.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -2191,11 +3392,12 @@ class Stock extends DataClass implements Insertable<Stock> {
   final int esGeneral;
   final int ignorarDemasBloqueos;
   final int idMoneda;
+  final int descontarDelBloqueoGeneral;
   Stock(
       {@required this.id,
       @required this.idBanca,
       @required this.idLoteria,
-      @required this.idLoteriaSuperpale,
+      this.idLoteriaSuperpale,
       @required this.idSorteo,
       @required this.jugada,
       @required this.montoInicial,
@@ -2204,9 +3406,9 @@ class Stock extends DataClass implements Insertable<Stock> {
       @required this.esBloqueoJugada,
       @required this.esGeneral,
       @required this.ignorarDemasBloqueos,
-      @required this.idMoneda});
-  factory Stock.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+      @required this.idMoneda,
+      @required this.descontarDelBloqueoGeneral});
+  factory Stock.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Stock(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -2234,6 +3436,8 @@ class Stock extends DataClass implements Insertable<Stock> {
           data['${effectivePrefix}ignorar_demas_bloqueos']),
       idMoneda: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
+      descontarDelBloqueoGeneral: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}descontar_del_bloqueo_general']),
     );
   }
   @override
@@ -2278,6 +3482,10 @@ class Stock extends DataClass implements Insertable<Stock> {
     if (!nullToAbsent || idMoneda != null) {
       map['id_moneda'] = Variable<int>(idMoneda);
     }
+    if (!nullToAbsent || descontarDelBloqueoGeneral != null) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral);
+    }
     return map;
   }
 
@@ -2318,12 +3526,16 @@ class Stock extends DataClass implements Insertable<Stock> {
       idMoneda: idMoneda == null && nullToAbsent
           ? const Value.absent()
           : Value(idMoneda),
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral == null && nullToAbsent
+              ? const Value.absent()
+              : Value(descontarDelBloqueoGeneral),
     );
   }
 
   factory Stock.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Stock(
       id: serializer.fromJson<int>(json['id']),
       idBanca: serializer.fromJson<int>(json['idBanca']),
@@ -2339,11 +3551,13 @@ class Stock extends DataClass implements Insertable<Stock> {
       ignorarDemasBloqueos:
           serializer.fromJson<int>(json['ignorarDemasBloqueos']),
       idMoneda: serializer.fromJson<int>(json['idMoneda']),
+      descontarDelBloqueoGeneral:
+          serializer.fromJson<int>(json['descontarDelBloqueoGeneral']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idBanca': serializer.toJson<int>(idBanca),
@@ -2358,6 +3572,8 @@ class Stock extends DataClass implements Insertable<Stock> {
       'esGeneral': serializer.toJson<int>(esGeneral),
       'ignorarDemasBloqueos': serializer.toJson<int>(ignorarDemasBloqueos),
       'idMoneda': serializer.toJson<int>(idMoneda),
+      'descontarDelBloqueoGeneral':
+          serializer.toJson<int>(descontarDelBloqueoGeneral),
     };
   }
 
@@ -2374,7 +3590,8 @@ class Stock extends DataClass implements Insertable<Stock> {
           int esBloqueoJugada,
           int esGeneral,
           int ignorarDemasBloqueos,
-          int idMoneda}) =>
+          int idMoneda,
+          int descontarDelBloqueoGeneral}) =>
       Stock(
         id: id ?? this.id,
         idBanca: idBanca ?? this.idBanca,
@@ -2389,6 +3606,8 @@ class Stock extends DataClass implements Insertable<Stock> {
         esGeneral: esGeneral ?? this.esGeneral,
         ignorarDemasBloqueos: ignorarDemasBloqueos ?? this.ignorarDemasBloqueos,
         idMoneda: idMoneda ?? this.idMoneda,
+        descontarDelBloqueoGeneral:
+            descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
       );
   @override
   String toString() {
@@ -2405,7 +3624,8 @@ class Stock extends DataClass implements Insertable<Stock> {
           ..write('esBloqueoJugada: $esBloqueoJugada, ')
           ..write('esGeneral: $esGeneral, ')
           ..write('ignorarDemasBloqueos: $ignorarDemasBloqueos, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
@@ -2424,7 +3644,8 @@ class Stock extends DataClass implements Insertable<Stock> {
       esBloqueoJugada,
       esGeneral,
       ignorarDemasBloqueos,
-      idMoneda);
+      idMoneda,
+      descontarDelBloqueoGeneral);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2441,7 +3662,8 @@ class Stock extends DataClass implements Insertable<Stock> {
           other.esBloqueoJugada == this.esBloqueoJugada &&
           other.esGeneral == this.esGeneral &&
           other.ignorarDemasBloqueos == this.ignorarDemasBloqueos &&
-          other.idMoneda == this.idMoneda);
+          other.idMoneda == this.idMoneda &&
+          other.descontarDelBloqueoGeneral == this.descontarDelBloqueoGeneral);
 }
 
 class StocksCompanion extends UpdateCompanion<Stock> {
@@ -2458,6 +3680,7 @@ class StocksCompanion extends UpdateCompanion<Stock> {
   final Value<int> esGeneral;
   final Value<int> ignorarDemasBloqueos;
   final Value<int> idMoneda;
+  final Value<int> descontarDelBloqueoGeneral;
   const StocksCompanion({
     this.id = const Value.absent(),
     this.idBanca = const Value.absent(),
@@ -2472,12 +3695,13 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     this.esGeneral = const Value.absent(),
     this.ignorarDemasBloqueos = const Value.absent(),
     this.idMoneda = const Value.absent(),
+    this.descontarDelBloqueoGeneral = const Value.absent(),
   });
   StocksCompanion.insert({
     this.id = const Value.absent(),
     @required int idBanca,
     @required int idLoteria,
-    @required int idLoteriaSuperpale,
+    this.idLoteriaSuperpale = const Value.absent(),
     @required int idSorteo,
     @required String jugada,
     @required double montoInicial,
@@ -2487,9 +3711,9 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     @required int esGeneral,
     @required int ignorarDemasBloqueos,
     @required int idMoneda,
+    @required int descontarDelBloqueoGeneral,
   })  : idBanca = Value(idBanca),
         idLoteria = Value(idLoteria),
-        idLoteriaSuperpale = Value(idLoteriaSuperpale),
         idSorteo = Value(idSorteo),
         jugada = Value(jugada),
         montoInicial = Value(montoInicial),
@@ -2497,7 +3721,8 @@ class StocksCompanion extends UpdateCompanion<Stock> {
         esBloqueoJugada = Value(esBloqueoJugada),
         esGeneral = Value(esGeneral),
         ignorarDemasBloqueos = Value(ignorarDemasBloqueos),
-        idMoneda = Value(idMoneda);
+        idMoneda = Value(idMoneda),
+        descontarDelBloqueoGeneral = Value(descontarDelBloqueoGeneral);
   static Insertable<Stock> custom({
     Expression<int> id,
     Expression<int> idBanca,
@@ -2512,6 +3737,7 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     Expression<int> esGeneral,
     Expression<int> ignorarDemasBloqueos,
     Expression<int> idMoneda,
+    Expression<int> descontarDelBloqueoGeneral,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2529,6 +3755,8 @@ class StocksCompanion extends UpdateCompanion<Stock> {
       if (ignorarDemasBloqueos != null)
         'ignorar_demas_bloqueos': ignorarDemasBloqueos,
       if (idMoneda != null) 'id_moneda': idMoneda,
+      if (descontarDelBloqueoGeneral != null)
+        'descontar_del_bloqueo_general': descontarDelBloqueoGeneral,
     });
   }
 
@@ -2545,7 +3773,8 @@ class StocksCompanion extends UpdateCompanion<Stock> {
       Value<int> esBloqueoJugada,
       Value<int> esGeneral,
       Value<int> ignorarDemasBloqueos,
-      Value<int> idMoneda}) {
+      Value<int> idMoneda,
+      Value<int> descontarDelBloqueoGeneral}) {
     return StocksCompanion(
       id: id ?? this.id,
       idBanca: idBanca ?? this.idBanca,
@@ -2560,6 +3789,8 @@ class StocksCompanion extends UpdateCompanion<Stock> {
       esGeneral: esGeneral ?? this.esGeneral,
       ignorarDemasBloqueos: ignorarDemasBloqueos ?? this.ignorarDemasBloqueos,
       idMoneda: idMoneda ?? this.idMoneda,
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
     );
   }
 
@@ -2605,6 +3836,10 @@ class StocksCompanion extends UpdateCompanion<Stock> {
     if (idMoneda.present) {
       map['id_moneda'] = Variable<int>(idMoneda.value);
     }
+    if (descontarDelBloqueoGeneral.present) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral.value);
+    }
     return map;
   }
 
@@ -2623,7 +3858,8 @@ class StocksCompanion extends UpdateCompanion<Stock> {
           ..write('esBloqueoJugada: $esBloqueoJugada, ')
           ..write('esGeneral: $esGeneral, ')
           ..write('ignorarDemasBloqueos: $ignorarDemasBloqueos, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
@@ -2656,8 +3892,8 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
   GeneratedColumn<int> _idLoteriaSuperpale;
   @override
   GeneratedColumn<int> get idLoteriaSuperpale => _idLoteriaSuperpale ??=
-      GeneratedColumn<int>('id_loteria_superpale', aliasedName, false,
-          typeName: 'INTEGER', requiredDuringInsert: true);
+      GeneratedColumn<int>('id_loteria_superpale', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
   final VerificationMeta _idSorteoMeta = const VerificationMeta('idSorteo');
   GeneratedColumn<int> _idSorteo;
   @override
@@ -2715,6 +3951,14 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
   GeneratedColumn<int> get idMoneda =>
       _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _descontarDelBloqueoGeneralMeta =
+      const VerificationMeta('descontarDelBloqueoGeneral');
+  GeneratedColumn<int> _descontarDelBloqueoGeneral;
+  @override
+  GeneratedColumn<int> get descontarDelBloqueoGeneral =>
+      _descontarDelBloqueoGeneral ??= GeneratedColumn<int>(
+          'descontar_del_bloqueo_general', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -2729,7 +3973,8 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
         esBloqueoJugada,
         esGeneral,
         ignorarDemasBloqueos,
-        idMoneda
+        idMoneda,
+        descontarDelBloqueoGeneral
       ];
   @override
   String get aliasedName => _alias ?? 'stocks';
@@ -2760,8 +4005,6 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
           _idLoteriaSuperpaleMeta,
           idLoteriaSuperpale.isAcceptableOrUnknown(
               data['id_loteria_superpale'], _idLoteriaSuperpaleMeta));
-    } else if (isInserting) {
-      context.missing(_idLoteriaSuperpaleMeta);
     }
     if (data.containsKey('id_sorteo')) {
       context.handle(_idSorteoMeta,
@@ -2823,6 +4066,15 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
     } else if (isInserting) {
       context.missing(_idMonedaMeta);
     }
+    if (data.containsKey('descontar_del_bloqueo_general')) {
+      context.handle(
+          _descontarDelBloqueoGeneralMeta,
+          descontarDelBloqueoGeneral.isAcceptableOrUnknown(
+              data['descontar_del_bloqueo_general'],
+              _descontarDelBloqueoGeneralMeta));
+    } else if (isInserting) {
+      context.missing(_descontarDelBloqueoGeneralMeta);
+    }
     return context;
   }
 
@@ -2830,7 +4082,7 @@ class $StocksTable extends Stocks with TableInfo<$StocksTable, Stock> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Stock map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Stock.fromData(data, _db,
+    return Stock.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -2856,9 +4108,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
       @required this.monto,
       this.created_at,
       @required this.idMoneda});
-  factory Blocksgeneral.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Blocksgeneral.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksgeneral(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -2927,7 +4177,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
 
   factory Blocksgeneral.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blocksgeneral(
       id: serializer.fromJson<int>(json['id']),
       idDia: serializer.fromJson<int>(json['idDia']),
@@ -2940,7 +4190,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idDia': serializer.toJson<int>(idDia),
@@ -3215,7 +4465,7 @@ class $BlocksgeneralsTable extends Blocksgenerals
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blocksgeneral map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blocksgeneral.fromData(data, _db,
+    return Blocksgeneral.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -3234,6 +4484,7 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
   final double monto;
   final DateTime created_at;
   final int idMoneda;
+  final int descontarDelBloqueoGeneral;
   Blockslotterie(
       {@required this.id,
       @required this.idBanca,
@@ -3242,10 +4493,9 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       @required this.idSorteo,
       @required this.monto,
       this.created_at,
-      @required this.idMoneda});
-  factory Blockslotterie.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+      @required this.idMoneda,
+      @required this.descontarDelBloqueoGeneral});
+  factory Blockslotterie.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blockslotterie(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -3263,6 +4513,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       idMoneda: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
+      descontarDelBloqueoGeneral: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}descontar_del_bloqueo_general']),
     );
   }
   @override
@@ -3292,6 +4544,10 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
     if (!nullToAbsent || idMoneda != null) {
       map['id_moneda'] = Variable<int>(idMoneda);
     }
+    if (!nullToAbsent || descontarDelBloqueoGeneral != null) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral);
+    }
     return map;
   }
 
@@ -3317,12 +4573,16 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       idMoneda: idMoneda == null && nullToAbsent
           ? const Value.absent()
           : Value(idMoneda),
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral == null && nullToAbsent
+              ? const Value.absent()
+              : Value(descontarDelBloqueoGeneral),
     );
   }
 
   factory Blockslotterie.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blockslotterie(
       id: serializer.fromJson<int>(json['id']),
       idBanca: serializer.fromJson<int>(json['idBanca']),
@@ -3332,11 +4592,13 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       monto: serializer.fromJson<double>(json['monto']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
       idMoneda: serializer.fromJson<int>(json['idMoneda']),
+      descontarDelBloqueoGeneral:
+          serializer.fromJson<int>(json['descontarDelBloqueoGeneral']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idBanca': serializer.toJson<int>(idBanca),
@@ -3346,6 +4608,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       'monto': serializer.toJson<double>(monto),
       'created_at': serializer.toJson<DateTime>(created_at),
       'idMoneda': serializer.toJson<int>(idMoneda),
+      'descontarDelBloqueoGeneral':
+          serializer.toJson<int>(descontarDelBloqueoGeneral),
     };
   }
 
@@ -3357,7 +4621,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           int idSorteo,
           double monto,
           DateTime created_at,
-          int idMoneda}) =>
+          int idMoneda,
+          int descontarDelBloqueoGeneral}) =>
       Blockslotterie(
         id: id ?? this.id,
         idBanca: idBanca ?? this.idBanca,
@@ -3367,6 +4632,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
         monto: monto ?? this.monto,
         created_at: created_at ?? this.created_at,
         idMoneda: idMoneda ?? this.idMoneda,
+        descontarDelBloqueoGeneral:
+            descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
       );
   @override
   String toString() {
@@ -3378,14 +4645,15 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           ..write('idSorteo: $idSorteo, ')
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, idBanca, idDia, idLoteria, idSorteo, monto, created_at, idMoneda);
+  int get hashCode => Object.hash(id, idBanca, idDia, idLoteria, idSorteo,
+      monto, created_at, idMoneda, descontarDelBloqueoGeneral);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3397,7 +4665,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           other.idSorteo == this.idSorteo &&
           other.monto == this.monto &&
           other.created_at == this.created_at &&
-          other.idMoneda == this.idMoneda);
+          other.idMoneda == this.idMoneda &&
+          other.descontarDelBloqueoGeneral == this.descontarDelBloqueoGeneral);
 }
 
 class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
@@ -3409,6 +4678,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
   final Value<double> monto;
   final Value<DateTime> created_at;
   final Value<int> idMoneda;
+  final Value<int> descontarDelBloqueoGeneral;
   const BlockslotteriesCompanion({
     this.id = const Value.absent(),
     this.idBanca = const Value.absent(),
@@ -3418,6 +4688,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     this.monto = const Value.absent(),
     this.created_at = const Value.absent(),
     this.idMoneda = const Value.absent(),
+    this.descontarDelBloqueoGeneral = const Value.absent(),
   });
   BlockslotteriesCompanion.insert({
     this.id = const Value.absent(),
@@ -3428,12 +4699,14 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     @required double monto,
     this.created_at = const Value.absent(),
     @required int idMoneda,
+    @required int descontarDelBloqueoGeneral,
   })  : idBanca = Value(idBanca),
         idDia = Value(idDia),
         idLoteria = Value(idLoteria),
         idSorteo = Value(idSorteo),
         monto = Value(monto),
-        idMoneda = Value(idMoneda);
+        idMoneda = Value(idMoneda),
+        descontarDelBloqueoGeneral = Value(descontarDelBloqueoGeneral);
   static Insertable<Blockslotterie> custom({
     Expression<int> id,
     Expression<int> idBanca,
@@ -3443,6 +4716,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     Expression<double> monto,
     Expression<DateTime> created_at,
     Expression<int> idMoneda,
+    Expression<int> descontarDelBloqueoGeneral,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3453,6 +4727,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       if (monto != null) 'monto': monto,
       if (created_at != null) 'created_at': created_at,
       if (idMoneda != null) 'id_moneda': idMoneda,
+      if (descontarDelBloqueoGeneral != null)
+        'descontar_del_bloqueo_general': descontarDelBloqueoGeneral,
     });
   }
 
@@ -3464,7 +4740,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       Value<int> idSorteo,
       Value<double> monto,
       Value<DateTime> created_at,
-      Value<int> idMoneda}) {
+      Value<int> idMoneda,
+      Value<int> descontarDelBloqueoGeneral}) {
     return BlockslotteriesCompanion(
       id: id ?? this.id,
       idBanca: idBanca ?? this.idBanca,
@@ -3474,6 +4751,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       monto: monto ?? this.monto,
       created_at: created_at ?? this.created_at,
       idMoneda: idMoneda ?? this.idMoneda,
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
     );
   }
 
@@ -3504,6 +4783,10 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     if (idMoneda.present) {
       map['id_moneda'] = Variable<int>(idMoneda.value);
     }
+    if (descontarDelBloqueoGeneral.present) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral.value);
+    }
     return map;
   }
 
@@ -3517,7 +4800,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
           ..write('idSorteo: $idSorteo, ')
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
@@ -3576,9 +4860,26 @@ class $BlockslotteriesTable extends Blockslotteries
   GeneratedColumn<int> get idMoneda =>
       _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _descontarDelBloqueoGeneralMeta =
+      const VerificationMeta('descontarDelBloqueoGeneral');
+  GeneratedColumn<int> _descontarDelBloqueoGeneral;
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, idBanca, idDia, idLoteria, idSorteo, monto, created_at, idMoneda];
+  GeneratedColumn<int> get descontarDelBloqueoGeneral =>
+      _descontarDelBloqueoGeneral ??= GeneratedColumn<int>(
+          'descontar_del_bloqueo_general', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        idBanca,
+        idDia,
+        idLoteria,
+        idSorteo,
+        monto,
+        created_at,
+        idMoneda,
+        descontarDelBloqueoGeneral
+      ];
   @override
   String get aliasedName => _alias ?? 'blockslotteries';
   @override
@@ -3633,6 +4934,15 @@ class $BlockslotteriesTable extends Blockslotteries
     } else if (isInserting) {
       context.missing(_idMonedaMeta);
     }
+    if (data.containsKey('descontar_del_bloqueo_general')) {
+      context.handle(
+          _descontarDelBloqueoGeneralMeta,
+          descontarDelBloqueoGeneral.isAcceptableOrUnknown(
+              data['descontar_del_bloqueo_general'],
+              _descontarDelBloqueoGeneralMeta));
+    } else if (isInserting) {
+      context.missing(_descontarDelBloqueoGeneralMeta);
+    }
     return context;
   }
 
@@ -3640,7 +4950,7 @@ class $BlockslotteriesTable extends Blockslotteries
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blockslotterie map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blockslotterie.fromData(data, _db,
+    return Blockslotterie.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -3664,6 +4974,7 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
   final int ignorarDemasBloqueos;
   final int status;
   final int idMoneda;
+  final int descontarDelBloqueoGeneral;
   Blocksplay(
       {@required this.id,
       @required this.idBanca,
@@ -3677,9 +4988,9 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
       this.fechaHasta,
       @required this.ignorarDemasBloqueos,
       @required this.status,
-      @required this.idMoneda});
-  factory Blocksplay.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+      @required this.idMoneda,
+      @required this.descontarDelBloqueoGeneral});
+  factory Blocksplay.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksplay(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -3707,6 +5018,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
           .mapFromDatabaseResponse(data['${effectivePrefix}status']),
       idMoneda: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
+      descontarDelBloqueoGeneral: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}descontar_del_bloqueo_general']),
     );
   }
   @override
@@ -3751,6 +5064,10 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
     if (!nullToAbsent || idMoneda != null) {
       map['id_moneda'] = Variable<int>(idMoneda);
     }
+    if (!nullToAbsent || descontarDelBloqueoGeneral != null) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral);
+    }
     return map;
   }
 
@@ -3790,12 +5107,16 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
       idMoneda: idMoneda == null && nullToAbsent
           ? const Value.absent()
           : Value(idMoneda),
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral == null && nullToAbsent
+              ? const Value.absent()
+              : Value(descontarDelBloqueoGeneral),
     );
   }
 
   factory Blocksplay.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blocksplay(
       id: serializer.fromJson<int>(json['id']),
       idBanca: serializer.fromJson<int>(json['idBanca']),
@@ -3811,11 +5132,13 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
           serializer.fromJson<int>(json['ignorarDemasBloqueos']),
       status: serializer.fromJson<int>(json['status']),
       idMoneda: serializer.fromJson<int>(json['idMoneda']),
+      descontarDelBloqueoGeneral:
+          serializer.fromJson<int>(json['descontarDelBloqueoGeneral']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idBanca': serializer.toJson<int>(idBanca),
@@ -3830,6 +5153,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
       'ignorarDemasBloqueos': serializer.toJson<int>(ignorarDemasBloqueos),
       'status': serializer.toJson<int>(status),
       'idMoneda': serializer.toJson<int>(idMoneda),
+      'descontarDelBloqueoGeneral':
+          serializer.toJson<int>(descontarDelBloqueoGeneral),
     };
   }
 
@@ -3846,7 +5171,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
           DateTime fechaHasta,
           int ignorarDemasBloqueos,
           int status,
-          int idMoneda}) =>
+          int idMoneda,
+          int descontarDelBloqueoGeneral}) =>
       Blocksplay(
         id: id ?? this.id,
         idBanca: idBanca ?? this.idBanca,
@@ -3861,6 +5187,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
         ignorarDemasBloqueos: ignorarDemasBloqueos ?? this.ignorarDemasBloqueos,
         status: status ?? this.status,
         idMoneda: idMoneda ?? this.idMoneda,
+        descontarDelBloqueoGeneral:
+            descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
       );
   @override
   String toString() {
@@ -3877,7 +5205,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
           ..write('fechaHasta: $fechaHasta, ')
           ..write('ignorarDemasBloqueos: $ignorarDemasBloqueos, ')
           ..write('status: $status, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
@@ -3896,7 +5225,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
       fechaHasta,
       ignorarDemasBloqueos,
       status,
-      idMoneda);
+      idMoneda,
+      descontarDelBloqueoGeneral);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3913,7 +5243,8 @@ class Blocksplay extends DataClass implements Insertable<Blocksplay> {
           other.fechaHasta == this.fechaHasta &&
           other.ignorarDemasBloqueos == this.ignorarDemasBloqueos &&
           other.status == this.status &&
-          other.idMoneda == this.idMoneda);
+          other.idMoneda == this.idMoneda &&
+          other.descontarDelBloqueoGeneral == this.descontarDelBloqueoGeneral);
 }
 
 class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
@@ -3930,6 +5261,7 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
   final Value<int> ignorarDemasBloqueos;
   final Value<int> status;
   final Value<int> idMoneda;
+  final Value<int> descontarDelBloqueoGeneral;
   const BlocksplaysCompanion({
     this.id = const Value.absent(),
     this.idBanca = const Value.absent(),
@@ -3944,6 +5276,7 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
     this.ignorarDemasBloqueos = const Value.absent(),
     this.status = const Value.absent(),
     this.idMoneda = const Value.absent(),
+    this.descontarDelBloqueoGeneral = const Value.absent(),
   });
   BlocksplaysCompanion.insert({
     this.id = const Value.absent(),
@@ -3959,6 +5292,7 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
     @required int ignorarDemasBloqueos,
     @required int status,
     @required int idMoneda,
+    @required int descontarDelBloqueoGeneral,
   })  : idBanca = Value(idBanca),
         idLoteria = Value(idLoteria),
         idSorteo = Value(idSorteo),
@@ -3967,7 +5301,8 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
         montoInicial = Value(montoInicial),
         ignorarDemasBloqueos = Value(ignorarDemasBloqueos),
         status = Value(status),
-        idMoneda = Value(idMoneda);
+        idMoneda = Value(idMoneda),
+        descontarDelBloqueoGeneral = Value(descontarDelBloqueoGeneral);
   static Insertable<Blocksplay> custom({
     Expression<int> id,
     Expression<int> idBanca,
@@ -3982,6 +5317,7 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
     Expression<int> ignorarDemasBloqueos,
     Expression<int> status,
     Expression<int> idMoneda,
+    Expression<int> descontarDelBloqueoGeneral,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3998,6 +5334,8 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
         'ignorar_demas_bloqueos': ignorarDemasBloqueos,
       if (status != null) 'status': status,
       if (idMoneda != null) 'id_moneda': idMoneda,
+      if (descontarDelBloqueoGeneral != null)
+        'descontar_del_bloqueo_general': descontarDelBloqueoGeneral,
     });
   }
 
@@ -4014,7 +5352,8 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
       Value<DateTime> fechaHasta,
       Value<int> ignorarDemasBloqueos,
       Value<int> status,
-      Value<int> idMoneda}) {
+      Value<int> idMoneda,
+      Value<int> descontarDelBloqueoGeneral}) {
     return BlocksplaysCompanion(
       id: id ?? this.id,
       idBanca: idBanca ?? this.idBanca,
@@ -4029,6 +5368,8 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
       ignorarDemasBloqueos: ignorarDemasBloqueos ?? this.ignorarDemasBloqueos,
       status: status ?? this.status,
       idMoneda: idMoneda ?? this.idMoneda,
+      descontarDelBloqueoGeneral:
+          descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
     );
   }
 
@@ -4074,6 +5415,10 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
     if (idMoneda.present) {
       map['id_moneda'] = Variable<int>(idMoneda.value);
     }
+    if (descontarDelBloqueoGeneral.present) {
+      map['descontar_del_bloqueo_general'] =
+          Variable<int>(descontarDelBloqueoGeneral.value);
+    }
     return map;
   }
 
@@ -4092,7 +5437,8 @@ class BlocksplaysCompanion extends UpdateCompanion<Blocksplay> {
           ..write('fechaHasta: $fechaHasta, ')
           ..write('ignorarDemasBloqueos: $ignorarDemasBloqueos, ')
           ..write('status: $status, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
           ..write(')'))
         .toString();
   }
@@ -4183,6 +5529,14 @@ class $BlocksplaysTable extends Blocksplays
   GeneratedColumn<int> get idMoneda =>
       _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _descontarDelBloqueoGeneralMeta =
+      const VerificationMeta('descontarDelBloqueoGeneral');
+  GeneratedColumn<int> _descontarDelBloqueoGeneral;
+  @override
+  GeneratedColumn<int> get descontarDelBloqueoGeneral =>
+      _descontarDelBloqueoGeneral ??= GeneratedColumn<int>(
+          'descontar_del_bloqueo_general', aliasedName, false,
+          typeName: 'INTEGER', requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4197,7 +5551,8 @@ class $BlocksplaysTable extends Blocksplays
         fechaHasta,
         ignorarDemasBloqueos,
         status,
-        idMoneda
+        idMoneda,
+        descontarDelBloqueoGeneral
       ];
   @override
   String get aliasedName => _alias ?? 'blocksplays';
@@ -4287,6 +5642,15 @@ class $BlocksplaysTable extends Blocksplays
     } else if (isInserting) {
       context.missing(_idMonedaMeta);
     }
+    if (data.containsKey('descontar_del_bloqueo_general')) {
+      context.handle(
+          _descontarDelBloqueoGeneralMeta,
+          descontarDelBloqueoGeneral.isAcceptableOrUnknown(
+              data['descontar_del_bloqueo_general'],
+              _descontarDelBloqueoGeneralMeta));
+    } else if (isInserting) {
+      context.missing(_descontarDelBloqueoGeneralMeta);
+    }
     return context;
   }
 
@@ -4294,7 +5658,7 @@ class $BlocksplaysTable extends Blocksplays
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blocksplay map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blocksplay.fromData(data, _db,
+    return Blocksplay.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -4331,8 +5695,7 @@ class Blocksplaysgeneral extends DataClass
       @required this.ignorarDemasBloqueos,
       @required this.status,
       @required this.idMoneda});
-  factory Blocksplaysgeneral.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  factory Blocksplaysgeneral.fromData(Map<String, dynamic> data,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksplaysgeneral(
@@ -4441,7 +5804,7 @@ class Blocksplaysgeneral extends DataClass
 
   factory Blocksplaysgeneral.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blocksplaysgeneral(
       id: serializer.fromJson<int>(json['id']),
       idLoteria: serializer.fromJson<int>(json['idLoteria']),
@@ -4460,7 +5823,7 @@ class Blocksplaysgeneral extends DataClass
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idLoteria': serializer.toJson<int>(idLoteria),
@@ -4908,7 +6271,7 @@ class $BlocksplaysgeneralsTable extends Blocksplaysgenerals
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blocksplaysgeneral map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blocksplaysgeneral.fromData(data, _db,
+    return Blocksplaysgeneral.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -4932,8 +6295,7 @@ class Draw extends DataClass implements Insertable<Draw> {
       @required this.bolos,
       @required this.cantidadNumeros,
       @required this.status});
-  factory Draw.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Draw.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Draw(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -4994,7 +6356,7 @@ class Draw extends DataClass implements Insertable<Draw> {
 
   factory Draw.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Draw(
       id: serializer.fromJson<int>(json['id']),
       descripcion: serializer.fromJson<String>(json['descripcion']),
@@ -5006,7 +6368,7 @@ class Draw extends DataClass implements Insertable<Draw> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'descripcion': serializer.toJson<String>(descripcion),
@@ -5257,7 +6619,7 @@ class $DrawsTable extends Draws with TableInfo<$DrawsTable, Draw> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Draw map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Draw.fromData(data, _db,
+    return Draw.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -5283,8 +6645,7 @@ class Blocksdirty extends DataClass implements Insertable<Blocksdirty> {
       @required this.cantidad,
       this.created_at,
       @required this.idMoneda});
-  factory Blocksdirty.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String prefix}) {
+  factory Blocksdirty.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksdirty(
       id: const IntType().mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -5355,7 +6716,7 @@ class Blocksdirty extends DataClass implements Insertable<Blocksdirty> {
 
   factory Blocksdirty.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blocksdirty(
       id: serializer.fromJson<int>(json['id']),
       idBanca: serializer.fromJson<int>(json['idBanca']),
@@ -5368,7 +6729,7 @@ class Blocksdirty extends DataClass implements Insertable<Blocksdirty> {
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idBanca': serializer.toJson<int>(idBanca),
@@ -5643,7 +7004,7 @@ class $BlocksdirtysTable extends Blocksdirtys
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blocksdirty map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blocksdirty.fromData(data, _db,
+    return Blocksdirty.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -5668,8 +7029,7 @@ class Blocksdirtygeneral extends DataClass
       @required this.cantidad,
       this.created_at,
       @required this.idMoneda});
-  factory Blocksdirtygeneral.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  factory Blocksdirtygeneral.fromData(Map<String, dynamic> data,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksdirtygeneral(
@@ -5733,7 +7093,7 @@ class Blocksdirtygeneral extends DataClass
 
   factory Blocksdirtygeneral.fromJson(Map<String, dynamic> json,
       {ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return Blocksdirtygeneral(
       id: serializer.fromJson<int>(json['id']),
       idLoteria: serializer.fromJson<int>(json['idLoteria']),
@@ -5745,7 +7105,7 @@ class Blocksdirtygeneral extends DataClass
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
+    serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'idLoteria': serializer.toJson<int>(idLoteria),
@@ -5991,7 +7351,7 @@ class $BlocksdirtygeneralsTable extends Blocksdirtygenerals
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Blocksdirtygeneral map(Map<String, dynamic> data, {String tablePrefix}) {
-    return Blocksdirtygeneral.fromData(data, _db,
+    return Blocksdirtygeneral.fromData(data,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
@@ -6007,6 +7367,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $TasksTable get tasks => _tasks ??= $TasksTable(this);
   $PermissionsTable _permissions;
   $PermissionsTable get permissions => _permissions ??= $PermissionsTable(this);
+  $DaysTable _days;
+  $DaysTable get days => _days ??= $DaysTable(this);
+  $LotteriesTable _lotteries;
+  $LotteriesTable get lotteries => _lotteries ??= $LotteriesTable(this);
   $UsersTable _users;
   $UsersTable get users => _users ??= $UsersTable(this);
   $SettingsTable _settings;
@@ -6042,6 +7406,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         tasks,
         permissions,
+        days,
+        lotteries,
         users,
         settings,
         branchs,

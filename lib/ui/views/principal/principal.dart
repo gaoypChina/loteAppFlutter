@@ -6,9 +6,11 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
+import 'package:loterias/core/classes/cross_platform_reques_permissions/cross_platform_request_permissions.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/drift_database.dart' as driftDatabase;
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/myfilemanager.dart';
 import 'package:loterias/core/classes/mynotification.dart';
@@ -35,6 +37,7 @@ import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
+import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 // import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
@@ -183,7 +186,7 @@ String _montoPrueba = '0';
   Timer _timer;
   Timer _timerSaveVentaNoSubidas;
 
-  static const platform = const MethodChannel('flutter.loterias');
+ 
   Usuario _usuario;
   Banca _banca;
   Future<Map<String, dynamic>> futureBanca;
@@ -208,22 +211,9 @@ static var manager;
 static var socketNotificaciones;
 String initSocketNotificationTask = "initSocketNotificationTask";
 
-Future<bool> _requestPermisionChannel() async {
-    bool batteryLevel;
-    try {
-      final bool result = await platform.invokeMethod('requestPermissions');
-      batteryLevel = result;
-    } on PlatformException catch (e) {
-      throw Exception("Failed to get battery level: '${e.message}'.");
-    }
-
-    print('requestPermission channel: $batteryLevel');
-    return batteryLevel;
-  }
 
 
   getIdBanca() async {
-    print("Principal views getIdBanca: ${await Db.existePermiso("Jugar como cualquier banca")} : ${listaBanca.length}");
     if(await Db.existePermiso("Jugar como cualquier banca"))
       return listaBanca[_indexBanca].id;
     else
@@ -252,7 +242,6 @@ Future<bool> _requestPermisionChannel() async {
         _cargando = false;
         _idVenta = datos['idVenta'];
         listaBanca = datos["bancas"];
-        print("indexPost listaBanca: ${listaBanca.length}");
         listaVenta = datos["ventas"];
         _streamControllerBanca.add(true);
         _streamControllerVenta.add(true);
@@ -277,7 +266,6 @@ Future<bool> _requestPermisionChannel() async {
     }
 
     var c = await DB.create();
-    print("PrincipalView guardar printer: ${await c.getPrinter()}");
 
     if(_ckbPrint){
       if(await Utils.exiseImpresora() == false){
@@ -353,10 +341,11 @@ Future<bool> _requestPermisionChannel() async {
 
       setState(() => _cargando = true);
 
-      var listaDatos = await Realtime.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+      // var listaDatos = await Realtime.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+      var listaDatos = await Db.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
       // var parsed = await TicketService.guardarGzipV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
-      print("PrincipalView _guardarLocal: $parsed");
+      // print("PrincipalView _guardarLocal: $parsed");
       listaDatos[0].idTicket = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.codigoBarra = listaDatos[3];
@@ -367,7 +356,6 @@ Future<bool> _requestPermisionChannel() async {
      _seleccionarPrimeraLoteria();
       listaJugadas = [];
       _streamControllerJugada.add(listaJugadas);
-      print("Principal _guardarLocal jugadas: ${listaDatos[1].length}");
       if(_ckbPrint)
         BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
       else{
@@ -413,7 +401,6 @@ Future<bool> _requestPermisionChannel() async {
       int cantidadPick4 = 0;
       listaEstadisticaJugada.sort((a, b) => a.idLoteria.compareTo(b.idLoteria));
       for(int i=0; i < listaEstadisticaJugada.length; i++){
-        print("sendNotification for: ${listaEstadisticaJugada[i].descripcionSorteo}");
         if(listaEstadisticaJugada[i].descripcionSorteo == "Directo"){
            cantidadDirectos = listaEstadisticaJugada[i].cantidad;
           List<Jugada> listaDirectos = listaJugadas.where((element) => element.sorteo == "Directo" && element.idLoteria == listaEstadisticaJugada[i].idLoteria).toList();
@@ -496,7 +483,6 @@ Future<bool> _requestPermisionChannel() async {
       if(pick4.isNotEmpty)
         contenido += pick4 +"\n\n";
 
-      print("sendNotification contenido: $contenido");
 
       var notificacion = Notificacion(titulo: "Jugadas sucias", subtitulo: "Se ha detectado jugadas sucias en la banca ${banca.descripcion}", contenido: contenido);
       await NotificationService.guardar(context: context, notificacion: notificacion);
@@ -536,7 +522,6 @@ Future<bool> _requestPermisionChannel() async {
      http.post(Uri.parse(Utils.URL +"/api/principal/montodisponible"), body: json.encode(map2), headers: header ).then((http.Response resp){
       final int statusCode = resp.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {
-        print('futuro: ${resp.body}');
         throw new Exception("Error while fetching data");
       }
       final parsed = json.decode(resp.body).cast<String, dynamic>();
@@ -563,7 +548,7 @@ Future<bool> _requestPermisionChannel() async {
   Future<bool> _getDatosSessionUsuario() async {
     setState(() => _cargandoDatosSesionUsuario = true);
     bool seGuardaronLosDatosDeLaSesion = await Principal.mockCheckForSession(scaffoldKey: _scaffoldKey);
-    print("PrincipalScreen inside function seGuardaronLosDatosDeLaSesion: $seGuardaronLosDatosDeLaSesion");
+    // print("PrincipalScreen inside function seGuardaronLosDatosDeLaSesion: $seGuardaronLosDatosDeLaSesion");
     if(seGuardaronLosDatosDeLaSesion == false){
       await Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -589,8 +574,7 @@ Future<bool> _requestPermisionChannel() async {
     ]);
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
-      if(kIsWeb == false)
-        _requestPermisionChannel();
+      CrossPlatformRequesPermission().requestNecesaryPermissions();
 
       indexPost(true);
       _getPermisos();
@@ -604,15 +588,12 @@ Future<bool> _requestPermisionChannel() async {
       futureUsuario = Db.getUsuario();
       // _showIntentNotificationIfExists();
     }else{
-      print("PrincipalScreen before _getDatosSessionUsuaro");
       _getDatosSessionUsuario().then((value){
-      print("PrincipalScreen _getDatosSessionUsuaro inside then function");
        if(value == false)
         return;
         
         _getCurrentTimeZone();
-        if(kIsWeb == false)
-          _requestPermisionChannel();
+        CrossPlatformRequesPermission().requestNecesaryPermissions();
         _getPermisos();
         _getUsuarioYBanca();
         indexPost(true);
@@ -635,10 +616,9 @@ Future<bool> _requestPermisionChannel() async {
     _streamControllerJugada.add(listaJugadas);
     
     
-      print('timerrrr: $_timeString');
       _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _getTime());
-      if(!kIsWeb)
-        _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
+      // if(!kIsWeb)
+      //   _timerSaveVentaNoSubidas = Timer.periodic(Duration(seconds: 2), (Timer t) => _emitToSaveTicketsNoSubidos());
     
     
     focusNode = FocusNode();
@@ -675,7 +655,7 @@ Future<bool> _requestPermisionChannel() async {
       
 
       if(notification != null && android != null){
-        print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
+        // print("PrincipalScreen onMessageOpenedApp data: ${message.data}");
         Navigator.pushNamed(context, "/pagos/ver", arguments:message.data["idPago"] != null ? Utils.toInt(message.data["idPago"]) : null);
         // showDialog(
         //   context: context, 
@@ -710,7 +690,7 @@ Future<bool> _requestPermisionChannel() async {
   _getUsuarioYBanca() async {
     var usuario = await Db.getUsuario();
     var banca = await Db.getBanca();
-    print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
+    // print("PrincipalScreen _getUsuarioYBanca: ${usuario}");
     if(usuario != null){
       _usuario = Usuario.fromMap(usuario);
       if(banca != null)
@@ -721,7 +701,6 @@ Future<bool> _requestPermisionChannel() async {
       }
     }else{
       await Principal.cerrarSesion(context);
-      print("PrincipalScreen _getUsuarioYBanca null: ${usuario}");
     }
   }
 
@@ -746,8 +725,6 @@ Future<bool> _requestPermisionChannel() async {
     _streamControllerBanca.close();
     _streamControllerVenta.close();
     _streamControllerLoteria.close();
-    print("dispose desconectar socket");
-    print("Desconectando socket desde dispose de la ventana principal");
     // await manager.clearInstance(socket);
     await _disconnectSocket();
     
@@ -788,8 +765,6 @@ Future<bool> _requestPermisionChannel() async {
     bool tienePermisoManejarHorariosDeLoterias = await Db.existePermiso("Manejar horarios de loterias");
     bool tienePermisoManejarMonedas = await Db.existePermiso("Manejar monedas");
     bool tienePermisoManejarEntidadesContables = await Db.existePermiso("Manejar entidades contables");
-    print("_getPermisos tipoUsuario: ${(await (await DB.create()).getValue("tipoUsuario"))}");
-    print("_getPermisos tiene permiso permisoAccesoAlSistema: $permisoAccesoAlSistema");
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -832,7 +807,6 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   Future _desconectarYConectarNuevamente() async {
-    print("_desconectarYConectarNuevamente desconectar socket y conectar");
     // await manager.clearInstance(socket);
     await _disconnectSocket();
     _socketContadorErrores = 0;
@@ -840,7 +814,6 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   static Future _desconectarYConectarNuevamenteSocketNotificacion() async {
-    print("_desconectarYConectarNuevamente desconectar socket y conectar");
     await manager.clearInstance(socketNotificaciones);
     _socketNotificacionContadorErrores = 0;
     initSocketNoticacion();
@@ -855,12 +828,9 @@ Future<bool> _requestPermisionChannel() async {
   }
 
   _updateBranchesList(Map<String, dynamic> parsed) async {
-    print("Dentro principal view _updateBranchesList 1: $parsed");
-    
-    print("Dentro principal view _updateBranchesList paso parsed != null _administrador: $_tienePermisoJugarComoCualquierBanca");
-    
-    print("Dentro principal view _updateBranchesList 2");
-        
+
+
+
 
       try {
         // if(parsed["branch"] == null){
@@ -898,8 +868,14 @@ Future<bool> _requestPermisionChannel() async {
         
 
         if(await Db.idBanca() == banca.id){
-          await Db.delete("Branches");
-          await Db.insert('Branches', banca.toJson());
+          await Db.deleteAllBranches();
+          // await Db.insertBranche('Branches', banca.toJson());
+          print("Principal view _updateBranchesList limiteVenta: ${banca.limiteVenta}");
+          await Db.insertBranch(driftDatabase.Branch(
+        id: banca.id, descripcion: banca.descripcion, codigo: banca.codigo, dueno: banca.dueno, idUsuario: banca.usuario != null ? banca.usuario.id : 0, 
+        limiteVenta: banca.limiteVenta, descontar: banca.descontar, deCada: banca.deCada, minutosCancelarTicket: banca.minutosCancelarTicket, 
+        piepagina1: banca.piepagina1, piepagina2: banca.piepagina2, piepagina3: banca.piepagina3, piepagina4: banca.piepagina4, idMoneda: banca.idMoneda, 
+        moneda: banca.moneda, monedaAbreviatura: banca.monedaAbreviatura, monedaColor: banca.monedaColor, status: banca.status, ventasDelDia: banca.ventasDelDia));
 
           int idx = listaBanca.indexWhere((element) => element.id == banca.id);
           if(idx != -1 && idx == _indexBanca){
@@ -933,74 +909,74 @@ Future<bool> _requestPermisionChannel() async {
       socket.emit("obtenerVentasDelDia", await Utils.createJwt({"servidor" : await Db.servidor(), "idBanca" : idBanca}));
   }
 
-  _emitToSaveTicketsNoSubidos() async {
-    if(kIsWeb)
-      return;
+  // _emitToSaveTicketsNoSubidos() async {
+  //   if(kIsWeb)
+  //     return;
 
-    if(socket == null)
-      return;
+  //   if(socket == null)
+  //     return;
 
-    if(!socket.connected)
-      return;
+  //   if(!socket.connected)
+  //     return;
 
-    var saleMap = await Db.getSaleNoSubida();
-    // print("PrincipalView _emitToSaveTicketsNoSubidos: ${saleMap}");
-    // var saleMapAll = await Db.query("Sales");
+  //   var saleMap = await Db.getSaleNoSubida();
+  //   print("PrincipalView _emitToSaveTicketsNoSubidos: ${saleMap}");
+  //   // var saleMapAll = await Db.query("Sales");
 
-    // print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
-    // print("_emitToSaveTicketsNoSubidos before validate, saleMapAll: ${saleMapAll}");
-    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
-    if(sale == null)
-      return;
+  //   // print("_emitToSaveTicketsNoSubidos before validate, saleMap: ${saleMap}");
+  //   // print("_emitToSaveTicketsNoSubidos before validate, saleMapAll: ${saleMapAll}");
+  //   Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+  //   if(sale == null)
+  //     return;
 
-    print("PrincipalView _emitToSaveTicketsNoSubidos servidor: ${saleMap["servidor"]}");
-    print("PrincipalView _emitToSaveTicketsNoSubidos saleObject: ${sale.toJson()}");
+  //   print("PrincipalView _emitToSaveTicketsNoSubidos servidor: ${saleMap["servidor"]}");
+  //   print("PrincipalView _emitToSaveTicketsNoSubidos saleObject: ${sale.toJson()}");
 
-    if(sale.subido != 0)
-      return;
+  //   if(sale.subido != 0)
+  //     return;
 
-    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
-    Ticket ticket = Ticket.fromMap(ticketMap);
-    sale.ticket = ticket;
-    if(sale.servidor == null)
-      throw Exception("PrincipalView El servidor es nulo");
-    if(sale.servidor == '')
-      throw Exception("PrincipalView El servidor es nulo");
+  //   var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+  //   Ticket ticket = Ticket.fromMap(ticketMap);
+  //   sale.ticket = ticket;
+  //   if(sale.servidor == null)
+  //     throw Exception("PrincipalView El servidor es nulo");
+  //   if(sale.servidor == '')
+  //     throw Exception("PrincipalView El servidor es nulo");
       
 
 
-    var salesdetailsOfThisSaleListMap = await Db.database.rawQuery("SELECT * FROM Salesdetails WHERE idVenta = ${sale.id.toInt()} AND idTicket = ${sale.idTicket.toInt()}");
-    List<Salesdetails> salesdetails2 = salesdetailsOfThisSaleListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
+  //   var salesdetailsOfThisSaleListMap = await Db.database.rawQuery("SELECT * FROM Salesdetails WHERE idVenta = ${sale.id.toInt()} AND idTicket = ${sale.idTicket.toInt()}");
+  //   List<Salesdetails> salesdetails2 = salesdetailsOfThisSaleListMap.map<Salesdetails>((e) => Salesdetails.fromMap(e)).toList();
 
-    print("PrincipalView _emitToSaveTicketsNoSubidos ticket: ${ticketMap}");
-    print("PrincipalView _emitToSaveTicketsNoSubidos sale: ${saleMap}");
-    print("");
-    print("");
-    salesdetailsOfThisSaleListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails222: $e"));
+  //   print("PrincipalView _emitToSaveTicketsNoSubidos ticket: ${ticketMap}");
+  //   print("PrincipalView _emitToSaveTicketsNoSubidos sale: ${saleMap}");
+  //   print("");
+  //   print("");
+  //   salesdetailsOfThisSaleListMap.forEach((e) => print("PrincipalView _emitToSaveTicketsNoSubidos salesdetails222: $e"));
     
-    // return;
+  //   // return;
 
-    socket.emit("guardarVenta", await Utils.createJwt({"servidor" : sale.servidor, "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails2)}));
-  }
+  //   socket.emit("guardarVenta", await Utils.createJwt({"servidor" : sale.servidor, "usuario" : await Db.getUsuario(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(salesdetails2)}));
+  // }
 
-  _addVentaSubidaToListVenta(var parsed) async {
-    if(Utils.isNumber(parsed) == false)
-      return;
-    var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
-    Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
+  // _addVentaSubidaToListVenta(var parsed) async {
+  //   if(Utils.isNumber(parsed) == false)
+  //     return;
+  //   var saleMap = await Db.queryBy("Sales", "idTicket", parsed); 
+  //   Sale sale = saleMap != null ? Sale.fromMap(saleMap) : null;
 
-    if(sale == null)
-      return;
+  //   if(sale == null)
+  //     return;
 
-    var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
-    Ticket ticket = Ticket.fromMap(ticketMap);
-    sale.ticket = ticket;
+  //   var ticketMap = await Db.queryBy("Tickets", "id", sale.idTicket.toInt());
+  //   Ticket ticket = Ticket.fromMap(ticketMap);
+  //   sale.ticket = ticket;
 
-    if(listaVenta.indexWhere((element) => element.idTicket == sale.idTicket) == -1){
-      listaVenta.add(Venta(idTicket: sale.idTicket, total: sale.total, codigoBarra: sale.ticket != null ? sale.ticket.codigoBarra : ''));
-      _streamControllerVenta.add(true);
-    }
-  }
+  //   if(listaVenta.indexWhere((element) => element.idTicket == sale.idTicket) == -1){
+  //     listaVenta.add(Venta(idTicket: sale.idTicket, total: sale.total, codigoBarra: sale.ticket != null ? sale.ticket.codigoBarra : ''));
+  //     _streamControllerVenta.add(true);
+  //   }
+  // }
 
   Future updateMontoStockFromJugadas(var parsed) async {
     var stocks = await compute(Stock.fromMapList, parsed['stocks']);
@@ -1060,50 +1036,51 @@ Future<bool> _requestPermisionChannel() async {
     }
   }
 
-  Future deleteSubidaYesterdaysSale() async {
-    if(kIsWeb)
-      return;
+  // Future deleteSubidaYesterdaysSale() async {
+  //   if(kIsWeb)
+  //     return;
 
-    try {
-      DateTime today = await NTP.now(timeout: Duration(seconds: 2));
-      DateTime yesterday = today.subtract(Duration(days: 1));
-      DateTime cincoDiasAtras = yesterday.subtract(Duration(days: 5));
-      print("PricipalView deleteSubidaYesterdaysSale today: ${today.toString()}");
-      print("PricipalView deleteSubidaYesterdaysSale yesterday: ${yesterday.toString()}");
-      print("PricipalView deleteSubidaYesterdaysSale cincoDiasAtras: ${cincoDiasAtras.toString()}");
+  //   try {
+  //     DateTime today = await NTP.now(timeout: Duration(seconds: 2));
+  //     DateTime yesterday = today.subtract(Duration(days: 1));
+  //     DateTime cincoDiasAtras = yesterday.subtract(Duration(days: 5));
+  //     print("PricipalView deleteSubidaYesterdaysSale today: ${today.toString()}");
+  //     print("PricipalView deleteSubidaYesterdaysSale yesterday: ${yesterday.toString()}");
+  //     print("PricipalView deleteSubidaYesterdaysSale cincoDiasAtras: ${cincoDiasAtras.toString()}");
       
-      print("PrincipalView deleteSubidaYesterdaysSale sales: ${await Db.database.rawQuery("SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'")}");
-      print("");
-      print("");
-      print("");
-      print("PrincipalView deleteSubidaYesterdaysSale salesdetails: ${await Db.database.rawQuery("SELECT * FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
-      print("");
-      print("");
-      print("");
-      print("PrincipalView deleteSubidaYesterdaysSale tickets: ${await Db.database.rawQuery("SELECT jugada, idTicket, created_at FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
+  //     print("PrincipalView deleteSubidaYesterdaysSale sales: ${await Db.database.rawQuery("SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'")}");
+  //     print("");
+  //     print("");
+  //     print("");
+  //     print("PrincipalView deleteSubidaYesterdaysSale salesdetails: ${await Db.database.rawQuery("SELECT * FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
+  //     print("");
+  //     print("");
+  //     print("");
+  //     print("PrincipalView deleteSubidaYesterdaysSale tickets: ${await Db.database.rawQuery("SELECT jugada, idTicket, created_at FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')")}");
       
-      await Db.database.rawQuery("DELETE FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
-      await Db.database.rawQuery("DELETE FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
-      await Db.database.rawQuery("DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'");
+  //     await Db.database.rawQuery("DELETE FROM Salesdetails WHERE idTicket IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
+  //     await Db.database.rawQuery("DELETE FROM Tickets WHERE id IN(SELECT idTicket FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}')");
+  //     await Db.database.rawQuery("DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'");
       
-      // String query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
-      // await Db.database.rawQuery(query);
-    } on Exception catch (e) {
-      print("PrincipalView deleteSubidaYesterdaysSale error: ${e.toString()}");
-      // TODO
-    }
+  //     // String query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
+  //     // await Db.database.rawQuery(query);
+  //   } on Exception catch (e) {
+  //     print("PrincipalView deleteSubidaYesterdaysSale error: ${e.toString()}");
+  //     // TODO
+  //   }
 
-    // String query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}' ORDER BY ID ASC";
-    // var sales = await Db.database.rawQuery(query);
-    // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: ${sales.length}");
-    // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: $sales");
-    // query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
-    // sales = await Db.database.rawQuery(query);
-    // query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(today, "00:00")}' AND '${Utils.dateTimeToDate(today, "23:59")}' ORDER BY ID ASC";
-    // sales = await Db.database.rawQuery(query);
-    // print("PricipalView deleteSubidaYesterdaysSale todaySale: ${sales.length}");
-    // print("PricipalView deleteSubidaYesterdaysSale todaySale: $sales");
-  }
+  //   // String query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}' ORDER BY ID ASC";
+  //   // var sales = await Db.database.rawQuery(query);
+  //   // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: ${sales.length}");
+  //   // print("PricipalView deleteSubidaYesterdaysSale yesterdaySale: $sales");
+  //   // query = "DELETE FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(cincoDiasAtras, "00:00")}' AND '${Utils.dateTimeToDate(yesterday, "23:59")}'";
+  //   // sales = await Db.database.rawQuery(query);
+  //   // query = "SELECT * FROM Sales WHERE subido == 1 AND created_at BETWEEN '${Utils.dateTimeToDate(today, "00:00")}' AND '${Utils.dateTimeToDate(today, "23:59")}' ORDER BY ID ASC";
+  //   // sales = await Db.database.rawQuery(query);
+  //   // print("PricipalView deleteSubidaYesterdaysSale todaySale: ${sales.length}");
+  //   // print("PricipalView deleteSubidaYesterdaysSale todaySale: $sales");
+  // }
+
 
   Future<void> updatePayment(var parsed) async {
     var c = await DB.create();
@@ -1231,7 +1208,7 @@ Future<bool> _requestPermisionChannel() async {
       _connectionNotify.value = true;
       await _getPermisos();
       await updatePayment(parsed["datos"]["payment"]);
-      deleteSubidaYesterdaysSale();
+      // deleteSubidaYesterdaysSale();
       print("PrincipalView initSocket sincronizarTodos from server after: $data");
     });
     socket.on("initLoteriasOrdenadasPorHoraCierre", (data) async {
@@ -1268,7 +1245,7 @@ Future<bool> _requestPermisionChannel() async {
     //     await Realtime.addStocks(parsed['stocks']);
     //   }
     // });
-    if(kIsWeb == false){
+    // if(kIsWeb == false){
       socket.on("realtime-stock:App\\Events\\RealtimeStockEvent", (data) async {   //sample event
         // var parsed = data.cast<String, dynamic>();
         print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent primero parsed: $data");
@@ -1324,24 +1301,25 @@ Future<bool> _requestPermisionChannel() async {
       });
 
       socket.on("ticket", (data) async {
-        print("Socket ticket from server before: $data");
-        if(data != null){
-          Ticket ticket = Ticket.fromMap(data);
-            print("Socket ticket from server before validation ticket: ${ticket.toJson()}");
-            print("Socket ticket from server before validation banca: ${await getIdBanca()}");
-          if(ticket.idBanca != await getIdBanca()){
-            _emitToGetNewIdTicket();
-            print("Socket ticket from server inside validation: $data");
-            return;
-          }
-        }
-        Realtime.createTicketIfNotExists(data);
-        print("Socket ticket from server after: $data");
+        // print("Socket ticket from server before: $data");
+        // if(data != null){
+        //   Ticket ticket = Ticket.fromMap(data);
+        //     print("Socket ticket from server before validation ticket: ${ticket.toJson()}");
+        //     print("Socket ticket from server before validation banca: ${await getIdBanca()}");
+        //   if(ticket.idBanca != await getIdBanca()){
+        //     _emitToGetNewIdTicket();
+        //     print("Socket ticket from server inside validation: $data");
+        //     return;
+        //   }
+        // }
+
+        // Realtime.createTicketIfNotExists(data);
+        // print("Socket ticket from server after: $data");
       });
       socket.on("recibirVenta", (data) async {
         print("Socket recibirVenta from server before: $data");
-        await Realtime.setVentaToSubido(data);
-        await _addVentaSubidaToListVenta(data);
+        // await Realtime.setVentaToSubido(data);
+        // await _addVentaSubidaToListVenta(data);
         print("Socket recibirVenta from server after: $data");
       });
       socket.on("obtenerVentasDelDia", (data) async {
@@ -1354,7 +1332,7 @@ Future<bool> _requestPermisionChannel() async {
         await _updateBranchesList(parsed);
         print("Socket obtenerVentasDelDia 3: $data");
       });
-    }
+    // }
     
     socket.on("users:App\\Events\\UsersEvent", (data) async {   //sample event
       // var parsed = data.cast<String, dynamic>();
@@ -1533,7 +1511,7 @@ _showIntentNotificationIfExists() async {
   var notificacion = await MyNotification.getIntentDataNotification();
   
   if(notificacion != null){
-    print("_showIntentNotificationIfExists ${notificacion.toJson()}");
+    // print("_showIntentNotificationIfExists ${notificacion.toJson()}");
     Navigator.pushNamed(context, "/verNotificaciones", arguments: notificacion);
   }
 }
@@ -1575,6 +1553,7 @@ _showIntentNotificationIfExists() async {
   _duplicar(Map<String, dynamic> datos) async {
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    
     if(loteriasAduplicar == null)
       return;
 
@@ -1584,7 +1563,7 @@ _showIntentNotificationIfExists() async {
           if(l["duplicar"] == '- NO MOVER -'){
             if(jugada["sorteo"] != "Super pale"){
               jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-              print("duplicarSuperpale ${l["duplicarSuperpale"]}");
+              // print("duplicarSuperpale ${l["duplicarSuperpale"]}");
               await addJugada(loteriaMap: l, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
             }else{
               Map<String, dynamic> mapLoteria = Map<String, dynamic>();
@@ -1593,13 +1572,13 @@ _showIntentNotificationIfExists() async {
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
-                  print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
+                  // print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
                   jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-                  print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
+                  // print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
-                  print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
                   mapLoteria = Map<String, dynamic>();
                   loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
                   Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
@@ -1609,7 +1588,7 @@ _showIntentNotificationIfExists() async {
                     loteria = tmp;
                   }
 
-                  print("loteriaSuperpale show: ${loteriaSuperpale.toJson()}");
+                  // print("loteriaSuperpale show: ${loteriaSuperpale.toJson()}");
                   mapLoteria["id"] = loteria.id;
                   mapLoteria["descripcion"] = loteria.descripcion;
                   mapLoteria["abreviatura"] = loteria.abreviatura;
@@ -1640,7 +1619,7 @@ _showIntentNotificationIfExists() async {
                   await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
                 }
                 else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
-                  print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
                   mapLoteria = Map<String, dynamic>();
                   loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
                   Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
@@ -1667,17 +1646,16 @@ _showIntentNotificationIfExists() async {
   }
 
   _cambiarServidor() async {
-    print("Holaaaaaaaaaaaaaaaaa");
     var c = await DB.create();
     var tipoUsuario = await c.getValue("tipoUsuario");
     if(tipoUsuario == "Programador"){
-      var datosServidor = await Db.query("Servers");
+      var datosServidor = await Db.getAllServer();
       if(datosServidor == null)
         return;
 
-      List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
+      List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json.toJson())).toList();
       String servidorActual = await Db.servidor();
-      print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
+      // print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
       int indexServidor = (listaServidor.length > 0) ? listaServidor.indexWhere((element) => element.descripcion == servidorActual) : -1;
       Servidor servidorSeleccionado = (indexServidor != -1) ? listaServidor[indexServidor] : null;
       if(servidorSeleccionado == null)
@@ -1691,7 +1669,6 @@ _showIntentNotificationIfExists() async {
         // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
         // usuario.servidor = servidor;
         // await Db.update("Users", usuario.toJson(), usuario.id);
-        print("_cambiarServidor entrooooooooooooooooo");
         // await manager.clearInstance(socket);
         await _disconnectSocket();
         futureUsuario = Db.getUsuario();
@@ -1700,6 +1677,41 @@ _showIntentNotificationIfExists() async {
       }
     }
   }
+
+  // _cambiarServidorSQFlite() async {
+  //   print("Holaaaaaaaaaaaaaaaaa");
+  //   var c = await DB.create();
+  //   var tipoUsuario = await c.getValue("tipoUsuario");
+  //   if(tipoUsuario == "Programador"){
+  //     var datosServidor = await Db.query("Servers");
+  //     if(datosServidor == null)
+  //       return;
+
+  //     List<Servidor> listaServidor = datosServidor.map<Servidor>((json) => Servidor.fromMap(json)).toList();
+  //     String servidorActual = await Db.servidor();
+  //     print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
+  //     int indexServidor = (listaServidor.length > 0) ? listaServidor.indexWhere((element) => element.descripcion == servidorActual) : -1;
+  //     Servidor servidorSeleccionado = (indexServidor != -1) ? listaServidor[indexServidor] : null;
+  //     if(servidorSeleccionado == null)
+  //       return;
+
+  //     var servidor = await _showBottomSheetServidor(listaServidor: listaServidor, servidorSeleccionado: servidorSeleccionado);
+  //     // var servidor = await Principal.seleccionarServidor(context, listaServidor, servidorActual);
+  //       print("_cambiarServidor servidorRetornado: $servidor - $servidorActual");
+  //     if(servidor != null && servidor != servidorActual){
+  //       // LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor, scaffoldkey: _scaffoldKey);
+  //       // Usuario usuario = Usuario.fromMap(await Db.getUsuario());
+  //       // usuario.servidor = servidor;
+  //       // await Db.update("Users", usuario.toJson(), usuario.id);
+  //       print("_cambiarServidor entrooooooooooooooooo");
+  //       // await manager.clearInstance(socket);
+  //       await _disconnectSocket();
+  //       futureUsuario = Db.getUsuario();
+  //       await indexPost(true);
+  //       await initSocket();
+  //     }
+  //   }
+  // }
 
   _showBottomSheetServidor({List<Servidor> listaServidor, Servidor servidorSeleccionado}) async {
     Servidor _servidor = servidorSeleccionado;
@@ -1727,7 +1739,6 @@ _showIntentNotificationIfExists() async {
               });
               Usuario usuario = Usuario.fromMap(await Db.getUsuario());
               var parsed = await LoginService.cambiarServidor(usuario: usuario.usuario, servidor: servidor.descripcion, context: context);
-              print("Principal.dar drawer cambiar: ${parsed["apiKey"]}");
               await Principal.cerrarSesion(context, false);
               await Db.deleteDB();
               var c = await DB.create();
@@ -1736,7 +1747,6 @@ _showIntentNotificationIfExists() async {
               await c.add("administrador", parsed["administrador"]);
               await c.add("tipoUsuario", parsed["tipoUsuario"]);
               await LoginService.guardarDatos(parsed);
-              print("Principal.dar drawer cambiar: ${await c.getValue("apiKey")}");
             }
         return StatefulBuilder(
           builder: (context, setState) {
@@ -2153,7 +2163,6 @@ AppBar _appBar(bool screenHeightIsSmall){
                       // print("PrincipalView cloud: $query");
 
                       // deleteSubidaYesterdaysSale();
-                      print("PrincipalView Icons.cloud_done file length: ${await MyFileManager().length()}");
 
                       
                     },);
@@ -2204,7 +2213,7 @@ AppBar _appBar(bool screenHeightIsSmall){
                                                     ScanMode.QR
                                                     );
 
-                print("_appBar codigoQr duplicar: $codigoQr");
+                // print("_appBar codigoQr duplicar: $codigoQr");
 
                 setState(() => _cargando = true);
                 var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
@@ -2469,10 +2478,10 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     return RawKeyboardListener(
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
-        print("Event runtimeType is ${event.runtimeType}");
+        // print("Event runtimeType is ${event.runtimeType}");
         if(event.runtimeType.toString() != 'RawKeyUpEvent')
           return;
-        print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
+        // print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
         if(event.logicalKey == LogicalKeyboardKey.backspace)
           return;
 
@@ -3262,31 +3271,36 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
   _pagar([bool isSmallOrMedium = true]) async {
     dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context, isSmallOrMedium: isSmallOrMedium);
     
-    if(isSmallOrMedium)
+    if(isSmallOrMedium){
       _scaffoldKey.currentState.openEndDrawer();
+      await Future.delayed(Duration(milliseconds: 300));
+    }
 
     if(datos == null)
       return;
 
     if(datos.isEmpty)
       return
+      await Future.delayed(Duration(milliseconds: 300));
 
-      print("Heyyyyyyyyyyyyyyy: ${datos["venta"]["montoAPagar"]}");
       Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
   }
   
   _showDialogDuplicar([bool isSmallOrMedium = true]) async {
     Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey, isSmallOrMedium: isSmallOrMedium);
-    if(isSmallOrMedium)
+    if(isSmallOrMedium){
       _scaffoldKey.currentState.openEndDrawer();
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+      
 
     if(datos == null)
       return;
 
     if(datos.isEmpty)
       return
+    print("Principal _showDialogDuplicar: $datos");
     
-    print("_showDialogDuplicar datos2: $datos");
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
   }
@@ -3300,7 +3314,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     if(datos.isEmpty)
       return
     
-    print("_showDialogDuplicar datos2: $datos");
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
   }
@@ -3559,7 +3572,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
       ?
       SplashScreen()
       :
-      kIsWeb && !isSmallOrMedium
+      // kIsWeb && !isSmallOrMedium
+      Utils.showLargeScreen(isSmallOrMedium)
       ?
       myScaffold(
         context: context,
@@ -3577,7 +3591,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           sliverAppBar: MySliverAppBar(
             title: Wrap(
               children: [
-                Text("Principal"),
+                // Text("Principal"),
                 MyResizedContainer(child: _bancasScreen())
               ],
             ),
@@ -4464,7 +4478,6 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         // socket.dispose();
                         _disconnectSocket();
                         await Principal.cerrarSesion(context);
-                        print("Cerra sesion after _disconnectSocket");
                         await stopSocketNoticacionInForeground();
                       },
                     )
@@ -4522,8 +4535,6 @@ void _getTime() {
     // var currentTimeZoneFechaActual = TZDateTime.now(currentTimeZoneLocation);
     // var fechaLoteriaCurrentTimeZone = DateTime.parse(fechaActualRd.year.toString() + "-" + Utils.toDosDigitos(fechaActualRd.month.toString())+ "-" + Utils.toDosDigitos(fechaActualRd.day.toString()) + " ${loteria.horaCierre}");
     var fechaLoteriaCurrentTimeZone = TZDateTime.from(fechaLoteriaRD, currentTimeZoneLocation);
-    print("_convertirHoraCierreLoteria currentTImeZone: $currentTimeZone");
-    print("hora actual currentTimeZone: ${fechaLoteriaCurrentTimeZone.toString()} santoDomingo: ${fechaLoteriaRD.toString()}");
 
     return fechaLoteriaCurrentTimeZone;
   }
@@ -4603,7 +4614,6 @@ void _getTime() {
       stream: Stream.periodic(Duration(seconds: 1), (i) => i),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         String dateString = "";
-        print(dateString);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -4723,12 +4733,10 @@ void _getTime() {
       },
     );
 
-    _selectedLoterias = List();
+    _selectedLoterias = [];
     if(selectedValues != null){
       final selectedValuesMap = selectedValues.toList().asMap();
       for(int c=0; c < selectedValuesMap.length; c++){
-        print("Principal selectedLoterias: ${ selectedValuesMap[c]}");
-        print("Principal selectedLoterias: ${ listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null)}");
         Loteria data = listaLoteria.firstWhere((l) => l.id == selectedValuesMap[c], orElse: () => null);
         if(data != null)
           _selectedLoterias.add(data);
@@ -4749,10 +4757,8 @@ void _getTime() {
           color: color,
           onPressed: (){
             if(text_or_icon is Text){
-              print('es tipo: ${text_or_icon.data}');
               _escribir(value != null ? value : text_or_icon.data);
             }else{
-              print('Nooo es tipo');
               _escribir(value != null ? value : 'backspace');
             }
           },
@@ -4775,12 +4781,10 @@ void _getTime() {
 
     setState((){
       _jugadaOmonto = !_jugadaOmonto;
-      print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
     });
   }
 
   Future<void> _escribir(String caracter) async {
-    print("Hey: $caracter");
     _jugadaOmonto = _isLargeAndWeb() ? _jugadaFocusNode.hasFocus : _jugadaOmonto;
     if(caracter == '.'){
       if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
@@ -4810,14 +4814,14 @@ void _getTime() {
           _cambiarFocusJugadaMonto();
         }
         else{
-          if(kIsWeb){
-            if(_txtMontoDisponible.text.toLowerCase() != "x"){
-              if(Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
-                Utils.showAlertDialog(title: "Monto insuficiente", context: context, content: "No hay monto suficiente para esta jugada");
-                return;
-              }
-            }
-          }
+          // if(kIsWeb){
+          //   if(_txtMontoDisponible.text.toLowerCase() != "x"){
+          //     if(Utils.toDouble(_txtMontoDisponible.text) < Utils.toDouble(_txtMonto.text)){
+          //       Utils.showAlertDialog(title: "Monto insuficiente", context: context, content: "No hay monto suficiente para esta jugada");
+          //       return;
+          //     }
+          //   }
+          // }
           await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
         }
       }
@@ -5172,7 +5176,6 @@ void _getTime() {
         listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada);
       }
     }
-    print("dentro _ligarPale");
 
     //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
     // Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
@@ -5222,7 +5225,6 @@ void _getTime() {
           listaJugadasLigadas.add(listaJugadaDirectos[i].jugada + listaJugadaDirectos[i2].jugada + listaJugadaDirectos[i3].jugada);
       }
     }
-    print("dentro _ligarTripleta");
 
     //Obtenemos el objeto loteria con el idLoteria obtenido en el for de arriba
     // Loteria loteria = listaLoteria.firstWhere((element) => element.id == idLoteria);
@@ -5260,12 +5262,10 @@ void _getTime() {
     if((_txtJugada.text.indexOf('+') != -1 && !_isLargeAndWeb()) || (_txtJugada.text.indexOf('+') == -1 && _isLargeAndWeb()))
       return;
 
-    print("PrincipalView ponerSignoMas 1");
 
     if(_txtJugada.text.length != 3 && _txtJugada.text.length != 4 && !_isLargeAndWeb())
       return;
     
-    print("PrincipalView ponerSignoMas 2");
 
     if(!_isLargeAndWeb())
       _txtJugada.text = _txtJugada.text + '+';
@@ -5364,15 +5364,15 @@ void _getTime() {
 
       // VALIDAMOS EL MONTO DISPONIBLE
       MontoDisponible montoDisponible;
-      if(!kIsWeb){
+      // if(!kIsWeb){
         montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
         if(Utils.toDouble(monto) > montoDisponible.monto){
           _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
             return;
         }
-      }
+      // }
 
-      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: kIsWeb ? Stock() : montoDisponible.stock);
+      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';
@@ -5391,14 +5391,14 @@ void _getTime() {
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           MontoDisponible montoDisponible;
-          if(!kIsWeb){
+          // if(!kIsWeb){
             montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, loteriaSuperpale: _selectedLoterias[i2]);
             if(Utils.toDouble(monto) > montoDisponible.monto){
               _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
                 return;
             }
-          }
-          listaLoteriasSuperpaleConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
+          // }
+          listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
         }
       }
 
@@ -5406,7 +5406,6 @@ void _getTime() {
       for(int i=0; i < _selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
           Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == _selectedLoterias[i].id && element.loteriaSuperPale.id == _selectedLoterias[i2].id);
-          print("Loteria-JugadaLoteria: ${_selectedLoterias[i].descripcion} ${jugadaConStock.loteria.descripcion} loteriaSuper-jugadaLoteriaSuper: ${_selectedLoterias[i].descripcion} ${jugadaConStock.loteriaSuperPale.descripcion}");
           insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
         }
       }
@@ -5423,14 +5422,14 @@ void _getTime() {
       List<Jugada> listaLoteriaConStock = [];
       for (var l in selectedLoterias) {
         MontoDisponible montoDisponible;
-        if(!kIsWeb){
+        // if(!kIsWeb){
           montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
           if(Utils.toDouble(monto) > montoDisponible.monto){
             _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
               return;
           }
-        }
-        listaLoteriaConStock.add(Jugada(stock: kIsWeb ? Stock() : montoDisponible.stock, loteria: l));
+        // }
+        listaLoteriaConStock.add(Jugada(stock: montoDisponible.stock, loteria: l));
       }
 
       // INSERTAMOS LAS LOTERIAS
@@ -5457,13 +5456,21 @@ void _getTime() {
     
 
     for(int i=0; i < listaEstadisticaJugada.length; i++){
-      var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
-      if(query.isEmpty)
-        query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
-      print("hayJugadasSuciasNuevo query: $query");
-      print("hayJugadasSuciasNuevo estadisticaJugada: ${listaEstadisticaJugada[i].toJson()}");
-      if(query.isNotEmpty){
-        if(listaEstadisticaJugada[i].cantidad > query.first["cantidad"]){
+      // var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
+      // if(query.isEmpty)
+      //   query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [listaEstadisticaJugada[i].idLoteria, listaEstadisticaJugada[i].idSorteo, banca.idMoneda], orderBy: '"id" desc' );
+      int cantidad = await Db.getBlocksdirtyCantidad(idBanca: banca.id, idLoteria: listaEstadisticaJugada[i].idLoteria, idSorteo: listaEstadisticaJugada[i].idSorteo, idMoneda: banca.idMoneda);
+      if(cantidad == null)
+        cantidad = await Db.getBlocksdirtygeneralCantidad(idLoteria: listaEstadisticaJugada[i].idLoteria, idSorteo: listaEstadisticaJugada[i].idSorteo, idMoneda: banca.idMoneda);
+        
+      // if(query.isNotEmpty){
+      //   if(listaEstadisticaJugada[i].cantidad > query.first["cantidad"]){
+      //     Utils.showAlertDialog(context: context, title: "Jugadas sucias", content: "Hay jugadas sucias en la loteria ${listaEstadisticaJugada[i].descripcion}, comuniquese con el administrador o esta banca sera monitoreada y si se encuentran jugadas sucias pues se tomaran medidas severas contra usted.");
+      //     return true;
+      //   }
+      // }
+      if(cantidad != null){
+        if(listaEstadisticaJugada[i].cantidad > cantidad){
           Utils.showAlertDialog(context: context, title: "Jugadas sucias", content: "Hay jugadas sucias en la loteria ${listaEstadisticaJugada[i].descripcion}, comuniquese con el administrador o esta banca sera monitoreada y si se encuentran jugadas sucias pues se tomaran medidas severas contra usted.");
           return true;
         }
@@ -5475,58 +5482,62 @@ void _getTime() {
 
   hayJugadasSucias({String jugada, Loteria loteria, Loteria loteriaSuperpale}) async {
     Banca banca = await _selectedBanca();
-    Draws sorteo = await getSorteo(jugada) ;
+    Draws sorteo = await SorteoService.getSorteo(jugada) ;
     if(sorteo == null)
       return;
 
-    var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
-    if(query.isEmpty)
-      query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
+    // var query = await  Db.database.query('Blocksdirty' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
+    // if(query.isEmpty)
+    //   query = await  Db.database.query('Blocksdirtygenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idMoneda" = ?', whereArgs: [loteria.id, sorteo.id, banca.idMoneda], orderBy: '"id" desc' );
     
-    if(query.isEmpty)
+    int cantidad = await Db.getBlocksdirtyCantidad(idBanca: banca.id, idLoteria: loteria.id, idSorteo: sorteo.id, idMoneda: banca.idMoneda);
+    if(cantidad == null)
+      cantidad = await Db.getBlocksdirtygeneralCantidad(idLoteria: loteria.id, idSorteo: sorteo.id, idMoneda: banca.idMoneda);
+
+    if(cantidad == null)
       return false;
 
-    print("hayJugadasSucias query: ${sorteo.id}");
     if(sorteo.descripcion == "Directo"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 2 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      // if(tamanoJugadas >= query.first["cantidad"])
+      //   return true;
+      if(tamanoJugadas >= cantidad)
         return true;
 
-      print("hayJugadasSucias tam: $tamanoJugadas");
     }
     if(sorteo.descripcion == "Pale"){
       int tamanoJugadas = listaJugadas.where((e) => Utils.toInt(e.jugada) != 0 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Tripleta"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 6 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Pick 3 Straight"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 3 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Pick 3 Box"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 4 && e.jugada.indexOf("+") != -1 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Pick 4 Box"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("+") != -1 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Pick 4 Straight"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("-") != -1 && e.idLoteria == loteria.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
     if(sorteo.descripcion == "Super pale"){
       int tamanoJugadas = listaJugadas.where((e) => e.jugada.length == 5 && e.jugada.indexOf("s") != -1 && e.idLoteria == loteria.id && e.idLoteriaSuperpale == loteriaSuperpale.id).length;
-      if(tamanoJugadas >= query.first["cantidad"])
+      if(tamanoJugadas >= cantidad)
         return true;
     }
 
@@ -5564,7 +5575,7 @@ void _getTime() {
           }
         );
       }else{
-        Draws _sorteo = await getSorteo(jugada);
+        Draws _sorteo = await SorteoService.getSorteo(jugada);
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
@@ -5615,7 +5626,7 @@ void _getTime() {
           }
         );
       }else{
-        Draws _sorteo = await getSorteo(jugada);
+        Draws _sorteo = await SorteoService.getSorteo(jugada);
         listaJugadas.add(Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
@@ -5642,16 +5653,15 @@ void _getTime() {
       // double montoDisponibleOtraVez = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
       MontoDisponible montoDisponible;
 
-      if(!kIsWeb){
+      // if(!kIsWeb){
         montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada["jugada"]), Loteria.fromMap(loteriaMap), await _selectedBanca());
         double montoDisponibleOtraVez = montoDisponible.monto;
         if(Utils.toDouble(jugada["monto"]) > montoDisponibleOtraVez){
           _showSnackBar('No hay monto suficiente para la jugada ${jugada["jugada"]} en la loteria ${Loteria.fromMap(loteriaMap).descripcion}');
             return;
         }
-      }
+      // }
 
-      print("insertarJugadaDuplicar jugada: ${jugada}");
 
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteriaMap["id"]) : -1;
       if(idx != -1){
@@ -5681,7 +5691,7 @@ void _getTime() {
         );
       }else{
 
-        Draws _sorteo = await getSorteo(jugada["jugada"]);
+        Draws _sorteo = await SorteoService.getSorteo(jugada["jugada"]);
         listaJugadas.add(Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteriaMap["id"],
@@ -5691,7 +5701,7 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: kIsWeb ? null : montoDisponible.stock
+          stock: montoDisponible.stock
         ));
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: Loteria.fromMap(loteriaMap), sorteo: _sorteo);
         _streamControllerJugada.add(listaJugadas);
@@ -5716,9 +5726,6 @@ void _getTime() {
           return;
       }
 
-      print("insertarJugadaDuplicar jugadaSuperpale: ${jugada["jugada"]}");
-      print("insertarJugadaDuplicar superpale: ${loteriaSuperpale.toJson()}");
-      print("insertarJugadaDuplicar normal: ${loteria.toJson()}");
 
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada["jugada"] && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
       if(idx != -1){
@@ -5747,7 +5754,7 @@ void _getTime() {
           }
         );
       }else{
-        Draws _sorteo = await getSorteo(jugada["jugada"]);
+        Draws _sorteo = await SorteoService.getSorteo(jugada["jugada"]);
         var j = Jugada(
           jugada: jugada["jugada"],
           idLoteria: loteria.id,
@@ -5762,10 +5769,9 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: kIsWeb ? null : montoDisponible.stock
+          stock: montoDisponible.stock
         );
         await addOrUpdateEstadisticaJugada(jugada: jugada["jugada"], loteria: loteria, sorteo: _sorteo);
-        print("insertarJugadaDuplicar superpale jugada: ${j.toJson()}");
         listaJugadas.add(j);
         _streamControllerJugada.add(listaJugadas);
 
@@ -5793,7 +5799,7 @@ void _getTime() {
     }
   }
   removeEstadisticaJugada({String jugada, int idLoteria}) async {
-    Draws sorteo = await getSorteo(jugada);
+    Draws sorteo = await SorteoService.getSorteo(jugada);
     int idxEstadistica = listaEstadisticaJugada.indexWhere((element) => element.idLoteria == idLoteria && element.idSorteo == sorteo.id);
     if(idxEstadistica != -1){
       listaEstadisticaJugada[idxEstadistica].cantidad--;
@@ -5993,7 +5999,6 @@ _seleccionarBancaPertenecienteAUsuario() async {
   // print("_seleccionarBancaPertenecienteAUsuario bancaMap: ${bancaMap}");
   if(banca != null){
     int idx = listaBanca.indexWhere((b) => b.id == banca.id);
-    print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
     setState(() {
       _indexBanca = (idx != -1) ? idx : 0;
       _emitToGetNewIdTicket();
@@ -6002,7 +6007,6 @@ _seleccionarBancaPertenecienteAUsuario() async {
   }else{
     setState(() {
       _indexBanca = 0;
-      print("_seleccionarBancaPertenecienteAUsuario listaBanca: ${listaBanca.length}");
       _emitToGetNewIdTicket();
       _emitToGetVentasDelDia();
     });
@@ -6217,21 +6221,21 @@ _selectedBanca() async {
 
  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) async {
     
-    var montoDisponible;
+    // var montoDisponible;
 
-    if(kIsWeb){
-      try {
-        _txtMontoDisponible.text = "0";
-        var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
-        print("PrincipalView getMontoDisponible: $data");
-        return MontoDisponible(monto: Utils.toDouble(data["monto"]));
-      } on Exception catch (e) {
-        // TODO
-        print("PrincipalView getMontoDisponible error: ${e.toString()}");
-        return MontoDisponible(monto: 0);
+    // if(kIsWeb){
+    //   try {
+    //     _txtMontoDisponible.text = "0";
+    //     var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
+    //     print("PrincipalView getMontoDisponible: $data");
+    //     return MontoDisponible(monto: Utils.toDouble(data["monto"]));
+    //   } on Exception catch (e) {
+    //     // TODO
+    //     print("PrincipalView getMontoDisponible error: ${e.toString()}");
+    //     return MontoDisponible(monto: 0);
 
-      }
-    }
+    //   }
+    // }
     
     if(socket == null){
       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
@@ -6245,239 +6249,10 @@ _selectedBanca() async {
     
 
     int idDia = getIdDia();
-    int idSorteo = await getIdSorteo(jugada, loteria);
+    int idSorteo = await SorteoService.getIdSorteo(jugada, loteria);
     String jugadaConSigno = jugada;
-    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
-    print("PrincipalView getMontoDisponible banca moneda: ${banca.descripcion}");
-    Stock stockToReturn;
 
-    if(idSorteo != 4){
-      List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);
-
-      if(query.isEmpty != true){
-        montoDisponible = query.first['monto'];
-        stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: query.first['esBloqueoJugada']);
-      } 
-      
-      if(montoDisponible != null){
-        query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
-        if(query.isEmpty != true){
-          montoDisponible = query.first['monto'];
-          stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query.first['esBloqueoJugada']);
-        }else{
-          
-          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
-          query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          if(query.isEmpty != true){
-            var first = query.first;
-            if(first["ignorarDemasBloqueos"] == 1){
-              montoDisponible = first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-        }
-      }
-
-
-      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
-      if(montoDisponible == null){
-          query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
-        if(query.isEmpty != true){
-          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
-          var stock = query.first;
-          if(stock["ignorarDemasBloqueos"] == 0){
-            query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-            }else{
-              query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              if(query.isEmpty != true){
-                montoDisponible = query.first["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'],);
-              }
-              else{
-                montoDisponible = stock["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-              }
-            }
-          }else{
-            montoDisponible = stock["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-          }
-        }
-      }
-
-      
-
-      if(montoDisponible == null){
-        query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-        if(query.isEmpty != true){
-          var blocksplaysgenerals = query.first;
-          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
-            montoDisponible = null;
-          }else{
-            montoDisponible = blocksplaysgenerals["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-          }
-        }
-
-// query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
-        // print("Monto disponible blocksplaysgenrals: $query");
-
-        if(montoDisponible == null){
-          query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          if(query.isEmpty != true){
-            montoDisponible = query.first["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-          }else{
-            query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-
-          if(montoDisponible == null){
-            query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
-            }
-          }
-
-          if(montoDisponible == null){
-            query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
-            }
-          }
-
-          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
-        }
-      }
-    }else{
-      // MONTO SUPER PALE
-      // Debo ordenar de menor a mayor los idloteria y idloteriaSuperpale, 
-      // el idLoteria tendra el numero menor y el idLoteriaSuper tendra el numero mayor
-
-      if(loteria.id > loteriaSuperpale.id){
-        Loteria tmp = loteriaSuperpale;
-        loteriaSuperpale = loteria;
-        loteria = tmp;
-      }
-      List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, loteriaSuperpale.id, idSorteo, jugada, 0, banca.idMoneda]);
-      
-      print("getMontoDisponible super pale: $query");
-
-      if(query.isEmpty != true){
-        montoDisponible = query.first['monto'];
-        stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: query.first['esBloqueoJugada']);
-      }
-        
-      
-      if(montoDisponible != null){
-        query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
-        if(query.isEmpty != true){
-          montoDisponible = query.first['monto'];
-          stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query.first['esBloqueoJugada']);
-        }else{
-          
-          //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
-          query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          if(query.isEmpty != true){
-            var first = query.first;
-            if(first["ignorarDemasBloqueos"] == 1){
-              montoDisponible = first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-        }
-      }
-
-
-      //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
-      if(montoDisponible == null){
-          query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, banca.idMoneda]);
-        if(query.isEmpty != true){
-          //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
-          var stock = query.first;
-          if(stock["ignorarDemasBloqueos"] == 0){
-            query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-            }else{
-              query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              if(query.isEmpty != true){
-                montoDisponible = query.first["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
-              }
-              else{
-                montoDisponible = stock["monto"];
-                stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-              }
-            }
-          }else{
-            montoDisponible = stock["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
-          }
-        }
-      }
-
-      
-
-      if(montoDisponible == null){
-        query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-        if(query.isEmpty != true){
-          var blocksplaysgenerals = query.first;
-          if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
-            montoDisponible = null;
-          }else{
-            montoDisponible = blocksplaysgenerals["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-          }
-        }
-
-        if(montoDisponible == null){
-          query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-          if(query.isEmpty != true){
-            montoDisponible = query.first["monto"];
-            stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
-          }else{
-            query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
-            }
-          }
-
-          if(montoDisponible == null){
-            query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
-            }
-          }
-
-          if(montoDisponible == null){
-            query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            if(query.isEmpty != true){
-              montoDisponible = query.first["monto"];
-              stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
-            }
-          }
-
-          // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
-        }
-      }
-    }
-
-    // setState(() {
-    //  _txtMontoDisponible.text = montoDisponible.toString(); 
-    // });
-    // print('montoDisponiblePrueba idSorteo: $montoDisponible');
+    MontoDisponible montoDisponible = await Db.getMontoDisponible(jugada, loteria, banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock);
 
   
     int idx = -1;
@@ -6488,22 +6263,312 @@ _selectedBanca() async {
       // _selectedLoterias[0].id
     // double montoDisponibleFinal = montoDisponible.toDouble();
     
-    double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
+    double montoDisponibleFinal = Utils.toDouble(montoDisponible.monto.toString());
     if(idx != -1){
-      print("encontrado: ${listaJugadas[idx].monto}");
       montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
-      print("encontrado y restado: ${montoDisponibleFinal}");
     }
 
-    if(stockToReturn != null)
-      stockToReturn.monto = montoDisponibleFinal;
-    else
-      stockToReturn = Stock(monto: montoDisponibleFinal);
+    // if(stockToReturn != null)
+    //   stockToReturn.monto = montoDisponibleFinal;
+    // else
+    //   stockToReturn = Stock(monto: montoDisponibleFinal);
 
-    print("principalView getMontoDisponible: ${stockToReturn.toJson()}");
-    return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
-   
+    montoDisponible.monto = montoDisponibleFinal;
+
+    // return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
+    return montoDisponible;
+
  }
+
+//  Future<MontoDisponible> getMontoDisponibleSQFlite(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) async {
+    
+//     var montoDisponible;
+
+//     if(kIsWeb){
+//       try {
+//         _txtMontoDisponible.text = "0";
+//         var data = await TicketService.montoDisponible(context: context, jugada: jugada, idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : 0);
+//         print("PrincipalView getMontoDisponible: $data");
+//         return MontoDisponible(monto: Utils.toDouble(data["monto"]));
+//       } on Exception catch (e) {
+//         // TODO
+//         print("PrincipalView getMontoDisponible error: ${e.toString()}");
+//         return MontoDisponible(monto: 0);
+
+//       }
+//     }
+    
+//     if(socket == null){
+//       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+//       return MontoDisponible(monto: 0);
+//     }
+//     if(!socket.connected){
+//       Utils.showAlertDialog(context: context, content: "No hay conexion, verifique por favor", title: "Error");
+//       return MontoDisponible(monto: 0);
+//     }
+
+    
+
+//     int idDia = getIdDia();
+//     int idSorteo = await getIdSorteo(jugada, loteria);
+//     String jugadaConSigno = jugada;
+//     jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+//     print("PrincipalView getMontoDisponible banca moneda: ${banca.descripcion}");
+//     Stock stockToReturn;
+
+//     if(idSorteo != 4){
+//       List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, 0, banca.idMoneda]);
+
+//       if(query.isEmpty != true){
+//         montoDisponible = query.first['monto'];
+//         stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: query.first['esBloqueoJugada']);
+//       } 
+      
+//       if(montoDisponible != null){
+//         query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+//         if(query.isEmpty != true){
+//           montoDisponible = query.first['monto'];
+//           stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query.first['esBloqueoJugada']);
+//         }else{
+          
+//           //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+//           query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//           if(query.isEmpty != true){
+//             var first = query.first;
+//             if(first["ignorarDemasBloqueos"] == 1){
+//               montoDisponible = first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//             }
+//           }
+//         }
+//       }
+
+
+//       //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+//       if(montoDisponible == null){
+//           query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda]);
+//         if(query.isEmpty != true){
+//           //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+//           var stock = query.first;
+//           if(stock["ignorarDemasBloqueos"] == 0){
+//             query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
+//             }else{
+//               query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+//               if(query.isEmpty != true){
+//                 montoDisponible = query.first["monto"];
+//                 stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'],);
+//               }
+//               else{
+//                 montoDisponible = stock["monto"];
+//                 stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
+//               }
+//             }
+//           }else{
+//             montoDisponible = stock["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
+//           }
+//         }
+//       }
+
+      
+
+//       if(montoDisponible == null){
+//         query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//         if(query.isEmpty != true){
+//           var blocksplaysgenerals = query.first;
+//           if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+//             montoDisponible = null;
+//           }else{
+//             montoDisponible = blocksplaysgenerals["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//           }
+//         }
+
+// // query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ?', whereArgs: [1], orderBy: '"id" desc' );
+//         // print("Monto disponible blocksplaysgenrals: $query");
+
+//         if(montoDisponible == null){
+//           query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//           if(query.isEmpty != true){
+//             montoDisponible = query.first["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
+//           }else{
+//             query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//             }
+//           }
+
+//           if(montoDisponible == null){
+//             query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
+//             }
+//           }
+
+//           if(montoDisponible == null){
+//             query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
+//             }
+//           }
+
+//           // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+//         }
+//       }
+//     }else{
+//       // MONTO SUPER PALE
+//       // Debo ordenar de menor a mayor los idloteria y idloteriaSuperpale, 
+//       // el idLoteria tendra el numero menor y el idLoteriaSuper tendra el numero mayor
+
+//       if(loteria.id > loteriaSuperpale.id){
+//         Loteria tmp = loteriaSuperpale;
+//         loteriaSuperpale = loteria;
+//         loteria = tmp;
+//       }
+//       List<Map<String, dynamic>> query = await Db.database.query('Stocks' , where: '"idBanca" = ? and "idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, loteriaSuperpale.id, idSorteo, jugada, 0, banca.idMoneda]);
+      
+//       print("getMontoDisponible super pale: $query");
+
+//       if(query.isEmpty != true){
+//         montoDisponible = query.first['monto'];
+//         stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: query.first['esBloqueoJugada']);
+//       }
+        
+      
+//       if(montoDisponible != null){
+//         query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "ignorarDemasBloqueos" = ? and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, 1, 1, banca.idMoneda]);
+//         if(query.isEmpty != true){
+//           montoDisponible = query.first['monto'];
+//           stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: query.first['esBloqueoJugada']);
+//         }else{
+          
+//           //Ahora nos aseguramos de que el bloqueo general existe y el valor de ignorarDemasBloqueos sea = 1
+//           query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//           if(query.isEmpty != true){
+//             var first = query.first;
+//             if(first["ignorarDemasBloqueos"] == 1){
+//               montoDisponible = first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//             }
+//           }
+//         }
+//       }
+
+
+//       //AQUI ES CUANDO EXISTE BLOQUEO GENERAL EN STOCKS
+//       if(montoDisponible == null){
+//           query = await Db.database.query('Stocks' ,where: '"idLoteria" = ? and "idLoteriaSuperpale" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, loteriaSuperpale.id, idSorteo, jugada, banca.idMoneda]);
+//         if(query.isEmpty != true){
+//           //SI IGNORARDEMASBLOQUEOS ES FALSE ENTONCES VAMOS A VERIFICAR SI EXISTEN BLOQUEOS POR BANCAS YA SEAN DE JUGADAS PARA RETORNAR ESTOS BLOQUEOS
+//           var stock = query.first;
+//           if(stock["ignorarDemasBloqueos"] == 0){
+//             query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
+//             }else{
+//               query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+//               if(query.isEmpty != true){
+//                 montoDisponible = query.first["monto"];
+//                 stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
+//               }
+//               else{
+//                 montoDisponible = stock["monto"];
+//                 stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
+//               }
+//             }
+//           }else{
+//             montoDisponible = stock["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: stock["esBloqueoJugada"]);
+//           }
+//         }
+//       }
+
+      
+
+//       if(montoDisponible == null){
+//         query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//         if(query.isEmpty != true){
+//           var blocksplaysgenerals = query.first;
+//           if(blocksplaysgenerals["ignorarDemasBloqueos"] == 0){
+//             montoDisponible = null;
+//           }else{
+//             montoDisponible = blocksplaysgenerals["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 1, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//           }
+//         }
+
+//         if(montoDisponible == null){
+//           query = await Db.database.query('Blocksplays' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//           if(query.isEmpty != true){
+//             montoDisponible = query.first["monto"];
+//             stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
+//           }else{
+//             query = await Db.database.query('Blocksplaysgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, jugada, banca.idMoneda], orderBy: '"id" desc' );
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda, esBloqueoJugada: 1);
+//             }
+//           }
+
+//           if(montoDisponible == null){
+//             query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query.first['descontarDelBloqueoGeneral']);
+//             }
+//           }
+
+//           if(montoDisponible == null){
+//             query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
+//             if(query.isEmpty != true){
+//               montoDisponible = query.first["monto"];
+//               stockToReturn = Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
+//             }
+//           }
+
+//           // print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
+//         }
+//       }
+//     }
+
+//     // setState(() {
+//     //  _txtMontoDisponible.text = montoDisponible.toString(); 
+//     // });
+//     // print('montoDisponiblePrueba idSorteo: $montoDisponible');
+
+  
+//     int idx = -1;
+//     if(idSorteo == 4)
+//       idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id && j.jugada == jugadaConSigno);
+//     else
+//       idx = listaJugadas.indexWhere((j) => j.idLoteria == loteria.id && j.jugada == jugadaConSigno);
+//       // _selectedLoterias[0].id
+//     // double montoDisponibleFinal = montoDisponible.toDouble();
+    
+//     double montoDisponibleFinal = Utils.toDouble(montoDisponible.toString());
+//     if(idx != -1){
+//       print("encontrado: ${listaJugadas[idx].monto}");
+//       montoDisponibleFinal = montoDisponibleFinal - listaJugadas[idx].monto;
+//       print("encontrado y restado: ${montoDisponibleFinal}");
+//     }
+
+//     if(stockToReturn != null)
+//       stockToReturn.monto = montoDisponibleFinal;
+//     else
+//       stockToReturn = Stock(monto: montoDisponibleFinal);
+
+//     print("principalView getMontoDisponible: ${stockToReturn.toJson()}");
+//     return MontoDisponible(monto: montoDisponibleFinal, stock: stockToReturn);
+   
+//  }
 
  Future<double> getMontoDisponibleViejo(String jugada, Loteria loteria, Banca banca) async {
     var c = await DB.create();
@@ -6535,9 +6600,9 @@ _selectedBanca() async {
     // return;
     
     int idDia = getIdDia();
-    int idSorteo = getIdSorteo(jugada, loteria);
+    int idSorteo = await SorteoService.getIdSorteo(jugada, loteria);
 
-    jugada = await esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
+    jugada = await SorteoService.esSorteoPickQuitarUltimoCaracter(jugada, idSorteo);
     int idx = -1;
 
     if(stocks != null)
@@ -6622,7 +6687,6 @@ _selectedBanca() async {
           }
         }
 
-    print('montoDisponiblePrueba idSorteo: lot: $loteria.id sor: $idSorteo dia: $idDia res:${blocksgenerals.indexWhere((b) => b.idLoteria == loteria.id && b.idDia == idDia && b.idSorteo == idSorteo)} prueba:${Blocksgenerals.blocksgeneralsToJson(blocksgenerals.where((b) => b.idLoteria == loteria.id && b.idSorteo == idSorteo).toList())}');
 
         
       }
@@ -6648,133 +6712,138 @@ _selectedBanca() async {
   }
  
 
- getIdSorteo(String jugada, Loteria loteria) async {
-   int idSorteo = 0;
+ 
+//  getIdSorteoSQFlite(String jugada, Loteria loteria) async {
+//    int idSorteo = 0;
 
-   if(jugada.length == 2)
-    idSorteo = 1;
-  else if(jugada.length == 3){
-    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
-    idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-  }
-  else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
-      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }else{
-      idSorteo = 2;
-      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
-      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
-      //   idSorteo = 4;
-      // }else{
-      //   idSorteo = 2;
-      // }
-    }
-  }
-  else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
-      var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
-      idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-    else if(jugada.indexOf("-") != -1){
-       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
-        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-    else if(jugada.indexOf("s") != -1){
-       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
-        idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
-    }
-  }
-  else if(jugada.length == 6)
-    idSorteo = 3;
+//    if(jugada.length == 2)
+//     idSorteo = 1;
+//   else if(jugada.length == 3){
+//     // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+//     var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+//     idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+//   }
+//   else if(jugada.length == 4){
+//     if(jugada.indexOf("+") != -1){
+//       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+//       idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+//     }else{
+//       idSorteo = 2;
+//       // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+//       // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+//       //   idSorteo = 4;
+//       // }else{
+//       //   idSorteo = 2;
+//       // }
+//     }
+//   }
+//   else if(jugada.length == 5){
+//     if(jugada.indexOf("+") != -1){
+//       var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+//       idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+//     }
+//     else if(jugada.indexOf("-") != -1){
+//        var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+//         idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+//     }
+//     else if(jugada.indexOf("s") != -1){
+//        var query = await Db.database.query('Draws', columns: ['id'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+//         idSorteo = (query.isEmpty != true) ? query.first['id'] : 0;
+//     }
+//   }
+//   else if(jugada.length == 6)
+//     idSorteo = 3;
 
-  return idSorteo;
- }
+//   return idSorteo;
+//  }
 
- getSorteo(String jugada) async {
+ 
+//  getSorteoSQFlite(String jugada) async {
    
 
-    Draws sorteo;
+//     Draws sorteo;
 
-   if(jugada.length == 2){
-     if(kIsWeb)
-      return Draws(1, 'Directo', 2, 1, 1, null);
+//    if(jugada.length == 2){
+//      if(kIsWeb)
+//       return Draws(1, 'Directo', 2, 1, 1, null);
 
-     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
-     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-   }
-  else if(jugada.length == 3){
-    if(kIsWeb)
-      return Draws(1, 'Pick 3 Straight', 2, 1, 1, null);
+//      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Directo']);
+//     //  var query = await Db.draw('Directo');
+//      sorteo = (query.isEmpty != true) ? Draws.fromMap(query) : null;
+//    }
+//   else if(jugada.length == 3){
+//     if(kIsWeb)
+//       return Draws(1, 'Pick 3 Straight', 2, 1, 1, null);
 
-    // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
-  else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
-       if(kIsWeb)
-        return Draws(1, 'Pick 3 Box', 2, 1, 1, null);
+//     // idSorteo = draws[draws.indexWhere((d) => d.descripcion == 'Pick 3 Straight')].id;
+//     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Straight']);
+//     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//   }
+//   else if(jugada.length == 4){
+//     if(jugada.indexOf("+") != -1){
+//        if(kIsWeb)
+//         return Draws(1, 'Pick 3 Box', 2, 1, 1, null);
 
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }else{
-      if(kIsWeb)
-        return Draws(1, 'Pale', 2, 1, 1, null);
+//       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 3 Box']);
+//       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//     }else{
+//       if(kIsWeb)
+//         return Draws(1, 'Pale', 2, 1, 1, null);
 
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-      // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
-      // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
-      //   idSorteo = 4;
-      // }else{
-      //   idSorteo = 2;
-      // }
-    }
-  }
-  else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Pick 4 Box', 2, 1, 1, null);
+//       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pale']);
+//       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//       // List<Draws> sorteosLoteriaSeleccionada = loteria.sorteos;
+//       // if(sorteosLoteriaSeleccionada.indexWhere((s) => s.descripcion == 'Super pale') != -1){
+//       //   idSorteo = 4;
+//       // }else{
+//       //   idSorteo = 2;
+//       // }
+//     }
+//   }
+//   else if(jugada.length == 5){
+//     if(jugada.indexOf("+") != -1){
+//       if(kIsWeb)
+//         return Draws(1, 'Pick 4 Box', 2, 1, 1, null);
 
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("-") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Pick 4 Straight', 2, 1, 1, null);
+//       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Box']);
+//       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//     }
+//     else if(jugada.indexOf("-") != -1){
+//       if(kIsWeb)
+//         return Draws(1, 'Pick 4 Straight', 2, 1, 1, null);
 
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-    else if(jugada.indexOf("s") != -1){
-      if(kIsWeb)
-        return Draws(1, 'Super pale', 2, 1, 1, null);
+//       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Pick 4 Straight']);
+//       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//     }
+//     else if(jugada.indexOf("s") != -1){
+//       if(kIsWeb)
+//         return Draws(1, 'Super pale', 2, 1, 1, null);
 
-      var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
-      sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-    }
-  }
-  else if(jugada.length == 6){
-    if(kIsWeb)
-        return Draws(1, 'Tripleta', 2, 1, 1, null);
+//       var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Super pale']);
+//       sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//     }
+//   }
+//   else if(jugada.length == 6){
+//     if(kIsWeb)
+//         return Draws(1, 'Tripleta', 2, 1, 1, null);
 
-    var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
-    sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
-  }
+//     var query = await Db.database.query('Draws', columns: ['id', 'descripcion'], where:'"descripcion" = ?', whereArgs: ['Tripleta']);
+//     sorteo = (query.isEmpty != true) ? Draws.fromMap(query.first) : null;
+//   }
 
-  return sorteo;
- }
+//   return sorteo;
+//  }
 
-Future<String> esSorteoPickQuitarUltimoCaracter(String jugada, idSorteo) async {
-  var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
-  String sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
-  if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box' || sorteo == 'Super pale'){
-    jugada = jugada.substring(0, jugada.length - 1);
-  }
-  return jugada;
-}
+
+
+// Future<String> esSorteoPickQuitarUltimoCaracterSQFLite(String jugada, idSorteo) async {
+//   var query = await Db.database.query('Draws', columns: ['descripcion'], where:'"id" = ?', whereArgs: [idSorteo]);
+//   String sorteo = (query.isEmpty != true) ? query.first['descripcion'] : '';
+//   if(sorteo == 'Pick 3 Box' || sorteo == 'Pick 4 Straight' || sorteo == 'Pick 4 Box' || sorteo == 'Super pale'){
+//     jugada = jugada.substring(0, jugada.length - 1);
+//   }
+//   return jugada;
+// }
 
 
 
@@ -6886,14 +6955,12 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> l
     listaLoteriaTmp = parsed['lotteries'].map<Loteria>((json) => Loteria.fromMap(json)).toList();
 
    listaLoteriaEvent.forEach((l) async {
-    print("dentro foreach loterias: ${l.descripcion}");
 
     DateTime fechaLoteria = _horaCierreLoteriaToCurrentTimeZone(l);
     DateTime now = DateTime.now();
 
     if(now.isAfter(fechaLoteria)){
       if(!_tienePermisoJugarFueraDeHorario){
-      print("dentro foreach loterias eliminar: ${l.descripcion}");
         if(_tienePermisoJugarMinutosExtras){
           var fechaLoteriaMinutosExtras = fechaLoteria.add(Duration(minutes: l.minutosExtras));
           if(now.isAfter(fechaLoteriaMinutosExtras)){
@@ -6913,12 +6980,10 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> l
     var _index = listaLoteriaEvent.indexWhere((lo) => lo.id == l);
     if(_index != -1){
       setState(() => listaLoteriaEvent.removeAt(_index));
-      print("listaIdloteriasAEliminar: ${listaLoteriaEvent[_index]}");
     }
 
   });
 
-  print("listaIdloteriasAEliminar: ${listaIdloteriasAEliminar}");
 
   
   setState((){

@@ -1,4 +1,5 @@
 import 'dart:async';
+// import 'dart:ffi';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
+import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/cross_platform_sembas/cross_platform_sembas.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
@@ -21,6 +24,7 @@ import 'package:loterias/ui/widgets/mytabbar.dart';
 import 'package:phone_form_field/l10n/generated/phone_field_localization.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
+// import 'package:sqlite3/open.dart';
 
 
 
@@ -48,8 +52,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // await MyNotification.init();
 
+  // if(Platform.isWindows)
+  //   open.overrideFor(OperatingSystem.windows, _openOnWindows);
+
   //Firebase
-  await Firebase.initializeApp();
+  // await Firebase.initializeApp();
+  await (CrossFirebase()).initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   if (!kIsWeb) {
     channel = AndroidNotificationChannel(
@@ -64,7 +72,8 @@ Future<void> main() async {
   }
   await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
     ?.createNotificationChannel(channel);
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+  // await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
+  await (CrossFirebase()).setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
   
 // final appDocumentDirectory = await getApplicationDocumentsDirectory();
 
@@ -76,10 +85,22 @@ Future<void> main() async {
   // var crossPlatform = CrossTimezone();
   //  var currentTimeZone = await crossPlatform.getCurrentTimezone();
 
+
+  print("Main holaaaa: ${Intl.defaultLocale }");
   
   runApp(MyApp());
 
 }
+
+// DynamicLibrary _openOnWindows() {
+//    return DynamicLibrary.open('assets\\windows\\sqlite3.dll');
+// }
+
+// DynamicLibrary _openOnLinux() {
+//   final scriptDir = File(Platform.script.toFilePath()).parent;
+//   final libraryNextToScript = File('${scriptDir.path}/sqlite3.so');
+//   return DynamicLibrary.open(libraryNextToScript.path);
+// }
 
 class MyApp extends StatelessWidget {
 

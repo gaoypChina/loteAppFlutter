@@ -1,25 +1,45 @@
+import 'package:drift/web.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
-import 'package:loterias/core/classes/moor_database.dart';
-import 'package:moor/moor_web.dart';
+import 'package:loterias/core/classes/drift_database.dart';
+import 'package:loterias/core/models/blocksdirty.dart';
+import 'package:loterias/core/models/blocksdirtygenerals.dart';
+import 'package:loterias/core/models/blocksgenerals.dart';
+import 'package:loterias/core/models/blockslotteries.dart';
+import 'package:loterias/core/models/blocksplays.dart';
+import 'package:loterias/core/models/blocksplaysgenerals.dart';
+import 'package:loterias/core/models/dia.dart';
+import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/jugadas.dart';
+import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/montodisponible.dart';
+import 'package:loterias/core/models/permiso.dart';
+import 'package:loterias/core/models/servidores.dart';
+import 'package:loterias/core/models/stocks.dart' as StockModel;
+import 'package:loterias/core/models/blocksgenerals.dart' as BlocksgeneralsModel;
+import 'package:loterias/core/models/blockslotteries.dart' as BlockslotteriesModel;
+import 'package:loterias/core/models/blocksplays.dart' as BlocksplaysModel;
+import 'package:loterias/core/models/blocksplaysgenerals.dart' as BlocksplaysgeneralsModel;
+import 'package:loterias/core/models/blocksdirtygenerals.dart' as BlocksdirtygeneralsModel;
+import 'package:loterias/core/models/blocksdirty.dart' as BlocksdirtyModel;
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
 
-class WebMoor implements CrossDB{
+class WebDrift implements CrossDB{
   // @override
   // getMoorCrossConstructor() {
   //   // TODO: implement getMoorCrossConstructor
   //   return WebDatabase('app', logStatements: true);
   // }
   AppDatabase db;
-  static final WebMoor _singleton = WebMoor._internal();
+  static final WebDrift _singleton = WebDrift._internal();
 
-  factory WebMoor() {
+  factory WebDrift() {
     return _singleton;
   }
 
   // Db._internal();
-  WebMoor._internal(){
+  WebDrift._internal(){
     db = AppDatabase(WebDatabase('app', logStatements: true));
   }
 
@@ -27,7 +47,7 @@ class WebMoor implements CrossDB{
   openConnection() {
     // TODO: implement getMoorCrossConstructor
     // WebDatabase('app', logStatements: true);
-    var w = WebMoor();
+    var w = WebDrift();
     // return AppDatabase(WebDatabase('app', logStatements: true));
     return w.db;
   }
@@ -41,7 +61,7 @@ class WebMoor implements CrossDB{
   @override
   insert(String table, Map<String, dynamic> dataToMap) {
     // TODO: implement insert
-    var database = WebMoor();
+    var database = WebDrift();
     switch (table) {
       case "Users":
         return database.db.insertUser(User.fromJson(dataToMap));
@@ -63,14 +83,14 @@ class WebMoor implements CrossDB{
   @override
   deleteDB() {
     // TODO: implement deleteDB
-    var database = WebMoor();
+    var database = WebDrift();
     return database.db.deleteAllTables();
   }
 
   @override
   Future<Map<String, dynamic>> ajustes() {
     // TODO: implement ajustes
-    var database = WebMoor();
+    var database = WebDrift();
     return database.db.getSetting();
     throw UnimplementedError("WebDatabase Uninplemented ajustes");
   }
@@ -78,7 +98,7 @@ class WebMoor implements CrossDB{
   @override
   Future delete(String table, [id]) {
       // TODO: implement delete
-    var database = WebMoor();
+    var database = WebDrift();
     switch (table) {
       case "Users":
         return database.db.deleteAllUser();
@@ -102,7 +122,7 @@ class WebMoor implements CrossDB{
     @override
     Future<bool> existePermiso(String permiso) {
       // TODO: implement existePermiso
-      var database = WebMoor();
+      var database = WebDrift();
       return database.db.existePermiso(permiso);
       throw UnimplementedError("WebDatabase Uninplemented existePermiso");
     }
@@ -110,7 +130,7 @@ class WebMoor implements CrossDB{
     @override
     Future<Map<String, dynamic>> getBanca() {
       // TODO: implement getBanca
-      var database = WebMoor();
+      var database = WebDrift();
       return database.db.getBanca();
       throw UnimplementedError("WebDatabase Uninplemented getBanca");
     }
@@ -118,7 +138,7 @@ class WebMoor implements CrossDB{
     @override
     Future<Map<String, dynamic>> getUsuario() {
       // TODO: implement getUsuario
-      var database = WebMoor();
+      var database = WebDrift();
       return database.db.getUsuario();
       throw UnimplementedError("WebDatabase Uninplemented getUsuario");
     }
@@ -126,7 +146,7 @@ class WebMoor implements CrossDB{
     @override
     Future<int> idBanca() {
       // TODO: implement idBanca
-      var database = WebMoor();
+      var database = WebDrift();
       return database.db.idBanca();
       throw UnimplementedError("WebDatabase Uninplemented idBanca");
     }
@@ -134,14 +154,14 @@ class WebMoor implements CrossDB{
     @override
     Future<int> idUsuario() {
       // TODO: implement idUsuario
-       var database = WebMoor();
+       var database = WebDrift();
       return database.db.idUsuario();
       throw UnimplementedError("WebDatabase Uninplemented idUsuario");
     }
     @override
     Future<int> idGrupo() {
       // TODO: implement idGrupo
-       var database = WebMoor();
+       var database = WebDrift();
       return database.db.idGrupo();
       throw UnimplementedError("WebDatabase Uninplemented idGrupo");
     }
@@ -150,7 +170,7 @@ class WebMoor implements CrossDB{
     Future<List<Map<String, dynamic>>> query(String table) async {
       // TODO: implement query
       // throw UnimplementedError("WebDatabase Uninplemented query");
-    var database = WebMoor();
+    var database = WebDrift();
 
       switch (table) {
       // case "Users":
@@ -173,7 +193,7 @@ class WebMoor implements CrossDB{
     @override
     Future<String> servidor() {
       // TODO: implement servidor
-      var database = WebMoor();
+      var database = WebDrift();
       return database.db.servidor();
       throw UnimplementedError("WebDatabase Uninplemented servidor");
     }
@@ -232,7 +252,199 @@ class WebMoor implements CrossDB{
     throw UnimplementedError("WebDatabase Uninplemented getSaleNoSubida");
   }
 
+  @override
+  Future<void> sincronizarTodosDataBatch(parsed) {
+    // TODO: implement sincronizarTodosDataBatch
+    var database = WebDrift();
+    return database.db.sincronizarTodosDataBatch(parsed);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> drawById(int id, [var sqfliteTransaction]) {
+    // TODO: implement drawById
+    var database = WebDrift();
+    return database.db.drawById(id);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List> guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad, sqfliteTransaction}) {
+    // TODO: implement guardarVentaV2
+    var database = WebDrift();
+    return database.db.guardarVentaV2(banca: banca, jugadas: jugadas, socket: socket, listaLoteria: listaLoteria, compartido: compartido, descuentoMonto: descuentoMonto, currentTimeZone: currentTimeZone, tienePermisoJugarFueraDeHorario: tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: tienePermisoJugarSinDisponibilidad);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> draw(String descripcion, [var sqfliteTransaction]) {
+    // TODO: implement draw
+    var database = WebDrift();
+    return database.db.draw(descripcion);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) {
+    // TODO: implement getMontoDisponible
+    var database = WebDrift();
+    return database.db.getMontoDisponible(jugada, loteria,banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock );
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllBranches() {
+    // TODO: implement deleteAllBranches
+    var database = WebDrift();
+    return database.db.deleteAllBranches();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future insertBranch(Branch branch) {
+    // TODO: implement insertBranch
+    var database = WebDrift();
+    return database.db.insertBranch(branch);
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllPermission() {
+    // TODO: implement deleteAllPermission
+    var database = WebDrift();
+    return database.db.deleteAllPermission();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future deleteAllUser() {
+    // TODO: implement deleteAllUser
+    var database = WebDrift();
+    return database.db.deleteAllUser();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Server>> getAllServer() {
+    // TODO: implement deleteAllUser
+    var database = WebDrift();
+    return database.db.getAllServer();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> getBlocksdirtyCantidad({int idBanca, int idLoteria, int idSorteo, int idMoneda}) {
+    // TODO: implement getBlocksdirtyCantidad
+    var database = WebDrift();
+    return database.db.getBlocksdirtyCantidad(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+  }
+
+  @override
+  Future<int> getBlocksdirtygeneralCantidad({int idLoteria, int idSorteo, int idMoneda}) {
+    // TODO: implement getBlocksdirtygeneralCantidad
+    var database = WebDrift();
+    return database.db.getBlocksdirtygeneralCantidad(idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+  }
+
+  @override
+  Future insertUser(User user) {
+    // TODO: implement insertUser
+    var database = WebDrift();
+    return database.db.insertUser(user);
+  }
+
+  @override
+  Future<void> insertListLoteria(List<Loteria> loterias) async {
+    // TODO: implement insertListLoteria
+    var database = WebDrift();
+    await database.db.insertListLoteria(loterias);
+  }
+
+  @override
+  Future<void> insertListDay(List<Dia> dias) async {
+    // TODO: implement insertListDay
+    var database = WebDrift();
+    await database.db.insertListDay(dias);
+  }
+
+  @override
+  Future insertSetting(Setting setting) async {
+    // TODO: implement insertSetting
+    var database = WebDrift();
+    await database.db.insertSetting(setting);
+  }
+
+  @override
+  Future<void> insertListPermission(List<Permiso> permisos) async {
+    // TODO: implement insertListPermission
+    var database = WebDrift();
+    await database.db.insertListPermission(permisos);
+  }
+
+  @override
+  Future<void> insertListServer(List<Servidor> servidores) async {
+    // TODO: implement insertListServer
+    var database = WebDrift();
+    await database.db.insertListServer(servidores);
+  }
+
+  @override
+  Future insertOrDeleteStocks(List<StockModel.Stock> elements, bool delete) async {
+    // TODO: implement insertOrDeleteStocks
+    var database = WebDrift();
+    await database.db.insertOrDeleteStocks(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlocksgenerals(List<BlocksgeneralsModel.Blocksgenerals> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksgenerals
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksgenerals(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlockslotteries(List<BlockslotteriesModel.Blockslotteries> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlockslotteries
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlockslotteries(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlocksplays(List<BlocksplaysModel.Blocksplays> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksplays
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksplays(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlocksplaysgenerals(List<BlocksplaysgeneralsModel.Blocksplaysgenerals> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksplaysgenerals
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksplaysgenerals(elements, delete);
+  }
+
+  @override
+  Future deleteAllSetting() {
+    // TODO: implement deleteAllSetting
+    var database = WebDrift();
+    return database.db.deleteAllSetting();
+  }
+
+  @override
+  Future insertOrDeleteBlocksdirtygenerals(List<BlocksdirtygeneralsModel.Blocksdirtygenerals> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksdirtygenerals
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksdirtygenerals(elements, delete);
+  }
+
+  @override
+  Future insertOrDeleteBlocksdirtys(List<BlocksdirtyModel.Blocksdirty> elements, bool delete) async {
+    // TODO: implement insertOrDeleteBlocksdirtys
+    var database = WebDrift();
+    await database.db.insertOrDeleteBlocksdirtys(elements, delete);
+  }
+
 }
 
-CrossDB getDB() => WebMoor();
+CrossDB getDB() => WebDrift();
 
