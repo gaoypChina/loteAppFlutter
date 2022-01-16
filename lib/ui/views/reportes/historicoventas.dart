@@ -68,6 +68,9 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   var _txtSearch = TextEditingController();
   List<MyFilterSubData2> _selctedFilter = [];
   List<MyFilterData2> listaFiltros = [];
+  List<String> listaReporteARetornar = ["Historico", "Branchreport"];
+  String _reporteARetornar = "Historico";
+  String executeTime = "";
 
   @override
   initState(){
@@ -144,7 +147,7 @@ _init() async {
       _filtrarFecha();
       _idGrupoDeEsteUsuario = await Db.idGrupo();
       print("HistoricoVentas _init _idGrupoDeEsteUsuario: $_idGrupoDeEsteUsuario");
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [], limite: _limite, idGrupos: _idGrupoDeEsteUsuario != null ? [_idGrupoDeEsteUsuario] : []);
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: [], limite: _limite, idGrupos: _idGrupoDeEsteUsuario != null ? [_idGrupoDeEsteUsuario] : [], isBranchreport: _reporteARetornar == "Branchreport");
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
       // listaData = List.from(parsed["bancas"]);
       listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
@@ -201,9 +204,10 @@ _init() async {
         _streamControllerHistorio.add(null);
       _filtrarFecha();
 
-      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: _monedas.map((e) => e.id).toList(), limite: _limite, idGrupos: _grupos.map((e) => e.id).toList());
-      print("HistoricoVentasScreen _historicoVentas query: ${parsed["query"]}");
+      var parsed = await ReporteService.historico(scaffoldKey: _scaffoldKey, context: context, fechaDesde: _date.start, fechaHasta: _date.end, opcion: _selectedOption, idMonedas: _monedas.map((e) => e.id).toList(), limite: _limite, idGrupos: _grupos.map((e) => e.id).toList(), isBranchreport: _reporteARetornar == "Branchreport");
+      print("HistoricoVentasScreen _historicoVentas query: ${parsed["bancas"]}");
       listaData = parsed["bancas"] != null ? parsed["bancas"].map<Historico>((json) => Historico.fromMap(json)).toList() : [];
+      executeTime = parsed["time"];
       // listaData = List.from(parsed["bancas"]);
       // if(listaMoneda.length == 0)
       //   listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
@@ -1017,87 +1021,99 @@ _monedaChanged(moneda){
     // return Text("Klk");
 
     if(!isSmallOrMedium)
-      return MyTable(
-        // type: MyTableType.custom,
-        showColorWhenImpar: true,
-        columns: [
-          "Banca",
-          "Pendientes",
-          "Ganadores",
-          "Perdedores",
-          "Tickets",
-          "Ventas",
-          "Comi.",
-          "Desc.",
-          "Premios",
-          "Neto",
-          "Balance",
-          "Balance mas ventas",
-        ], 
-        rows: data.map((e) => [
-          e, 
-          "${e.descripcion}", 
-          "${e.pendientes}", 
-          "${e.ganadores}", 
-          "${e.perdedores}", 
-          "${e.tickets}", 
-          "${Utils.toCurrency(e.ventas)}", 
-          "${Utils.toCurrency(e.comisiones)}", 
-          "${Utils.toCurrency(e.descuentos)}", 
-          "${Utils.toCurrency(e.premios)}", 
-          "${Utils.toCurrency(e.totalNeto)}", 
-          "${Utils.toCurrency(e.balance)}", 
-          "${Utils.toCurrency(e.balanceActual)}"]).toList(),
-          totals: [[
-            "Total",
-           "${data.map((e) => e.pendientes).reduce((value, element) => value + element)}",
-           "${data.map((e) => e.ganadores).reduce((value, element) => value + element)}",
-           "${data.map((e) => e.perdedores).reduce((value, element) => value + element)}",
-           "${data.map((e) => e.tickets).reduce((value, element) => value + element)}",
-           "${Utils.toCurrency(data.map((e) => e.ventas).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.comisiones).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.descuentos).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.premios).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.totalNeto).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.balance).reduce((value, element) => value + element))}",
-           "${Utils.toCurrency(data.map((e) => e.balanceActual).reduce((value, element) => value + element))}",
-        ]],
+      return Column(
+        children: [
+          MySubtitle(title: "$executeTime"),
+          MyTable(
+            // type: MyTableType.custom,
+            showColorWhenImpar: true,
+            columns: [
+              "Banca",
+              "Pendientes",
+              "Ganadores",
+              "Perdedores",
+              "Tickets",
+              "Ventas",
+              "Comi.",
+              "Desc.",
+              "Premios",
+              "Neto",
+              "Balance",
+              "Balance mas ventas",
+            ], 
+            rows: data.map((e) => [
+              e, 
+              "${e.descripcion}", 
+              "${e.pendientes}", 
+              "${e.ganadores}", 
+              "${e.perdedores}", 
+              "${e.tickets}", 
+              "${Utils.toCurrency(e.ventas)}", 
+              "${Utils.toCurrency(e.comisiones)}", 
+              "${Utils.toCurrency(e.descuentos)}", 
+              "${Utils.toCurrency(e.premios)}", 
+              "${Utils.toCurrency(e.totalNeto)}", 
+              "${Utils.toCurrency(e.balance)}", 
+              "${Utils.toCurrency(e.balanceActual)}"]).toList(),
+              totals: [[
+                "Total",
+               "${data.map((e) => e.pendientes).reduce((value, element) => value + element)}",
+               "${data.map((e) => e.ganadores).reduce((value, element) => value + element)}",
+               "${data.map((e) => e.perdedores).reduce((value, element) => value + element)}",
+               "${data.map((e) => e.tickets).reduce((value, element) => value + element)}",
+               "${Utils.toCurrency(data.map((e) => e.ventas).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.comisiones).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.descuentos).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.premios).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.totalNeto).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.balance).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.balanceActual).reduce((value, element) => value + element))}",
+            ]],
+          ),
+        ],
       );
     
-    return HorizontalDataTable(
-      leftHandSideColumnWidth: 120,
-      rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
-      isFixedHeader: true,
-      headerWidgets: _getTitleWidget(isSmallOrMedium),
-      leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
-      rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data, isSmallOrMedium),
-      itemCount: data.length + 1,
-      rowSeparatorWidget: const Divider(
-        color: Colors.transparent,
-        height: 0,
-        thickness: 0.0,
-      ),
-      leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
-      rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
-      // verticalScrollbarStyle: const ScrollbarStyle(
-      //   isAlwaysShown: true,
-      //   thickness: 4.0,
-      //   radius: Radius.circular(5.0),
-      // ),
-      // horizontalScrollbarStyle: const ScrollbarStyle(
-      //   isAlwaysShown: true,
-      //   thickness: 4.0,
-      //   radius: Radius.circular(5.0),
-      // ),
-      // enablePullToRefresh: false,
-      // refreshIndicator: const WaterDropHeader(),
-      // refreshIndicatorHeight: 60,
-      // onRefresh: () async {
-      //   //Do sth
-      //   await Future.delayed(const Duration(milliseconds: 500));
-      //   _hdtRefreshController.refreshCompleted();
-      // },
-      // htdRefreshController: _hdtRefreshController,
+    return Column(
+      children: [
+          MySubtitle(title: "$executeTime"),
+        Expanded(
+          child: HorizontalDataTable(
+            leftHandSideColumnWidth: 120,
+            rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
+            isFixedHeader: true,
+            headerWidgets: _getTitleWidget(isSmallOrMedium),
+            leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
+            rightSideItemBuilder: (context, index) => _generateRightHandSideColumnRow(context, index, data.length, data, isSmallOrMedium),
+            itemCount: data.length + 1,
+            rowSeparatorWidget: const Divider(
+              color: Colors.transparent,
+              height: 0,
+              thickness: 0.0,
+            ),
+            leftHandSideColBackgroundColor: Color(0xFFFFFFFF),
+            rightHandSideColBackgroundColor: Color(0xFFFFFFFF),
+            // verticalScrollbarStyle: const ScrollbarStyle(
+            //   isAlwaysShown: true,
+            //   thickness: 4.0,
+            //   radius: Radius.circular(5.0),
+            // ),
+            // horizontalScrollbarStyle: const ScrollbarStyle(
+            //   isAlwaysShown: true,
+            //   thickness: 4.0,
+            //   radius: Radius.circular(5.0),
+            // ),
+            // enablePullToRefresh: false,
+            // refreshIndicator: const WaterDropHeader(),
+            // refreshIndicatorHeight: 60,
+            // onRefresh: () async {
+            //   //Do sth
+            //   await Future.delayed(const Duration(milliseconds: 500));
+            //   _hdtRefreshController.refreshCompleted();
+            // },
+            // htdRefreshController: _hdtRefreshController,
+          ),
+        ),
+      ],
     );
       
   }
@@ -1771,6 +1787,26 @@ _monedaChanged(moneda){
     );
   }
 
+  _reporteARetornarWidget(bool isSmallOrMedium){
+    return
+    MySliverButton(
+      title: DropdownButtonHideUnderline(
+        child: DropdownButton(
+          isDense: true,
+          value: _reporteARetornar,
+          items: listaReporteARetornar.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
+          onChanged: (value){
+            setState(() {
+              _reporteARetornar = value;
+              _historicoVentas();
+            });
+          },
+        ),
+      ),
+      // showOnlyOnLarge: true,
+      onTap: (){}
+    ); 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1804,6 +1840,7 @@ _monedaChanged(moneda){
             // ),
             //   onTap: (){}
             // ),
+            _reporteARetornarWidget(isSmallOrMedium),
            _limiteButton(isSmallOrMedium),
            _coinButton(isSmallOrMedium),
            MySliverButton(title: "filtro", iconWhenSmallScreen: Icons.filter_alt_rounded, onTap: _filtroScreen, showOnlyOnSmall: true,),

@@ -208,6 +208,7 @@ class Principal{
   }
 
    static showDialogDuplicar({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+    
     return await showDialog(
       context: context,
       builder: (context){

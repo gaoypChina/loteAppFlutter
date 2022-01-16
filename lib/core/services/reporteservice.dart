@@ -66,7 +66,7 @@ class ReporteService{
   }
   
 
-  static Future<Map<String, dynamic>> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, List<int> idMonedas, int limite = 20, List<int> idGrupos}) async {
+  static Future<Map<String, dynamic>> historico({BuildContext context, scaffoldKey, DateTime fechaDesde, DateTime fechaHasta, String opcion, List<int> idMonedas, int limite = 20, List<int> idGrupos, bool isBranchreport = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
    
@@ -79,6 +79,7 @@ class ReporteService{
     map["idUsuario"] = await Db.idUsuario();
     map["grupos"] = idGrupos;
     map["servidor"] = await Db.servidor();
+    map["isBranchreport"] = isBranchreport;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 

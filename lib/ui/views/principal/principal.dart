@@ -1553,6 +1553,7 @@ _showIntentNotificationIfExists() async {
   _duplicar(Map<String, dynamic> datos) async {
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    
     if(loteriasAduplicar == null)
       return;
 
@@ -3270,28 +3271,35 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
   _pagar([bool isSmallOrMedium = true]) async {
     dynamic datos = await Principal.showDialogPagarFormulario(scaffoldKey: _scaffoldKey, context: context, isSmallOrMedium: isSmallOrMedium);
     
-    if(isSmallOrMedium)
+    if(isSmallOrMedium){
       _scaffoldKey.currentState.openEndDrawer();
+      await Future.delayed(Duration(milliseconds: 300));
+    }
 
     if(datos == null)
       return;
 
     if(datos.isEmpty)
       return
+      await Future.delayed(Duration(milliseconds: 300));
 
       Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
   }
   
   _showDialogDuplicar([bool isSmallOrMedium = true]) async {
     Map<String, dynamic> datos = await Principal.showDialogDuplicarFormulario(context: context, scaffoldKey: _scaffoldKey, isSmallOrMedium: isSmallOrMedium);
-    if(isSmallOrMedium)
+    if(isSmallOrMedium){
       _scaffoldKey.currentState.openEndDrawer();
+      await Future.delayed(Duration(milliseconds: 100));
+    }
+      
 
     if(datos == null)
       return;
 
     if(datos.isEmpty)
       return
+    print("Principal _showDialogDuplicar: $datos");
     
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
