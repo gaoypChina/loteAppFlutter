@@ -279,8 +279,9 @@ _showSnackBar(String content){
                                   setState(() => _cargando = false);
 
                                   _navigateToHome();
-                                }on Exception catch(e){
+                                }on dynamic catch(e){
                                   print("Error desde login: ${e.toString()}");
+                                  Utils.showAlertDialog(content: e.toString(), title: "Error", context: context);
 
                                   setState(() => _cargando = false);
                                 }

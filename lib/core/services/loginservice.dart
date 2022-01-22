@@ -92,65 +92,67 @@ class LoginService{
       return parsed;
   }
 
-  static guardarDatos(Map<String, dynamic> parsed) async {
-    Usuario u = Usuario.fromMap(parsed['usuario']);
-    Banca b = parsed['bancaObject2'] != null ? Banca.fromMap(parsed['bancaObject2']) : null;
-    Ajuste a = (parsed['ajustes'] != null) ? Ajuste.fromMap(parsed['ajustes']) : null;
-    List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
-    List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
+  static Future<void> guardarDatos(Map<String, dynamic> parsed) async {
 
-    
-    await Db.deleteDB();
-    // await Db.openConnection();
-
-    await Db.insertUser(User(id: u.id, nombres: u.nombres, email: u.email, usuario: u.usuario, servidor: u.servidor, status: u.status, idGrupo: u.idGrupo));
-    if(b != null){
-      await Db.insertBranch(Branch(
-        id: b.id, descripcion: b.descripcion, codigo: b.codigo, dueno: b.dueno, idUsuario: b.usuario != null ? b.usuario.id : 0, 
-        limiteVenta: b.limiteVenta, descontar: b.descontar, deCada: b.deCada, minutosCancelarTicket: b.minutosCancelarTicket, 
-        piepagina1: b.piepagina1, piepagina2: b.piepagina2, piepagina3: b.piepagina3, piepagina4: b.piepagina4, idMoneda: b.idMoneda, 
-        moneda: b.moneda, monedaAbreviatura: b.monedaAbreviatura, monedaColor: b.monedaColor, status: b.status, ventasDelDia: b.ventasDelDia));
-      // for(Loteria l in b.loterias){
-      //   await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
+      Usuario u = Usuario.fromMap(parsed['usuario']);
+      Banca b = parsed['bancaObject2'] != null ? Banca.fromMap(parsed['bancaObject2']) : null;
+      Ajuste a = (parsed['ajustes'] != null) ? Ajuste.fromMap(parsed['ajustes']) : null;
+      List<Permiso> permisos = parsed['permisos'].map<Permiso>((json) => Permiso.fromMap(json)).toList();
+      List<Servidor> servidores = parsed['servidores'].map<Servidor>((json) => Servidor.fromMap(json)).toList();
+      
+      
+      await Db.deleteDB();
+      // await Db.openConnection();
+      
+      await Db.insertUser(User(id: u.id, nombres: u.nombres, email: u.email, usuario: u.usuario, servidor: u.servidor, status: u.status, idGrupo: u.idGrupo));
+      if(b != null){
+        await Db.insertBranch(Branch(
+          id: b.id, descripcion: b.descripcion, codigo: b.codigo, dueno: b.dueno, idUsuario: b.usuario != null ? b.usuario.id : 0, 
+          limiteVenta: b.limiteVenta, descontar: b.descontar, deCada: b.deCada, minutosCancelarTicket: b.minutosCancelarTicket, 
+          piepagina1: b.piepagina1, piepagina2: b.piepagina2, piepagina3: b.piepagina3, piepagina4: b.piepagina4, idMoneda: b.idMoneda, 
+          moneda: b.moneda, monedaAbreviatura: b.monedaAbreviatura, monedaColor: b.monedaColor, status: b.status, ventasDelDia: b.ventasDelDia));
+        // for(Loteria l in b.loterias){
+        //   await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
+        // }
+        // for(Dia d in b.dias){
+        //   await Db.insert('Days', d.toJson());
+        // }
+        await Db.insertListLoteria(b.loterias);
+        await Db.insertListDay(b.dias);
+      }
+      print("Loginservice guardarDatos: ${a.toJson()}");
+      if(a != null)
+        await Db.insertSetting(Setting(
+          id : a.id, 
+          consorcio : (a.consorcio != null) ? a.consorcio : '',
+          idTipoFormatoTicket : a.tipoFormatoTicket.id,
+          imprimirNombreConsorcio : a.imprimirNombreConsorcio,
+          descripcionTipoFormatoTicket : a.tipoFormatoTicket.descripcion,
+          imprimirNombreBanca : a.imprimirNombreBanca,
+          cancelarTicketWhatsapp : a.cancelarTicketWhatsapp,
+          pagarTicketEnCualquierBanca : a.pagarTicketEnCualquierBanca,
+        ));
+      
+      
+      // for(Permiso p in permisos){
+      //   await Db.insert('Permissions', p.toJson());
       // }
-      // for(Dia d in b.dias){
-      //   await Db.insert('Days', d.toJson());
+      
+      await Db.insertListPermission(permisos);
+      
+        print("LoginService guardarDatos after Permissions been saved");
+      
+      
+      // for(Servidor s in servidores){
+      //   await Db.insert('Servers', s.toJson());
       // }
-      await Db.insertListLoteria(b.loterias);
-      await Db.insertListDay(b.dias);
-    }
-    print("Loginservice guardarDatos: ${a.toJson()}");
-    if(a != null)
-      await Db.insertSetting(Setting(
-        id : a.id, 
-        consorcio : (a.consorcio != null) ? a.consorcio : '',
-        idTipoFormatoTicket : a.tipoFormatoTicket.id,
-        imprimirNombreConsorcio : a.imprimirNombreConsorcio,
-        descripcionTipoFormatoTicket : a.tipoFormatoTicket.descripcion,
-        imprimirNombreBanca : a.imprimirNombreBanca,
-        cancelarTicketWhatsapp : a.cancelarTicketWhatsapp,
-        pagarTicketEnCualquierBanca : a.pagarTicketEnCualquierBanca,
-      ));
-
+      
+      await (await DB.create()).addAjuste(a);
+      await Db.insertListServer(servidores);
+      
+      // await Utils.subscribeToTopic();
+      await (CrossFirebase()).subscribeToTopic();
     
-    // for(Permiso p in permisos){
-    //   await Db.insert('Permissions', p.toJson());
-    // }
-
-    await Db.insertListPermission(permisos);
-
-      print("LoginService guardarDatos after Permissions been saved");
-
-
-    // for(Servidor s in servidores){
-    //   await Db.insert('Servers', s.toJson());
-    // }
-
-    await (await DB.create()).addAjuste(a);
-    await Db.insertListServer(servidores);
-
-    // await Utils.subscribeToTopic();
-    await (CrossFirebase()).subscribeToTopic();
 
   }
   // static guardarDatosSQFlite(Map<String, dynamic> parsed) async {

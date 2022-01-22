@@ -32,7 +32,8 @@ class  Utils {
   // static final String URL = 'https://pruebass.ml';
   // static final String URL = 'http://127.0.0.1:8000';
 
-  static final String URL = 'https://loteriasdo.gq';
+  // static final String URL = 'https://loteriasdo.gq';
+  static final String URL = 'https://server.loteriasdo.gq';
   static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
   
   static const Map<String, String> header = {
@@ -302,7 +303,7 @@ class  Utils {
       builder: (context){
         return AlertDialog(
           title: Text(title),
-          content: Text(content),
+          content: SingleChildScrollView(child: SelectableText(content)),
           actions: <Widget>[
             FlatButton(
               child: Text("Ok"),
