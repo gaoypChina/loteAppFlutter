@@ -82,7 +82,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
 
   _init() async {
-    _date = MyDate.getTodayDateRange();
+    // _date = MyDate.getTodayDateRange();
     var parsed = await BloqueosService.index(context: context);
     listaBanca = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
     listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
@@ -90,8 +90,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
 
-    if(listaMoneda.length > 0)
-      _selectedMoneda = listaMoneda[0];
+    // if(listaMoneda.length > 0)
+    //   _selectedMoneda = listaMoneda[0];
 
     if(listaDia.length > 0)
       _dias = List.from(listaDia);
@@ -543,6 +543,52 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       ),
     )
     :
+    Container(
+              width: 110,
+              height: 37,
+              padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+              decoration: BoxDecoration(
+              color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: StreamBuilder<List<Moneda>>(
+                stream: _streamControllerMoneda.stream,
+                builder: (context, snapshot) {
+                  if(snapshot.data == null)
+                    return SizedBox.shrink();
+    
+                  return InkWell(
+                    onTap: (){
+                      
+                    },
+                    child: Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                        Icon(Icons.attach_money),
+                        Expanded(child: Center(child: 
+                        StreamBuilder<List<Moneda>>(
+                          stream: _streamControllerMoneda.stream,
+                          builder: (context, snapshot) {
+                            if(snapshot.data == null)
+                              return SizedBox.shrink();
+
+                            return InkWell(
+                              onTap: _showMonedas,
+                              child: Text("${_selectedMoneda != null ? _selectedMoneda.abreviatura : 'Moneda'}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,),
+                            );
+                          }
+                        )
+                      )
+                      ),
+                        Icon(Icons.arrow_drop_down, color: Colors.black)
+                      ],),
+                    ),
+                  );
+                }
+              ),
+            );
+          
     Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Container(
@@ -625,7 +671,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
         isSideTitle: true,
         title: "Fecha del bloqueo", 
         helperText: "Hasta cuando será valido el bloqueo",
-        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+        hint: "${MyDate.dateRangeToNameOrString(_date, 'Fecha')}",
         onTap: (){
           showMyOverlayEntry(
             right: 10,
@@ -646,7 +692,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     
     return MyDropdown(
       title: null, 
-      hint: "${MyDate.dateRangeToNameOrString(_date)}",
+      hint: "${MyDate.dateRangeToNameOrString(_date, 'Fecha')}",
       onTap: (){
         showMyOverlayEntry(
           right: 10,
@@ -926,7 +972,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                         Icon(Icons.date_range),
-                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: _selectedMoneda != null ? Utils.fromHex(_selectedMoneda.color) : Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date, 'Fecha')}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
                         Icon(Icons.arrow_drop_down, color: Colors.black)
                       ],),
                     ),
@@ -934,7 +980,11 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                 }
               ),
             ), 
-          // _monedaScreen(isSmallOrMedium)
+          
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _monedaScreen(isSmallOrMedium),
+          )
     
           ],
         ),
@@ -1061,6 +1111,15 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
  }
 
  _guardar() async {
+   if(_selectedMoneda == null){
+     Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar una moneda");
+     return;
+   }
+   if(_date == null){
+     Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar una fecha");
+     return;
+   }
+
    if(_jugadas.length == 0){
      Utils.showAlertDialog(context: context, title: "Error", content: "No hay jugadas realizadas");
      return;

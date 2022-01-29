@@ -281,11 +281,14 @@ class MyDate {
     return dateString;
   }
 
-  static String dateRangeToNameOrString(DateTimeRange date){
+  static String dateRangeToNameOrString(DateTimeRange date, [String nullMessage = '']){
     var dateString;
 
+    if(date == null)
+      return nullMessage;
+
     if(date.start == null || date.end == null)
-      return '';
+      return nullMessage;
       
     if(MyDate.isHoy(date.start, date.end))
       dateString = "Hoy";

@@ -131,10 +131,13 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
 
   _seleccionarFechaSencillaSiPertenece(){
     var myDate;
+    
     if(widget.selectionMode !=  DateRangePickerSelectionMode.range)
       return;
       
-    if(MyDate.isHoy(_date.start, _date.end))
+    if(_date == null)
+      myDate = _date;
+    else if(MyDate.isHoy(_date.start, _date.end))
       myDate = MyDate.hoy;
     else if(MyDate.isAyer(_date.start, _date.end))
       myDate = MyDate.ayer;
