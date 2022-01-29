@@ -8,6 +8,7 @@ import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/services/premiosservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -784,7 +785,47 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
   }
 
 
-
+   _subtitleWidget(bool isSmallOrMedium){
+    return !isSmallOrMedium
+    ?
+    "Filtre por fecha y administre los numeros ganadores de cada loteria."
+    :
+    MyCollapseChanged(
+      actionWhenCollapse: MyCollapseAction.hide,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20.0),
+        child: Container(
+          width: 120,
+          // width: 140,
+          height: 37,
+          padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
+          decoration: BoxDecoration(
+          color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10)
+          ),
+            child: Builder(
+              builder: (context) {
+                return InkWell(
+                onTap: _dateDialog,
+                child: Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                    Icon(Icons.date_range),
+                    Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
+                    Icon(Icons.arrow_drop_down, color: Colors.black)
+                  ],),
+                ),
+              );
+                
+              
+              }
+            ),
+          ),
+      ),
+    );
+          
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -799,70 +840,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Registrar premios",
-          subtitle: isSmallOrMedium ? "" : "Filtre por fecha y administre los numeros ganadores de cada loteria.",
-          actions: [
-            MySliverButton(
-              // showOnlyOnLarge: true,
-              showOnlyOnSmall: true,
-              title: Container(
-                width: 120,
-                // width: 140,
-              height: 37,
-              padding: EdgeInsets.symmetric(vertical: 1, horizontal: 3),
-              decoration: BoxDecoration(
-              color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10)
-              ),
-                child: Builder(
-                  builder: (context) {
-                    return InkWell(
-                    onTap: _dateDialog,
-                    child: Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                        Icon(Icons.date_range),
-                        Expanded(child: Center(child: Text("${MyDate.dateRangeToNameOrString(_date)}", style: TextStyle(color: Colors.black), overflow: TextOverflow.ellipsis, softWrap: true,))),
-                        Icon(Icons.arrow_drop_down, color: Colors.black)
-                      ],),
-                    ),
-                  );
-                    MyDropdown(title: null, 
-                      hint: "${MyDate.dateRangeToNameOrString(_date)}",
-                      onTap: () async {
-                        // showMyOverlayEntry(
-                          // right: 10,
-                          //   context: context,
-                          //   builder: (context, overlay){
-                          //     _cancel(){
-                          //       overlay.remove();
-                          //     }
-                          //     return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
-                          //       _dateChanged(date); 
-                          //       overlay.remove();
-                          //     },);
-                          //   }
-                          // );
-
-                        var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
-
-                      if(date != null)
-                        setState(() {
-                          _date = DateTimeRange(
-                            start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
-                            end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
-                          );
-                          _buscar();
-                        });
-                      },
-                    );
-                  
-                  }
-                ),
-              ), 
-              onTap: (){}
-              ),
-          ],
+          subtitle: _subtitleWidget(isSmallOrMedium),
         ), 
         sliver: StreamBuilder<List<Loteria>>(
           stream: _streamControllerLoteria.stream,
