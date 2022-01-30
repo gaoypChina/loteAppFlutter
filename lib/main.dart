@@ -30,6 +30,15 @@ import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/classes/databasesingleton.dart';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 bool DRAWER_IS_OPEN = false;
 bool PERMISSIONS_CHANGED = false;
 bool SHOW_PAYMENT_APPBAR = false;
@@ -47,6 +56,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> main() async {
+  HttpOverrides.global = new MyHttpOverrides();
   // var path = Directory.current.path;
   tz.initializeTimeZones();
   // setupLocator();

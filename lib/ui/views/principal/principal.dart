@@ -1171,7 +1171,8 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       // 'timeout': 1000,
       // 'reconnectionDelay': 1000,
       'extraHeaders': {'foo': 'bar'}, // optional
-      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}"
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}",
+      // 'rejectUnauthorized': false
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
     });
 
