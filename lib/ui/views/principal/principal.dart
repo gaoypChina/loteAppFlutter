@@ -3312,8 +3312,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     if(datos == null)
       return;
 
-    if(datos.isEmpty)
-      return
+    // if(datos.isEmpty)
+    //   return
     
       await _duplicar(datos);
     // print("prueba alertdialog: $prueba");
