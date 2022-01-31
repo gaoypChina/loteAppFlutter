@@ -287,10 +287,10 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       }
     }
 
-    if(!kIsWeb){
+    // if(!kIsWeb){
       _guardarLocal();
       return;
-    }
+    // }
 
     try{
       // setState(() => _cargando = true);
