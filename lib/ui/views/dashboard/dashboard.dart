@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/graficaventas.dart';
+import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/loteriasventas.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/mybarchart.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
@@ -30,9 +32,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   ValueNotifier _valueNotifyDrawer;
+  ValueNotifier<bool> _valueNotifyIsLoteriaSearchingJugadas;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List<Moneda>> _streamControllerMonedas;
   StreamController<List<GraficaVentas>> _streamControllerGrafica;
+  StreamController<List> _streamControllerJugadasPorLoteria;
   List<Moneda> listaMoneda = [];
   List<GraficaVentas> listaVentasGrafica;
   List<LoteriasVentas> listaLoteria = [];
@@ -57,9 +61,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   initState(){
+    _valueNotifyIsLoteriaSearchingJugadas = ValueNotifier<bool>(false);
     _scrollController = ScrollController();
     _streamControllerMonedas = BehaviorSubject();
     _streamControllerGrafica = BehaviorSubject();
+    _streamControllerJugadasPorLoteria = BehaviorSubject();
     _date = MyDate.getTodayDateRange();
     _dashboard();
     super.initState();
@@ -118,14 +124,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
       listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
       listaSorteo = List.from(datos["sorteos"]);
-      if(listaSorteo != null)
-        _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
-      
+      if(listaSorteo != null){
+        // _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+        _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]);
+      }
       _streamControllerGrafica.add(listaVentasGrafica);
       setState(() => _cargando = false);
     } on Exception catch(e){
       setState(() => _cargando = false);
     }
+  }
+
+  _loteriaChanged(var loteria) async {
+    _streamControllerJugadasPorLoteria.add(null);
+    var datos = await DashboardService.getJugadasPorLoteria(scaffoldKey: _scaffoldKey, fecha: _fecha, idLoteria: loteria["id"], idMoneda: listaMoneda[_indexMoneda].id, grupo: null);
+    print("Dashboard _loteriaChanged: $datos");
+    listaLoteriasJugadasDashboard[_indexLoteriaJugadas] = datos["loteria"];
+    _streamControllerJugadasPorLoteria.add([]);
+    _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+    // _valueNotifyIsLoteriaSearchingJugadas.value = false;
+    // _streamControllerJugadasPorLoteria.add(datos["loteria"][]);
   }
 
   _cambiarValorListaJugada(String sorteo){
@@ -134,8 +152,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
     if(sorteosLoteriasJugadas != null){
       Map<String, dynamic> sort = sorteosLoteriasJugadas.firstWhere((s) => s["descripcion"] == sorteo);
-      if(sort != null)
-        setState(() => listaJugada = List.from(sort["jugadas"]));
+      if(sort != null){
+        listaJugada = sort["jugadas"] != null ? List.from(sort["jugadas"]) : [];
+        _streamControllerJugadasPorLoteria.add(listaJugada);
+        // if(sort["jugadas"] != null)
+        //   setState(() => listaJugada = List.from(sort["jugadas"]));
+      }
     }
   }
 
@@ -698,54 +720,92 @@ _showBottomSheetMoneda() async {
     );
   }
 
-  Widget _playsScreen(bool isSmallOrMedium){
+  Widget _myEmpty(){
+    return Center(child: MyEmpty(title: "No hay jugadas", titleButton: "No hay jugadas; actualizar", icon: Icons.blur_circular_outlined,),);
+  }
+
+  Widget _playsScreen(List data, bool isSmallOrMedium){
     //  Map<String, dynamic> sort = sorteosLoteriasJugadas.firstWhere((s) => s["descripcion"] == sorteo);
     //   if(sort != null)
     //     setState(() => listaJugada = List.from(sort["jugadas"]));
-    if(isSmallOrMedium)
-      return _buildTableLoteriasJugadasDashboard();
+    if(isSmallOrMedium){
+      if(data == null)
+         return Padding(
+          padding: const EdgeInsets.only(top: 40.0, bottom: 20.0),
+          child: Center(child: CircularProgressIndicator(),),
+        );
+      if(data.isEmpty)
+        return _myEmpty();
 
-    List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
-    return Wrap(
-      children: sorteosLoteriasJugadas.map((e) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          elevation: 5,
-          child: MyResizedContainer(
-            xlarge: 4.3,
-            large: 4.3,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: Container(
-                height: 250,
-                child: Column(
-                  children: [
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text("${e["descripcion"]}"),
-                      ),
+        return _buildTableLoteriasJugadasDashboard(data);
+    }
+
+    // List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
+    List sorteosLoteriasJugadas = data != null ? data : [];
+        return Wrap(
+          children: sorteosLoteriasJugadas.map((e) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 5,
+              child: MyResizedContainer(
+                xlarge: 4.3,
+                large: 4.3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Container(
+                    height: 250,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text("${e["descripcion"]}"),
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTable(
+                            type: MyTableType.custom,
+                            columns: ["LOT", "NUM", "MONT"], 
+                            rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : j["abreviatura"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
+                          ),
+                        )
+                      ],
                     ),
-                    Expanded(
-                      child: MyTable(
-                        type: MyTableType.custom,
-                        columns: ["LOT", "NUM", "MONT"], 
-                        rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : j["abreviatura"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-      )).toList(),
-    );
+          )).toList(),
+        );
+      
   
   }
+
+  int _countPlaysByDraw(Map<String, dynamic> draw){
+    int count = 0;
+    if(listaLoteriasJugadasDashboard == null)
+      return count;
+    if(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"] == null)
+      return count;
+
+     List sorteos = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
+
+     if(sorteos.length == 0)
+      return count;
+
+      
+
+    var sorteo = sorteos.firstWhere((element) => element["descripcion"] == draw["descripcion"], orElse: () => null);
+    if(sorteo == null)
+      return count;
+
+    return sorteo["jugadas"] != null ? List.from(sorteo["jugadas"]).length : count;
+  }
+
+  
 
   Widget _drawsScreen(bool isSmallOrMedium){
     if(isSmallOrMedium)
@@ -760,7 +820,7 @@ _showBottomSheetMoneda() async {
             }
           },
           // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
-          items: listaSorteo.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: e["descripcion"])).toList(),
+          items: listaSorteo.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: Text("${e["descripcion"]} (${_countPlaysByDraw(e)})"))).toList(),
           selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaSorteo[_indexSorteo]["descripcion"], child: "${listaSorteo[_indexSorteo]['descripcion']}")] : [],
         );
 
@@ -821,15 +881,29 @@ _showBottomSheetMoneda() async {
             setState(() {
               int idx = listaLoteriasJugadasDashboard.indexWhere((s) => s["descripcion"] == loteria);
               setState(() => _indexLoteriaJugadas = idx);
-              _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+              // _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+              _loteriaChanged(listaLoteriasJugadasDashboard[idx]);
             });
           },
           // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
           items: listaLoteriasJugadasDashboard.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: e["descripcion"])).toList(),
           selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"], child: "${listaLoteriasJugadasDashboard[_indexLoteriaJugadas]['descripcion']}")] : [],
         ),
-       _drawsScreen(isSmallOrMedium),
-        _playsScreen(isSmallOrMedium)
+       StreamBuilder<List>(
+         stream: _streamControllerJugadasPorLoteria.stream,
+         builder: (context, snapshot) {
+          //  if(snapshot.data == null)
+               
+                // return Center(child: MyEmpty(title: "No hay jugadas", titleButton: "No hay jugadas; actualizar", icon: Icons.blur_circular_outlined,),);
+
+           return Column(
+             children: [
+               _drawsScreen(isSmallOrMedium),
+               _playsScreen(snapshot.data, isSmallOrMedium)
+             ],
+           );
+         }
+       ),
       ],
     );
   }
@@ -1035,13 +1109,13 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
   //   );
   // }
 
-  Widget _buildTableLoteriasJugadasDashboard(){
-   var tam = (listaJugada != null) ? listaJugada.length : 0;
+  Widget _buildTableLoteriasJugadasDashboard(List data){
+   var tam = (data != null) ? data.length : 0;
    List<TableRow> rows;
    if(tam == 0){
      rows = <TableRow>[];
    }else{
-     rows = listaJugada.asMap().map((idx, b)
+     rows = data.asMap().map((idx, b)
           => MapEntry(
             idx,
             TableRow(
