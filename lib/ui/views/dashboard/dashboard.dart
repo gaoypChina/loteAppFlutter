@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/graficaventas.dart';
+import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/loteriasventas.dart';
 import 'package:loterias/core/models/monedas.dart';
@@ -32,12 +33,13 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   ValueNotifier _valueNotifyDrawer;
-  ValueNotifier<bool> _valueNotifyIsLoteriaSearchingJugadas;
+  ValueNotifier<bool> _valueNotifyCargandoLoteria;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   StreamController<List<Moneda>> _streamControllerMonedas;
   StreamController<List<GraficaVentas>> _streamControllerGrafica;
   StreamController<List> _streamControllerJugadasPorLoteria;
   List<Moneda> listaMoneda = [];
+  List<Grupo> listaGrupo = [];
   List<GraficaVentas> listaVentasGrafica;
   List<LoteriasVentas> listaLoteria = [];
   double _totalVentasLoterias = 0;
@@ -58,10 +60,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double promedioVentas = 0;
   double promedioPremios = 0;
   Moneda _moneda;
+  Grupo _grupo;
 
   @override
   initState(){
-    _valueNotifyIsLoteriaSearchingJugadas = ValueNotifier<bool>(false);
+    _valueNotifyCargandoLoteria = ValueNotifier<bool>(false);
     _scrollController = ScrollController();
     _streamControllerMonedas = BehaviorSubject();
     _streamControllerGrafica = BehaviorSubject();
@@ -75,9 +78,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try{
       // setState(() => _cargando = true);
       _streamControllerGrafica.add(null);
-      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start, idMoneda: _moneda != null ? _moneda.id : null);
+      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start, idMoneda: _moneda != null ? _moneda.id : null, idGrupo: _grupo != null ? _grupo.id : null);
       if(_onCreate){
         listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
+        listaGrupo = datos["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList();
+        listaGrupo.insert(0, Grupo(id: 0, descripcion: "Todos los grupos"));
+        _grupo = listaGrupo[0];
+
         if(listaMoneda != null){
           if(listaMoneda.length > 0)
             _moneda = listaMoneda[0];
@@ -111,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   _dashboardMoneda() async {
     try{
       setState(() => _cargando = true);
-      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _fecha, idMoneda: listaMoneda[_indexMoneda].id);
+      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _fecha, idMoneda: listaMoneda[_indexMoneda].id, idGrupo: _grupo != null ? _grupo.id : null);
       // if(_onCreate){
       //   listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
       //   _streamControllerMonedas.add(listaMoneda);
@@ -136,12 +143,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   _loteriaChanged(var loteria) async {
-    _streamControllerJugadasPorLoteria.add(null);
-    var datos = await DashboardService.getJugadasPorLoteria(scaffoldKey: _scaffoldKey, fecha: _fecha, idLoteria: loteria["id"], idMoneda: listaMoneda[_indexMoneda].id, grupo: null);
-    print("Dashboard _loteriaChanged: $datos");
-    listaLoteriasJugadasDashboard[_indexLoteriaJugadas] = datos["loteria"];
-    _streamControllerJugadasPorLoteria.add([]);
-    _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+    try {
+      _valueNotifyCargandoLoteria.value = true;
+      _streamControllerJugadasPorLoteria.add(null);
+      var datos = await DashboardService.getJugadasPorLoteria(scaffoldKey: _scaffoldKey, fecha: _fecha, idLoteria: loteria["id"], idMoneda: _moneda != null ? _moneda.id : null, idGrupo: _grupo.id != 0 ? _grupo.id : null);
+      print("Dashboard _loteriaChanged: $datos");
+      _valueNotifyCargandoLoteria.value = false;
+      listaLoteriasJugadasDashboard[_indexLoteriaJugadas] = datos["loteria"];
+      _streamControllerJugadasPorLoteria.add([]);
+      _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+    } on Exception catch (e) {
+      // TODO
+      _valueNotifyCargandoLoteria.value = false;
+    }
     // _valueNotifyIsLoteriaSearchingJugadas.value = false;
     // _streamControllerJugadasPorLoteria.add(datos["loteria"][]);
   }
@@ -307,6 +321,47 @@ _showBottomSheetMoneda() async {
       });
   }
 
+  _grupoChanged(Grupo data){
+    _grupo = data;
+    _dashboard();
+  }
+
+  _monedaChanged(Moneda data){
+    _moneda = data;
+    _dashboard();
+  }
+
+  _monedaScreen(bool isSmallOrMedium){
+    return MySliverButton(
+      onTap: isSmallOrMedium ? _showBottomSheetMoneda : null,
+      title: StreamBuilder<List<Moneda>>(
+        stream: _streamControllerMonedas.stream,
+        builder: (context, snapshot) {
+          if(isSmallOrMedium)
+            return TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary)));
+        
+          return Container(
+            width: 130,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: MyDropdown(
+                maxLengthToEllipsis: 10,
+                title: null,
+                textColor: Colors.grey[600],
+                color: Colors.grey[600],
+                padding: EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                isFlat: true,
+                hint: "${_moneda != null ? _moneda.descripcion : 'Selec. moneda'}",
+                elements: listaMoneda.map((e) => [e, e.descripcion]).toList(),
+                onTap: _monedaChanged,
+              ),
+            ),
+          );
+        }
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
@@ -323,23 +378,34 @@ _showBottomSheetMoneda() async {
           showDivider: false,
           expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
-            MySliverButton(
-              padding: EdgeInsets.all(0),
-              title: StreamBuilder<List<Moneda>>(
-                stream: _streamControllerMonedas.stream,
-                builder: (context, snapshot) {
-                  return TextButton(onPressed: _showBottomSheetMoneda, child: Text("${_moneda != null ? _moneda.abreviatura : ''}", style: TextStyle(color: (_moneda != null) ? Utils.fromHex(_moneda.color) : Utils.colorPrimary)));
-                }
-              ),
-              // iconWhenSmallScreen: Icons.date_range,
-              showOnlyOnSmall: true,
-              onTap: _showBottomSheetMoneda,
-            ),
+            
+            _monedaScreen(isSmallOrMedium),
+              
             MySliverButton(
               title: "", 
               iconWhenSmallScreen: Icons.date_range,
               showOnlyOnSmall: true,
               onTap: _dateDialog,
+            ),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 150,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: MyDropdown(
+                    title: null,
+                    textColor: Colors.grey[600],
+                    color: Colors.grey[600],
+                    padding: EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                    isFlat: true,
+                    hint: "${_grupo != null ? _grupo.descripcion : 'Selec. grupo'}",
+                    elements: listaGrupo.map((e) => [e, e.descripcion]).toList(),
+                    onTap: _grupoChanged,
+                  ),
+                ),
+              ), 
+              onTap: null
             ),
             MySliverButton(
               showOnlyOnLarge: true,
@@ -538,6 +604,7 @@ _showBottomSheetMoneda() async {
                                   children: [
                                     Expanded(
                                       child: MyTable(
+                                        showColorWhenImpar: true,
                                         type: MyTableType.custom,
                                         // isScrolled: false,
                                         bottom: ["Totales", "${listaLoteria != null ? Utils.toCurrency(listaLoteria.map((e) => e.ventas).toList().reduce((value, element) => value + element)) : Utils.toCurrency("0")}", "0"],
@@ -740,8 +807,8 @@ _showBottomSheetMoneda() async {
         return _buildTableLoteriasJugadasDashboard(data);
     }
 
-    // List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
-    List sorteosLoteriasJugadas = data != null ? data : [];
+    List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);
+    // List sorteosLoteriasJugadas = data != null ? data : [];
         return Wrap(
           children: sorteosLoteriasJugadas.map((e) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
@@ -767,6 +834,7 @@ _showBottomSheetMoneda() async {
                         ),
                         Expanded(
                           child: MyTable(
+                            showColorWhenImpar: true,
                             type: MyTableType.custom,
                             columns: ["LOT", "NUM", "MONT"], 
                             rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : j["abreviatura"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
@@ -886,8 +954,24 @@ _showBottomSheetMoneda() async {
             });
           },
           // items: _loterias.map((e) => MyToggleData(value: e, child: e.descripcion)).toList(),
-          items: listaLoteriasJugadasDashboard.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: e["descripcion"])).toList(),
-          selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"], child: "${listaLoteriasJugadasDashboard[_indexLoteriaJugadas]['descripcion']}")] : [],
+          items: listaLoteriasJugadasDashboard.map<MyToggleData>((e) => MyToggleData(value: e["descripcion"], child: Row(
+            children: [
+              Text(e["descripcion"]),
+              ValueListenableBuilder<bool>(
+                valueListenable: _valueNotifyCargandoLoteria,
+                builder: (context, value, __) {
+                  return Visibility(
+                    visible: value && e["descripcion"] == listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"], 
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(color: Colors.white)),
+                    )
+                  );
+                }
+              )
+            ],
+          ))).toList(),
+          selectedItems: listaLoteriasJugadasDashboard != null ? [MyToggleData(value: listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["descripcion"], child: Text("${listaLoteriasJugadasDashboard[_indexLoteriaJugadas]['descripcion']}"))] : [],
         ),
        StreamBuilder<List>(
          stream: _streamControllerJugadasPorLoteria.stream,

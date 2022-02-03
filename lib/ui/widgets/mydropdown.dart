@@ -31,7 +31,9 @@ class MyDropdown extends StatefulWidget {
   final Color textColor;
   final String helperText;
   final bool onlyBorder;
-  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false}) : super(key: key);
+  final int maxLengthToEllipsis;
+  final int topPositionOfOverlay;
+  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false, this.maxLengthToEllipsis = 60, this.topPositionOfOverlay}) : super(key: key);
   @override
   _MyDropdownState createState() => _MyDropdownState();
 }
@@ -157,6 +159,10 @@ class _MyDropdownState extends State<MyDropdown> {
         //   // List<String> resultados = lista.where((element) => element.toLowerCase().indexOf(data) != -1).toList();
         // }
 
+        RenderBox renderBox = context.findRenderObject();
+        var offset = renderBox.localToGlobal(Offset.zero);
+
+
         double topPosition = 80;
         double heightOfAnElement = 32;
         //Add 10 additional to heightOfAnElement
@@ -170,11 +176,21 @@ class _MyDropdownState extends State<MyDropdown> {
         }
 
         //Convert topPosition to negative
+
+        double positionOfTheWidgetMinusTopPositionOverlay = (offset.dy - topPosition).abs();
+        //Si el calculo es mayor que la position del widget desde donde se llama al overlay, eso quiere decir
+        //Que el sliver sobre pasa el appbar, asi que se resta al topPosition el valor sobrante
+        print("MyDropdown textChanged dy:${offset.dy} cal: $positionOfTheWidgetMinusTopPositionOverlay - top: $topPosition restante: ${(positionOfTheWidgetMinusTopPositionOverlay - offset.dy)} top: ${topPosition - ((positionOfTheWidgetMinusTopPositionOverlay - offset.dy).abs() + 50)}");
+        if(positionOfTheWidgetMinusTopPositionOverlay > offset.dy - 10)
+          topPosition = topPosition - ((positionOfTheWidgetMinusTopPositionOverlay - offset.dy).abs() + heightOfAnElement + 10);
+
         topPosition = topPosition * -1;
+
+        print("MyDropdown textChanged top: $topPosition");
 
         showMyOverlayEntry(
           context: context, 
-          top: topPosition,
+          top: widget.topPositionOfOverlay != null ? widget.topPositionOfOverlay : topPosition,
           builder: (context, overlay){
             return _dropdownItemScreen(overlay, width);
           }
@@ -203,13 +219,18 @@ class _MyDropdownState extends State<MyDropdown> {
     );
   }
 
+  String _getText(){
+    String text = hint == null ?  'No hay datos' : hint;
+    return text.substring(0, text.length >= widget.maxLengthToEllipsis ? widget.maxLengthToEllipsis : text.length) + '${widget.maxLengthToEllipsis < text.length ? '...' : ''}';
+  }
+
   _getContentRow(){
     return (widget.isFlat) 
     ? 
     Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+        (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ,
         // Icon(Icons.arrow_drop_down, color: Utils.fromHex("#1967d2")),
         Icon(Icons.arrow_drop_down, color: _textColor()),
@@ -221,7 +242,7 @@ class _MyDropdownState extends State<MyDropdown> {
       children: [
         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? _textColor() : Colors.grey,),
         Expanded(
-          child:  (widget.leading == false) ? Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${hint == null ?  'No hay datos' : hint}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+          child:  (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ),
         // Icon(Icons.arrow_drop_down, color: widget.enabled ? Utils.fromHex("#1967d2") : Colors.grey),
         Icon(Icons.arrow_drop_down, color: widget.enabled ? _textColor() : Colors.grey),

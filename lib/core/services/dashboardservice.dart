@@ -9,13 +9,14 @@ import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 
 class DashboardService{
-  static Future<Map<String, dynamic>> dashboard({BuildContext context, scaffoldKey, DateTime fecha, int idMoneda = 0}) async {
+  static Future<Map<String, dynamic>> dashboard({BuildContext context, scaffoldKey, DateTime fecha, int idMoneda = 0, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
     map["fecha"] = fecha.toString();
     map["idUsuario"] = (await Db.idUsuario()).toString();
     map["idMoneda"] = idMoneda.toString();
+    map["idGrupo"] = idGrupo;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
 
@@ -43,7 +44,7 @@ class DashboardService{
     return parsed;
   }
 
-  static Future<Map<String, dynamic>> getJugadasPorLoteria({BuildContext context, scaffoldKey, DateTime fecha, int idLoteria, int idMoneda, Grupo grupo = null}) async {
+  static Future<Map<String, dynamic>> getJugadasPorLoteria({BuildContext context, scaffoldKey, DateTime fecha, int idLoteria, int idMoneda, int idGrupo = null}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
 
@@ -51,7 +52,7 @@ class DashboardService{
     map["idUsuario"] = (await Db.idUsuario()).toString();
     map["idMoneda"] = idMoneda.toString();
     map["idLoteria"] = idLoteria;
-    map["idGrupo"] = grupo != null ? grupo.id.toString() : null;
+    map["idGrupo"] = idGrupo != null ? idGrupo : null;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
 

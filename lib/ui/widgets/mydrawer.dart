@@ -366,7 +366,9 @@ _streamControllerListTile = BehaviorSubject();
                                           return _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, visible: value, onTap: (){_gotTo("/dashboard");}, );
                                         }
                                       ),
-                                      _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, visible: true, onTap: (){_gotTo("/");}, ),
+                                      _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, visible: true, onTap: (){
+                                              Navigator.popUntil(context, (Route<dynamic> predicate) => predicate.isFirst);
+                                      }, ),
                                       ValueListenableBuilder<bool>(
                                         valueListenable: _transaccionesNotifier,
                                         builder: (context, value, snapshot) {

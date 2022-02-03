@@ -160,14 +160,14 @@ _init() async {
         _selctedFilter.add(filtroOpcion.data.firstWhere((element) => element.value == _selectedOption, orElse: () => null));
       });
 
-      if(listaGrupo.length > 0){
-      var filtro = MyFilterData2(child: "Filas", fixed: true != null, data: listaLimite.map((e) => MyFilterSubData2(child: "$e", value: e, type: "Filas")).toList());
-      listaFiltros.add(filtro);
-        var filtroSub = filtro.data[0];
-        if(filtroSub != null){
-          _selctedFilter.add(filtroSub);
-        }
-    }
+      // if(listaGrupo.length > 0){
+      //   var filtro = MyFilterData2(child: "Filas", fixed: true != null, data: listaLimite.map((e) => MyFilterSubData2(child: "$e", value: e, type: "Filas")).toList());
+      //   listaFiltros.add(filtro);
+      //     var filtroSub = filtro.data[0];
+      //     if(filtroSub != null){
+      //       _selctedFilter.add(filtroSub);
+      //     }
+      // }
 
       if(listaGrupo.length > 0){
          filtroGrupo = MyFilterData2(child: "Grupo", fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, isMultiple: true, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e, type: "Grupo")).toList());
@@ -1585,19 +1585,44 @@ _monedaChanged(moneda){
   _limiteButton(bool isSmallOrMedium){
     return
     MySliverButton(
-      title: DropdownButtonHideUnderline(
-        child: DropdownButton(
-          isDense: true,
-          value: _limite,
-          items: listaLimite.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
-          onChanged: (value){
-            setState(() {
-              _limite = value;
-              _historicoVentas();
-            });
-          },
-        ),
-      ),
+      padding: EdgeInsets.all(0),
+      title: Container(
+            width: 110,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: MyDropdown(
+                maxLengthToEllipsis: 10,
+                title: null,
+                textColor: Colors.grey[600],
+                color: Colors.grey[600],
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+                isFlat: true,
+                hint: "$_limite filas",
+                elements: listaLimite.map((e) => [e, "$e filas"]).toList(),
+                onTap: (value){
+                  setState(() {
+                    _limite = value;
+                    _historicoVentas();
+                  });
+                },
+              ),
+            ),
+          )
+      
+      // DropdownButtonHideUnderline(
+      //   child: DropdownButton(
+      //     isDense: true,
+      //     value: _limite,
+      //     items: listaLimite.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
+      //     onChanged: (value){
+      //       setState(() {
+      //         _limite = value;
+      //         _historicoVentas();
+      //       });
+      //     },
+      //   ),
+      // )
+      ,
       showOnlyOnLarge: true,
       onTap: (){}
     );
@@ -1791,16 +1816,19 @@ _monedaChanged(moneda){
     return
     MySliverButton(
       title: DropdownButtonHideUnderline(
-        child: DropdownButton(
-          isDense: true,
-          value: _reporteARetornar,
-          items: listaReporteARetornar.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
-          onChanged: (value){
-            setState(() {
-              _reporteARetornar = value;
-              _historicoVentas();
-            });
-          },
+        child: ButtonTheme(
+          alignedDropdown: true,
+          child: DropdownButton(
+            isDense: true,
+            value: _reporteARetornar,
+            items: listaReporteARetornar.map((e) => DropdownMenuItem(child: Text("$e filas", style: TextStyle(fontWeight: FontWeight.w600),), value: e)).toList(),
+            onChanged: (value){
+              setState(() {
+                _reporteARetornar = value;
+                _historicoVentas();
+              });
+            },
+          ),
         ),
       ),
       // showOnlyOnLarge: true,
@@ -1843,9 +1871,10 @@ _monedaChanged(moneda){
             _reporteARetornarWidget(isSmallOrMedium),
            _limiteButton(isSmallOrMedium),
            _coinButton(isSmallOrMedium),
-           MySliverButton(title: "filtro", iconWhenSmallScreen: Icons.filter_alt_rounded, onTap: _filtroScreen, showOnlyOnSmall: true,),
+           MySliverButton(title: "filtro", iconWhenSmallScreen: Icons.filter_alt_rounded, onTap: _filtroScreen, showOnlyOnSmall: true, padding: EdgeInsets.all(0.0),),
             // IconButton(icon: Icon(Icons.filter_alt_rounded), onPressed: _filtroScreen, color: Utils.colorPrimary,),
             MySliverButton(
+              padding: EdgeInsets.all(0),
               showOnlyOnLarge: true,
               title: Container(
                 width: 180,

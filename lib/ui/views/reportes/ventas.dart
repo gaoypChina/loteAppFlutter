@@ -1544,6 +1544,8 @@ Widget _buildTableTicketsGanadores(List map){
                         title: null, 
                         leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
                         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                        textColor: Colors.grey[600],
+                        color: Colors.grey[600],
                         hint: "Imprimir",
                         onTap: _showDialogImprimir,
                       )

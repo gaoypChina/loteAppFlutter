@@ -4769,19 +4769,36 @@ void _getTime() {
   }
 
   _cambiarFocusJugadaMonto(){
+    // if(_isLargeAndWeb()){
+    //   _jugadaOmonto = !_jugadaFocusNode.hasFocus;
+    //   if(_jugadaOmonto)
+    //     _jugadaFocusNode.requestFocus();
+    //   else
+    //     _montoFocusNode.requestFocus();
+
+    //     return;
+    //   }
+
+
+    // setState((){
+    //   _jugadaOmonto = !_jugadaOmonto;
+    // });
+
     if(_isLargeAndWeb()){
       _jugadaOmonto = !_jugadaFocusNode.hasFocus;
       if(_jugadaOmonto)
         _jugadaFocusNode.requestFocus();
-      else
-        _montoFocusNode.requestFocus();
-
-        return;
+      else{
+          _montoFocusNode.requestFocus();
+          _txtMonto.selection = TextSelection(baseOffset:0, extentOffset:_txtMonto.text.length);
+          return;
+        }
       }
 
 
     setState((){
       _jugadaOmonto = !_jugadaOmonto;
+      print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
     });
   }
 
