@@ -101,8 +101,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       listaSorteo = List.from(datos["sorteos"]);
       bancasConVentas = datos["bancasConVentas"];
       bancasSinVentas = datos["bancasSinVentas"];
-      if(listaSorteo != null)
-        _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+
+      if(listaSorteo != null){
+        // _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
+        _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]);
+      }
+
+      // if(listaSorteo != null)
+      //   _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
 
       promedioVentas = listaVentasGrafica != null ? listaVentasGrafica.length > 0 ? listaVentasGrafica.map((e) => e.total).toList().reduce((value, element) => value + element) / listaVentasGrafica.length : 0 : 0;
       promedioPremios = listaVentasGrafica != null ? listaVentasGrafica.length > 0 ? listaVentasGrafica.map((e) => e.premios).toList().reduce((value, element) => value + element) / listaVentasGrafica.length : 0 : 0;
@@ -131,10 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _totalPremiosLoterias = Utils.toDouble(datos["totalPremiosLoterias"].toString());
       listaLoteriasJugadasDashboard = (datos["loteriasJugadasDashboard"] != null) ? List.from(datos["loteriasJugadasDashboard"]) : List();
       listaSorteo = List.from(datos["sorteos"]);
-      if(listaSorteo != null){
-        // _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
-        _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]);
-      }
+      
       _streamControllerGrafica.add(listaVentasGrafica);
       setState(() => _cargando = false);
     } on Exception catch(e){

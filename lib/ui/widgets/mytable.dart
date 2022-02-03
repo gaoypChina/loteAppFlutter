@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 
+class CustomCellWidth{
+  final cellIndex;
+  final widthPorcent;
+  CustomCellWidth({@required this.cellIndex, @required this.widthPorcent});
+}
+
 class MyTableCell{
   final value;
   final child;
@@ -45,7 +51,8 @@ class MyTable extends StatefulWidget {
   final bool showColorWhenImpar;
   final MyTableType type;
   final headerColor;
-  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor}) : super(key: key);
+  final List<CustomCellWidth> customWidthOfOneCell;
+  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor, this.customWidthOfOneCell = const []}) : super(key: key);
   @override
   _MyTableState createState() => _MyTableState();
 }
@@ -181,6 +188,53 @@ class _MyTableState extends State<MyTable> {
       widget.onTap(value);
   }
 
+  // _calculateWidthViejo(double screenWidth, int divider, int index){
+  //   double width = screenWidth / divider;
+  //   if(widget.customWidthOfOneCell != null){
+  //     if(widget.customWidthOfOneCell.cellIndex == index){
+  //       width = screenWidth * widget.customWidthOfOneCell.widthPorcent;
+  //     }else{
+
+  //       //Calculamos el nuevo tamano customizado de la columa
+  //       double calculatedCustomWidthOfOneCell = screenWidth * widget.customWidthOfOneCell.widthPorcent;
+  //       // double widthToSubstractToTheOtherCell =  (calculatedCustomWidthOfOneCell - width).abs() / (divider - 1);
+  //       // width = width - widthToSubstractToTheOtherCell;
+
+  //       //Restamos el nuevo tamano customizado de la columa al tamano del widget
+  //       double newScreenWidth = screenWidth - calculatedCustomWidthOfOneCell;
+  //       width = newScreenWidth / (divider - 1);
+  //     }
+  //   }
+
+  //     return width;
+  // }
+
+  _calculateWidth(double screenWidth, int divider, int index){
+    double width = screenWidth / divider;
+    if(widget.customWidthOfOneCell.length > 0){
+      if(widget.customWidthOfOneCell.firstWhere((element) => element.cellIndex == index, orElse: () => null) != null){
+        width = screenWidth * widget.customWidthOfOneCell.firstWhere((element) => element.cellIndex == index, orElse: () => null).widthPorcent;
+      }else{
+
+        //Calculamos el nuevo tamano customizado de la columa
+        double calculatedCustomWidthOfOneCell = 0;
+        for (var item in widget.customWidthOfOneCell) {
+          calculatedCustomWidthOfOneCell += screenWidth * item.widthPorcent;
+        }
+
+        print("MyTable _calculateWidth total: $calculatedCustomWidthOfOneCell");
+        // double widthToSubstractToTheOtherCell =  (calculatedCustomWidthOfOneCell - width).abs() / (divider - 1);
+        // width = width - widthToSubstractToTheOtherCell;
+        
+        //Restamos el nuevo tamano customizado de la columa al tamano del widget
+        double newScreenWidth = screenWidth - calculatedCustomWidthOfOneCell;
+        width = newScreenWidth / (divider - widget.customWidthOfOneCell.length);
+      }
+    }
+
+      return width;
+  }
+
   _myCustomRow(boxconstraint, index){
     var wrap = Wrap(
       children: widget.rows[index].asMap().map((key, dynamic value) => 
@@ -194,7 +248,8 @@ class _MyTableState extends State<MyTable> {
           child: Container(
             // padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
             // color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,
-            width: boxconstraint.maxWidth / (widget.rows[index].length - 1), 
+            // width: boxconstraint.maxWidth / (widget.rows[index].length - 1), 
+            width: _calculateWidth(boxconstraint.maxWidth, (widget.rows[index].length - 1), key - 1), 
             child: value is Widget 
             ?  
             Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value, color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
@@ -222,7 +277,8 @@ class _MyTableState extends State<MyTable> {
         Container(
           // padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
           // color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,
-          width: boxconstraint.maxWidth / (widget.bottom.length), 
+          // width: boxconstraint.maxWidth / (widget.bottom.length), 
+          width: _calculateWidth(boxconstraint.maxWidth, (widget.bottom.length), key), 
           child: value is Widget 
           ?  
           Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value, color: widget.showColorWhenImpar ? Utils.isPar(indexFilaAnterior) ? Colors.grey[200] : Colors.transparent : Colors.white,)
@@ -304,7 +360,7 @@ class _MyTableState extends State<MyTable> {
                 return Column(
                   children: [
                     Wrap(
-                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
+                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: _calculateWidth(boxconstraint.maxWidth, (widget.columns.length), key), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
                     ),
                     _myCustomRow(boxconstraint, index)
                   ],
@@ -313,7 +369,7 @@ class _MyTableState extends State<MyTable> {
                 return Column(
                   children: [
                     Wrap(
-                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: boxconstraint.maxWidth / (widget.columns.length), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
+                      children: widget.columns.asMap().map((key, value) => MapEntry(key, Container(width: _calculateWidth(boxconstraint.maxWidth, (widget.columns.length), key), child: value is Widget ? value : Center(child: Text("$value", style: TextStyle(fontWeight: FontWeight.w600),))))).values.toList(),
                     ),
                     _myCustomRow(boxconstraint, index),
                     _myCustomTotalRow(boxconstraint, index),

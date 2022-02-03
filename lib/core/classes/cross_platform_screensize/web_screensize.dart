@@ -9,8 +9,9 @@ class WebTimezone implements CrossScreenSize{
   //   return WebDatabase('app', logStatements: true);
   // }
   static final double _sm = 450;
+  // static final double _md = 750;
   static final double _md = 750;
-  static final double _lg = 1000;
+  static final double _lg = 1100;
   static final double _xlg = 1300;
 
   @override

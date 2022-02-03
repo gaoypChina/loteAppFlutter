@@ -2570,6 +2570,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         // filled: true,
         hintStyle: TextStyle(fontWeight: FontWeight.bold)
       ),
+      onTap: () => _txtMonto.selection = TextSelection(baseOffset:0, extentOffset:_txtMonto.text.length),
       textAlign: _isLargeAndWeb() ? TextAlign.left : TextAlign.center,
       onSubmitted: (data) async {
         _escribir("ENTER");
@@ -3385,6 +3386,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         Expanded(
                           child: MyTable(
                             type: MyTableType.custom,
+                            customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
                             rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
                             delete: (){}
@@ -3508,6 +3510,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         Expanded(
                           child: MyTable(
                             type: MyTableType.custom,
+                            customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
                             rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
@@ -6183,7 +6186,8 @@ _selectedBanca() async {
    }
   else if(jugada.length == 6){
     //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
+    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 15),);
   }
 
    return Text(jugada, style: TextStyle(fontSize: 15));
