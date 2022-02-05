@@ -52,7 +52,9 @@ class MyTable extends StatefulWidget {
   final MyTableType type;
   final headerColor;
   final List<CustomCellWidth> customWidthOfOneCell;
-  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor, this.customWidthOfOneCell = const []}) : super(key: key);
+  final double customRowHeight;
+  final EdgeInsets customRowPadding;
+  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor, this.customWidthOfOneCell = const [], this.customRowHeight, this.customRowPadding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15)}) : super(key: key);
   @override
   _MyTableState createState() => _MyTableState();
 }
@@ -235,6 +237,19 @@ class _MyTableState extends State<MyTable> {
       return width;
   }
 
+  _getVerticalPadding(value){
+    double verticalPadding = 15;
+    print("MyTable _getVerticalPadding value: $value");
+    if(value is Center){
+      if(value.child is Text)
+        if((value.child as Text).style.fontSize > 14)
+          verticalPadding = 15 - (((value.child as Text).style.fontSize - 14) * 0.5);
+    }
+     
+    print("MyTable _getVerticalPadding: $verticalPadding");
+    return verticalPadding;
+  }
+
   _myCustomRow(boxconstraint, index){
     var wrap = Wrap(
       children: widget.rows[index].asMap().map((key, dynamic value) => 
@@ -252,13 +267,13 @@ class _MyTableState extends State<MyTable> {
             width: _calculateWidth(boxconstraint.maxWidth, (widget.rows[index].length - 1), key - 1), 
             child: value is Widget 
             ?  
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value, color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
+            Container(height: widget.customRowHeight, padding: widget.customRowPadding, child: value, color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
             : 
             value is MyTableCell
             ?
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: value.child, color: value.color)
+            Container(height: widget.customRowHeight, padding: widget.customRowPadding, child: value.child, color: value.color)
             :
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0), child: Center(child: Text("$value")), color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
+            Container(height: widget.customRowHeight, padding: widget.customRowPadding, child: Center(child: Text("$value")), color: widget.showColorWhenImpar ? !Utils.isPar(index) ? Colors.grey[200] : Colors.transparent : Colors.white,)
           ),
         )
       )

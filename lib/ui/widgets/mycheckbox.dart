@@ -162,11 +162,30 @@ class _MyCheckBoxState extends State<MyCheckBox> {
                         ),
                         SizedBox(width: 10,),
                         Flexible(
-                          child: InkWell(
-                            onTap: (){
-                              widget.onChanged(!widget.value);
-                            },
-                            child: Text(widget.title,  overflow: TextOverflow.ellipsis, style: TextStyle(color: widget.disable ? Colors.grey : null)),
+                          child: 
+                          widget.helperText.isEmpty
+                          ?
+                          InkWell(
+                              onTap: (){
+                                widget.onChanged(!widget.value);
+                              },
+                              child: Text(widget.title,  overflow: TextOverflow.ellipsis, style: TextStyle(color: widget.disable ? Colors.grey : null)),
+                            )
+                          :
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              InkWell(
+                                onTap: (){
+                                  widget.onChanged(!widget.value);
+                                },
+                                child: Text(widget.title,  overflow: TextOverflow.ellipsis, style: TextStyle(color: widget.disable ? Colors.grey : null)),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 0, top: 2.0),
+                                child: Text(widget.helperText, style: TextStyle(color: widget.disable ? Colors.grey : null, fontSize: 12, fontFamily: "GoogleSans",  letterSpacing: 0.1 )),
+                              ),
+                            ],
                           ),
                         )
                       ],

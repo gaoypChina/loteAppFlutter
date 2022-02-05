@@ -300,7 +300,7 @@ class _MyButtonState extends State<MyButton> {
             ? 
             (widget.cargando)
             ?
-            CircularProgressIndicator(backgroundColor: widget.textColor,) 
+            CircularProgressIndicator(color: _textColor(),) 
             : 
             Text(widget.title.toUpperCase(), style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),)
         :

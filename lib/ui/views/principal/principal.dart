@@ -3349,6 +3349,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         Expanded(
                           child: MyTable(
                             type: MyTableType.custom,
+                            showColorWhenImpar: true,
+                            customRowHeight: 40,
+                            customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
                             rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
@@ -3386,6 +3389,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         Expanded(
                           child: MyTable(
                             type: MyTableType.custom,
+                            showColorWhenImpar: true,
+                            customRowHeight: 40,
+                            customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
                             rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
@@ -3429,6 +3435,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                   Expanded(
                     child: MyTable(
                       type: MyTableType.custom,
+                      showColorWhenImpar: true,
+                      customRowHeight: 40,
+                      customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                       columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
                       rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                       delete: (){}
@@ -3473,6 +3482,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         Expanded(
                           child: MyTable(
                             type: MyTableType.custom,
+                            showColorWhenImpar: true,
+                            customRowHeight: 40,
+                            customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
                             rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
@@ -3509,6 +3521,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         ),
                         Expanded(
                           child: MyTable(
+                            showColorWhenImpar: true,
+                            customRowHeight: 40,
+                            customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             type: MyTableType.custom,
                             customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
@@ -3552,6 +3567,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                         ),
                         Expanded(
                           child: MyTable(
+                            showColorWhenImpar: true,
+                            customRowHeight: 40,
+                            customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             type: MyTableType.custom,
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
                             rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],

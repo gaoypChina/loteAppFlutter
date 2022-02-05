@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/principal.dart';
@@ -98,9 +99,51 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: _colorPrimary,
+        backgroundColor: kIsWeb ? null : _colorPrimary,
         body: SafeArea(
-          child: Column(
+          child: 
+          kIsWeb
+          ?
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                    padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 0, left: 10.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      // BorderRadius.only(
+                      //   topRight: Radius.circular(32),
+                      //   bottomRight: Radius.circular(32),
+                      // ),
+                      child: Container(
+                        // color: Colors.red,
+                        // width: 150,
+                        height: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 30 : 35,
+                        child:  Container(
+                          child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                        ),
+                      ),
+                    ),
+                  ),
+              Padding(
+                padding: EdgeInsets.only(top: !Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? 8.0 : 2.0, left: 10.0),
+                child: Container(
+                  // color: Colors.red,
+                  // width: 150,
+                  // height: 45,
+                  child:  Text("LoteriApp", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15.0, top: 4.0),
+                child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator()),
+              )
+              ],
+            ),
+          )
+          :
+          Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(
