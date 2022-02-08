@@ -26,6 +26,8 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.GeneratedPluginRegistrant
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,11 +35,13 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.*
 
 class MainActivity: FlutterActivity() {
 //    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
 //        GeneratedPluginRegistrant.registerWith(flutterEngine);
 //    }
+
 
     var dataNotification : HashMap<String, Any>? = null;
     private val CHANNEL = "flutter.loterias";
@@ -60,7 +64,8 @@ class MainActivity: FlutterActivity() {
         Log.e("AndroidNativeCode", "configureFlutterEngine onCreate intentData: " + data);
     }
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
+//        super.configureFlutterEngine(flutterEngine)
+        GeneratedPluginRegistrant.registerWith(flutterEngine);
 
         getIntentData(intent)
         mContext = context
@@ -163,20 +168,24 @@ class MainActivity: FlutterActivity() {
         BluetoothManager.turnOnBluetoothFromFlutter(this@MainActivity, result)
     }
 
-    fun HmltToBitmapAndSendSMSWhatsapp(call:MethodCall, result:MethodChannel.Result ){
+    fun HmltToBitmapAndSendSMSWhatsapp(call:MethodCall, result:MethodChannel.Result ) {
         //IO, Main, Default
 //       try {
             Utils.comprobarPermisos(this);
 
-        val handler = CoroutineExceptionHandler { _, exception ->
-            sendErrorMessage("Error", "$exception")
-            println("CoroutineExceptionHandler got $exception")
-        }
-           CoroutineScope(IO).launch(handler){
+
+
+//        val handler = CoroutineExceptionHandler { _, exception ->
+//            sendErrorMessage("Error", "$exception")
+//            println("CoroutineExceptionHandler got $exception")
+//        }
+
+
+           CoroutineScope(IO).launch{
                //Create ticket image
 
-//               try {
-//                   val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
+               try {
+                   val bitmapHtml =  async {htmlToBitmap(call.argument<String>("html")) }.await() ;
 
                    val ticketBitmap = Utils.base64ToBitmap(call.argument<ByteArray>("image")!!)
 //                   val ticketBitmap = getImageFromAsset(call.argument<String>("image")!!)
@@ -191,10 +200,10 @@ class MainActivity: FlutterActivity() {
                        result.success("se hizo")
                        Log.e("Advertencia", "Despues de resultado")
                    }
-//               }catch (e:Exception){
-//                   e.message?.let { sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", it) }
-//                   result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, {});
-//               }
+               }catch (e:Exception){
+                   e.message?.let { sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", it) }
+                   result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, {});
+               }
            }
 //       }catch (e:Exception){
 ////           sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", e.message)
@@ -322,9 +331,9 @@ class MainActivity: FlutterActivity() {
         val route:String? = call.argument<String>("route")
         try {
             val notificacion = HashMap<String, Any>()
-            notificacion["titulo"] = title!!;
-            notificacion["subtitulo"] = subtitle!!;
-            notificacion["contenido"] = content!!;
+            notificacion.put("titulo", title!!);
+            notificacion.put("subtitulo", subtitle!!);
+            notificacion.put("contenido", content!!);
             val intent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }

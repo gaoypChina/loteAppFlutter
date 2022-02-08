@@ -29,11 +29,12 @@ class MyMultiSelectDialogItem<V> {
 }
 
 class MyMultiSelectDialog<V> extends StatefulWidget {
-  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog}) : super(key: key);
+  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints}) : super(key: key);
 
   final List<MyMultiSelectDialogItem<V>> items;
   final List<V> initialSelectedValues;
   final MyMultiselectType type;
+  final BoxConstraints boxConstraints;
 
   @override
   State<StatefulWidget> createState() => MyMultiSelectDialogState<V>();
@@ -43,9 +44,11 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
   final List<V> _selectedValues = [];
   bool _unSelectOthersItems = false;
   var _itemValueDoNotUnSelect = 0;
+  ScrollController _scrollController;
 
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     if (widget.initialSelectedValues != null) {
       _selectedValues.addAll(widget.initialSelectedValues);
     }
@@ -106,14 +109,23 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
   }
 
   Widget _dataScreen(){
-   return SingleChildScrollView(
-        child: ListTileTheme(
-          contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-          child: ListBody(
-            children: widget.items.map(_buildItem).toList(),
+   return Container(
+    //  height: widget.height,
+    constraints: widget.boxConstraints,
+     child: Scrollbar(
+       controller: _scrollController,
+       isAlwaysShown: widget.type != MyMultiselectType.dialog,
+       child: SingleChildScrollView(
+         controller: _scrollController,
+            child: ListTileTheme(
+              contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+              child: ListBody(
+                children: widget.items.map(_buildItem).toList(),
+              ),
+            ),
           ),
-        ),
-      );
+     ),
+   );
   }
 
   Widget _screen(){

@@ -2435,6 +2435,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 return Container(
                   width: width,
                   child: MyMultiSelectDialog<Loteria>(
+                    // height: 400,
+                    boxConstraints: BoxConstraints(maxHeight: 400),
                     key: _myMultiselectKey,
                     type: MyMultiselectType.overlay,
                     initialSelectedValues: _selectedLoterias != null ? _selectedLoterias : null,
@@ -3327,6 +3329,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 1.0),
             child: Card(
+              
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -3367,6 +3370,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 1.0),
             child: Card(
+              
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -3460,6 +3464,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
             child: Card(
+              
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -3500,6 +3505,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2.0),
             child: Card(
+              
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -3546,6 +3552,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 1.0),
             child: Card(
+              
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -4608,14 +4615,14 @@ void _getTime() {
 
 
       // if(remaining.inMinutes > 0)
-        return Text("${remaining.inMinutes} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+        return Text("${remaining.inMinutes} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red, ), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
       // else{
       //   format = DateFormat("ss");
       //   return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
       // }
     }
     else if(remaining.inHours == 0 && remaining.inSeconds > 0)
-        return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+        return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
     else if(remaining.inHours <= 0 && remaining.inSeconds <= 0)
         return Text("Cerrada", style: TextStyle(fontSize: 12, color: Colors.red));
     else{
@@ -4689,9 +4696,11 @@ void _getTime() {
             // Text("${_selectedLoterias[0].descripcion}"),
             Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Center(child: _getLoteriaRemainingTime(_selectedLoterias[0])),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: _getLoteriaRemainingTime(_selectedLoterias[0]),
+              ),
             )
           ],
         )

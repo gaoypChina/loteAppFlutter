@@ -108,7 +108,7 @@ _showSnackBar(String content){
 
   Future<void> _acceder() async {
     if(_formKey.currentState.validate()){
-      try{
+      // try{
         setState(() => _cargando = true);
         var parsed = await LoginService.acceder(usuario: _txtUsuarioController.text.toString(), password: _txtPasswordController.text.toString(), context: context);
         var c = await DB.create();
@@ -137,12 +137,12 @@ _showSnackBar(String content){
         setState(() => _cargando = false);
 
         _navigateToHome();
-      }on dynamic catch(e){
-        print("Error desde login: ${e.toString()}");
-        Utils.showAlertDialog(content: e.toString(), title: "Error", context: context);
+      // }on dynamic catch(e){
+      //   print("Error desde login: ${e.toString()}");
+      //   Utils.showAlertDialog(content: e.toString(), title: "Error", context: context);
 
-        setState(() => _cargando = false);
-      }
+      //   setState(() => _cargando = false);
+      // }
     }
   }
 
@@ -323,7 +323,7 @@ _showSnackBar(String content){
                               ],
                             ),
                           ),
-                          Center(child: Text("Version prueba 0.0.5", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
+                          Center(child: Text("Version prueba 2.1.54", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
                         ],
                       ),
                     ),

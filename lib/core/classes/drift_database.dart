@@ -982,7 +982,7 @@ class AppDatabase extends _$AppDatabase{
           //     "insert or replace into Blocksdirty(id, idBanca, idLoteria, idSorteo, cantidad, created_at, idMoneda) values(?, ?, ?, ?, ?, ?, ?)", 
           //                                               [b.id, b.idBanca, b.idLoteria, b.idSorteo, b.cantidad, b.created_at.toString(), b.idMoneda]);
           // }
-          batch.insertAll(blocksdirtygenerals, listBlocksdirty, mode: InsertMode.replace);
+          batch.insertAll(blocksdirtys, listBlocksdirty, mode: InsertMode.replace);
         }
     });
   }
