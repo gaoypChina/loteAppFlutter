@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/models/pago.dart';
 import 'package:loterias/core/models/searchdata.dart';
 import 'package:loterias/main.dart';
@@ -12,7 +13,7 @@ import 'mybottom.dart';
 import 'mybutton.dart';
 
 
-myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged, ValueChanged<SearchData> appBarDuplicarTicket}){
+myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged, ValueChanged<SearchData> appBarDuplicarTicket, Lotterycolor lotteryColor}){
   Widget widget = SizedBox();
   var _defaultValueNotifyDrawer = ValueNotifier(DRAWER_IS_OPEN);
   var _valueNotifierAppBarPago = ValueNotifier<dynamic>(null);
@@ -44,6 +45,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
         dashboard: dashboard, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, 
         pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, 
         balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, entidades: entidades, bancas: bancas, loterias: loterias, grupos: grupos, ajustes: ajustes,
+        lotteryColor: lotteryColor,
         onMouseEnter: (){
           if(drawerAnimationController != null)
             drawerAnimationController.forward();
@@ -213,7 +215,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       if(showDrawerOnSmallOrMedium == false && Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
         return null;
 
-      return MyDrawer(isForSmallScreen: true, isExpanded: true, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas);
+      return MyDrawer(isForSmallScreen: true, isExpanded: true, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, lotteryColor: lotteryColor);
     }
 
   _initDrawerNotifier();
@@ -228,8 +230,9 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
 
   return Scaffold(
         // resizeToAvoidBottomInset: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? true : false,
+        
         key: key,
-          backgroundColor: Colors.white,
+          backgroundColor: lotteryColor != null ? lotteryColor.color.withOpacity(0.4) : Colors.white,
           // drawer: Drawer( child: ListView(children: [
           //   ListTile(
           //     leading: Icon(Icons.home),
@@ -264,7 +267,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
           :
           null
           // : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
-          : MyAppBar(cargando: cargando, onTap: _onMenuTap, appBarDuplicarTicket: appBarDuplicarTicket,),
+          : MyAppBar(cargando: cargando, onTap: _onMenuTap, appBarDuplicarTicket: appBarDuplicarTicket, lotteryColor: lotteryColor,),
           body: (myNestedScrollBar != null) ? myNestedScrollBar : widget,
           bottomNavigationBar:  myBottomWidget(context: context, onTap: bottomTap, text: textBottom, cargando: cargandoNotify),
           floatingActionButton: floatingActionButton,

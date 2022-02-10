@@ -10,6 +10,7 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/searchdata.dart';
 import 'package:loterias/core/models/usuario.dart';
@@ -29,7 +30,8 @@ class MyAppBar extends StatefulWidget implements PreferredSizeWidget  {
   final bool cargando;
   final Function onTap;
   final ValueChanged<SearchData> appBarDuplicarTicket;
-  const MyAppBar({ Key key, this.cargando = false, this.onTap, this.appBarDuplicarTicket}) : super(key: key);
+  final Lotterycolor lotteryColor;
+  const MyAppBar({ Key key, this.cargando = false, this.onTap, this.appBarDuplicarTicket, this.lotteryColor}) : super(key: key);
 
   @override
   _MyAppBarState createState() => _MyAppBarState();
@@ -1223,7 +1225,9 @@ class _MyAppBarState extends State<MyAppBar> {
           //   color: Colors.black
           // ),
           elevation: 0,
-          backgroundColor: Colors.white,
+          // backgroundColor: widget.lotteryColor != null ? widget.lotteryColor.color.withOpacity(0.3) : Colors.white,
+          // backgroundColor: widget.lotteryColor != null ? widget.lotteryColor.color.withOpacity(0.3) : Colors.white,
+          backgroundColor: Colors.transparent,
           actions: <Widget>[
             Column(
   

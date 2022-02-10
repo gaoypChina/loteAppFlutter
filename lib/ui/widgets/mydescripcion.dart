@@ -10,6 +10,6 @@ class MyDescripcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: TextStyle(fontSize: fontSize, color: color != null ? color : Utils.fromHex("#5f6368"), fontFamily: "GoogleSans", fontWeight: fontWeight, letterSpacing: 0.2),);
+    return Text(title, style: TextStyle(fontSize: fontSize, color: color != null ? color : Utils.fromHex("#5f6368"), fontFamily: "GoogleSans", fontWeight: fontWeight, letterSpacing: 0.2), softWrap: true,);
   }
 }

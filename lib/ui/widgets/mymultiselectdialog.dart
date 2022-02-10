@@ -29,12 +29,13 @@ class MyMultiSelectDialogItem<V> {
 }
 
 class MyMultiSelectDialog<V> extends StatefulWidget {
-  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints}) : super(key: key);
+  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints, this.controlAffinity = ListTileControlAffinity.leading}) : super(key: key);
 
   final List<MyMultiSelectDialogItem<V>> items;
   final List<V> initialSelectedValues;
   final MyMultiselectType type;
   final BoxConstraints boxConstraints;
+  final controlAffinity;
 
   @override
   State<StatefulWidget> createState() => MyMultiSelectDialogState<V>();
@@ -172,7 +173,7 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
       dense: true,
       value: checked,
       title: (item.label is Widget) ? item.label : Text(item.label),
-      controlAffinity: ListTileControlAffinity.leading,
+      controlAffinity: widget.controlAffinity,
       onChanged: (checked) => _onItemCheckedChange(item, checked),
     );
   }

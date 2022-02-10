@@ -196,8 +196,15 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
       );
     }
     return MyTable(
-      columns: ["Grupo", "Codigo", "Activo"], 
-      rows: snapshot.data.map((e) => [e, "${e.descripcion}", "${e.abreviatura}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
+      columns: ["", "Loteria", "Abreviatura", "Activo"], 
+      rows: snapshot.data.map((e) => [e, Container(
+        width: 22,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.0),
+          color: e.color != null ? Utils.fromHex(e.color) : null
+        ),
+      ),  "${e.descripcion}", "${e.abreviatura}", "${e.status == 1 ? 'Si' : 'No'}"]).toList(),
       isScrolled: false,
       onTap: (data){
         _showDialogGuardar(data: data);

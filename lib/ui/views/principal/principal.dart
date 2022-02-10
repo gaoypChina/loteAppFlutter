@@ -23,6 +23,7 @@ import 'package:loterias/core/models/BlockslotteriesJugada.dart';
 import 'package:loterias/core/models/blocksplaysgeneralsjugadas.dart';
 import 'package:loterias/core/models/blocksplaysjugadas.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/models/montodisponible.dart';
 import 'package:loterias/core/models/notificacion.dart';
 import 'package:loterias/core/models/pago.dart';
@@ -109,7 +110,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   var valueNotifyDrawer = ValueNotifier<bool>(false);
   IO.Socket socket;
   var _scrollController = ItemScrollController();
-  List<String> _listaMensajes = List();
+  List<String> _listaMensajes = [];
   static int _socketContadorErrores = 0;
   static int _socketNotificacionContadorErrores = 0;
   var _connectionNotify = ValueNotifier<bool>(false);
@@ -185,6 +186,7 @@ String _montoPrueba = '0';
   List<Loteria> _selectedLoterias;
   Timer _timer;
   Timer _timerSaveVentaNoSubidas;
+  List<Lotterycolor> _listaLotteryColor;
 
  
   Usuario _usuario;
@@ -572,6 +574,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         DeviceOrientation.portraitDown,
         DeviceOrientation.portraitUp,
     ]);
+    _listaLotteryColor = Lotterycolor.getAll();
     if(widget.callThisScreenFromLogin){
       _getCurrentTimeZone();
       CrossPlatformRequesPermission().requestNecesaryPermissions();
@@ -2438,6 +2441,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                     // height: 400,
                     boxConstraints: BoxConstraints(maxHeight: 400),
                     key: _myMultiselectKey,
+                    // controlAffinity: !isSmallOrMedium ? ListTileControlAffinity.trailing : ListTileControlAffinity.leading,
                     type: MyMultiselectType.overlay,
                     initialSelectedValues: _selectedLoterias != null ? _selectedLoterias : null,
                     items: listaLoteria.map<MyMultiSelectDialogItem<Loteria>>((e) => MyMultiSelectDialogItem<Loteria>(e, _getLoteriaStream(e, isSmallOrMedium: isSmallOrMedium))).toList(),
@@ -3592,6 +3596,10 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           );
   }
 
+  Lotterycolor _getLotteryColor(){
+    return _selectedLoterias != null ? _selectedLoterias.length == 1 ? _listaLotteryColor.firstWhere((element) => element.toHex() == _selectedLoterias[0].color, orElse: () => null) : null : null;
+  }
+
 
   @override
   build(BuildContext context) {
@@ -3612,12 +3620,14 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         inicio: true,
         valueNotifyDrawer: valueNotifyDrawer,
         appBarDuplicarTicket: _appBarDuplicarTicket,
+        lotteryColor: _getLotteryColor(),
         onDrawerChanged: (){
           // valueNotifyDrawer.value = !valueNotifyDrawer.value;
         },
         // showDrawerOnSmallOrMedium: true,
         sliverBody: MySliver(
           sliverAppBar: MySliverAppBar(
+            lotteryColor: _getLotteryColor(),
             title: Wrap(
               children: [
                 // Text("Principal"),
@@ -4637,7 +4647,12 @@ void _getTime() {
   }
 
   StreamBuilder _getLoteriaStream(Loteria loteria, {bool isSmallOrMedium = true}){
-    
+    Color _textColor;
+    if(loteria.color != null && !isSmallOrMedium){
+     var lotterycolor = _listaLotteryColor.firstWhere((element) => element.toHex() == loteria.color, orElse:() => null,);
+     if(lotterycolor != null)
+      _textColor = lotterycolor.color;
+    }
 
     return StreamBuilder(
       stream: Stream.periodic(Duration(seconds: 1), (i) => i),
@@ -4646,9 +4661,9 @@ void _getTime() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : null)),
-            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
+           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : null, color: _textColor)),
             _getLoteriaRemainingTime(loteria)
+           // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
           ],
         );
         return ListTile(
@@ -4670,10 +4685,10 @@ void _getTime() {
         String dateString = "";
         // print(dateString);
         if(_selectedLoterias == null)
-          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),);
+          return Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium, listaLotteryColor: _listaLotteryColor);
 
         if(_selectedLoterias.length > 1 || _selectedLoterias.length == 0)
-          return Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),);
+          return Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium, listaLotteryColor: _listaLotteryColor);
 
         return 
         isSmallOrMedium
@@ -4683,7 +4698,7 @@ void _getTime() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),),
+            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             _getLoteriaRemainingTime(_selectedLoterias[0])
           ],
@@ -4694,7 +4709,7 @@ void _getTime() {
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Text(Principal.loteriasSeleccionadasToString(_selectedLoterias).toString().toUpperCase(), style: TextStyle(color: _colorSegundary),),
+            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium, listaLotteryColor: _listaLotteryColor),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             Expanded(
               child: Padding(
@@ -4747,7 +4762,7 @@ void _getTime() {
             if(snapshot.hasData){
               lista = snapshot.data;
             }else{
-              lista = List();
+              lista = [];
               lista.add(Loteria(descripcion: 'No hay datos', id: 0));
             }
             var items = lista.map((l){

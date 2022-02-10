@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 
 class MyListTileType {
   const MyListTileType._(this.index);
@@ -27,7 +28,8 @@ class MyListTile extends StatefulWidget {
   final bool visible;
   final MyListTileType type;
   final AnimationController controller;
-  MyListTile({Key key, @required this.title, @required this.icon, this.onTap, this.selected = false, this.cargando = false, this.visible, this.type = MyListTileType.normal, this.controller}) : super(key: key);
+  final Lotterycolor lotteryColor;
+  MyListTile({Key key, @required this.title, @required this.icon, this.onTap, this.selected = false, this.cargando = false, this.visible, this.type = MyListTileType.normal, this.controller, this.lotteryColor}) : super(key: key);
   @override
   _MyListTileState createState() => _MyListTileState();
 }
@@ -42,10 +44,10 @@ class _MyListTileState extends State<MyListTile> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: widget.selected ? Colors.blue[50] : Colors.transparent,
+              color: widget.selected ? widget.lotteryColor != null ? Colors.grey[50] : Colors.blue[50] : Colors.transparent,
               borderRadius: BorderRadius.circular(25)
             ),
-            child: Center(child: Icon(widget.icon, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700,)) ,
+            child: Center(child: Icon(widget.icon, color: widget.selected ? widget.lotteryColor != null ? widget.lotteryColor.color : Theme.of(context).primaryColor : Colors.grey.shade700,)) ,
           ),
         ),
     );
@@ -61,7 +63,7 @@ class _MyListTileState extends State<MyListTile> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: widget.selected ? Colors.blue[50] : Colors.transparent
+                color: widget.selected ? widget.lotteryColor != null ? Colors.grey[50] : Colors.blue[50] : Colors.transparent
               ),
               child: ListTile(
                 onTap: widget.onTap,
@@ -78,7 +80,7 @@ class _MyListTileState extends State<MyListTile> {
                 leading: 
                 Padding(
                   padding: const EdgeInsets.only(left: 15.0),
-                  child: Icon(widget.icon, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700,),
+                  child: Icon(widget.icon, color: widget.selected ? widget.lotteryColor != null ? widget.lotteryColor.color : Theme.of(context).primaryColor : Colors.grey.shade700,),
                 ),
                 
                 title: Visibility(
@@ -86,7 +88,7 @@ class _MyListTileState extends State<MyListTile> {
                   child: Wrap(
                     // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                    Text(widget.title, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w500,fontSize: 14.3, letterSpacing: 0.2, color: widget.selected ? Theme.of(context).primaryColor : Colors.grey.shade700)),
+                    Text(widget.title, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w500,fontSize: 14.3, letterSpacing: 0.2, color: widget.selected ? widget.lotteryColor != null ? widget.lotteryColor.color : Theme.of(context).primaryColor : Colors.grey.shade700)),
                     Visibility(visible: widget.cargando, child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: SizedBox(

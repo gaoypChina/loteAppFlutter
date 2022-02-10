@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 
@@ -192,7 +193,8 @@ class MySliverAppBar extends StatefulWidget {
   final EdgeInsets dividerPadding;
   final bool floating;
   final bool showDivider;
-  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom, this.dividerPadding = const EdgeInsets.only(right: 25, top: 20), this.floating = false, this.showDivider = true}) : super(key: key);
+  final Lotterycolor lotteryColor;
+  MySliverAppBar({Key key, this.title, this.subtitle = "", this.expandedHeight = 85, this.cargando = false, this.actions = const [], this.disableLeading = false, this.titleMinFontSizeForLargeScreen = 20, this.titleMinFontSizeForSmallScreen = 18, this.titlePadding = const EdgeInsets.all(0), this.backRouteName, this.bottom, this.dividerPadding = const EdgeInsets.only(right: 25, top: 20), this.floating = false, this.showDivider = true, this.lotteryColor}) : super(key: key);
 
   @override
   _MySliverAppBarState createState() => _MySliverAppBarState();
@@ -315,11 +317,15 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
     
         var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
         return SliverAppBar(
+          elevation: 0.0,
+          
+          // shadowColor: Colors.transparent,
           onStretchTrigger: (){
             print("Holaaa sliver trigger");
             return;
           },
-          // backgroundColor: Colors.blue,
+          // backgroundColor: widget.lotteryColor != null ? widget.lotteryColor.color.withOpacity(0.3) : null,
+          backgroundColor: widget.lotteryColor != null ? Colors.transparent : null,
           automaticallyImplyLeading: isSmallOrMedium,
           // automaticallyImplyLeading: false,
           // backgroundColor: Colors.white,

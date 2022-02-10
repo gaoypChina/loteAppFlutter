@@ -3,14 +3,17 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/services/gruposservice.dart';
 import 'package:loterias/core/services/loteriaservice.dart';
 import 'package:loterias/ui/views/loterias/loteriasscreen.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/myside.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
@@ -123,7 +126,7 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
       
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: MyDropdown(title: "Estado", hint: "${_status ? 'Activa' : 'Desactivada'}", isSideTitle: true, xlarge: 1.6, elements: [[true, "Activa"], [false, "Desactivada"]], onTap: _statusChanged,),
+        child: MyDropdown(title: "Estado", hint: "${_status ? 'Activa' : 'Desactivada'}", isSideTitle: true, large: 1.6, xlarge: 1.35, elements: [[true, "Activa"], [false, "Desactivada"]], onTap: _statusChanged,),
       );
     }
 
@@ -282,6 +285,43 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
     }
 
 
+  _colorChanged(Lotterycolor lotterycolor){
+    setState(() {_loteria.color = lotterycolor == null ? null : lotterycolor.toHex();});
+  }
+
+  Widget _colorWidget(Lotterycolor lotterycolor){
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: IconButton(onPressed: () {_colorChanged(lotterycolor); Navigator.pop(context);}, tooltip: lotterycolor == null ? 'Sin color' :  lotterycolor.name, icon: CircleAvatar(backgroundColor: lotterycolor == null ? Colors.white : lotterycolor.color, child: lotterycolor == null ? Icon(Icons.format_color_reset_outlined) : Visibility(visible: _loteria != null ? _loteria.color == lotterycolor.toHex() : false, child: Icon(Icons.check)))),
+    );
+  }
+
+
+  _showDialogColor(){
+    showDialog(
+      context: context, 
+      builder: (context){
+        return MyAlertDialog(
+          title: "Color", 
+          content: Wrap(
+            children: Lotterycolor.getAll().asMap().map((key, value){
+              // if(key == 0)
+
+              return MapEntry(key, _colorWidget(key == 0 ? null : value));
+
+              // return Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              //   child: IconButton(onPressed: () {_colorChanged(e); Navigator.pop(context);}, tooltip: e.name, icon: CircleAvatar(backgroundColor: e.color, child: Visibility(visible: _loteria != null ? _loteria.color == e.toHex() : false, child: Icon(Icons.check)))),
+              // );
+            }).values.toList(),
+          ), 
+          okFunction: (){}
+        );
+      }
+    );
+  }
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -358,10 +398,39 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
                         MyDivider(showOnlyOnSmall: true,),
                         _statusScreen(isSmallOrMedium),
                         MyDivider(showOnlyOnSmall: true,),
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                          child: MySide(
+                            xlarge: 1.35,
+                            large: 1.35,
+                            small: 1,
+                            medium: 1.35,
+                            first: Text("Color"),
+                            second: InkWell(
+                              onTap: _showDialogColor,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: _loteria.color != null ? Utils.fromHex(_loteria.color) : Colors.white,
+                                    child: Visibility(visible: _loteria.color == null, child: Icon(Icons.format_color_reset_outlined)),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: MyDescripcon(title: "Este color aparecera como fondo en la ventana para vender cuando esta loteria este seleccionada.", fontSize: 14,),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        MyDivider(showOnlyOnSmall: true,),
                         _sorteosScreen(isSmallOrMedium),
                         MyDivider(showOnlyOnSmall: true,),
                         _loteriasCompanerasScreen(isSmallOrMedium),
                         MyDivider(showOnlyOnSmall: true,),
+                        
                         // MyDropdown(
                         //   title: "Estado",
                         //   medium: 1,

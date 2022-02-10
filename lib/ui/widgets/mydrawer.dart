@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/ui/widgets/myexpansiontile.dart';
 import 'package:loterias/ui/widgets/mylisttile.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
@@ -65,8 +66,9 @@ class MyDrawer extends StatefulWidget {
   final Widget Function(BuildContext context, AnimationController animationController, Widget widget) animationBuilder;
   final Function onMouseEnter;
   final Function onMouseExit;
+  final Lotterycolor lotteryColor;
   // final ValueChanged onChanged;
-  MyDrawer({Key key, @required this.isExpanded, this.inicio = false, this.dashboard = false, this.transacciones = false, this.monitoreo = false, this.registrarPremios = false, this.reporteJugadas = false, this.ventasPorFecha = false, this.historicoVentas = false, this.ventas =  false, this.loterias = false, this.pendientesPago = false, this.bancas = false, this.monedas = false, this.entidades = false, this.bloqueosPorLoteria = false, this.bloqueosPorJugadas = false, this.usuarios = false, this.sesiones = false, this.balancebancos = false, this.clientesBack = false, this.horariosloterias, this.balanceBancas, this.isForSmallScreen = false, this.type = MyDrawerType.normal, this.animationBuilder, this.onMouseEnter, this.onMouseExit, this.grupos, this.ajustes}) : super(key: key);
+  MyDrawer({Key key, @required this.isExpanded, this.inicio = false, this.dashboard = false, this.transacciones = false, this.monitoreo = false, this.registrarPremios = false, this.reporteJugadas = false, this.ventasPorFecha = false, this.historicoVentas = false, this.ventas =  false, this.loterias = false, this.pendientesPago = false, this.bancas = false, this.monedas = false, this.entidades = false, this.bloqueosPorLoteria = false, this.bloqueosPorJugadas = false, this.usuarios = false, this.sesiones = false, this.balancebancos = false, this.clientesBack = false, this.horariosloterias, this.balanceBancas, this.isForSmallScreen = false, this.type = MyDrawerType.normal, this.animationBuilder, this.onMouseEnter, this.onMouseExit, this.grupos, this.ajustes, this.lotteryColor}) : super(key: key);
   @override
   _MyDrawerState createState() => _MyDrawerState();
 }
@@ -275,6 +277,7 @@ _streamControllerListTile = BehaviorSubject();
             title: title, 
             icon: icon, 
             selected: selected, 
+            lotteryColor: widget.lotteryColor,
             onTap: (){onTap();}, 
           ),
     );
@@ -306,7 +309,7 @@ _streamControllerListTile = BehaviorSubject();
       isExpanded: widget.isExpanded,
       animation: _animation,
       child: Container(
-                            color: Colors.white,
+                            color: widget.lotteryColor != null ? widget.lotteryColor.color.withOpacity(0.4) : Colors.white,
                             // width: widget.isExpanded == false && value == false ? 65 : 260,
                             width: width,
                             height: MediaQuery.of(context).size.height,

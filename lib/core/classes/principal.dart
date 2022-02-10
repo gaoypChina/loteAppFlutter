@@ -18,6 +18,7 @@ import 'package:loterias/core/models/blocksplaysgeneralsjugadas.dart';
 import 'package:loterias/core/models/blocksplaysjugadas.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/stockjugada.dart';
 import 'package:loterias/core/models/stocks.dart';
@@ -91,19 +92,82 @@ class Principal{
     // return true;
   }
 
-  static loteriasSeleccionadasToString(List<Loteria> loteriasSeleccionadas){
+  static Widget loteriasSeleccionadasToString(List<Loteria> loteriasSeleccionadas, Color color, {bool isSmallOrMedium = true, List<Lotterycolor> listaLotteryColor = const []}){
     if(loteriasSeleccionadas == null)
-      return 'Seleccionar loterias';
+      return Text('Seleccionar loterias'.toString().toUpperCase(), style: TextStyle(color: color));
     else{
       String loterias = "";
       if(loteriasSeleccionadas.isEmpty)
-        return 'Seleccionar loterias';
+        return Text('Seleccionar loterias'.toString().toUpperCase(), style: TextStyle(color: color));
         int c = 0;
+
+      List<TextSpan> listaOfTextSpan = [];
       for(Loteria l in loteriasSeleccionadas){
-        loterias += (c + 1 < loteriasSeleccionadas.length) ? l.descripcion + ', ' : l.descripcion;
+        // Loteria loteria = l;
+        Color _textColor;
+
+        if(l.color != null && !isSmallOrMedium){
+          var lotterycolor = listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,);
+          if(lotterycolor != null)
+            _textColor = lotterycolor.color;
+
+          // print("PrincipalClass loteriasSeleccionadasToString _textColor: $_textColor lottery: ${l.descripcion} : ${l.color} : listLength${listaLotteryColor.length} data: ${listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,)}");
+        }
+
+        if(c > 0 && (c + 1 <= loteriasSeleccionadas.length))
+          listaOfTextSpan.add(
+            TextSpan(
+              style: TextStyle(color: Colors.grey),
+              text: ", "
+            )
+          );
+
+        listaOfTextSpan.add(
+          TextSpan(
+            style: TextStyle(color: isSmallOrMedium ? color : _textColor != null ? _textColor : Colors.black, fontWeight: FontWeight.w600),
+            text: l.descripcion.toUpperCase()
+          )
+        );
+
+        // loterias += (c + 1 < loteriasSeleccionadas.length) ? l.descripcion + ', ' : l.descripcion;
         c++;
       }
-      return loterias;
+
+      return RichText(text: TextSpan(children: listaOfTextSpan));
+
+      if(loteriasSeleccionadas.length == 1 && !isSmallOrMedium){
+        Loteria loteria = loteriasSeleccionadas[0];
+        Color _textColor;
+        if(loteria.color != null && !isSmallOrMedium){
+        var lotterycolor = listaLotteryColor.firstWhere((element) => element.toHex() == loteria.color, orElse:() => null,);
+        if(lotterycolor != null)
+          _textColor = lotterycolor.color;
+        }
+
+        return Text(loterias.toString().toUpperCase(), style: TextStyle(color: _textColor));
+         
+        // return Wrap(
+        //   children: [
+        //     Visibility(
+        //       visible: _textColor != null,
+        //       child: Padding(
+        //         padding: const EdgeInsets.only(right: 8.0, top: 2),
+        //         child: Container(
+        //           width: 15, 
+        //           height: 15, 
+        //           decoration: BoxDecoration(
+        //             color: _textColor != null ? _textColor : Colors.white,
+        //             borderRadius: BorderRadius.circular(5)
+        //           ),
+        //         )
+        //         // CircleAvatar(backgroundColor: _textColor != null ? _textColor : Colors.white, radius: 10,),
+        //       ),
+        //     ),
+        //   ],
+        // );
+      }
+
+      return Text(loterias.toString().toUpperCase(), style: TextStyle(color: color));
     }
   }
 
