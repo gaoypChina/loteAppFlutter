@@ -385,7 +385,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         
         _cargandoNotify.value = false;
         _back(parsed);
-      } on Exception catch (e) {
+      } on dynamic catch (e) {
         print("_showDialogGuardar _erroor: $e");
         _cargandoNotify.value = false;
       }
@@ -1401,7 +1401,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
         return selectedLoteriaPagosCombinacion.sorteos.indexWhere((element) => element.descripcion.toLowerCase() == sorteo) != -1;
       }else{
-        var loteria = _loteriasPagosCombinaciones.firstWhere((element) => element.id == idLoteria);
+        var loteria = _loteriasPagosCombinaciones.firstWhere((element) => element.id == idLoteria, orElse: () => null);
+        if(loteria == null)
+          return false;
+          
         if(loteria.id == 0)
           return false;
 

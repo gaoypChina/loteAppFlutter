@@ -124,7 +124,7 @@ class Principal{
 
         listaOfTextSpan.add(
           TextSpan(
-            style: TextStyle(color: isSmallOrMedium ? color : _textColor != null ? _textColor : Colors.black, fontWeight: FontWeight.w600),
+            style: TextStyle(color: isSmallOrMedium ? color : _textColor != null ? _textColor : Colors.black, fontWeight: isSmallOrMedium ? null : FontWeight.w600),
             text: l.descripcion.toUpperCase()
           )
         );

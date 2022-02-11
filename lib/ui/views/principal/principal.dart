@@ -6005,18 +6005,35 @@ void _getTime() {
     if(listaLoteria.length == 0)
       return;
 
-    // if(_selectedLoterias != null){
-    //   if(_selectedLoterias.length > 0){
-    //     if(quitarSoloLoteriasCerradas){
-    //       for (var loteria in _selectedLoterias) {
-    //         var idx = listaLoteria.indexWhere((element) => element.id == loteria.id);
-    //         if(idx == -1)
-    //           _selectedLoterias.removeWhere((element) => element.id == loteria.id);
-    //       }
-    //       return;
-    //     }
-    //   }
-    // }
+    if(_selectedLoterias != null){
+      if(_selectedLoterias.length > 0){
+        if(quitarSoloLoteriasCerradas){
+          List<Loteria> listaLoteriaToRemove = [];
+          for (var loteria in _selectedLoterias) {
+            var idx = listaLoteria.indexWhere((element) => element.id == loteria.id);
+            if(idx == -1){
+              // _selectedLoterias.removeWhere((element) => element.id == loteria.id);
+              var loteriaToRemove = _selectedLoterias.firstWhere((element) => element.id == loteria.id, orElse: () => null);
+              if(loteriaToRemove!= null)
+                listaLoteriaToRemove.add(loteriaToRemove);
+            }else{
+              var indexSelectedLoteria = _selectedLoterias.indexWhere((element) => element.id == loteria.id);
+              if(indexSelectedLoteria != -1)
+                _selectedLoterias[indexSelectedLoteria] = listaLoteria[idx];
+            }
+          }
+
+          for (var loteria in listaLoteriaToRemove) {
+            _selectedLoterias.removeWhere((element) => element.id == loteria.id);
+          }
+
+          if(_selectedLoterias.length == 0)
+            _selectedLoterias.add(listaLoteria[0]);
+
+          return;
+        }
+      }
+    }
     _selectedLoterias = [];
     // final selectedValuesMap = listaLoteria.asMap();
     _selectedLoterias.add(listaLoteria[0]);
@@ -6935,7 +6952,8 @@ Future quitarLoteriasCerradas()
           else{
             setState(() {
                 listaLoteria.remove(l);
-              _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
+                 _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
+              // _seleccionarPrimeraLoteria(quitarSoloLoteriasCerradas: true);
               });
 
           }
