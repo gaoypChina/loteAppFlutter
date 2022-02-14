@@ -29,13 +29,14 @@ class MyMultiSelectDialogItem<V> {
 }
 
 class MyMultiSelectDialog<V> extends StatefulWidget {
-  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints, this.controlAffinity = ListTileControlAffinity.leading}) : super(key: key);
+  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints, this.controlAffinity = ListTileControlAffinity.leading, this.onItemTap}) : super(key: key);
 
   final List<MyMultiSelectDialogItem<V>> items;
   final List<V> initialSelectedValues;
   final MyMultiselectType type;
   final BoxConstraints boxConstraints;
   final controlAffinity;
+  final ValueChanged<V> onItemTap;
 
   @override
   State<StatefulWidget> createState() => MyMultiSelectDialogState<V>();
@@ -55,7 +56,7 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
     }
   }
 
-  void _onItemCheckedChange(MyMultiSelectDialogItem item, bool checked) {
+  void _onItemCheckedChange(MyMultiSelectDialogItem<V> item, bool checked) {
     setState(() {
       if (checked) {
         if(item.unSelectOthersItems){
@@ -71,6 +72,9 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
         }
         _selectedValues.remove(item.value);
       }
+
+      if(widget.onItemTap != null)
+        widget.onItemTap(item.value);
     });
   }
 

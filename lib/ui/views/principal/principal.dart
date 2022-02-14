@@ -22,6 +22,7 @@ import 'package:loterias/core/models/BlocksgeneralsJugada.dart';
 import 'package:loterias/core/models/BlockslotteriesJugada.dart';
 import 'package:loterias/core/models/blocksplaysgeneralsjugadas.dart';
 import 'package:loterias/core/models/blocksplaysjugadas.dart';
+import 'package:loterias/core/models/duplicar.dart';
 import 'package:loterias/core/models/estadisticajugada.dart';
 import 'package:loterias/core/models/lotterycolor.dart';
 import 'package:loterias/core/models/montodisponible.dart';
@@ -1556,6 +1557,126 @@ _showIntentNotificationIfExists() async {
 
   _duplicar(Map<String, dynamic> datos) async {
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
+    print("PrincipalView _duplicar: ${datos['loterias']}");
+    List<dynamic> loteriasAduplicar = [];
+    List<Duplicar> listaDuplicar = await Principal.showDialogDuplicarV2(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    
+    if(loteriasAduplicar == null)
+      return;
+
+    for (var duplicar in listaDuplicar) {
+      if(duplicar.loteriasADuplicar.length == 0)
+        continue;
+        
+        if(duplicar.loteriaSuperpale == null){
+          List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["sorteo"] != Draws.superPale).toList();
+          for (var jugada in jugadas) {
+            print("No super: $jugada");
+            jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+            await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar);
+          }
+        }else{
+          List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["idLoteriaSuperpale"] == duplicar.loteriaSuperpale.id && e["sorteo"] == Draws.superPale).toList();
+          for (var jugada in jugadas) {
+            print("Si super: $jugada");
+            jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+            await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar);
+          }
+        }
+    }
+
+    return;
+
+    loteriasAduplicar.forEach((l) async {
+      for(Map<String, dynamic> jugada in datos["jugadas"]){
+        if(l["id"] == jugada["idLoteria"]){
+          if(l["duplicar"] == '- NO MOVER -'){
+            if(jugada["sorteo"] != "Super pale"){
+              jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+              // print("duplicarSuperpale ${l["duplicarSuperpale"]}");
+              await addJugada(loteriaMap: l, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+            }else{
+              Map<String, dynamic> mapLoteria = Map<String, dynamic>();
+              Loteria loteria = listaLoteria.firstWhere((lote) => lote.id == l["id"]);
+              if(l["duplicarSuperpale"] == '- NO MOVER -'){
+                  mapLoteria["id"] = loteria.id;
+                  mapLoteria["descripcion"] = loteria.descripcion;
+                  mapLoteria["abreviatura"] = loteria.abreviatura;
+                  // print("_duplicar Superpale jugadaBefore: ${jugada["jugada"]}");
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  // print("_duplicar Superpale jugadaAfter: ${jugada["jugada"]}");
+                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+                }
+                else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  mapLoteria = Map<String, dynamic>();
+                  loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
+                  Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
+                  if(loteria.id > loteriaSuperpale.id){
+                    Loteria tmp = loteriaSuperpale;
+                    loteriaSuperpale = loteria;
+                    loteria = tmp;
+                  }
+
+                  // print("loteriaSuperpale show: ${loteriaSuperpale.toJson()}");
+                  mapLoteria["id"] = loteria.id;
+                  mapLoteria["descripcion"] = loteria.descripcion;
+                  mapLoteria["abreviatura"] = loteria.abreviatura;
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  jugada["loteriaSuperpale"] = loteriaSuperpale.toJson();
+                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+                }
+            }
+          }
+          else if(l["duplicar"] != '- NO COPIAR -'){
+            // print('dentro no copiar');
+            Map<String, dynamic> mapLoteria = Map<String, dynamic>();
+            Loteria loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarId"]);
+            if(loteria != null){
+              if(jugada["sorteo"] != "Super pale"){
+                mapLoteria["id"] = loteria.id;
+                mapLoteria["descripcion"] = loteria.descripcion;
+                mapLoteria["abreviatura"] = loteria.abreviatura;
+                jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+              }else{
+                loteria = listaLoteria.firstWhere((lote) => lote.id == l["id"]);
+                if(l["duplicarSuperpale"] == '- NO MOVER -'){
+                  mapLoteria["id"] = loteria.id;
+                  mapLoteria["descripcion"] = loteria.descripcion;
+                  mapLoteria["abreviatura"] = loteria.abreviatura;
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+                }
+                else if(l["duplicarSuperpale"] != '- NO COPIAR -'){
+                  // print("duplicarSuperpale: ${l["duplicarSuperpale"]}");
+                  mapLoteria = Map<String, dynamic>();
+                  loteria = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][0]);
+                  Loteria loteriaSuperpale = listaLoteria.firstWhere((lote) => lote.id == l["duplicarIdSuperpale"][1]);
+                  if(loteria.id > loteriaSuperpale.id){
+                    Loteria tmp = loteriaSuperpale;
+                    loteriaSuperpale = loteria;
+                    loteria = tmp;
+                  }
+
+                  mapLoteria["id"] = loteria.id;
+                  mapLoteria["descripcion"] = loteria.descripcion;
+                  mapLoteria["abreviatura"] = loteria.abreviatura;
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                  jugada["loteriaSuperpale"] = loteriaSuperpale.toJson();
+                  await addJugada(loteriaMap: mapLoteria, jugada: jugada["jugada"], jugadaMap: jugada, montoDisponible: 'X', monto: jugada["monto"]);
+                }
+              }
+            }
+
+          }
+        }
+      }
+    });
+  }
+
+  _duplicarViejo(Map<String, dynamic> datos) async {
+    List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     List<dynamic> loteriasAduplicar = await Principal.showDialogDuplicar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
     
     if(loteriasAduplicar == null)
@@ -1648,6 +1769,7 @@ _showIntentNotificationIfExists() async {
       }
     });
   }
+
 
   _cambiarServidor() async {
     var c = await DB.create();
@@ -3402,7 +3524,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
-                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3447,7 +3569,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                       customRowHeight: 40,
                       customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                       columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                      rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                      rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                       delete: (){}
                     ),
                   )
@@ -5428,9 +5550,9 @@ void _getTime() {
       // VALIDAMOS EL MONTO DISPONIBLE
       MontoDisponible montoDisponible;
       // if(!kIsWeb){
-        montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[0], await _selectedBanca());
+        montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), selectedLoterias[0], await _selectedBanca());
         if(Utils.toDouble(monto) > montoDisponible.monto){
-          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${_selectedLoterias[0].descripcion}');
+          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${selectedLoterias[0].descripcion}');
             return;
         }
       // }
@@ -5442,34 +5564,34 @@ void _getTime() {
       
       // setState(() => _jugadaOmonto = true);
     }
-    else if(_selectedLoterias.length >= 2 && Utils.esSuperpale(jugada)){
+    else if(selectedLoterias.length >= 2 && Utils.esSuperpale(jugada)){
      
 
       var banca = await _selectedBanca();
       //Ordenamos las loterias seleccionadas de menor a mayor basedo en su id
-      _selectedLoterias.sort((a, b) => a.id.compareTo(b.id));
+      selectedLoterias.sort((a, b) => a.id.compareTo(b.id));
 
       // VALIDAMOS DE QUE HAYA MONTO DISPONIBLE
       List<Jugada> listaLoteriasSuperpaleConStock = [];
-      for(int i=0; i < _selectedLoterias.length; i++){
-        for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
+      for(int i=0; i < selectedLoterias.length; i++){
+        for(int i2=i + 1 ; i2 < selectedLoterias.length; i2++){
           MontoDisponible montoDisponible;
           // if(!kIsWeb){
-            montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), _selectedLoterias[i], banca, loteriaSuperpale: _selectedLoterias[i2]);
+            montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), selectedLoterias[i], banca, loteriaSuperpale: selectedLoterias[i2]);
             if(Utils.toDouble(monto) > montoDisponible.monto){
-              _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${_selectedLoterias[i].descripcion}/${_selectedLoterias[i2].descripcion}');
+              _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${selectedLoterias[i].descripcion}/${selectedLoterias[i2].descripcion}');
                 return;
             }
           // }
-          listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: _selectedLoterias[i], loteriaSuperPale: _selectedLoterias[i2]));
+          listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: selectedLoterias[i], loteriaSuperPale: selectedLoterias[i2]));
         }
       }
 
       // INSERTAMOS LOS SUPER PALE
-      for(int i=0; i < _selectedLoterias.length; i++){
-        for(int i2=i + 1 ; i2 < _selectedLoterias.length; i2++){
-          Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == _selectedLoterias[i].id && element.loteriaSuperPale.id == _selectedLoterias[i2].id);
-          insertarJugadaSuperpale(jugada: jugada, loteria: _selectedLoterias[i], loteriaSuperpale: _selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
+      for(int i=0; i < selectedLoterias.length; i++){
+        for(int i2=i + 1 ; i2 < selectedLoterias.length; i2++){
+          Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == selectedLoterias[i].id && element.loteriaSuperPale.id == selectedLoterias[i2].id);
+          insertarJugadaSuperpale(jugada: jugada, loteria: selectedLoterias[i], loteriaSuperpale: selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
         }
       }
       _streamControllerJugada.add(listaJugadas);

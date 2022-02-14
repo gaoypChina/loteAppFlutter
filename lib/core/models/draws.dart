@@ -23,6 +23,8 @@ Draws.fromMap(Map snapshot) :
         monto = snapshot['monto'] != null ? Utils.toDouble(snapshot['monto']) : null
         ;
 
+  static String get superPale => 'Super pale';
+
   toJson() {
     return {
       "id": id,
