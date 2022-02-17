@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/myfilemanager.dart';
+import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -12,6 +14,11 @@ import 'package:loterias/core/models/sale.dart';
 import 'package:loterias/core/models/salesdetails.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/models/ventas.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
+
+import '../models/jugadas.dart';
 
 
 class TicketService{
@@ -619,6 +626,69 @@ class TicketService{
     }
 
     return parsed;
+  }
+
+
+  static Future<void> showDialogJugadasSinMontoDisponible(BuildContext context, FutureOr<List<Jugada>> Function() function, {dynamic title = "Error monto disponible", bool isDeleteDialog = false, Function okFuncion, Widget okButton}) async {
+    Future<List<Jugada>> future;
+    await showDialog(
+      context: context, 
+      builder: (context){
+        return StatefulBuilder(
+          builder: (context, setState) {
+
+            Widget _circularProgressIndicator(){
+              return Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator()));
+            }
+            
+            future = Future.delayed(Duration(milliseconds: 1), () => function());
+
+            return MyAlertDialog(
+              title: title, 
+              isDeleteDialog: isDeleteDialog,
+              deleteDescripcion: "Ok",
+              xlarge: 6,
+              large: 6,
+              content: FutureBuilder<List<Jugada>>(
+                future: future,
+                builder: (context, snapshot) {
+                  if(snapshot.connectionState != ConnectionState.done)
+                    return _circularProgressIndicator();
+                  else if(snapshot.data.length == 0)
+                    return _circularProgressIndicator();
+
+                  return Column(
+                    children: [
+                      // Text("No hay monto disponible para las siguientes jugadas: ", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey), softWrap: true,),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: MyDescripcon(title: "No hay monto disponible para las siguientes jugadas: "),
+                      ),
+                      MyTable(
+                        columns: ["Jugada", "Loteria"], 
+                        rows: snapshot.data.map((e) => [e, Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Loteria.getDescripcion(e.loteria, loteriaSuperpale: e.loteriaSuperPale)}"]).toList()
+                      ),
+                      // Column(children: snapshot.data.map((e) => Row(
+                      //   children: [
+                      //     Padding(
+                      //       padding: const EdgeInsets.only(right: 8.0),
+                      //       child: Text("${Loteria.getDescripcion(e.loteria, loteriaSuperpale: e.loteriaSuperPale)}", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      //     ),
+                          
+                      //   ]
+                      // )).toList(),)
+                    ]
+                  );
+                }
+              ), 
+              okFunction: okFuncion,
+              okButton: okButton,
+            );
+          }
+        );
+      }
+    );
+
   }
 
 

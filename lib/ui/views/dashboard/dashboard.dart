@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/graficaventas.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -840,7 +841,7 @@ _showBottomSheetMoneda() async {
                             showColorWhenImpar: true,
                             type: MyTableType.custom,
                             columns: ["LOT", "NUM", "MONT"], 
-                            rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : j["abreviatura"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
+                            rows: e["jugadas"] != null ?  List.from(e["jugadas"]).map<List<dynamic>>((j) => [j, "${isSmallOrMedium ? j["descripcion"] : e['descripcion'] != Draws.superPale ? j["abreviatura"] : j["abreviatura"] + '/' + j["abreviaturaLoteriaSuperpale"]}", "${j["jugada"]}", "${j["monto"] != null ? Utils.toCurrency(j["monto"]) : '0'}"]).toList() : [[]]
                           ),
                         )
                       ],

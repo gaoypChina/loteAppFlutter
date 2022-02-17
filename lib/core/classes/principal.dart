@@ -1676,4 +1676,63 @@ class Principal{
  }
 
 
+ static Widget buildRichOrTextAndConvertJugadaToLegible(String jugada, {bool isSmallOrMedium = true}){
+   if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4), style: TextStyle(fontSize: 16));
+   }
+   else if(jugada.length == 3){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 3)),
+           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 4 && jugada.indexOf('+') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 16, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 3)),
+           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 5 && jugada.indexOf('+') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 15, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 4)),
+           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold,)),
+         ]
+       ),
+      );
+   }
+   else if(jugada.length == 5 && jugada.indexOf('-') != -1){
+     return RichText(
+       text: TextSpan(
+         style: TextStyle(fontSize: 15, color: Colors.black),
+         children: [
+           TextSpan(text: jugada.substring(0, 4)),
+           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+         ]
+       ),
+      );
+   }
+  else if(jugada.length == 6){
+    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
+    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
+     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 15),);
+  }
+
+   return Text(jugada, style: TextStyle(fontSize: 15));
+ }
+
+
+
 }

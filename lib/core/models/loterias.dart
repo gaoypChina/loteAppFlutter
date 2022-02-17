@@ -111,6 +111,16 @@ List sorteosToJson() {
       return [];
   }
 
+  static String getDescripcion(Loteria loteria, {Loteria loteriaSuperpale = null, bool returnAbreviatura = true}){
+    String descripcion;
+    if(returnAbreviatura)
+      descripcion = "${loteriaSuperpale != null ? loteria.abreviatura + '/' + loteriaSuperpale.abreviatura : loteria.descripcion}";
+    else
+      descripcion = "${loteriaSuperpale != null ? loteria.abreviatura + '/' + loteriaSuperpale.abreviatura : loteria.descripcion}";
+
+    return descripcion;
+  }
+
   toJson() {
     return {
       "id": id,

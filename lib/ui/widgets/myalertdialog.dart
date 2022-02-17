@@ -6,7 +6,7 @@ import 'myscrollbar.dart';
 
 
 class MyAlertDialog extends StatefulWidget {
-  final String title;
+  final dynamic title;
   final String description;
   final Widget content;
   final String okDescription;
@@ -17,6 +17,7 @@ class MyAlertDialog extends StatefulWidget {
   final String deleteDescripcion;
   final String thirdButtonTitle;
   final Function thirdButtonFunction;
+  final Widget okButton;
 
   final double small;
   final double medium;
@@ -25,7 +26,7 @@ class MyAlertDialog extends StatefulWidget {
   // final double padding;
   final Widget Function(BuildContext context, double width) builder;
 
-  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5,}) : super(key: key);
+  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5, this.okButton}) : super(key: key);
   @override
   _MyAlertDialogState createState() => _MyAlertDialogState();
 }
@@ -85,6 +86,10 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        widget.title is Widget
+                        ?
+                        widget.title
+                        :
                         Text(widget.title, style: TextStyle(fontFamily: "GoogleSans",fontSize: 18, color: Colors.black,fontWeight: FontWeight.w600)),
                         Align(
                           alignment: Alignment.topRight,
@@ -98,7 +103,8 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                       ],
                     ),
                       Padding(
-                      padding: const EdgeInsets.only(top: 3.0, bottom: 14, right: 3.0),
+                      // padding: const EdgeInsets.only(top: 3.0, bottom: 14, right: 3.0),
+                      padding: const EdgeInsets.only(top: 3.0, bottom: 0, right: 3.0),
                       child: Text((widget.description != null) ? widget.description : "", style: TextStyle(fontFamily: "GoogleSans", fontSize: 14, fontWeight: FontWeight.w400, color: Utils.fromHex("#5f6368"), letterSpacing: 0.5),),
                     ),
                   ],
@@ -242,18 +248,23 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                     Visibility(
                                       visible: widget.okFunction != null,
                                       child: Padding(
-                                        padding: const EdgeInsets.only(bottom: 10.0),
+                                        padding: const EdgeInsets.only(bottom: 4.0),
                                         child: TextButton(child: Text("Cancelar", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)), onPressed: (){Navigator.pop(context);}),
                                       ),
                                     ),
                                   // FlatButton(child: Text("Agregar", style: TextStyle(color: Utils.colorPrimaryBlue)), onPressed: () => _retornarReferencia(referencia: Referencia(nombre: _txtNombre.text, telefono: _txtTelefono.text, tipo: _tipo, parentesco: _parentesco)),),
                                     Visibility(
-                                      visible: !widget.isDeleteDialog && widget.okFunction != null,
+                                      visible: !widget.isDeleteDialog && (widget.okFunction != null || widget.okButton != null),
                                       child: Padding(
-                                        padding: EdgeInsets.only(bottom: 10, left: 20, right: 20),
+                                        padding: EdgeInsets.only(bottom: 4, left: 20, right: 20),
                                         child: AbsorbPointer(
                                           absorbing: widget.cargando,
-                                          child: MyButton(
+                                          child: 
+                                          widget.okButton != null
+                                          ?
+                                          widget.okButton
+                                          :
+                                          MyButton(
                                             // type: MyButtonType.noResponsive,
                                             isResponsive: false,
                                             title: widget.okDescription,
@@ -273,7 +284,7 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                     Visibility(
                                       visible: widget.isDeleteDialog,
                                       child: Padding(
-                                        padding: EdgeInsets.only(bottom: 10, left: 10, right: 10),
+                                        padding: EdgeInsets.only(bottom: 4, left: 10, right: 10),
                                         child: AbsorbPointer(
                                           absorbing: widget.cargando,
                                           child:  FlatButton(

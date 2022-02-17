@@ -9,6 +9,7 @@ import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/myscrollbar.dart';
 
 class Monitoreo{
   static showDialogImprimirCompartir({Venta venta, BuildContext context}){
@@ -203,7 +204,7 @@ class Monitoreo{
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(l.descripcion, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                                   ),
-                                  _buildTable(jugadas)
+                                  _buildTable(jugadas, isSmallOrMedium)
                                 ],)
                                 :
                                 SizedBox()
@@ -217,7 +218,7 @@ class Monitoreo{
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text("SP (${l.descripcion}/${element.descripcion})", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                       ),
-                                      _buildTable(jugadas)
+                                      _buildTable(jugadas, isSmallOrMedium)
                                     ]);
 
                                     return SizedBox();
@@ -335,7 +336,7 @@ class Monitoreo{
             ?
             MyAlertDialog(
               title: "Ver ticket", 
-              content: widgets, 
+              content: MyScrollbar(child: widgets), 
               okFunction: _goBack
             )
             :
@@ -368,7 +369,7 @@ class Monitoreo{
     );
   }
 
-  static Widget _buildTable(List<Jugada> jugadas){
+  static Widget _buildTable(List<Jugada> jugadas, [bool isSmallOrMedium = true]){
    var tam = jugadas.length;
    List<TableRow> rows;
    if(tam == 0){
@@ -380,10 +381,10 @@ class Monitoreo{
           => TableRow(
             decoration: BoxDecoration(color: Utils.colorGanadorPerdedorPendiente(j.status, j.premio)),
             children: [
-              Center(child: Text(j.jugada, style: TextStyle(fontSize: 13))),
-              Center(child: Text(j.sorteo, style: TextStyle(fontSize: 13))),
-              Center(child: Text(Utils.toCurrency(j.monto.toString()), style: TextStyle(fontSize: 13))),
-              Center(child: Text(Utils.toCurrency(j.premio.toString()), style: TextStyle(fontSize: 13))),
+              Center(child: Text(j.jugada, style: TextStyle(fontSize: isSmallOrMedium ? 13 : 17))),
+              Center(child: Text(j.sorteo, style: TextStyle(fontSize: isSmallOrMedium ? 13 : 17))),
+              Center(child: Text(Utils.toCurrency(j.monto.toString()), style: TextStyle(fontSize: isSmallOrMedium ? 13 : 17))),
+              Center(child: Text(Utils.toCurrency(j.premio.toString()), style: TextStyle(fontSize: isSmallOrMedium ? 13 : 17))),
               // Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 16))),
             ],
           )

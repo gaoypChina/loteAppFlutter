@@ -1556,35 +1556,63 @@ _showIntentNotificationIfExists() async {
   }
 
   _duplicar(Map<String, dynamic> datos) async {
+    bool cargando = true;
+    ValueNotifier cargandoNotifier = ValueNotifier(true);
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     print("PrincipalView _duplicar: ${datos['loterias']}");
     List<dynamic> loteriasAduplicar = [];
     List<Duplicar> listaDuplicar = await Principal.showDialogDuplicarV2(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
     
-    if(loteriasAduplicar == null)
+    if(loteriasAduplicar == null || listaDuplicar == null)
       return;
 
-    for (var duplicar in listaDuplicar) {
-      if(duplicar.loteriasADuplicar.length == 0)
-        continue;
-        
-        if(duplicar.loteriaSuperpale == null){
-          List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["sorteo"] != Draws.superPale).toList();
-          for (var jugada in jugadas) {
-            print("No super: $jugada");
-            jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-            await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar);
-          }
-        }else{
-          List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["idLoteriaSuperpale"] == duplicar.loteriaSuperpale.id && e["sorteo"] == Draws.superPale).toList();
-          for (var jugada in jugadas) {
-            print("Si super: $jugada");
-            jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-            await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar);
-          }
-        }
-    }
 
+    TicketService.showDialogJugadasSinMontoDisponible(
+      context, 
+      () async {
+        List<Jugada> jugadasSinMontoDisponible = [];
+        for (var duplicar in listaDuplicar) {
+          if(duplicar.loteriasADuplicar.length == 0)
+            continue;
+            
+            if(duplicar.loteriaSuperpale == null){
+              List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["sorteo"] != Draws.superPale).toList();
+              for (var jugada in jugadas) {
+                print("No super: $jugada");
+                jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
+                if(jugadasSinMontoDisponibleTmp.length > 0)
+                  jugadasSinMontoDisponible.addAll(jugadasSinMontoDisponibleTmp);
+              }
+            }else{
+              List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["idLoteriaSuperpale"] == duplicar.loteriaSuperpale.id && e["sorteo"] == Draws.superPale).toList();
+              for (var jugada in jugadas) {
+                print("Si super: $jugada");
+                jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
+                if(jugadasSinMontoDisponibleTmp.length > 0)
+                  jugadasSinMontoDisponible.addAll(jugadasSinMontoDisponibleTmp);
+              }
+            }
+        }
+
+        if(jugadasSinMontoDisponible.length == 0)
+          Navigator.pop(context);
+        else
+          cargandoNotifier.value = false;
+
+        return jugadasSinMontoDisponible;
+      },
+      // title: cargando ? 'Duplicando...' : 'Error monto disponible'
+      title: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? Text('Duplicando...') : Text('Error monto', softWrap: true,)
+      ),
+      okButton: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
+      ),
+    );
     return;
 
     loteriasAduplicar.forEach((l) async {
@@ -2607,7 +2635,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     return RawKeyboardListener(
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
-        // print("Event runtimeType is ${event.runtimeType}");
+        print("Event runtimeType is ${event.runtimeType} : ${event.data.keyLabel}");
         if(event.runtimeType.toString() != 'RawKeyUpEvent')
           return;
         // print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
@@ -2621,7 +2649,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
         if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
           _escribir(event.data.keyLabel);
+
         // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
+        _escribir(event.data.keyLabel);
         
       },
       child: TextField(
@@ -3309,7 +3339,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                                 small: 4,
                                                 child: Center(child: Padding(
                                                   padding: const EdgeInsets.symmetric(vertical: 14.0),
-                                                  child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                                  child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                                 )),
                                               ),
                                               MyResizedContainer(
@@ -3363,7 +3393,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                             small: 4,
                                             child: Center(child: Padding(
                                               padding: const EdgeInsets.symmetric(vertical: 14.0),
-                                              child: _buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                              child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                             )),
                                           ),
                                           MyResizedContainer(
@@ -3482,7 +3512,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             customRowHeight: 40,
                             customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3524,7 +3554,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
-                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            rows: listaJugadas != null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada, isSmallOrMedium: isSmallOrMedium)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3569,7 +3599,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                       customRowHeight: 40,
                       customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                       columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                      rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                      rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo' || element.sorteo == 'pale' || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, "${e.loteriaSuperPale == null ? e.loteria.abreviatura : e.loteria.abreviatura + '/' + e.loteriaSuperPale.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                       delete: (){}
                     ),
                   )
@@ -3617,7 +3647,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             customRowHeight: 40,
                             customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3659,7 +3689,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             type: MyTableType.custom,
                             customWidthOfOneCell: [CustomCellWidth(cellIndex: 1, widthPorcent: 0.43), CustomCellWidth(cellIndex: 3, widthPorcent: 0.10)],
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3705,7 +3735,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             customRowPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 8),
                             type: MyTableType.custom,
                             columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             delete: (){}
                           ),
                         )
@@ -3997,7 +4027,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             //                 child: MyTable(
                             //                   type: MyTableType.custom,
                             //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo == 'Directo').toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             //                   delete: (){}
                             //                 ),
                             //               )
@@ -4034,7 +4064,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             //                 child: MyTable(
                             //                   type: MyTableType.custom,
                             //                   columns: ["LOT", "NUM.", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 17))], 
-                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pale") != -1 || element.sorteo == 'Tripleta').toList().map<List<dynamic>>((e) => [e, Center(child: Text("${e.loteria.abreviatura}", style: TextStyle(fontSize: 13))), Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e, size: 17)]).toList() : [[]],
                             //                   delete: (){}
                             //                 ),
                             //               )
@@ -4071,7 +4101,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             //                 child: MyTable(
                             //                   type: MyTableType.custom,
                             //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 3") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             //                   delete: (){}
                             //                 ),
                             //               )
@@ -4108,7 +4138,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                             //                 child: MyTable(
                             //                   type: MyTableType.custom,
                             //                   columns: ["LOT", "NUM", "MONT", Center(child: Icon(Icons.delete_outline_outlined, size: 18))], 
-                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: _buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
+                            //                   rows: listaJugadas!= null ?  listaJugadas.where((element) => element.sorteo.toLowerCase().indexOf("pick 4") != -1).toList().map<List<dynamic>>((e) => [e, "${e.loteria.abreviatura}", Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(e.jugada)), "${Utils.toCurrency(e.monto)}", _iconButtonDeletePlay(e)]).toList() : [[]],
                             //                   delete: (){}
                             //                 ),
                             //               )
@@ -5007,7 +5037,9 @@ void _getTime() {
           //     }
           //   }
           // }
-          await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+          List<Jugada> jugadasSinMontoDisponible = await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+          if(jugadasSinMontoDisponible.length > 0)
+            TicketService.showDialogJugadasSinMontoDisponible(context, () async => await Future.delayed(Duration(milliseconds: 0), () => jugadasSinMontoDisponible));
         }
       }
       return;
@@ -5302,7 +5334,7 @@ void _getTime() {
                 ),
                 FlatButton(
                   child: Text("Ligar"),
-                  onPressed: (){
+                  onPressed: () async {
                     if(_selectedLoteriasLigar.length == 0){
                       Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar al menos una loteria");
                       return;
@@ -5315,13 +5347,13 @@ void _getTime() {
                     // Map<String, dynamic> map = {"monto" : Utils.toDouble(_txtMontoLigar.text), "pale" : _ckbLigarPale, "tripleta" : _ckbLigarTripleta,};
                     if(_ckbLigarPale){
                       // Navigator.pop(context);
-                      _ligarDirectosEnPale(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
+                      await _ligarDirectosEnPale(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
                       
                     }
                     
                     if(_ckbLigarTripleta){
                       // Navigator.pop(context);
-                      _ligarDirectosEnTripleta(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
+                      await _ligarDirectosEnTripleta(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
                     }
                     
                   },
@@ -5335,7 +5367,8 @@ void _getTime() {
   }
 
   _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto) async {
-    var listaJugadasLigadas = List<String>();
+    ValueNotifier cargandoNotifier = ValueNotifier(true);
+    List<String> listaJugadasLigadas = [];
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
     var listaJugadaDirectos = listaJugadas.where((e) => e.jugada.length == 2).toList();
@@ -5372,13 +5405,41 @@ void _getTime() {
     // lista.add(loteria);
 
     //Agregamos las jugadas ligadas
-    for(int i=0; i < listaJugadasLigadas.length; i++){
-      await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
-    }
+    // for(int i=0; i < listaJugadasLigadas.length; i++){
+    //   await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
+    // }
+    await TicketService.showDialogJugadasSinMontoDisponible(
+      context, 
+      () async {
+        List<Jugada> listaJugadasSinMontoDisponible = [];
+        for(int i=0; i < listaJugadasLigadas.length; i++){
+          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
+          if(listaJugadasSinMontoDisponibleTmp.length > 0)
+            listaJugadasSinMontoDisponible.addAll(listaJugadasSinMontoDisponibleTmp);
+        }
+
+        if(listaJugadasSinMontoDisponible.length == 0)
+          Navigator.pop(context);
+        else
+          cargandoNotifier.value = false;
+
+        return listaJugadasSinMontoDisponible;
+      },
+      title: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? Text('Combinando pale...') : Text('Error monto', softWrap: true,)
+      ),
+      okButton: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
+      ),
+    );
+    
 
   }
 
   _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto) async {
+    ValueNotifier cargandoNotifier = ValueNotifier(true);
     List<String> listaJugadasLigadas = [];
     int idLoteria;
     //Buscamos los directos de las jugadas realizadas 
@@ -5421,9 +5482,36 @@ void _getTime() {
     // lista.add(loteria);
 
     //Agregamos las jugadas ligadas
-    for(int i=0; i < listaJugadasLigadas.length; i++){
-      await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
-    }
+    // for(int i=0; i < listaJugadasLigadas.length; i++){
+    //   await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas);
+    // }
+
+    await TicketService.showDialogJugadasSinMontoDisponible(
+      context, 
+      () async {
+        List<Jugada> listaJugadasSinMontoDisponible = [];
+        for(int i=0; i < listaJugadasLigadas.length; i++){
+          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
+          if(listaJugadasSinMontoDisponibleTmp.length > 0)
+            listaJugadasSinMontoDisponible.addAll(listaJugadasSinMontoDisponibleTmp);
+        }
+
+        if(listaJugadasSinMontoDisponible.length == 0)
+          Navigator.pop(context);
+        else
+          cargandoNotifier.value = false;
+
+        return listaJugadasSinMontoDisponible;
+      },
+      title: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? Text('Combinando tripleta...') : Text('Error monto', softWrap: true,)
+      ),
+      okButton: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
+      ),
+    );
 
   }
 
@@ -5508,7 +5596,7 @@ void _getTime() {
   }
 
 
-  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap, Map<String, dynamic> jugadaMap}) async {
+  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap, Map<String, dynamic> jugadaMap, bool cambiarFocusJugadaMonto = true}) async {
     if(jugada.length < 2)
       return;
 
@@ -5525,6 +5613,8 @@ void _getTime() {
     //     }
     //   }
     // }
+
+    List<Jugada> jugadasSinMontoDisponible = [];
     
 
     if(Utils.toDouble(monto) == 0){
@@ -5552,12 +5642,14 @@ void _getTime() {
       // if(!kIsWeb){
         montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), selectedLoterias[0], await _selectedBanca());
         if(Utils.toDouble(monto) > montoDisponible.monto){
-          _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${selectedLoterias[0].descripcion}');
-            return;
+          // _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${selectedLoterias[0].descripcion}');
+          jugadasSinMontoDisponible.add(Jugada(jugada: jugada, loteria: selectedLoterias[0], stock: montoDisponible.stock));
+          return jugadasSinMontoDisponible;
+            // return;
         }
       // }
 
-      insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
+      await insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';
@@ -5579,8 +5671,9 @@ void _getTime() {
           // if(!kIsWeb){
             montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), selectedLoterias[i], banca, loteriaSuperpale: selectedLoterias[i2]);
             if(Utils.toDouble(monto) > montoDisponible.monto){
-              _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${selectedLoterias[i].descripcion}/${selectedLoterias[i2].descripcion}');
-                return;
+              // _showSnackBar('No hay monto suficiente para el super pale $jugada en las loterias ${selectedLoterias[i].descripcion}/${selectedLoterias[i2].descripcion}');
+              jugadasSinMontoDisponible.add(Jugada(jugada: jugada, loteria: selectedLoterias[i], loteriaSuperPale: selectedLoterias[i2]));
+              continue;
             }
           // }
           listaLoteriasSuperpaleConStock.add(Jugada(stock: montoDisponible.stock, loteria: selectedLoterias[i], loteriaSuperPale: selectedLoterias[i2]));
@@ -5590,8 +5683,9 @@ void _getTime() {
       // INSERTAMOS LOS SUPER PALE
       for(int i=0; i < selectedLoterias.length; i++){
         for(int i2=i + 1 ; i2 < selectedLoterias.length; i2++){
-          Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == selectedLoterias[i].id && element.loteriaSuperPale.id == selectedLoterias[i2].id);
-          insertarJugadaSuperpale(jugada: jugada, loteria: selectedLoterias[i], loteriaSuperpale: selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
+          Jugada jugadaConStock = listaLoteriasSuperpaleConStock.firstWhere((element) => element.loteria.id == selectedLoterias[i].id && element.loteriaSuperPale.id == selectedLoterias[i2].id, orElse: () => null);
+          if(jugadaConStock != null)
+            await insertarJugadaSuperpale(jugada: jugada, loteria: selectedLoterias[i], loteriaSuperpale: selectedLoterias[i2], monto: monto, stock: jugadaConStock.stock);
         }
       }
       _streamControllerJugada.add(listaJugadas);
@@ -5610,8 +5704,9 @@ void _getTime() {
         // if(!kIsWeb){
           montoDisponible = await getMontoDisponible(Utils.ordenarMenorAMayor(jugada), l, banca);
           if(Utils.toDouble(monto) > montoDisponible.monto){
-            _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
-              return;
+            // _showSnackBar('No hay monto suficiente para la jugada $jugada en la loteria ${l.descripcion}');
+            jugadasSinMontoDisponible.add(Jugada(jugada: jugada, loteria: l));
+            continue;
           }
         // }
         listaLoteriaConStock.add(Jugada(stock: montoDisponible.stock, loteria: l));
@@ -5619,8 +5714,9 @@ void _getTime() {
 
       // INSERTAMOS LAS LOTERIAS
       for (var l in selectedLoterias) {
-        Jugada loteriaConStock = listaLoteriaConStock.firstWhere((element) => element.loteria.id == l.id);
-        insertarJugada(jugada: jugada, loteria: l, monto: monto, stock: loteriaConStock.stock);
+        Jugada loteriaConStock = listaLoteriaConStock.firstWhere((element) => element.loteria.id == l.id, orElse: () => null);
+        if(loteriaConStock != null)
+          await insertarJugada(jugada: jugada, loteria: l, monto: monto, stock: loteriaConStock.stock);
       }
 
       _streamControllerJugada.add(listaJugadas);
@@ -5631,7 +5727,11 @@ void _getTime() {
 
           
     // setState(() => _jugadaOmonto = !_jugadaOmonto);
-    _cambiarFocusJugadaMonto();
+    if(cambiarFocusJugadaMonto)
+      _cambiarFocusJugadaMonto();
+
+
+    return jugadasSinMontoDisponible;
 
   }
 
@@ -5735,7 +5835,8 @@ void _getTime() {
     
     int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id) : -1;
       if(idx != -1){
-        showDialog(
+        print("PrincipalView insertarJugada entroooooooooooooo");
+        await showDialog(
           context: context,
           builder: (context){
             return AlertDialog(
@@ -5786,7 +5887,7 @@ void _getTime() {
 
       int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id && j.idLoteriaSuperpale == loteriaSuperpale.id) : -1;
       if(idx != -1){
-        showDialog(
+        await showDialog(
           context: context,
           builder: (context){
             return AlertDialog(
@@ -6239,7 +6340,7 @@ _selectedBanca() async {
           => TableRow(
             children: [
               Center(child: Text(Utils.esSuperpale(j.jugada) ? "SP(${j.abreviatura}/${j.abreviaturaSuperpale})" : j.descripcion, style: TextStyle(fontSize: Utils.esSuperpale(j.jugada) ? 14 : 16))),
-              Center(child: _buildRichOrTextAndConvertJugadaToLegible(j.jugada)),
+              Center(child: Principal.buildRichOrTextAndConvertJugadaToLegible(j.jugada)),
               Center(child: Text(j.monto.toString(), style: TextStyle(fontSize: 16))),
               Center(child: IconButton(icon: Icon(Icons.delete, size: 28,), onPressed: () async {
                 setState((){
@@ -6317,63 +6418,7 @@ _selectedBanca() async {
    );
  }
 
- _buildRichOrTextAndConvertJugadaToLegible(String jugada, {bool isSmallOrMedium = true}){
-   if(jugada.length == 4 && jugada.indexOf('+') == -1 && jugada.indexOf('-') == -1){
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4), style: TextStyle(fontSize: 16));
-   }
-   else if(jugada.length == 3){
-     return RichText(
-       text: TextSpan(
-         style: TextStyle(fontSize: 16, color: Colors.black),
-         children: [
-           TextSpan(text: jugada.substring(0, 3)),
-           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-         ]
-       ),
-      );
-   }
-   else if(jugada.length == 4 && jugada.indexOf('+') != -1){
-     return RichText(
-       text: TextSpan(
-         style: TextStyle(fontSize: 16, color: Colors.black),
-         children: [
-           TextSpan(text: jugada.substring(0, 3)),
-           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-         ]
-       ),
-      );
-   }
-   else if(jugada.length == 5 && jugada.indexOf('+') != -1){
-     return RichText(
-       text: TextSpan(
-         style: TextStyle(fontSize: 15, color: Colors.black),
-         children: [
-           TextSpan(text: jugada.substring(0, 4)),
-           TextSpan(text: 'B', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold,)),
-         ]
-       ),
-      );
-   }
-   else if(jugada.length == 5 && jugada.indexOf('-') != -1){
-     return RichText(
-       text: TextSpan(
-         style: TextStyle(fontSize: 15, color: Colors.black),
-         children: [
-           TextSpan(text: jugada.substring(0, 4)),
-           TextSpan(text: 'S', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-         ]
-       ),
-      );
-   }
-  else if(jugada.length == 6){
-    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: _isLargeAndWeb() ? 11.5 : 16));
-    //  return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
-     return Text(jugada.substring(0, 2) + '-' + jugada.substring(2, 4) + '-' + jugada.substring(4, 6), style: TextStyle(fontSize: 15),);
-  }
-
-   return Text(jugada, style: TextStyle(fontSize: 15));
- }
-
+ 
  _calcularTotal(){
    double total = 0;
    listaJugadas.forEach((j){
