@@ -62,9 +62,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   double promedioPremios = 0;
   Moneda _moneda;
   Grupo _grupo;
+  Timer _timer;
 
   @override
   initState(){
+    _timer = Timer.periodic(Duration(seconds: 3), (Timer t) => listaLoteriasJugadasDashboard.length > 0 ? _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]) : null);
     _valueNotifyCargandoLoteria = ValueNotifier<bool>(false);
     _scrollController = ScrollController();
     _streamControllerMonedas = BehaviorSubject();
@@ -147,6 +149,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   _loteriaChanged(var loteria) async {
+    if(!_date.start.isSameDate(DateTime.now()))
+      return;
+
     try {
       _valueNotifyCargandoLoteria.value = true;
       _streamControllerJugadasPorLoteria.add(null);
@@ -197,6 +202,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _date = date;
         _dashboard();
      });
+
+      _streamControllerJugadasPorLoteria.add([]);
+
   }
 
    _dateDialog() async {
@@ -364,6 +372,16 @@ _showBottomSheetMoneda() async {
         }
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _streamControllerMonedas.close();
+    _streamControllerJugadasPorLoteria.close();
+    _streamControllerGrafica.close();
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -912,7 +930,7 @@ _showBottomSheetMoneda() async {
         MySubtitle(title: "Jugadas realizadas", padding: EdgeInsets.only(top: 15, bottom: 12.0),),
         Padding(
           padding: const EdgeInsets.only(bottom: 18.0),
-          child: MyDescripcon(title: "Aqui se muestran las jugadas para cada loteria ordenadas por monto jugado de manera descendente."),
+          child: MyDescripcon(title: "Aqui se muestran las jugadas en tiempo real para cada loteria ordenadas por monto jugado de manera descendente, las jugadas se actualizan cada 3 segundos."),
         ),
         // Padding(
         //   padding: const EdgeInsets.only(top: 20, bottom: 15),

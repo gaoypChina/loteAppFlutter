@@ -38,7 +38,6 @@ class  Utils {
   static final String URL = 'https://server.loteriasdo.gq';
   static final String URL_SOCKET = URL + ":8000";
   
-  
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
     HttpHeaders.contentTypeHeader: 'application/json',
