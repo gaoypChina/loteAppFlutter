@@ -66,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   initState(){
-    _timer = Timer.periodic(Duration(seconds: 3), (Timer t) => listaLoteriasJugadasDashboard.length > 0 ? _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]) : null);
+    _timer = Timer.periodic(Duration(seconds: 3), (Timer t) => listaLoteriasJugadasDashboard.length > 0 ? _loteriaChanged(listaLoteriasJugadasDashboard[_indexLoteriaJugadas], false) : null);
     _valueNotifyCargandoLoteria = ValueNotifier<bool>(false);
     _scrollController = ScrollController();
     _streamControllerMonedas = BehaviorSubject();
@@ -148,22 +148,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  _loteriaChanged(var loteria) async {
+  _loteriaChanged(var loteria, [bool mostrarCircularProgressBar = true]) async {
     if(!_date.start.isSameDate(DateTime.now()))
       return;
 
     try {
-      _valueNotifyCargandoLoteria.value = true;
-      _streamControllerJugadasPorLoteria.add(null);
+      if(mostrarCircularProgressBar)
+        _valueNotifyCargandoLoteria.value = true;
+
+      // _streamControllerJugadasPorLoteria.add([]);
       var datos = await DashboardService.getJugadasPorLoteria(scaffoldKey: _scaffoldKey, fecha: _fecha, idLoteria: loteria["id"], idMoneda: _moneda != null ? _moneda.id : null, idGrupo: _grupo.id != 0 ? _grupo.id : null);
       print("Dashboard _loteriaChanged: $datos");
       _valueNotifyCargandoLoteria.value = false;
       listaLoteriasJugadasDashboard[_indexLoteriaJugadas] = datos["loteria"];
-      _streamControllerJugadasPorLoteria.add([]);
+      // _streamControllerJugadasPorLoteria.add([]);
       _cambiarValorListaJugada(listaSorteo[_indexSorteo]["descripcion"]);
     } on Exception catch (e) {
       // TODO
-      _valueNotifyCargandoLoteria.value = false;
+      if(mostrarCircularProgressBar)
+        _valueNotifyCargandoLoteria.value = false;
     }
     // _valueNotifyIsLoteriaSearchingJugadas.value = false;
     // _streamControllerJugadasPorLoteria.add(datos["loteria"][]);
@@ -258,15 +261,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Padding(
         padding: const EdgeInsets.all(14.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
           leading,
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-            title is Widget  ? title : MyDescripcon(title: title, fontSize: isSmallOrMedium ? 11 : 13,),
-            subtitle is Widget ? subtitle : MySubtitle(title: subtitle, padding: EdgeInsets.only(bottom: 5, top: 5), fontSize: isSmallOrMedium ? 16 : 20,)
-          ],)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+              title is Widget  ? title : MyDescripcon(title: title, fontSize: isSmallOrMedium ? 11 : 13,),
+              subtitle is Widget ? subtitle : MySubtitle(title: subtitle, padding: EdgeInsets.only(bottom: 5, top: 5), fontSize: isSmallOrMedium ? 16 : 20,)
+            ],),
+          )
         ],),
       ),
     ),
@@ -515,86 +520,40 @@ _showBottomSheetMoneda() async {
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
 
             var widgets = [
-                Wrap(
-                  children: [
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        myCard(title: "Promedio ventas", subtitle: "${Utils.toCurrency(promedioVentas)}", isSmallOrMedium: isSmallOrMedium, 
-                        leading: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Icon(Icons.attach_money, size: 32, color: Colors.green,),
-                            ),
-                          ],
-                        )),
-                        myCard(title: "Promedio premios", subtitle: "${Utils.toCurrency(promedioPremios)}", isSmallOrMedium: isSmallOrMedium, 
-                        leading: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: Icon(Icons.money_off, size: 32, color: Colors.pink,),
-                            ),
-                          ],
-                        )),
-                        myCard(title: "Bancas con ventas", subtitle: "$bancasConVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_added, size: 32, color: Colors.blue[700],)),
-                        myCard(title: "Bancas sin ventas", subtitle: "$bancasSinVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_remove, size: 32, color: Colors.orange[700],)),
-                      ],
-                    ),
-                    // MyResizedContainer(
-                    //   xlarge: 2,
-                    //   large: 2,
-                    //   child: Card(elevation: 5, child: Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),))
-                    // ),
-                    MyResizedContainer(
-                      xlarge: 2,
-                      large: 2,
-                      medium: 1,
-                      small: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: EdgeInsets.all(isSmallOrMedium ? 12.0 : 0),
+                  child: Wrap(
+                    children: [
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          MySubtitle(title: "Grafica de ventas", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
-                          MyDescripcon(title: "Aqui se muestra el total vendido y el total neto de los ultimos 7 dias"),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 20.0),
-                            child: 
-                             Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data, isSmallOrMedium: isSmallOrMedium)),),
-                            // Container(
-                            //     height: 400,
-                            //     child: MyBarchar(
-                            //       xlarge: 1,
-                            //       large: 1,
-                            //       medium: 1,
-                            //       small: 1,
-                            //       leftLabelDivider: 3,
-                            //       listOfBottomLabel: listaVentasGrafica.map<Text>((e) => Text("${e.dia}")).toList(),
-                            //       listOfData: listaVentasGrafica.map((e) => [MyBar(value: e.total, color: Colors.green[100], text: "Total", borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),), MyBar(text: "Neto", value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink, borderRadius: e.neto < 0 ? BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)) : null)]).toList()
-                            //       // [
-                            //       //   [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
-                            //       //   [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
-                            //       //   [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
-                            //       //   [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       //   [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
-                            //       // ],
-                            //     ),
-                            //   ),
-                          ),
+                          myCard(title: "Promedio ventas últimos 7 días", subtitle: "${Utils.toCurrency(promedioVentas)}", isSmallOrMedium: isSmallOrMedium, 
+                          leading: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Icon(Icons.attach_money, size: 32, color: Colors.green,),
+                              ),
+                            ],
+                          )),
+                          myCard(title: "Promedio premios últimos 7 días", subtitle: "${Utils.toCurrency(promedioPremios)}", isSmallOrMedium: isSmallOrMedium, 
+                          leading: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Icon(Icons.money_off, size: 32, color: Colors.pink,),
+                              ),
+                            ],
+                          )),
+                          myCard(title: "Bancas con ventas", subtitle: "$bancasConVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_added, size: 32, color: Colors.blue[700],)),
+                          myCard(title: "Bancas sin ventas", subtitle: "$bancasSinVentas", isSmallOrMedium: isSmallOrMedium, leading: Icon(Icons.bookmark_remove, size: 32, color: Colors.orange[700],)),
                         ],
                       ),
-                    ),
-                      // Container( 
-                      //   height: 200, 
-                      //   child: MyBarchar(
-                      //     medium: 1,
-                      //     listOfBottomLabel: snapshot.data.map((e) => Text(e.dia)).toList(),
-                      //     leftLabelDivider: 5,
-                      //     listOfData: snapshot.data.map((e) => [MyBar(value: e.total, color: Colors.grey[50]), MyBar(value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink)]).toList(),
-                      //   ),
+                      // MyResizedContainer(
+                      //   xlarge: 2,
+                      //   large: 2,
+                      //   child: Card(elevation: 5, child: Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data)),))
                       // ),
                       MyResizedContainer(
                         xlarge: 2,
@@ -604,47 +563,99 @@ _showBottomSheetMoneda() async {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            MySubtitle(title: "totales por loteria", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
+                            MySubtitle(title: "Grafica de ventas", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
+                            MyDescripcon(title: "Aqui se muestra el total vendido y el total neto de los ultimos 7 dias"),
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 18.0),
-                              child: MyDescripcon(title: "Aqui se mostraran las ventas y premios totales de cada loteria"),
+                              padding: const EdgeInsets.only(top: 20.0),
+                              child: 
+                               Container( height: isSmallOrMedium ? 200 : 400, child: GroupedStackedBarChart(datosGrafica(snapshot.data, isSmallOrMedium: isSmallOrMedium)),),
+                              // Container(
+                              //     height: 400,
+                              //     child: MyBarchar(
+                              //       xlarge: 1,
+                              //       large: 1,
+                              //       medium: 1,
+                              //       small: 1,
+                              //       leftLabelDivider: 3,
+                              //       listOfBottomLabel: listaVentasGrafica.map<Text>((e) => Text("${e.dia}")).toList(),
+                              //       listOfData: listaVentasGrafica.map((e) => [MyBar(value: e.total, color: Colors.green[100], text: "Total", borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),), MyBar(text: "Neto", value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink, borderRadius: e.neto < 0 ? BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)) : null)]).toList()
+                              //       // [
+                              //       //   [MyBar(value: 20, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: 10, color: Colors.green,)],
+                              //       //   [MyBar(value: 25, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))), MyBar(value: -10, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                              //       //   [MyBar(value: 50, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 40, color: Colors.green,)],
+                              //       //   [MyBar(value: 70, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: 10, color: Colors.green,)],
+                              //       //   [MyBar(value: 150, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -50, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                              //       //   [MyBar(value: 90, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -70, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                              //       //   [MyBar(value: 78, color: Colors.green[100], borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)), border: Border(left: BorderSide(color: Colors.green[50], width: 2.0), right: BorderSide(color: Colors.green[50], width: 2.0), top: BorderSide(color: Colors.green[50], width: 2.0))),  MyBar(value: -87, color: Colors.pink[500], borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),)],
+                              //       // ],
+                              //     ),
+                              //   ),
                             ),
-                            // Padding(
-                            //     padding: const EdgeInsets.only(top: 20, bottom: 15),
-                            //     child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
-                            //   ),
-                              isSmallOrMedium
-                              ?
-                            _buildTableVentasPorLoteria(listaLoteria)
-                            :
-                            Container(
-                              height: isSmallOrMedium ? null : 400,
-
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 20.0, top: 20.0),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: MyTable(
-                                        showColorWhenImpar: true,
-                                        type: MyTableType.custom,
-                                        // isScrolled: false,
-                                        bottom: ["Totales", "${listaLoteria != null ? Utils.toCurrency(listaLoteria.map((e) => e.ventas).toList().reduce((value, element) => value + element)) : Utils.toCurrency("0")}", "0"],
-                                        columns: [Center(child: Text("Loteria", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Ventas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Premios", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))], 
-                                        rows: listaLoteria.map((e) => [e, e.descripcion, "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}"]).toList()
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                            
                           ],
                         ),
                       ),
-                  ],
+                        // Container( 
+                        //   height: 200, 
+                        //   child: MyBarchar(
+                        //     medium: 1,
+                        //     listOfBottomLabel: snapshot.data.map((e) => Text(e.dia)).toList(),
+                        //     leftLabelDivider: 5,
+                        //     listOfData: snapshot.data.map((e) => [MyBar(value: e.total, color: Colors.grey[50]), MyBar(value: e.neto, color: e.neto >= 0 ? Colors.green : Colors.pink)]).toList(),
+                        //   ),
+                        // ),
+                        MyResizedContainer(
+                          xlarge: 2,
+                          large: 2,
+                          medium: 1,
+                          small: 1,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              MySubtitle(title: "totales por loteria", padding: EdgeInsets.only(top: 12.0, bottom: 12.0),),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 18.0),
+                                child: MyDescripcon(title: "Aqui se mostraran las ventas y premios totales de cada loteria"),
+                              ),
+                              // Padding(
+                              //     padding: const EdgeInsets.only(top: 20, bottom: 15),
+                              //     child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
+                              //   ),
+                                isSmallOrMedium
+                                ?
+                              _buildTableVentasPorLoteria(listaLoteria)
+                              :
+                              Container(
+                                height: isSmallOrMedium ? null : 400,
+
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 20.0, top: 20.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: MyTable(
+                                          showColorWhenImpar: true,
+                                          type: MyTableType.custom,
+                                          // isScrolled: false,
+                                          bottom: ["Totales", "${listaLoteria != null ? Utils.toCurrency(listaLoteria.map((e) => e.ventas).toList().reduce((value, element) => value + element)) : Utils.toCurrency("0")}", "0"],
+                                          columns: [Center(child: Text("Loteria", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Ventas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))), Center(child: Text("Premios", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))], 
+                                          rows: listaLoteria.map((e) => [e, e.descripcion, "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}"]).toList()
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                  _buildJugadasRealizadas(isSmallOrMedium)
+                  Padding(
+                    padding: EdgeInsets.all(isSmallOrMedium ? 12.0 : 0.0),
+                    child: _buildJugadasRealizadas(isSmallOrMedium),
+                  )
               ];
             
             return SliverList(
@@ -826,7 +837,10 @@ _showBottomSheetMoneda() async {
       if(data.isEmpty)
         return _myEmpty();
 
-        return _buildTableLoteriasJugadasDashboard(data);
+        return Padding(
+          padding: const EdgeInsets.only(top: 10.0, bottom: 35),
+          child: _buildTableLoteriasJugadasDashboard(data),
+        );
     }
 
     List sorteosLoteriasJugadas = List.from(listaLoteriasJugadasDashboard[_indexLoteriaJugadas]["sorteos"]);

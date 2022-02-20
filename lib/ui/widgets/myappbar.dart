@@ -19,6 +19,7 @@ import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'myalertdialog.dart';
+import 'mydescripcion.dart';
 import 'mydropdown.dart';
 import 'mymultiselectdialog.dart';
 import 'myresizecontainer.dart';
@@ -31,7 +32,8 @@ class MyAppBar extends StatefulWidget implements PreferredSizeWidget  {
   final Function onTap;
   final ValueChanged<SearchData> appBarDuplicarTicket;
   final Lotterycolor lotteryColor;
-  const MyAppBar({ Key key, this.cargando = false, this.onTap, this.appBarDuplicarTicket, this.lotteryColor}) : super(key: key);
+  final Function onTextLoteriasTap;
+  const MyAppBar({ Key key, this.cargando = false, this.onTap, this.appBarDuplicarTicket, this.lotteryColor, this.onTextLoteriasTap}) : super(key: key);
 
   @override
   _MyAppBarState createState() => _MyAppBarState();
@@ -738,7 +740,26 @@ class _MyAppBarState extends State<MyAppBar> {
                 // color: Colors.red,
                 // width: 150,
                 // height: 45,
-                child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+                // child:  Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold))
+                child: GestureDetector(
+                  onTap: widget.onTextLoteriasTap != null ? widget.onTextLoteriasTap : null,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Loterias", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(.8), fontWeight: FontWeight.bold)),
+                      FutureBuilder<Map<String, dynamic>>(
+                          future: Db.getUsuario(),
+                          builder: (context, snapshot){
+                            if(snapshot.hasData){
+                              return MyDescripcon(title: '${snapshot.data["servidor"]}');
+                            }
+                
+                            return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                          }
+                        )
+                    ],
+                  ),
+                )
               ),
             ),
             Expanded(

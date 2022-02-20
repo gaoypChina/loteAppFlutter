@@ -51,6 +51,7 @@ import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/mymultiselectdialog.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
@@ -1804,6 +1805,8 @@ _showIntentNotificationIfExists() async {
     var tipoUsuario = await c.getValue("tipoUsuario");
     if(tipoUsuario == "Programador"){
       var datosServidor = await Db.getAllServer();
+
+      print("_cambiarServidor: $datosServidor");
       if(datosServidor == null)
         return;
 
@@ -1812,6 +1815,7 @@ _showIntentNotificationIfExists() async {
       // print("_cambiarServidor listaServidor: ${listaServidor.length} : servidor: $servidorActual");
       int indexServidor = (listaServidor.length > 0) ? listaServidor.indexWhere((element) => element.descripcion == servidorActual) : -1;
       Servidor servidorSeleccionado = (indexServidor != -1) ? listaServidor[indexServidor] : null;
+      print("_cambiarServidor servidorRetornado: $servidorSeleccionado");
       if(servidorSeleccionado == null)
         return;
 
@@ -1904,165 +1908,167 @@ _showIntentNotificationIfExists() async {
             }
         return StatefulBuilder(
           builder: (context, setState) {
-            return Container(
-                  height: MediaQuery.of(context).size.height / 2,
-                  child: Column(
-                    children: [
-                      Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
-                            ),
-                      Expanded(
-                        child: ScrollablePositionedList.builder(
-                          itemScrollController: _scrollController,
-                          itemCount: listaServidor.length,
-                          itemBuilder: (context, index) {
-                            return AbsorbPointer(
-                              absorbing: _servidor == listaServidor[index],
-                              child: ListTile(
-                                trailing: SizedBox(
-                                  width: 30,
-                                  height: 30,
-                                  child: Visibility(
-                                    visible: indexServidorCargando == index,
-                                    child: Theme(
-                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                                      child: new CircularProgressIndicator(),
+            return MyScrollbar(
+              child: Container(
+                    height: MediaQuery.of(context).size.height / 2,
+                    child: Column(
+                      children: [
+                        Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
+                              ),
+                        Expanded(
+                          child: ScrollablePositionedList.builder(
+                            itemScrollController: _scrollController,
+                            itemCount: listaServidor.length,
+                            itemBuilder: (context, index) {
+                              return AbsorbPointer(
+                                absorbing: _servidor == listaServidor[index],
+                                child: ListTile(
+                                  trailing: SizedBox(
+                                    width: 30,
+                                    height: 30,
+                                    child: Visibility(
+                                      visible: indexServidorCargando == index,
+                                      child: Theme(
+                                        data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                                        child: new CircularProgressIndicator(),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                leading: Checkbox(
-                                  value: _servidor == listaServidor[index], 
-                                  onChanged: (value) async {
-                                    try {
-                                      setState(() => indexServidorCargando = index);
-                                      await servidorChanged(listaServidor[index]);
-                                      setState(() => indexServidorCargando = -1);
-                                      _back();
-                                    } on Exception catch (e) {
-                                      setState(() => indexServidorCargando = -1);
-                                      Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                                  leading: Checkbox(
+                                    value: _servidor == listaServidor[index], 
+                                    onChanged: (value) async {
+                                      try {
+                                        setState(() => indexServidorCargando = index);
+                                        await servidorChanged(listaServidor[index]);
+                                        setState(() => indexServidorCargando = -1);
+                                        _back();
+                                      } on Exception catch (e) {
+                                        setState(() => indexServidorCargando = -1);
+                                        Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                                      }
                                     }
-                                  }
+                                  ),
+                                  onTap: () async {
+                                      try {
+                                        setState(() => indexServidorCargando = index);
+                                        await servidorChanged(listaServidor[index]);
+                                        setState(() => indexServidorCargando = -1);
+                                        _back();
+                                      } on Exception catch (e) {
+                                        setState(() => indexServidorCargando = -1);
+                                        Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                                      }
+                                  },
+                                  title: Text("${listaServidor[index].descripcion}"),
                                 ),
-                                onTap: () async {
-                                    try {
-                                      setState(() => indexServidorCargando = index);
-                                      await servidorChanged(listaServidor[index]);
-                                      setState(() => indexServidorCargando = -1);
-                                      _back();
-                                    } on Exception catch (e) {
-                                      setState(() => indexServidorCargando = -1);
-                                      Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
-                                    }
-                                },
-                                title: Text("${listaServidor[index].descripcion}"),
-                              ),
-                            );
-                          
-                          },
-                        )
-                        // ListView(
-                        //   children: listaServidor.asMap().map((index, value) => MapEntry(
-                        //     index,
-                        //     AbsorbPointer(
-                        //       absorbing: _servidor == listaServidor[index],
-                        //       child: ListTile(
-                        //         trailing: SizedBox(
-                        //           width: 30,
-                        //           height: 30,
-                        //           child: Visibility(
-                        //             visible: indexServidorCargando == index,
-                        //             child: Theme(
-                        //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                        //               child: new CircularProgressIndicator(),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //         leading: Checkbox(
-                        //           value: _servidor == listaServidor[index], 
-                        //           onChanged: (value) async {
-                        //             try {
-                        //               setState(() => indexServidorCargando = index);
-                        //               await servidorChanged(listaServidor[index]);
-                        //               setState(() => indexServidorCargando = -1);
-                        //               _back();
-                        //             } on Exception catch (e) {
-                        //               setState(() => indexServidorCargando = -1);
-                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
-                        //             }
-                        //           }
-                        //         ),
-                        //         onTap: () async {
-                        //             try {
-                        //               setState(() => indexServidorCargando = index);
-                        //               await servidorChanged(listaServidor[index]);
-                        //               setState(() => indexServidorCargando = -1);
-                        //               _back();
-                        //             } on Exception catch (e) {
-                        //               setState(() => indexServidorCargando = -1);
-                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
-                        //             }
-                        //         },
-                        //         title: Text("${listaServidor[index].descripcion}"),
-                        //       ),
-                        //     )
-                          
-                        //   )).values.toList()
-                        // )
-                        // ListView.builder(
-                        //   itemCount: listaLoteria.length,
-                        //   itemBuilder: (context, index){
-                        //     print("_showBottomSheetServidor index: $index");
-                        //     return AbsorbPointer(
-                        //       absorbing: _servidor == listaServidor[index],
-                        //       child: ListTile(
-                        //         trailing: SizedBox(
-                        //           width: 30,
-                        //           height: 30,
-                        //           child: Visibility(
-                        //             visible: indexServidorCargando == index,
-                        //             child: Theme(
-                        //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                        //               child: new CircularProgressIndicator(),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //         leading: Checkbox(
-                        //           value: _servidor == listaServidor[index], 
-                        //           onChanged: (value) async {
-                        //             try {
-                        //               setState(() => indexServidorCargando = index);
-                        //               await servidorChanged(listaServidor[index]);
-                        //               setState(() => indexServidorCargando = -1);
-                        //               _back();
-                        //             } on Exception catch (e) {
-                        //               setState(() => indexServidorCargando = -1);
-                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
-                        //             }
-                        //           }
-                        //         ),
-                        //         onTap: () async {
-                        //             try {
-                        //               setState(() => indexServidorCargando = index);
-                        //               await servidorChanged(listaServidor[index]);
-                        //               setState(() => indexServidorCargando = -1);
-                        //               _back();
-                        //             } on Exception catch (e) {
-                        //               setState(() => indexServidorCargando = -1);
-                        //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
-                        //             }
-                        //         },
-                        //         title: Text("${listaServidor[index].descripcion}"),
-                        //       ),
-                        //     );
-                          
-                        //   },
-                        // ),
-                      ),
-                    ],
+                              );
+                            
+                            },
+                          )
+                          // ListView(
+                          //   children: listaServidor.asMap().map((index, value) => MapEntry(
+                          //     index,
+                          //     AbsorbPointer(
+                          //       absorbing: _servidor == listaServidor[index],
+                          //       child: ListTile(
+                          //         trailing: SizedBox(
+                          //           width: 30,
+                          //           height: 30,
+                          //           child: Visibility(
+                          //             visible: indexServidorCargando == index,
+                          //             child: Theme(
+                          //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                          //               child: new CircularProgressIndicator(),
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         leading: Checkbox(
+                          //           value: _servidor == listaServidor[index], 
+                          //           onChanged: (value) async {
+                          //             try {
+                          //               setState(() => indexServidorCargando = index);
+                          //               await servidorChanged(listaServidor[index]);
+                          //               setState(() => indexServidorCargando = -1);
+                          //               _back();
+                          //             } on Exception catch (e) {
+                          //               setState(() => indexServidorCargando = -1);
+                          //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                          //             }
+                          //           }
+                          //         ),
+                          //         onTap: () async {
+                          //             try {
+                          //               setState(() => indexServidorCargando = index);
+                          //               await servidorChanged(listaServidor[index]);
+                          //               setState(() => indexServidorCargando = -1);
+                          //               _back();
+                          //             } on Exception catch (e) {
+                          //               setState(() => indexServidorCargando = -1);
+                          //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                          //             }
+                          //         },
+                          //         title: Text("${listaServidor[index].descripcion}"),
+                          //       ),
+                          //     )
+                            
+                          //   )).values.toList()
+                          // )
+                          // ListView.builder(
+                          //   itemCount: listaLoteria.length,
+                          //   itemBuilder: (context, index){
+                          //     print("_showBottomSheetServidor index: $index");
+                          //     return AbsorbPointer(
+                          //       absorbing: _servidor == listaServidor[index],
+                          //       child: ListTile(
+                          //         trailing: SizedBox(
+                          //           width: 30,
+                          //           height: 30,
+                          //           child: Visibility(
+                          //             visible: indexServidorCargando == index,
+                          //             child: Theme(
+                          //               data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
+                          //               child: new CircularProgressIndicator(),
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         leading: Checkbox(
+                          //           value: _servidor == listaServidor[index], 
+                          //           onChanged: (value) async {
+                          //             try {
+                          //               setState(() => indexServidorCargando = index);
+                          //               await servidorChanged(listaServidor[index]);
+                          //               setState(() => indexServidorCargando = -1);
+                          //               _back();
+                          //             } on Exception catch (e) {
+                          //               setState(() => indexServidorCargando = -1);
+                          //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                          //             }
+                          //           }
+                          //         ),
+                          //         onTap: () async {
+                          //             try {
+                          //               setState(() => indexServidorCargando = index);
+                          //               await servidorChanged(listaServidor[index]);
+                          //               setState(() => indexServidorCargando = -1);
+                          //               _back();
+                          //             } on Exception catch (e) {
+                          //               setState(() => indexServidorCargando = -1);
+                          //               Utils.showAlertDialog(context: context, content: "${e.toString()}", title: "Error");
+                          //             }
+                          //         },
+                          //         title: Text("${listaServidor[index].descripcion}"),
+                          //       ),
+                          //     );
+                            
+                          //   },
+                          // ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
+            );
           }
         );
         
@@ -3773,6 +3779,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         valueNotifyDrawer: valueNotifyDrawer,
         appBarDuplicarTicket: _appBarDuplicarTicket,
         lotteryColor: _getLotteryColor(),
+        onTextLoteriasTap: _cambiarServidor,
         onDrawerChanged: (){
           // valueNotifyDrawer.value = !valueNotifyDrawer.value;
         },
