@@ -3338,7 +3338,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                                 small: 3.8,
                                                 child: Center(child: Padding(
                                                   padding: const EdgeInsets.symmetric(vertical: 14.0),
-                                                  child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                                  child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
                                                 )),
                                               ),
                                               MyResizedContainer(
@@ -3392,7 +3392,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                             small: 3.8,
                                             child: Center(child: Padding(
                                               padding: const EdgeInsets.symmetric(vertical: 14.0),
-                                              child: Text("${snapshot.data[index].loteria.descripcion}", style: TextStyle(fontSize: 16),),
+                                              child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
                                             )),
                                           ),
                                           MyResizedContainer(

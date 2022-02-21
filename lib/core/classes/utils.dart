@@ -343,8 +343,12 @@ class  Utils {
     if(listaSuperpale.length == 0)
       return [];
 
-    final ids = listaSuperpale.map((e) => e.idLoteriaSuperpale).toSet();
-    listaSuperpale.retainWhere((x) => ids.remove(x.idLoteriaSuperpale));
+    //Convertimos el idLoteria y idLoteriaSuperPale en una lista dynamic y luego convertimos la lista en String,
+    //para que asi la function toSet puede eliminar las listas dynamic repetidas
+    final ids = listaSuperpale.map((e) => [e.idLoteria, e.idLoteriaSuperpale].toString()).toSet();
+
+    //Entonces ahora eliminamos las listas dynamic de loterias que no esten en la variable 'ids'
+    listaSuperpale.retainWhere((x) => ids.remove([x.idLoteria, x.idLoteriaSuperpale].toString()));
     // print("AFTER DELETE");
     return listaSuperpale;
   }

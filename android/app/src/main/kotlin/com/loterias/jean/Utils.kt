@@ -29,6 +29,8 @@ class Utils {
             val REQUEST_CODE_ASK_PERMISSION = 111
             val permisosCamara: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
             val permisosStorage: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            val bluetoothConnectPermission: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT)
+            val bluetoothScanPermission: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN)
             //        int permisosSms = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.SEND_SMS);
 //            val permisosLocation: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
 //            val permisosLocationCoarse: Int = ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -37,13 +39,17 @@ class Utils {
             //|| permisosSms != PackageManager.PERMISSION_GRANTED
             //, Manifest.permission.SEND_SMS
             if (permisosStorage != PackageManager.PERMISSION_GRANTED || permisosCamara != PackageManager.PERMISSION_GRANTED
+                    || bluetoothConnectPermission != PackageManager.PERMISSION_GRANTED
+                    || bluetoothScanPermission != PackageManager.PERMISSION_GRANTED
 //                    || permisosLocation != PackageManager.PERMISSION_GRANTED
 //                    || permisosLocationCoarse != PackageManager.PERMISSION_GRANTED
             ) {
                 //if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
                 requestPermissions(context as Activity,
                         arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.CAMERA
+                                Manifest.permission.CAMERA,
+                                Manifest.permission.BLUETOOTH_CONNECT,
+                                Manifest.permission.BLUETOOTH_SCAN
 //                                ,
 //                                Manifest.permission.ACCESS_FINE_LOCATION,
 //                                Manifest.permission.ACCESS_COARSE_LOCATION

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/extensions/dateextensions.dart';
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/graficaventas.dart';
 import 'package:loterias/core/models/grupo.dart';
