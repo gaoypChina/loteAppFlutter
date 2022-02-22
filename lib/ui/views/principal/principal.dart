@@ -6,6 +6,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/cross_device_info.dart';
+import 'package:loterias/core/classes/cross_platform_keypress/cross_platform_keypress.dart';
 import 'package:loterias/core/classes/cross_platform_reques_permissions/cross_platform_request_permissions.dart';
 import 'package:loterias/core/classes/cross_platform_timezone/cross_platform_timezone.dart';
 // import 'package:flutter_native_timezone/flutter_native_timezone.dart';
@@ -681,6 +682,17 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       }
     });
   
+    (CrossKeyPress()).listen((e){
+      // print("PrincipalView initState Web: " + e.keyCode);
+      // print("PrincipalView myScaffold onChanged ${event.data.keyLabel} guardar: ${(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)}");
+      
+      // if(event.runtimeType.toString() != 'RawKeyUpEvent')
+      //   return;
+      // print("PrincipalView myScaffold onChanged ${event.data.keyLabel} guardar: ${(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)}");
+      // if(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)
+      if(e.keyCode == "*")
+        guardar();
+    });
     
     //_montoFuture = fetchMonto();
     
@@ -2639,6 +2651,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
 
   Widget _jugadaTextField(bool isSmallOrMedium){
     return RawKeyboardListener(
+      autofocus: true,
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
         print("Event runtimeType is ${event.runtimeType} : ${event.data.keyLabel}");
@@ -3943,7 +3956,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                  double totalAPagar = listaJugadas != null ? listaJugadas.length > 0 ? listaJugadas.map((e) => e.monto).reduce((value, element) => value + element) : 0.0 : 0.0;
                                  if(snapshot.hasData)
                                   totalAPagar = totalAPagar - snapshot.data;
-
+        
                                  return Container(
                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                    decoration: BoxDecoration(
@@ -4165,14 +4178,18 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                     );
                   }
                 ),
-
-                MyButton(
-                  cargando: false,
-                  type: MyButtonType.roundedWithOnlyBorder,
-                  // color: Colors.blue[700],
-                  title: "Crear ticket",
-                  function: guardar,
-                  cargandoNotify: ValueNotifier<bool>(false),
+        
+                AbsorbPointer(
+                  absorbing: _cargando,
+                  child: MyButton(
+                    cargando: false,
+                    type: MyButtonType.roundedWithOnlyBorder,
+                    // color: Colors.blue[700],
+                    title: _cargando ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator()) : "Crear ticket",
+                    function: guardar,
+                    
+                    cargandoNotify: ValueNotifier<bool>(_cargando),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),

@@ -30,7 +30,7 @@ class MyButtonType {
 
 
 class MyButton extends StatefulWidget {
-  final String title;
+  final dynamic title;
   final bool enabled;
   final double small;
   final double medium;
@@ -263,6 +263,10 @@ class _MyButtonState extends State<MyButton> {
       ),
       child: (widget.leading == null) 
       ? 
+      widget.title is Widget
+      ?
+      Center(child: widget.title,)
+      :
       Center(child: Text(widget.title.toUpperCase(), style: TextStyle(fontSize: widget.fontSize, color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600, letterSpacing: widget.letterSpacing),))
       :
       Row(
