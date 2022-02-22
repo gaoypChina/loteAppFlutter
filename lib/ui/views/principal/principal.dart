@@ -692,6 +692,8 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       // if(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)
       if(e.keyCode == "*")
         guardar();
+      else if(e.keyCode == "/")
+        _escribir("/");
     });
     
     //_montoFuture = fetchMonto();
@@ -2664,11 +2666,14 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         if(event.data.keyLabel.isEmpty)
           return;
 
+        if(event.data.keyLabel == "/")
+          return;
         
         // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
-        if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
+        // if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
+        if(event.data.keyLabel.indexOf(RegExp("[\+\-sS\.]")) != -1)
           _escribir(event.data.keyLabel);
-
+        else
         // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
         _escribir(event.data.keyLabel);
         
