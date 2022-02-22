@@ -690,10 +690,12 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       //   return;
       // print("PrincipalView myScaffold onChanged ${event.data.keyLabel} guardar: ${(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)}");
       // if(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)
-      if(e.keyCode == "*")
-        guardar();
-      else if(e.keyCode == "/")
-        _escribir("/");
+      if(mounted){
+        if(e.keyCode == "*")
+          guardar();
+        else if(e.keyCode == "/")
+          _escribir("/");
+      }
     });
     
     //_montoFuture = fetchMonto();
