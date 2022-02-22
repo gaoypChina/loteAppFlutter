@@ -15,6 +15,7 @@ import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/searchdata.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/reporteservice.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -1146,6 +1147,32 @@ class _MyAppBarState extends State<MyAppBar> {
     _streamControllerSearch.add(parsed["data"] != null ? parsed["data"].map<SearchData>((e) => SearchData.fromMap(e)).toList() : []);
   }
 
+  _showAyuda(){
+    showDialog(
+      context: context, 
+      builder: (context) => MyAlertDialog(
+        title: "Ayuda", 
+        large: 5,
+        xlarge: 5,
+        content: Column(
+          children: [
+            MySubtitle(title: "Teclas especiales"),
+            MyTable(
+              columns: ["Tecla", "Descripcion"], 
+              rows: [
+                ["*", "*", "(Asterisco) imprimir el ticket"],
+                ["/", "/", "(Slash) cambiar de loteria"],
+                ["c", "c", "Copiar ticket"],
+                ["p", "p", "Marcar ticket como pagado"],
+              ]
+            )
+          ],
+        ), 
+        okFunction: () => Navigator.pop(context)
+      )
+    );
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -1296,7 +1323,7 @@ class _MyAppBarState extends State<MyAppBar> {
                 onEnter: (value) => _iconHelpNotifier.value = Colors.black,
                 onExit: (value) => _iconHelpNotifier.value = Colors.grey[600],
                 child: IconButton(
-                  onPressed: (){},
+                  onPressed: _showAyuda,
                   icon: ValueListenableBuilder(
                     valueListenable: _iconHelpNotifier,
                     builder: (context, value, __) {

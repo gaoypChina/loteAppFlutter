@@ -695,6 +695,10 @@ String initSocketNotificationTask = "initSocketNotificationTask";
           guardar();
         else if(e.keyCode == "/")
           _escribir("/");
+        else if(e.keyCode == "c")
+          _showDialogDuplicar(false);
+        else if(e.keyCode == "p")
+          _pagar(false);
       }
     });
     
