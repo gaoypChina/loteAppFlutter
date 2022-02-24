@@ -2254,16 +2254,18 @@ AppBar _appBar(bool screenHeightIsSmall){
     double _iconPaddingHorizontal = 12;
     
     return AppBar(
-      backgroundColor: Utils.colorMaterialCustom,
-      iconTheme: IconThemeData(color: Colors.white),
-      actionsIconTheme: IconThemeData(color: Colors.white),
+      elevation: 0,
+      // backgroundColor: Utils.colorMaterialCustom,
+      // backgroundColor: Colors.transparent,
+      // iconTheme: IconThemeData(color: Colors.white),
+      // actionsIconTheme: IconThemeData(color: Colors.white),
       title: screenHeightIsSmall 
         ? 
         Padding(
           padding: EdgeInsets.only(top: 5), 
           child: Row(
           children: [
-            Text('Principal', style: TextStyle(fontSize: 17)),
+            Text('Principal', style: TextStyle(fontSize: 17, color: Colors.black)),
             Padding(
               padding: const EdgeInsets.only(left: 4.0),
               child: ValueListenableBuilder<bool>(
@@ -2306,7 +2308,8 @@ AppBar _appBar(bool screenHeightIsSmall){
         // Text('Principal'),
         Row(
           children: [
-            Text('Principal'),
+            // Text('Principal', style: TextStyle(color: Colors.black)),
+            Flexible(flex: 1, child: _bancasScreen()),
             Padding(
               padding: const EdgeInsets.only(left: 4.0),
               child: ValueListenableBuilder<bool>(
@@ -2495,20 +2498,20 @@ AppBar _appBar(bool screenHeightIsSmall){
         //   },
         // )
       ],
-      bottom: TabBar(
-        // labelPadding: EdgeInsets.all(-20),
-        // isScrollable: true,
-        // indicatorWeight: 100,
-        indicatorColor: Colors.white,
-        tabs: <Widget>[
-          Tab(
-            child: Text('Jugar'),
-          ),
-          Tab(
-            child: Text('Jugadas'),
-          )
-        ],
-      ),
+      // bottom: TabBar(
+      //   // labelPadding: EdgeInsets.all(-20),
+      //   // isScrollable: true,
+      //   // indicatorWeight: 100,
+      //   indicatorColor: Colors.white,
+      //   tabs: <Widget>[
+      //     Tab(
+      //       child: Text('Jugar'),
+      //     ),
+      //     Tab(
+      //       child: Text('Jugadas'),
+      //     )
+      //   ],
+      // ),
     );
   }
 
@@ -2518,7 +2521,7 @@ Widget _bancasScreen(){
     ?
     Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis),
+      child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, color: Colors.black)),
     )
     :
     StreamBuilder(
@@ -2528,35 +2531,37 @@ Widget _bancasScreen(){
         if(snapshot.hasData){
           return Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-          child: DropdownButton(
-                hint: Text('sel. banca'),
-                isExpanded: true,
-                value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
-                onChanged: (Banca banca) async {
-                  setState(() {
-                  _indexBanca = listaBanca.indexOf(banca); 
-                  _emitToGetNewIdTicket();
-                  indexPost(false);
-                  for (var jugada in listaJugadas) {
-                    print("jugada before bancaChanged: ${jugada.stock.idBanca}");
-                  }
-                  for (var jugada in listaJugadas) {
-                    jugada.stockEliminado = true;
-                    jugada.stock.idBanca = banca.id;
-                  }
-                  for (var jugada in listaJugadas) {
-                    print("jugada after bancaChanged: ${jugada.stock.idBanca}");
-                  }
-                  });
-                  await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
-                },
-                items: listaBanca.map((b){
-                  return DropdownMenuItem<Banca>(
-                    value: b,
-                    child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
-                  );
-                }).toList(),
-              ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton(
+                  hint: Text('sel. banca'),
+                  isExpanded: true,
+                  value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
+                  onChanged: (Banca banca) async {
+                    setState(() {
+                    _indexBanca = listaBanca.indexOf(banca); 
+                    _emitToGetNewIdTicket();
+                    indexPost(false);
+                    for (var jugada in listaJugadas) {
+                      print("jugada before bancaChanged: ${jugada.stock.idBanca}");
+                    }
+                    for (var jugada in listaJugadas) {
+                      jugada.stockEliminado = true;
+                      jugada.stock.idBanca = banca.id;
+                    }
+                    for (var jugada in listaJugadas) {
+                      print("jugada after bancaChanged: ${jugada.stock.idBanca}");
+                    }
+                    });
+                    await Realtime.sincronizarTodos(_scaffoldKey, await getIdBanca());
+                  },
+                  items: listaBanca.map((b){
+                    return DropdownMenuItem<Banca>(
+                      value: b,
+                      child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
+                    );
+                  }).toList(),
+                ),
+          ),
         
         );
         }else{
@@ -2586,9 +2591,42 @@ Widget _bancasScreen(){
                                       
   }
 
+Lotterycolor _getLotteryColor(){
+  return _selectedLoterias != null ? _selectedLoterias.length == 1 ? _listaLotteryColor.firstWhere((element) => element.toHex() == _selectedLoterias[0].color, orElse: () => null) : null : null;
+}
+
+_getListLotteryColor(){
+  List<Color> listaColors = [];
+
+  if(_selectedLoterias != null){
+    for(Loteria l in _selectedLoterias){
+      // Loteria loteria = l;
+      Color _textColor;
+
+      print("PrincipalView _getListLotteryColor loteria: ${l.color}");
+
+      if(l.color != null){
+        var lotterycolor = _listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,);
+        if(lotterycolor != null){
+          listaColors.add(lotterycolor.color.withOpacity(0.18));
+        }
+        // print("PrincipalClass loteriasSeleccionadasToString _textColor: $_textColor lottery: ${l.descripcion} : ${l.color} : listLength${listaLotteryColor.length} data: ${listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,)}");
+      }
+    }
+  }
+
+  if(listaColors.length == 0){
+    listaColors.addAll([Colors.blue.shade100, Colors.blue.shade100]);
+  }
+  else if(listaColors.length == 1)
+    listaColors.add(listaColors[0]);
+
+  return listaColors;
+}
+
 Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, double width]){
     return Padding(
-      padding: EdgeInsets.only(left: _isLargeAndWeb() ? 0 : 8.0, right: 8.0, top: _isLargeAndWeb() ? 5.0 : 0.0),
+      padding: EdgeInsets.only(left: _isLargeAndWeb() ? 0 : 0.0, right: 0.0, top: _isLargeAndWeb() ? 5.0 : 0.0),
       child: GestureDetector(
         onTap: (){
           if(isSmallOrMedium)
@@ -2637,7 +2675,14 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
             ?
             Border(bottom: BorderSide(style: BorderStyle.solid, color: Colors.black, width: 1))
             :
-            Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+            null,
+            // Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+            // borderRadius: BorderRadius.circular(10),
+            gradient: _isLargeAndWeb() ? null : LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: _getListLotteryColor(),
+            )
           ),
           // child: Center(child: Text(Principal.loteriasSeleccionadasToString(_selectedLoterias), style: TextStyle(color: _colorSegundary),),),
           child: _isLargeAndWeb() 
@@ -2776,14 +2821,15 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           setState(() => _jugadaOmonto = true);
         },
           child: Padding(
-            padding: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.only(left: 0),
             child: Container(
               // duration: Duration(milliseconds: 50),
                 width: MediaQuery.of(context).size.width / 3,
-                height: (MediaQuery.of(context).size.height * 0.0688),
+                // height: (MediaQuery.of(context).size.height * 0.0688),
+                height: (MediaQuery.of(context).size.height * 0.0648),
                 // padding: EdgeInsets.only(top: 13, bottom: 13),
                 decoration: BoxDecoration(
-                  border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? _colorSegundary : Colors.black, width: (_jugadaOmonto) ? 3 : 1),
+                  border: Border.all(style: BorderStyle.solid, color: (_jugadaOmonto) ? Theme.of(context).primaryColor : Colors.black.withOpacity(0.5), width: (_jugadaOmonto) ? 3 : 1),
                 ),
                 child: Center(
                   child: _jugadaTextField(isSmallOrMedium),
@@ -2797,10 +2843,17 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         },
         child: Container(
           width: (MediaQuery.of(context).size.width / 3) - 16,
-          height: (MediaQuery.of(context).size.height * 0.0688),
+          // height: (MediaQuery.of(context).size.height * 0.0688),
+          height: (MediaQuery.of(context).size.height * 0.0648),
           // padding: EdgeInsets.only(top: 10.03, bottom: 10.03),
           decoration: BoxDecoration(
-            border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 1),
+            // border: Border.all(style: BorderStyle.solid, color: Colors.black, width: 2),
+            border: Border(
+              left: BorderSide(color: _jugadaOmonto ? _colorSegundary : Colors.black.withOpacity(0.5), width: 0.5),
+              top: BorderSide(color: Colors.black.withOpacity(0.5), width: 1),
+              right: BorderSide(color: !_jugadaOmonto ? _colorSegundary : Colors.black.withOpacity(0.5), width: 0.5),
+              bottom: BorderSide(color: Colors.black.withOpacity(0.5), width: 1),
+            ),
           ),
           child: Center(
             child: _montoDisponibleTextField(isSmallOrMedium)
@@ -2844,13 +2897,14 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           setState(() => _jugadaOmonto = false);
         },
         child: Padding(
-          padding: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.only(right: 0),
           child: Container(
-              width: MediaQuery.of(context).size.width / 3,
-              height: (MediaQuery.of(context).size.height * 0.0688),
+              width: (MediaQuery.of(context).size.width / 3) + 16,
+              // height: (MediaQuery.of(context).size.height * 0.0688),
+              height: (MediaQuery.of(context).size.height * 0.0648),
               // padding: EdgeInsets.only(top: 13, bottom: 13),
               decoration: BoxDecoration(
-                border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? _colorSegundary : Colors.black, width: (!_jugadaOmonto) ? 3 : 1),
+                border: Border.all(style: BorderStyle.solid, color: (!_jugadaOmonto) ? Theme.of(context).primaryColor : Colors.black.withOpacity(0.5), width: (!_jugadaOmonto) ? 3 : 1),
               ),
               child: Center(
                 child: _montoTextField(isSmallOrMedium)
@@ -2918,223 +2972,16 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         //   },
         // ),
         SizedBox(width: 5,),
-        GestureDetector(child: Text('${_isLargeAndWeb() ? 'Desc.' : 'Des'}', style: TextStyle(fontSize: 12, letterSpacing: _isLargeAndWeb() ? 1 : null)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
+        GestureDetector(child: Text('${_isLargeAndWeb() ? 'Desc.' : 'Des'}', style: TextStyle(fontSize: 12, letterSpacing: _isLargeAndWeb() ? 1 : null, fontWeight: FontWeight.bold)), onTap: (){setState(() => _ckbDescuento = !_ckbDescuento);},)
       ],
     );
                                           
   }
 
+  _copyAndDeleteWidget(){
+    return SizedBox.shrink();
 
-  _myPrincipalScreen(){
-    
-    return LayoutBuilder(
-                builder:(context, BoxConstraints boxConstraints){ 
-                  return ListView(
-                    children: <Widget>[
-                      Container(
-                        constraints: BoxConstraints(maxHeight: (boxConstraints.maxHeight > 300) ? boxConstraints.maxHeight : 500),
-                        child: AbsorbPointer(
-                              absorbing: _cargando,
-                              child: Column(
-                                children: <Widget>[
-                                  
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Expanded(
-                                        flex: 2,
-                                        child: _bancasScreen(),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                            child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  
-                                  _loteriasScreen(),
-                                  
-                                  SizedBox(height: 8,),
-                                  _jugadaMontoScreen(true),
-                                  SizedBox(height: 8,),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: <Widget>[
-                                      Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12))),
-                                      FutureBuilder(
-                                        future: _calcularDescuento(),
-                                        builder: (context, snapshot){
-                                          if(snapshot.hasData){
-                                            return Flexible(child: Text('Des: ${snapshot.data}\$', style: TextStyle(fontSize: 12),));
-                                          }
-                                          return Flexible(child: Text('Des: 0\$', style: TextStyle(fontSize: 12),));
-                                        }
-                                      ),
-                                      GestureDetector(
-                                        onTap: (){
-                                          setState(() => _ckbDescuento = !_ckbDescuento);
-                                        },
-                                        child: Container(
-                                          // color: Colors.red,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                            child: _ckbDescuentoScreen()
-                                          ),
-                                        ),
-                                      ),
-                                      
-                                      GestureDetector(
-                                        onTap: (){
-                        
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 5.0, left: 8.0),
-                                          child: _ckbPrintScreen(),
-                                        ),
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          // MyCheckbox(
-                                          //   useTapTarget: false,
-                                          //   value: _ckbMessage,
-                                          //   onChanged: _ckbMessageChanged,
-                                          // ),
-                                          SizedBox(
-                                            width: 10,
-                                            height: 8,
-                                            child: Checkbox(
-                                              // useTapTarget: false,
-                                              value: _ckbMessage,
-                                              onChanged: _ckbMessageChanged,
-                                            ),
-                                          ),
-                                          SizedBox(width: 5,),
-                                          GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
-                                        ],
-                                      ),
-                                      Row(
-                                        children: <Widget>[
-                                          // MyCheckbox(
-                                          //   useTapTarget: false,
-                                          //   value: _ckbWhatsapp,
-                                          //   onChanged: _ckbWhatsappChanged,
-                                          // ),
-                                          SizedBox(
-                                            width: 10,
-                                            height: 8,
-                                            child: Checkbox(
-                                              // useTapTarget: false,
-                                              value: _ckbWhatsapp,
-                                              onChanged: _ckbWhatsappChanged,
-                                            ),
-                                          ),
-                                          // PreferredSize(
-                                          //   preferredSize: Size.fromWidth(5),
-                                          //   child: Checkbox(
-                                          //     // useTapTarget: false,
-                                          //     materialTapTargetSize: MaterialTapTargetSize.padded,
-                                          //     value: _ckbWhatsapp,
-                                          //     onChanged: _ckbWhatsappChanged,
-                                          //     visualDensity: VisualDensity.lerp(VisualDensity.compact, VisualDensity.compact, VisualDensity.minimumDensity),
-                                          //   ),
-                                          // ),
-                                          SizedBox(width: 5,),
-                                          GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
-                                        ],
-                                      ),
-                                    
-                                            
-                                          
-                                    ],
-                                  ),
-                                  
-                                  SizedBox(height: 8,),
-                                  Expanded(
-                                    // flex: 3,
-                                    flex: 3,
-                                    child: Container(
-                                      // color: Colors.red,
-                                      child: LayoutBuilder(
-                                      builder: (BuildContext context, BoxConstraints constraints) {
-                                        return Column(
-                                          children: <Widget>[
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('.', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('S', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('D', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: _colorPrimary,), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                // SizedBox(
-                                                //   width: MediaQuery.of(context).size.width / 4,
-                                                //   height: constraints.maxHeight / 5,
-                                                //   child: RaisedButton(
-                                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
-                                                //     elevation: 0,
-                                                //     color: Utils.fromHex("#FFEDEBEB"),
-                                                //     onPressed: (){},
-                                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
-                                                //   ),
-                                                // )
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('7', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('8', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('9', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('/', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('4', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('5', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('6', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(
-                                                  ValueListenableBuilder(
-                                                    valueListenable: _connectionNotify, 
-                                                    builder: (context, value, __){
-                                                      if(value)
-                                                        return Text('-', style: TextStyle(fontSize: 20, color: _colorPrimary),);
-                                                      else
-                                                        return Icon(Icons.cloud_off, size: 20, color: Theme.of(context).primaryColor);
-                                                    }
-                                                  ),
-                                                  Utils.fromHex("#FFEDEBEB"), 
-                                                  constraints.maxHeight , 
-                                                  4, 
-                                                  5,
-                                                  value: '-'
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('1', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('2', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('3', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('+', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('0', style: TextStyle(fontSize: 20, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
-                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 20, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
-                                              ],
-                                            )
-                                          ],
-                                        );
-                                      }
-                                    ),
-                                    ),
-                                  ),
-                                  Expanded(
+    return Expanded(
                                     flex: 1,
                                     
                                     child: Align(
@@ -3251,7 +3098,272 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                         ],
                                       ),
                                     )
-                                  )
+                                  );
+                                
+  }
+
+  _bancaAndTimeWidget(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Expanded(
+          flex: 2,
+          child: _bancasScreen(),
+        ),
+        Expanded(
+          flex: 2,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+              child: Text(_timeString, style: TextStyle(fontWeight: FontWeight.w500)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  _totalDescuentoAndIconWidget(){
+    return Container(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+          FutureBuilder(
+            future: _calcularDescuento(),
+            builder: (context, snapshot){
+              return Flexible(child: Text('Des: ${ snapshot.hasData ? snapshot.data : '0'}\$', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),));
+            }
+          ),
+          GestureDetector(
+            onTap: (){
+              setState(() => _ckbDescuento = !_ckbDescuento);
+            },
+            child: Container(
+              // color: Colors.red,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4.0, bottom: 8.0, right: 5.0, left: 8.0),
+                child: _ckbDescuentoScreen()
+              ),
+            ),
+          ),
+          
+          GestureDetector(
+            onTap: (){
+
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              // child: _ckbPrintScreen(),
+              
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange[100],
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: Icon(Icons.print, size: 18, color: Colors.orange[900])
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: (){
+
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              // child: _ckbPrintScreen(),
+              
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: Icon(Icons.share, size: 18, color: Colors.blue[900])
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: (){
+
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              // child: _ckbPrintScreen(),
+              
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: FaIcon(FontAwesomeIcons.whatsapp, size: 18, color: Colors.green[900],)
+              ),
+            ),
+          ),
+          // Row(
+          //   children: <Widget>[
+          //     // MyCheckbox(
+          //     //   useTapTarget: false,
+          //     //   value: _ckbMessage,
+          //     //   onChanged: _ckbMessageChanged,
+          //     // ),
+          //     SizedBox(
+          //       width: 10,
+          //       height: 8,
+          //       child: Checkbox(
+          //         // useTapTarget: false,
+          //         value: _ckbMessage,
+          //         onChanged: _ckbMessageChanged,
+          //       ),
+          //     ),
+          //     SizedBox(width: 5,),
+          //     GestureDetector(child: Icon(Icons.message, color: Colors.blue,), onTap: (){_ckbMessageChanged(!_ckbMessage);},)
+          //   ],
+          // ),
+          
+          // Row(
+          //   children: <Widget>[
+          //     // MyCheckbox(
+          //     //   useTapTarget: false,
+          //     //   value: _ckbWhatsapp,
+          //     //   onChanged: _ckbWhatsappChanged,
+          //     // ),
+          //     SizedBox(
+          //       width: 10,
+          //       height: 8,
+          //       child: Checkbox(
+          //         // useTapTarget: false,
+          //         value: _ckbWhatsapp,
+          //         onChanged: _ckbWhatsappChanged,
+          //       ),
+          //     ),
+          //     // PreferredSize(
+          //     //   preferredSize: Size.fromWidth(5),
+          //     //   child: Checkbox(
+          //     //     // useTapTarget: false,
+          //     //     materialTapTargetSize: MaterialTapTargetSize.padded,
+          //     //     value: _ckbWhatsapp,
+          //     //     onChanged: _ckbWhatsappChanged,
+          //     //     visualDensity: VisualDensity.lerp(VisualDensity.compact, VisualDensity.compact, VisualDensity.minimumDensity),
+          //     //   ),
+          //     // ),
+          //     SizedBox(width: 5,),
+          //     GestureDetector(child: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, ), onTap: (){ _ckbWhatsappChanged(!_ckbWhatsapp);},)
+          //   ],
+          // ),
+        
+                
+              
+        ],
+      ),
+    );
+                                  
+  }
+
+
+  _myPrincipalScreen([boxConstraints]){
+    
+    return ListView(
+                    children: <Widget>[
+                      Container(
+                        constraints: BoxConstraints(maxHeight: boxConstraints.maxHeight),
+                        child: AbsorbPointer(
+                              absorbing: _cargando,
+                              child: Column(
+                                children: <Widget>[
+                                  
+                                  // _bancaAndTimeWidget(),
+                                  
+                                  _totalDescuentoAndIconWidget(),
+                                  _loteriasScreen(),
+                                  // SizedBox(height: 8,),
+                                  _jugadaMontoScreen(true),
+                                  // SizedBox(height: 8,),
+                                  
+                                  // SizedBox(height: 8,),
+                                  Expanded(
+                                    // flex: 3,
+                                    flex: 3,
+                                    child: Container(
+                                      // color: Colors.red,
+                                      child: LayoutBuilder(
+                                      builder: (BuildContext context, BoxConstraints constraints) {
+                                        return Column(
+                                          children: <Widget>[
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('.', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('S', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('D', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: Colors.red[700],), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                                // SizedBox(
+                                                //   width: MediaQuery.of(context).size.width / 4,
+                                                //   height: constraints.maxHeight / 5,
+                                                //   child: RaisedButton(
+                                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+                                                //     elevation: 0,
+                                                //     color: Utils.fromHex("#FFEDEBEB"),
+                                                //     onPressed: (){},
+                                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
+                                                //   ),
+                                                // )
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('7', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('8', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('9', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('/', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('4', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('5', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('6', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(
+                                                  ValueListenableBuilder(
+                                                    valueListenable: _connectionNotify, 
+                                                    builder: (context, value, __){
+                                                      if(value)
+                                                        return Text('-', style: TextStyle(fontSize: 22, color: _colorPrimary),);
+                                                      else
+                                                        return Icon(Icons.cloud_off, size: 20, color: Theme.of(context).primaryColor);
+                                                    }
+                                                  ),
+                                                  Utils.fromHex("#FFEDEBEB"), 
+                                                  constraints.maxHeight , 
+                                                  4, 
+                                                  5,
+                                                  value: '-'
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('1', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('2', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('3', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                                _buildButton(Text('+', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: <Widget>[
+                                                _buildButton(Text('0', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
+                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 22, color: Colors.green),), Colors.green[100], constraints.maxHeight , 2, 5),
+                                              ],
+                                            )
+                                          ],
+                                        );
+                                      }
+                                    ),
+                                    ),
+                                  ),
+                                  _copyAndDeleteWidget()
                                 ],
                               ),
                             )
@@ -3259,8 +3371,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                       ),
                     ],
                   );
-                }
-              );
+                
               
   }
   
@@ -3300,7 +3411,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                           children: [
                             Center(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+                                padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 4, top: 0),
                                 child: MyResizedContainer(
                                   small: 1,
                                   medium: 1,
@@ -3310,7 +3421,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                       _streamControllerJugada.add(listaJugadas);
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(vertical: 3),
                                       decoration: BoxDecoration(
                                         color: Colors.grey[300],
                                         borderRadius: BorderRadius.circular(10)
@@ -3361,27 +3472,27 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                               MyResizedContainer(
                                                 small: 3.8,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                                                   child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 4,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                                                   child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 4,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                                                   child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 5,
-                                                child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
+                                                child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 30, minHeight: 30), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
                                               ),
                                             ],
                                           ),
@@ -3415,27 +3526,27 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                           MyResizedContainer(
                                             small: 3.8,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
                                               child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 4,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
                                               child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 4,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 14.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
                                               child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 5,
-                                            child: Center(child: IconButton(icon: Icon(Icons.delete), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
+                                            child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 30, minHeight: 30), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
                                           ),
                                         ],
                                       );
@@ -3778,8 +3889,484 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           );
   }
 
-  Lotterycolor _getLotteryColor(){
-    return _selectedLoterias != null ? _selectedLoterias.length == 1 ? _listaLotteryColor.firstWhere((element) => element.toHex() == _selectedLoterias[0].color, orElse: () => null) : null : null;
+  
+
+  _screenOld(){
+    return DefaultTabController(
+          length: 2,
+          child: AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              // For Android.
+              // Use [light] for white status bar and [dark] for black status bar.
+              statusBarIconBrightness: Brightness.light,
+              // For iOS.
+              // Use [dark] for white status bar and [light] for black status bar.
+              statusBarBrightness: Brightness.light,
+              // statusBarColor: Colors.transparent
+              statusBarColor: Colors.transparent
+            ),
+            child: Scaffold(
+              key: _scaffoldKey,
+            drawer: _drawerWidget(),
+            appBar: MediaQuery.of(context).size.height > 630
+            ?
+            // _appBar(false)
+            PreferredSize(
+              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+              child: _appBar(false),
+            )
+            :
+            PreferredSize(
+              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
+              child: _appBar(true),
+            ),
+            body: TabBarView(
+              children: <Widget>[
+                _myPrincipalScreen(),
+                // Center(child: Text("KLkl mi pana")),
+                _myJugadasScreen()
+              ],
+            )
+        ),
+          ),
+      
+      );
+  }
+
+  _drawerWidget(){
+    return Drawer(
+      child: 
+      ListView(
+        children: <Widget>[
+          ListTile(
+            title: FutureBuilder<Map<String, dynamic>>(
+              future: futureBanca,
+              builder: (context, snapshot){
+                if(snapshot.hasData){
+                  return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+                }
+
+                return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+              }
+            ),
+            subtitle: FutureBuilder<Map<String, dynamic>>(
+              future: futureUsuario,
+              builder: (context, snapshot){
+                if(snapshot.hasData){
+                  return Text('${snapshot.data["servidor"]}');
+                }
+
+                return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
+              }
+            ),
+            leading: Container(
+              width: 30,
+              height: 30,
+              child:  ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    widthFactor: 0.75,
+                    heightFactor: 0.75,
+                    child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
+                  ),
+                ),
+              ),
+            ),
+            onTap: () async {
+              _cambiarServidor();
+              _scaffoldKey.currentState.openEndDrawer();
+
+            },
+          ),
+          Visibility(
+            visible: _tienePermisoProgramador || _tienePermisoAdministrador,
+            child: FutureBuilder<Pago>(
+              future: _futureFactura,
+              builder: (context, snapshot) {
+                return ListTile(
+                  title: Text('Facturas'),
+                  leading: Icon(Icons.payment),
+                  dense: true,
+                  onTap: () async {
+                    if(_tienePermisoProgramador)
+                      Navigator.of(context).pushNamed("/pagos/servidores");
+                    else if(_tienePermisoAdministrador)
+                      // Navigator.of(context).pushNamed("/pagos", arguments: Servidor(descripcion: await Db.servidor()));
+                      Navigator.of(context).pushNamed("/pagos/ver", arguments: snapshot.data != null ? snapshot.data.id : null);
+                                
+                    _scaffoldKey.currentState.openEndDrawer();
+                  },
+                  subtitle: snapshot.data == null ? null : Row(
+                    children: [
+                      
+                      Text("${snapshot.data.fechaDiasGracia != null ? 'Pagar antes del ' + MyDate.dateRangeToNameOrString(DateTimeRange(start: snapshot.data.fechaDiasGracia, end: snapshot.data.fechaDiasGracia)) : 'Tiene factura pendiente'}", style: TextStyle(color: Colors.pink)),
+                    ],
+                  )
+                  // FutureBuilder<int>(
+                  //   future: _futureFactura,
+                  //   builder: (context, snapshot) {
+                  //     return Visibility(
+                  //       visible: snapshot.data != null, 
+                  //       child: Text("Tiene factura pendiente", style: TextStyle(color: Colors.pink)
+                  //     ));
+                  //   }
+                  // )
+                );
+              }
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoVerDashboard,
+            child: ListTile(
+              title: Text('Dashboard'),
+              leading: Icon(Icons.dashboard),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/dashboard");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoTransacciones,
+            child: ListTile(
+              title: Text('Transacciones'),
+              leading: Icon(Icons.transfer_within_a_station),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/transacciones");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoMonitorearTicket,
+            child: ListTile(
+              title: Text('Monitoreo'),
+              leading: Icon(Icons.donut_large),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/monitoreo");
+              _scaffoldKey.currentState.openEndDrawer();},
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarResultados,
+            child: ListTile(
+              title: Text('Registrar premios'),
+              leading: Icon(Icons.format_list_numbered),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/registrarPremios");
+              _scaffoldKey.currentState.openEndDrawer();},
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoVerReporteJugadas || _tienePermisoVerHistoricoVentas || _tienePermisoVerVentas || _tienePermisoVerVentasPorFecha,
+            child: ExpansionTile(
+              leading: Icon(Icons.analytics),
+              title: Text("Reportes"),
+              children: [
+                  Visibility(
+                  visible: _tienePermisoVerReporteJugadas,
+                  child: ListTile(
+                    title: Text('Reporte jugadas'),
+                    leading: Icon(Icons.receipt_long),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/reporteJugadas");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoVerHistoricoVentas,
+                  child: ListTile(
+                    title: Text('Historico ventas'),
+                    leading: Icon(Icons.timeline),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/historicoVentas");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoVerVentasPorFecha,
+                  child: ListTile(
+                    title: Text('Ventas por fecha'),
+                    leading: Icon(Icons.event_available),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/ventasPorFecha");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoVerVentas,
+                  child: ListTile(
+                    title: Text('Ventas'),
+                    leading: Icon(Icons.insert_chart),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/ventas");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          
+          Visibility(
+            visible: _tienePermisoAdministrador || _tienePermisoProgramador,
+            child: ListTile(
+              title: Text('Pendientes de pago'),
+              leading: Icon(Icons.attach_money),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/pendientesPago");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          ListTile(
+            title: Text('Duplicar'),
+            leading: Icon(Icons.scatter_plot),
+            dense: true,
+            onTap: _showDialogDuplicar,
+          ),
+          Visibility(
+            visible: _tienePermisoMarcarTicketComoPagado,
+            child: ListTile(
+              title: Text("Pagar"),
+              leading: Icon(Icons.payment),
+              dense: true,
+              onTap: _pagar,
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarManejarReglas,
+            child: ExpansionTile(
+              leading: Icon(Icons.block),
+              title: Text("Bloqueos"),
+              children: [
+                  ListTile(
+                  title: Text('Por loterias'),
+                  leading: Icon(Icons.group_work_outlined),
+                  dense: true,
+                  onTap: (){
+                    Navigator.of(context).pushNamed("/bloqueosporloteria");
+                    _scaffoldKey.currentState.openEndDrawer();
+                  },
+                ),
+                  ListTile(
+                  title: Text('Por jugadas'),
+                  leading: Icon(Icons.pin),
+                  dense: true,
+                  onTap: (){
+                    Navigator.of(context).pushNamed("/bloqueosporjugadas");
+                    _scaffoldKey.currentState.openEndDrawer();
+                  },
+                ),
+              ],
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarUsuarios || _tienePermisoVerIniciosDeSesion,
+            child: ExpansionTile(
+              leading: Icon(Icons.person_outline),
+              title: Text("Usuarios"),
+              children: [
+                  Visibility(
+                    visible: _tienePermisoManejarUsuarios,
+                    child: ListTile(
+                    title: Text('Usuarios'),
+                    leading: Icon(Icons.person),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/usuarios");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                                            ),
+                  ),
+                  Visibility(
+                    visible: _tienePermisoVerIniciosDeSesion,
+                    child: ListTile(
+                    title: Text('Sesiones'),
+                    leading: Icon(Icons.sync_alt),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/sesiones");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                                            ),
+                  ),
+              ],
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoVerListaDeBalancesDeBancos || _tienePermisoVerListaDeBalancesDeBancass,
+            child: ExpansionTile(
+              leading: Icon(Icons.six__ft_apart),
+              title: Text("Balances"),
+              children: [
+                Visibility(
+                  visible: _tienePermisoVerListaDeBalancesDeBancos,
+                  child: ListTile(
+                    title: Text('Balance bancos'),
+                    leading: Icon(Icons.account_balance_wallet_outlined),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/balancebancos");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: _tienePermisoVerListaDeBalancesDeBancass,
+                  child: ListTile(
+                    title: Text('Balance bancas'),
+                    leading: Icon(Icons.account_balance_wallet),
+                    dense: true,
+                    onTap: (){
+                      Navigator.of(context).pushNamed("/balanceBancas");
+                      _scaffoldKey.currentState.openEndDrawer();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoProgramador,
+            child: ListTile(
+              title: Text('Cierres loterias'),
+              leading: Icon(Icons.timer_off_rounded),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/cierresloterias");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarHorariosDeLoterias,
+            child: ListTile(
+              title: Text('Horarios loterias'),
+              leading: Icon(Icons.timer),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/horariosloterias");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarMonedas,
+            child: ListTile(
+              title: Text('Monedas'),
+              leading: Icon(Icons.attach_money_rounded),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/monedas");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarEntidadesContables,
+            child: ListTile(
+              title: Text('Entidades'),
+              leading: Icon(Icons.apartment_outlined),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/entidades");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          
+          
+          Visibility(
+            visible: _tienePermisoManejarBancas,
+            child: ListTile(
+              title: Text('Bancas'),
+              leading: Icon(Icons.account_balance),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/bancas");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarLoterias,
+            child: ListTile(
+              title: Text('Loterias'),
+              leading: Icon(Icons.group_work_outlined),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/loterias");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoManejarManejarGrupos,
+            child: ListTile(
+              title: Text('Grupos'),
+              leading: Icon(Icons.group_work),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/grupos");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          
+          Visibility(
+            visible: _tienePermisoVerAjustes,
+            child: ListTile(
+              title: Text('Ajustes'),
+              leading: Icon(Icons.settings),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/ajustes");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          ListTile(
+            title: Text('Version'),
+            dense: true,
+            leading: Icon(Icons.assignment),
+            onTap: () async {
+            Principal.showVersion(context: context);
+            },
+          ),
+          ListTile(
+            title: Text('Cerrar sesion'),
+            dense: true,
+            leading: Icon(Icons.clear),
+            onTap: () async {
+              
+              // socket.close();
+              // socket.dispose();
+              _disconnectSocket();
+              await Principal.cerrarSesion(context);
+              await stopSocketNoticacionInForeground();
+            },
+          )
+        ],
+      ),
+
+    );
+            
   }
 
 
@@ -4263,477 +4850,70 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         )
       )
       :
-      DefaultTabController(
-          length: 2,
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: const SystemUiOverlayStyle(
-              // For Android.
-              // Use [light] for white status bar and [dark] for black status bar.
-              statusBarIconBrightness: Brightness.light,
-              // For iOS.
-              // Use [dark] for white status bar and [light] for black status bar.
-              statusBarBrightness: Brightness.light,
-              // statusBarColor: Colors.transparent
-              statusBarColor: Colors.transparent
-            ),
-            child: Scaffold(
-              key: _scaffoldKey,
-            drawer: SafeArea(
-              child: Drawer(
-                child: 
-                ListView(
-                  children: <Widget>[
-                    ListTile(
-                      title: FutureBuilder<Map<String, dynamic>>(
-                        future: futureBanca,
-                        builder: (context, snapshot){
-                          if(snapshot.hasData){
-                            return Text('${snapshot.data["descripcion"]}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                          }
-
-                          return Text('Banca...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                        }
-                      ),
-                      subtitle: FutureBuilder<Map<String, dynamic>>(
-                        future: futureUsuario,
-                        builder: (context, snapshot){
-                          if(snapshot.hasData){
-                            return Text('${snapshot.data["servidor"]}');
-                          }
-
-                          return Text('Servidor...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300));
-                        }
-                      ),
-                      leading: Container(
-                        width: 30,
-                        height: 30,
-                        child:  ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            child: Align(
-                              alignment: Alignment.topLeft,
-                              widthFactor: 0.75,
-                              heightFactor: 0.75,
-                              child: Image(image: AssetImage('assets/images/loterias_dominicanas_sin_letras.png'), ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      onTap: () async {
-                        _cambiarServidor();
-                        _scaffoldKey.currentState.openEndDrawer();
-
-                      },
-                    ),
-                    Visibility(
-                      visible: _tienePermisoProgramador || _tienePermisoAdministrador,
-                      child: FutureBuilder<Pago>(
-                        future: _futureFactura,
-                        builder: (context, snapshot) {
-                          return ListTile(
-                            title: Text('Facturas'),
-                            leading: Icon(Icons.payment),
-                            dense: true,
-                            onTap: () async {
-                              if(_tienePermisoProgramador)
-                                Navigator.of(context).pushNamed("/pagos/servidores");
-                              else if(_tienePermisoAdministrador)
-                                // Navigator.of(context).pushNamed("/pagos", arguments: Servidor(descripcion: await Db.servidor()));
-                                Navigator.of(context).pushNamed("/pagos/ver", arguments: snapshot.data != null ? snapshot.data.id : null);
-                                          
-                              _scaffoldKey.currentState.openEndDrawer();
-                            },
-                            subtitle: snapshot.data == null ? null : Row(
-                              children: [
-                                
-                                Text("${snapshot.data.fechaDiasGracia != null ? 'Pagar antes del ' + MyDate.dateRangeToNameOrString(DateTimeRange(start: snapshot.data.fechaDiasGracia, end: snapshot.data.fechaDiasGracia)) : 'Tiene factura pendiente'}", style: TextStyle(color: Colors.pink)),
-                              ],
-                            )
-                            // FutureBuilder<int>(
-                            //   future: _futureFactura,
-                            //   builder: (context, snapshot) {
-                            //     return Visibility(
-                            //       visible: snapshot.data != null, 
-                            //       child: Text("Tiene factura pendiente", style: TextStyle(color: Colors.pink)
-                            //     ));
-                            //   }
-                            // )
-                          );
-                        }
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerDashboard,
-                      child: ListTile(
-                        title: Text('Dashboard'),
-                        leading: Icon(Icons.dashboard),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/dashboard");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoTransacciones,
-                      child: ListTile(
-                        title: Text('Transacciones'),
-                        leading: Icon(Icons.transfer_within_a_station),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/transacciones");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoMonitorearTicket,
-                      child: ListTile(
-                        title: Text('Monitoreo'),
-                        leading: Icon(Icons.donut_large),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/monitoreo");
-                        _scaffoldKey.currentState.openEndDrawer();},
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarResultados,
-                      child: ListTile(
-                        title: Text('Registrar premios'),
-                        leading: Icon(Icons.format_list_numbered),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/registrarPremios");
-                        _scaffoldKey.currentState.openEndDrawer();},
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerReporteJugadas || _tienePermisoVerHistoricoVentas || _tienePermisoVerVentas || _tienePermisoVerVentasPorFecha,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.analytics),
-                        title: Text("Reportes"),
-                        children: [
-                           Visibility(
-                            visible: _tienePermisoVerReporteJugadas,
-                            child: ListTile(
-                              title: Text('Reporte jugadas'),
-                              leading: Icon(Icons.receipt_long),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/reporteJugadas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerHistoricoVentas,
-                            child: ListTile(
-                              title: Text('Historico ventas'),
-                              leading: Icon(Icons.timeline),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/historicoVentas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerVentasPorFecha,
-                            child: ListTile(
-                              title: Text('Ventas por fecha'),
-                              leading: Icon(Icons.event_available),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/ventasPorFecha");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerVentas,
-                            child: ListTile(
-                              title: Text('Ventas'),
-                              leading: Icon(Icons.insert_chart),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/ventas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    
-                    Visibility(
-                      visible: _tienePermisoAdministrador || _tienePermisoProgramador,
-                      child: ListTile(
-                        title: Text('Pendientes de pago'),
-                        leading: Icon(Icons.attach_money),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/pendientesPago");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    ListTile(
-                      title: Text('Duplicar'),
-                      leading: Icon(Icons.scatter_plot),
-                      dense: true,
-                      onTap: _showDialogDuplicar,
-                    ),
-                    Visibility(
-                      visible: _tienePermisoMarcarTicketComoPagado,
-                      child: ListTile(
-                        title: Text("Pagar"),
-                        leading: Icon(Icons.payment),
-                        dense: true,
-                        onTap: _pagar,
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarManejarReglas,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.block),
-                        title: Text("Bloqueos"),
-                        children: [
-                           ListTile(
-                            title: Text('Por loterias'),
-                            leading: Icon(Icons.group_work_outlined),
-                            dense: true,
-                            onTap: (){
-                              Navigator.of(context).pushNamed("/bloqueosporloteria");
-                              _scaffoldKey.currentState.openEndDrawer();
-                            },
-                          ),
-                           ListTile(
-                            title: Text('Por jugadas'),
-                            leading: Icon(Icons.pin),
-                            dense: true,
-                            onTap: (){
-                              Navigator.of(context).pushNamed("/bloqueosporjugadas");
-                              _scaffoldKey.currentState.openEndDrawer();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarUsuarios || _tienePermisoVerIniciosDeSesion,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.person_outline),
-                        title: Text("Usuarios"),
-                        children: [
-                           Visibility(
-                             visible: _tienePermisoManejarUsuarios,
-                             child: ListTile(
-                              title: Text('Usuarios'),
-                              leading: Icon(Icons.person),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/usuarios");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                                                     ),
-                           ),
-                           Visibility(
-                             visible: _tienePermisoVerIniciosDeSesion,
-                             child: ListTile(
-                              title: Text('Sesiones'),
-                              leading: Icon(Icons.sync_alt),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/sesiones");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                                                     ),
-                           ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoVerListaDeBalancesDeBancos || _tienePermisoVerListaDeBalancesDeBancass,
-                      child: ExpansionTile(
-                        leading: Icon(Icons.six__ft_apart),
-                        title: Text("Balances"),
-                        children: [
-                          Visibility(
-                            visible: _tienePermisoVerListaDeBalancesDeBancos,
-                            child: ListTile(
-                              title: Text('Balance bancos'),
-                              leading: Icon(Icons.account_balance_wallet_outlined),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/balancebancos");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                          Visibility(
-                            visible: _tienePermisoVerListaDeBalancesDeBancass,
-                            child: ListTile(
-                              title: Text('Balance bancas'),
-                              leading: Icon(Icons.account_balance_wallet),
-                              dense: true,
-                              onTap: (){
-                                Navigator.of(context).pushNamed("/balanceBancas");
-                                _scaffoldKey.currentState.openEndDrawer();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoProgramador,
-                      child: ListTile(
-                        title: Text('Cierres loterias'),
-                        leading: Icon(Icons.timer_off_rounded),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/cierresloterias");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarHorariosDeLoterias,
-                      child: ListTile(
-                        title: Text('Horarios loterias'),
-                        leading: Icon(Icons.timer),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/horariosloterias");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarMonedas,
-                      child: ListTile(
-                        title: Text('Monedas'),
-                        leading: Icon(Icons.attach_money_rounded),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/monedas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarEntidadesContables,
-                      child: ListTile(
-                        title: Text('Entidades'),
-                        leading: Icon(Icons.apartment_outlined),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/entidades");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    
-                    
-                    Visibility(
-                      visible: _tienePermisoManejarBancas,
-                      child: ListTile(
-                        title: Text('Bancas'),
-                        leading: Icon(Icons.account_balance),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/bancas");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarLoterias,
-                      child: ListTile(
-                        title: Text('Loterias'),
-                        leading: Icon(Icons.group_work_outlined),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/loterias");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: _tienePermisoManejarManejarGrupos,
-                      child: ListTile(
-                        title: Text('Grupos'),
-                        leading: Icon(Icons.group_work),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/grupos");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    
-                    Visibility(
-                      visible: _tienePermisoVerAjustes,
-                      child: ListTile(
-                        title: Text('Ajustes'),
-                        leading: Icon(Icons.settings),
-                        dense: true,
-                        onTap: (){
-                          Navigator.of(context).pushNamed("/ajustes");
-                          _scaffoldKey.currentState.openEndDrawer();
-                        },
-                      ),
-                    ),
-                    ListTile(
-                      title: Text('Version'),
-                      dense: true,
-                      leading: Icon(Icons.assignment),
-                      onTap: () async {
-                      Principal.showVersion(context: context);
-                      },
-                    ),
-                    ListTile(
-                      title: Text('Cerrar sesion'),
-                      dense: true,
-                      leading: Icon(Icons.clear),
-                      onTap: () async {
-                        
-                        // socket.close();
-                        // socket.dispose();
-                        _disconnectSocket();
-                        await Principal.cerrarSesion(context);
-                        await stopSocketNoticacionInForeground();
-                      },
-                    )
-                  ],
-                ),
-
-              ),
-            ),
-            appBar: MediaQuery.of(context).size.height > 630
-            ?
-            // _appBar(false)
-            PreferredSize(
-              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
-              child: _appBar(false),
-            )
-            :
-            PreferredSize(
-              preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
-              child: _appBar(true),
-            ),
-            body: TabBarView(
-              children: <Widget>[
-                _myPrincipalScreen(),
-                // Center(child: Text("KLkl mi pana")),
-                _myJugadasScreen()
-              ],
-            ),
+      AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          // For Android.
+          // Use [light] for white status bar and [dark] for black status bar.
+          statusBarIconBrightness: Brightness.light,
+          // For iOS.
+          // Use [dark] for white status bar and [light] for black status bar.
+          statusBarBrightness: Brightness.light,
+          // statusBarColor: Colors.transparent
+          statusBarColor: Colors.blue
         ),
-          ),
-      
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          key: _scaffoldKey,
+        drawer: _drawerWidget(),
+        appBar: 
+        
+        // _appBar(true)
+        PreferredSize(
+          preferredSize: Size.fromHeight( MediaQuery.of(context).size.height > 630 ? MediaQuery.of(context).size.height * 0.065 : MediaQuery.of(context).size.height * 0.065),
+          child: MediaQuery.of(context).size.height > 630 ? _appBar(false) : _appBar(true)
+        )
+        // PreferredSize(
+        //   preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.133),
+        //   child: _appBar(false),
+        // )
+        
+        
+        // PreferredSize(
+        //   preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.135),
+        //   child: _appBar(true),
+        // )
+        ,
+        body: Column(
+          children: [
+            // Container(
+            //   height: MediaQuery.of(context).size.height / 2.6,
+            //   child: _myJugadasScreen()
+            // ),
+            Flexible(
+              flex: 1,
+              child: _myJugadasScreen()
+            ),
+            Expanded(
+              flex: 2,
+              child: LayoutBuilder(
+                builder: (context, boxConstraint){
+                  return _myPrincipalScreen(boxConstraint);
+                },
+              )
+            ),
+            // SizedBox(
+            //   height: MediaQuery.of(context).size.height / 2.5,
+            //   child: _myPrincipalScreen()
+            // ),
+          ],
+        )
+        // TabBarView(
+        //   children: <Widget>[
+        //     // Center(child: Text("KLkl mi pana")),
+        //     _myJugadasScreen()
+        //   ],
+        // )
+        ),
       );
     
 
@@ -4880,14 +5060,17 @@ void _getTime() {
         return 
         isSmallOrMedium
         ?
-        Column(
+        Row(
           // crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium),
+            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: false, listaLotteryColor: _listaLotteryColor),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
-            _getLoteriaRemainingTime(_selectedLoterias[0])
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: _getLoteriaRemainingTime(_selectedLoterias[0]),
+            )
           ],
         )
         :
@@ -4980,15 +5163,34 @@ void _getTime() {
 
   
 
-  SizedBox _buildButton(Widget text_or_icon, var color, double height, int countWidth, int countHeight, {dynamic value}){
-    return SizedBox(
+  Widget _buildButton(Widget text_or_icon, var color, double height, int countWidth, int countHeight, {dynamic value}){
+    // return SizedBox(
+    //     width: MediaQuery.of(context).size.width / countWidth,
+    //     height: height / countHeight,
+    //     child: RaisedButton(
+    //       shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+    //       elevation: 0,
+    //       color: color,
+    //       onPressed: (){
+    //         if(text_or_icon is Text){
+    //           _escribir(value != null ? value : text_or_icon.data);
+    //         }else{
+    //           _escribir(value != null ? value : 'backspace');
+    //         }
+    //       },
+    //       child: Center(child: text_or_icon),
+    //     ),
+    //   );
+
+    return Container(
         width: MediaQuery.of(context).size.width / countWidth,
         height: height / countHeight,
-        child: RaisedButton(
-          shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
-          elevation: 0,
-          color: color,
-          onPressed: (){
+        color: color,
+        child: InkWell(
+          // shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+          // elevation: 0,
+          // color: color,
+          onTap: (){
             if(text_or_icon is Text){
               _escribir(value != null ? value : text_or_icon.data);
             }else{
@@ -5897,7 +6099,7 @@ void _getTime() {
         );
       }else{
         Draws _sorteo = await SorteoService.getSorteo(jugada);
-        listaJugadas.add(Jugada(
+        listaJugadas.insert(0, Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
           monto: Utils.redondear(Utils.toDouble(monto), 2),
@@ -5948,7 +6150,7 @@ void _getTime() {
         );
       }else{
         Draws _sorteo = await SorteoService.getSorteo(jugada);
-        listaJugadas.add(Jugada(
+        listaJugadas.insert(0, Jugada(
           jugada: jugada,
           idLoteria: loteria.id,
           idLoteriaSuperpale: loteriaSuperpale.id,
