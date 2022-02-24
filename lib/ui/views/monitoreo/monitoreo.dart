@@ -1080,7 +1080,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
       return Center(child: CircularProgressIndicator());
     if(!isSmallOrMedium)
       return MyTable(
-        columns: ["Estado", "Numero", "Creado", "Usuario", "Monto", "Premio", "Cancelado por", "Fecha cancelado", "Monto a pagar", "Monto pagado"], 
+        columns: ["Estado", "Numero", "Creado", "Usuario", "Monto", "Premio", "Cancelado por", "Fecha cancelado", "Monto a pagar", "Monto pagado", ""], 
         rows: data.map((e) => [
           e,
           Row(children: [
@@ -1100,12 +1100,10 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
           // "${e.status == 1 ? 'Pendiente' : e.status == 2 ? 'Ganador' : e.status == 3 ? 'Perdedor' : 'Cancelado'}",
           "${Utils.toCurrency(e.montoAPagar)}",
           "${Utils.toCurrency(e.montoPagado)}",
+          IconButton(tooltip: "Mostrar opciones", onPressed: () => _showOpciones(e, isSmallOrMedium), icon: Icon(Icons.arrow_right_alt, color: Theme.of(context).primaryColor))
         ]).toList(),
         onTap: (Venta venta){
           _showOpciones(venta, isSmallOrMedium);
-        },
-        delete: (Venta venta){
-
         },
       );
     
