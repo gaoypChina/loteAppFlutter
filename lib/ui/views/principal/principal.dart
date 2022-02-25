@@ -2265,7 +2265,7 @@ AppBar _appBar(bool screenHeightIsSmall){
           padding: EdgeInsets.only(top: 5), 
           child: Row(
           children: [
-            Text('Principal', style: TextStyle(fontSize: 17, color: Colors.black)),
+            Flexible(flex: 1, child: _bancasScreen()),
             Padding(
               padding: const EdgeInsets.only(left: 4.0),
               child: ValueListenableBuilder<bool>(
@@ -3354,7 +3354,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                             Row(
                                               children: <Widget>[
                                                 _buildButton(Text('0', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
-                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 22, color: Colors.green),), Colors.green[100], constraints.maxHeight , 2, 5),
+                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
                                               ],
                                             )
                                           ],
@@ -3472,27 +3472,27 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                               MyResizedContainer(
                                                 small: 3.8,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
                                                   child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 4,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
                                                   child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 4,
                                                 child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
                                                   child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
                                                 )),
                                               ),
                                               MyResizedContainer(
                                                 small: 5,
-                                                child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 30, minHeight: 30), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
+                                                child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 28, minHeight: 28), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
                                               ),
                                             ],
                                           ),
@@ -3526,27 +3526,27 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                           MyResizedContainer(
                                             small: 3.8,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
                                               child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 4,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
                                               child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 4,
                                             child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
                                               child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
                                             )),
                                           ),
                                           MyResizedContainer(
                                             small: 5,
-                                            child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 30, minHeight: 30), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
+                                            child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 28, minHeight: 28), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
                                           ),
                                         ],
                                       );
@@ -4885,16 +4885,23 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         ,
         body: Column(
           children: [
-            // Container(
-            //   height: MediaQuery.of(context).size.height / 2.6,
+            // Flexible(
+            //   flex: 1,
             //   child: _myJugadasScreen()
             // ),
-            Flexible(
-              flex: 1,
+            // Expanded(
+            //   flex: 1,
+            //   child: LayoutBuilder(
+            //     builder: (context, boxConstraint){
+            //       return _myPrincipalScreen(boxConstraint);
+            //     },
+            //   )
+            // ),
+            Container(
+              height: MediaQuery.of(context).size.height / 2.52,
               child: _myJugadasScreen()
             ),
             Expanded(
-              flex: 2,
               child: LayoutBuilder(
                 builder: (context, boxConstraint){
                   return _myPrincipalScreen(boxConstraint);
@@ -4903,7 +4910,11 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
             ),
             // SizedBox(
             //   height: MediaQuery.of(context).size.height / 2.5,
-            //   child: _myPrincipalScreen()
+            //   child: LayoutBuilder(
+            //     builder: (context, boxConstraint){
+            //       return _myPrincipalScreen(boxConstraint);
+            //     },
+            //   )
             // ),
           ],
         )
