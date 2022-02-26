@@ -2370,10 +2370,7 @@ AppBar _appBar(bool screenHeightIsSmall){
               height: screenHeightIsSmall ? 23 : 30,
               child: Visibility(
                 visible: _cargando,
-                child: Theme(
-                  data: Theme.of(context).copyWith(accentColor: Colors.white),
-                  child: new CircularProgressIndicator(color: Colors.white,),
-                ),
+                child: new CircularProgressIndicator(color: Theme.of(context).primaryColor,),
               ),
             ),
           ],
@@ -2533,7 +2530,7 @@ Widget _bancasScreen(){
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
           child: DropdownButtonHideUnderline(
             child: DropdownButton(
-                  hint: Text('sel. banca'),
+                  hint: Text('...'),
                   isExpanded: true,
                   value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
                   onChanged: (Banca banca) async {
@@ -3129,7 +3126,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Flexible(child: Text('Tot: ${_calcularTotal()}\$', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+          Flexible(child: Text('Tot: ${Utils.toCurrency(_calcularTotal())}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
           FutureBuilder(
             future: _calcularDescuento(),
             builder: (context, snapshot){
@@ -3151,7 +3148,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           
           GestureDetector(
             onTap: (){
-
+              _ckbPrint = true;
+              guardar();
             },
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
@@ -3169,7 +3167,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           ),
           GestureDetector(
             onTap: (){
-
+              _ckbPrint = false;
+              _ckbMessage = true;
+              guardar();
             },
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
@@ -3187,7 +3187,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           ),
           GestureDetector(
             onTap: (){
-
+              _ckbPrint = false;
+              _ckbMessage = false;
+              guardar();
             },
             child: Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
@@ -3407,156 +3409,159 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     //             ],
     //           );
 
-    return Column(
-                          children: [
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 4, top: 0),
-                                child: MyResizedContainer(
-                                  small: 1,
-                                  medium: 1,
-                                  child: InkWell(
-                                    onTap: (){
-                                      setState(() => listaJugadas = []);
-                                      _streamControllerJugada.add(listaJugadas);
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(10)
+    return AbsorbPointer(
+      absorbing: _cargando,
+      child: Column(
+                            children: [
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 4, top: 0),
+                                  child: MyResizedContainer(
+                                    small: 1,
+                                    medium: 1,
+                                    child: InkWell(
+                                      onTap: (){
+                                        setState(() => listaJugadas = []);
+                                        _streamControllerJugada.add(listaJugadas);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[300],
+                                          borderRadius: BorderRadius.circular(10)
+                                        ),
+                                        child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
                                       ),
-                                      child: Center(child: Text("Eliminar todas", style: TextStyle(fontSize: 16))),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Expanded(
-                              child: StreamBuilder<List<Jugada>>(
-                                stream: _streamControllerJugada.stream,
-                                builder: (context, snapshot) {
-                                  if(snapshot.data == null)
-                                    return SizedBox.shrink();
-                                  if(snapshot.data.length == 0)
-                                    return SizedBox.shrink();
-
-                                  return ListView.builder(
-                                    itemCount: snapshot.data.length,
-                                    itemBuilder: (context, index){
-                                      if(index == 0)
-                                      return Wrap(
-                                        children: [
-                                          Wrap(
-                                            children: [
-                                              MyResizedContainer(
-                                                small: 3.8,
-                                                child: Center(child: Text("Loteria", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 4,
-                                                child: Center(child: Text("Jugada", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 4,
-                                                child: Center(child: Text("Monto", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 5,
-                                                child: Center(child: Text("Borrar", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
-                                              ),
-                                            ],
-                                          ),
-                                          Wrap(
-                                            children: [
-                                              MyResizedContainer(
-                                                small: 3.8,
-                                                child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                  child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
-                                                )),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 4,
-                                                child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                  child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
-                                                )),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 4,
-                                                child: Center(child: Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                  child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
-                                                )),
-                                              ),
-                                              MyResizedContainer(
-                                                small: 5,
-                                                child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 28, minHeight: 28), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
-                                              ),
-                                            ],
-                                          ),
-                                        
-                                          // Wrap(
-                                          //   children: [
-                                          //     MyResizedContainer(
-                                          //       small: 3,
-                                          //       child: Center(child: Text("Loteria")),
-                                          //     ),
-                                          //     MyResizedContainer(
-                                          //       small: 3,
-                                          //       child: Center(child: Text("Jugada")),
-                                          //     ),
-                                          //     MyResizedContainer(
-                                          //       small: 3,
-                                          //       child: Center(child: Text("Monto")),
-                                          //     ),
-                                          //     MyResizedContainer(
-                                          //       small: 3,
-                                          //       child: Center(child: Text("Borrar")),
-                                          //     ),
-                                          //   ],
-                                          // ),
-                                        
-                                        ],
-                                      );
-                              
-                                      return Wrap(
-                                        children: [
-                                          MyResizedContainer(
-                                            small: 3.8,
-                                            child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                              child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
-                                            )),
-                                          ),
-                                          MyResizedContainer(
-                                            small: 4,
-                                            child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                              child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
-                                            )),
-                                          ),
-                                          MyResizedContainer(
-                                            small: 4,
-                                            child: Center(child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                              child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
-                                            )),
-                                          ),
-                                          MyResizedContainer(
-                                            small: 5,
-                                            child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 28, minHeight: 28), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                  );
-                                }
-                              ),
-                            )
-                          ],
-                        );
+                              Expanded(
+                                child: StreamBuilder<List<Jugada>>(
+                                  stream: _streamControllerJugada.stream,
+                                  builder: (context, snapshot) {
+                                    if(snapshot.data == null)
+                                      return SizedBox.shrink();
+                                    if(snapshot.data.length == 0)
+                                      return SizedBox.shrink();
+    
+                                    return ListView.builder(
+                                      itemCount: snapshot.data.length,
+                                      itemBuilder: (context, index){
+                                        if(index == 0)
+                                        return Wrap(
+                                          children: [
+                                            Wrap(
+                                              children: [
+                                                MyResizedContainer(
+                                                  small: 3.8,
+                                                  child: Center(child: Text("Loteria", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 4,
+                                                  child: Center(child: Text("Jugada", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 4,
+                                                  child: Center(child: Text("Monto", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 5,
+                                                  child: Center(child: Text("Borrar", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),)),
+                                                ),
+                                              ],
+                                            ),
+                                            Wrap(
+                                              children: [
+                                                MyResizedContainer(
+                                                  small: 3.8,
+                                                  child: Center(child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                    child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
+                                                  )),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 4,
+                                                  child: Center(child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                    child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                                  )),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 4,
+                                                  child: Center(child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                    child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                                  )),
+                                                ),
+                                                MyResizedContainer(
+                                                  small: 5,
+                                                  child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 28, minHeight: 28), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
+                                                ),
+                                              ],
+                                            ),
+                                          
+                                            // Wrap(
+                                            //   children: [
+                                            //     MyResizedContainer(
+                                            //       small: 3,
+                                            //       child: Center(child: Text("Loteria")),
+                                            //     ),
+                                            //     MyResizedContainer(
+                                            //       small: 3,
+                                            //       child: Center(child: Text("Jugada")),
+                                            //     ),
+                                            //     MyResizedContainer(
+                                            //       small: 3,
+                                            //       child: Center(child: Text("Monto")),
+                                            //     ),
+                                            //     MyResizedContainer(
+                                            //       small: 3,
+                                            //       child: Center(child: Text("Borrar")),
+                                            //     ),
+                                            //   ],
+                                            // ),
+                                          
+                                          ],
+                                        );
+                                
+                                        return Wrap(
+                                          children: [
+                                            MyResizedContainer(
+                                              small: 3.8,
+                                              child: Center(child: Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
+                                              )),
+                                            ),
+                                            MyResizedContainer(
+                                              small: 4,
+                                              child: Center(child: Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
+                                              )),
+                                            ),
+                                            MyResizedContainer(
+                                              small: 4,
+                                              child: Center(child: Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
+                                                child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
+                                              )),
+                                            ),
+                                            MyResizedContainer(
+                                              small: 5,
+                                              child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 28, minHeight: 28), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                    );
+                                  }
+                                ),
+                              )
+                            ],
+                          ),
+    );
                              
   }
 

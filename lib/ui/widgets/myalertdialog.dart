@@ -18,6 +18,7 @@ class MyAlertDialog extends StatefulWidget {
   final String thirdButtonTitle;
   final Function thirdButtonFunction;
   final Widget okButton;
+  final bool isFlat;
 
   final double small;
   final double medium;
@@ -26,7 +27,7 @@ class MyAlertDialog extends StatefulWidget {
   // final double padding;
   final Widget Function(BuildContext context, double width) builder;
 
-  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5, this.okButton}) : super(key: key);
+  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5, this.okButton, this.isFlat = false}) : super(key: key);
   @override
   _MyAlertDialogState createState() => _MyAlertDialogState();
 }
@@ -263,6 +264,10 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                           widget.okButton != null
                                           ?
                                           widget.okButton
+                                          :
+                                          widget.isFlat
+                                          ?
+                                          TextButton(onPressed: widget.okFunction, child: Text(widget.okDescription))
                                           :
                                           MyButton(
                                             // type: MyButtonType.noResponsive,

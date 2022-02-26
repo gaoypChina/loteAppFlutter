@@ -240,7 +240,7 @@ class Principal{
             }
 
             return 
-            !isSmallOrMedium
+            true
             ?
             MyAlertDialog(
               title: "Duplicar ticket", 
@@ -248,6 +248,8 @@ class Principal{
               okFunction: _duplicar,
               xlarge: 4,
               cargando: _cargando,
+              isFlat: isSmallOrMedium,
+              okDescription: "Duplicar",
             )
             :
             AlertDialog(
@@ -827,7 +829,7 @@ class Principal{
           }
 
            return 
-           !isSmallOrMedium
+           true
            ?
            MyAlertDialog(
              title: "Pagar ticket", 
@@ -835,6 +837,8 @@ class Principal{
              okFunction: _pagar,
              cargando: _cargando,
              xlarge: 4,
+             isFlat: isSmallOrMedium,
+              okDescription: "Pagar",
             )
             :
            AlertDialog(
