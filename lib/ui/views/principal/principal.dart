@@ -47,6 +47,7 @@ import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/mymultiselectdialog.dart';
@@ -55,6 +56,7 @@ import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/myscrollbar.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
@@ -99,6 +101,7 @@ import 'package:web_socket_channel/status.dart' as webSocketstatus;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../../main.dart';
+import '../../widgets/mymultiselect.dart';
 
 
 class PrincipalApp extends StatefulWidget {
@@ -2263,40 +2266,41 @@ AppBar _appBar(bool screenHeightIsSmall){
         ? 
         Padding(
           padding: EdgeInsets.only(top: 5), 
-          child: Row(
-          children: [
-            Flexible(flex: 1, child: _bancasScreen()),
-            Padding(
-              padding: const EdgeInsets.only(left: 4.0),
-              child: ValueListenableBuilder<bool>(
-                valueListenable: _connectionNotify,
-                builder: (context, value, __) {
-                  if(value)
-                    return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
-                      listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-  //                     var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-  //   print("Database.deleteDb after delete stocks: ${query}");
-  //   query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
-  //   print("Database.deleteDb after delete users: ${query}");
-  //   query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
-  //   print("Database.deleteDb after delete Branches: ${query}");
-  //  query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-  //   print("Database.deleteDb after delete sales: ${query}");
-  //   query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-  //   print("Database.deleteDb after delete Salesdetails: ${query}");
-  //   query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-  //   print("Database.deleteDb after delete tickets: ${query}");
+          child: _bancasScreen()
+  //         Row(
+  //         children: [
+  //           Expanded(child: _bancasScreen()),
+  //           Padding(
+  //             padding: const EdgeInsets.only(left: 4.0),
+  //             child: ValueListenableBuilder<bool>(
+  //               valueListenable: _connectionNotify,
+  //               builder: (context, value, __) {
+  //                 if(value)
+  //                   return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
+  //                     listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
+  // //                     var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+  // //   print("Database.deleteDb after delete stocks: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
+  // //   print("Database.deleteDb after delete users: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
+  // //   print("Database.deleteDb after delete Branches: ${query}");
+  // //  query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+  // //   print("Database.deleteDb after delete sales: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+  // //   print("Database.deleteDb after delete Salesdetails: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+  // //   print("Database.deleteDb after delete tickets: ${query}");
 
                       
 
-                    },);
+  //                   },);
 
-                  return Icon(Icons.cloud_off, color: Colors.white, size: 16);
-                }
-              ),
-            )
-          ],
-        ) ,
+  //                 return Icon(Icons.cloud_off, color: Colors.white, size: 16);
+  //               }
+  //             ),
+  //           )
+  //         ],
+  //       ) ,
           // Stack(
           //   children: [
           //     Text('Principal', style: TextStyle(fontSize: 17)),
@@ -2305,57 +2309,59 @@ AppBar _appBar(bool screenHeightIsSmall){
           // )
         ) 
         : 
+        _bancasScreen(),
         // Text('Principal'),
-        Row(
-          children: [
-            // Text('Principal', style: TextStyle(color: Colors.black)),
-            Flexible(flex: 1, child: _bancasScreen()),
-            Padding(
-              padding: const EdgeInsets.only(left: 4.0),
-              child: ValueListenableBuilder<bool>(
-                valueListenable: _connectionNotify,
-                builder: (context, value, __) {
-                  if(value)
-                    return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 18), onTap: () async {
-                      // Banca banca = await getBanca();
-                      // print("PrincipalView cloud_done banca: ${banca.id}");
-                      // var ticket = await Db.getNextTicket(banca.id);
-                      // print("PrincipalView cloud_done ticket: ${ticket}");
-                      // listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-// var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-//     print("Database.deleteDb after delete stocks: ${query}");
-//     query = await Db.database.rawQuery('SELECT * FROM Users');
-//     print("Database.deleteDb after delete users: ${query}");
-//     query = await Db.database.rawQuery('SELECT * FROM Branches');
-//     print("Database.deleteDb after delete Branches: ${query}");
-//    query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-//     print("Database.deleteDb after delete sales: ${query}");
-//     query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-//     print("Database.deleteDb after delete Salesdetails: ${query}");
-//     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-//     print("Database.deleteDb after delete tickets: ${query}");
+//         Row(
+//           children: [
+//             // Text('Principal', style: TextStyle(color: Colors.black)),
+//             Expanded(child: _bancasScreen()),
+//             Padding(
+//               padding: const EdgeInsets.only(left: 4.0),
+//               child: ValueListenableBuilder<bool>(
+//                 valueListenable: _connectionNotify,
+//                 builder: (context, value, __) {
+//                   if(value)
+//                     return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 18), onTap: () async {
+//                       // Banca banca = await getBanca();
+//                       // print("PrincipalView cloud_done banca: ${banca.id}");
+//                       // var ticket = await Db.getNextTicket(banca.id);
+//                       // print("PrincipalView cloud_done ticket: ${ticket}");
+//                       // listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
+// // var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+// //     print("Database.deleteDb after delete stocks: ${query}");
+// //     query = await Db.database.rawQuery('SELECT * FROM Users');
+// //     print("Database.deleteDb after delete users: ${query}");
+// //     query = await Db.database.rawQuery('SELECT * FROM Branches');
+// //     print("Database.deleteDb after delete Branches: ${query}");
+// //    query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+// //     print("Database.deleteDb after delete sales: ${query}");
+// //     query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+// //     print("Database.deleteDb after delete Salesdetails: ${query}");
+// //     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+// //     print("Database.deleteDb after delete tickets: ${query}");
 
 
-                      // deleteSubidaYesterdaysSale();
+//                       // deleteSubidaYesterdaysSale();
 
-                      // var query = await Db.database.rawQuery("SELECT * FROM Sales");
-                      // query.forEach((e) => print("PrincipalView cloud sale: $e"));
-                      // query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
-                      // query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
+//                       // var query = await Db.database.rawQuery("SELECT * FROM Sales");
+//                       // query.forEach((e) => print("PrincipalView cloud sale: $e"));
+//                       // query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
+//                       // query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
 
-                      // print("PrincipalView cloud: $query");
+//                       // print("PrincipalView cloud: $query");
 
-                      // deleteSubidaYesterdaysSale();
+//                       // deleteSubidaYesterdaysSale();
 
                       
-                    },);
+//                     },);
 
-                  return Icon(Icons.cloud_off, color: Colors.white, size: 18);
-                }
-              ),
-            )
-          ],
-        ) ,
+//                   return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+//                 }
+//               ),
+//             )
+//           ],
+//         ) ,
+      
       // leading: SizedBox(),
       // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
       //   _scaffoldKey.currentState.openDrawer();
@@ -2524,9 +2530,11 @@ Widget _bancasScreen(){
     StreamBuilder(
       stream: _streamControllerBanca.stream,
       builder: (context, snapshot){
+
+        if(!snapshot.hasData)
+          return SizedBox.shrink();
         
-        if(snapshot.hasData){
-          return Padding(
+        return Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 8.0),
           child: DropdownButtonHideUnderline(
             child: DropdownButton(
@@ -2561,27 +2569,6 @@ Widget _bancasScreen(){
           ),
         
         );
-        }else{
-          return Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-            child: DropdownButton(
-                hint: Text('Sin datos...'),
-                value:  'Sin datos',
-                onChanged: (String banca){
-                  setState(() {
-                  
-                  });
-                },
-                items: [
-                  DropdownMenuItem<String>(
-                    value: "Sin datos",
-                    child: Text('Sin datos',),
-                  )
-                ]
-              ),
-          );
-          
-        }
         
       },
     );
@@ -2625,10 +2612,32 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
     return Padding(
       padding: EdgeInsets.only(left: _isLargeAndWeb() ? 0 : 0.0, right: 0.0, top: _isLargeAndWeb() ? 5.0 : 0.0),
       child: GestureDetector(
-        onTap: (){
-          if(isSmallOrMedium)
-          _showMultiSelect(context);
-          else{
+        onTap: () async {
+          if(isSmallOrMedium){
+          // _showMultiSelect(context);
+            List<Loteria> loterias = await showDialog<List<Loteria>>(
+                context: context, 
+                builder: (context){
+                  // return MyMultiselect<Loteria>(
+                  //   title: "Agregar loterias",
+                  //   items: listaLoteria.map((e) => MyValue<Loteria>(value: e, child: _getLoteriaStream(e, isSmallOrMedium: isSmallOrMedium))).toList(),
+                  //   initialSelectedItems: _selectedLoterias.length == 0 ? [] : _selectedLoterias.map((e) => MyValue<Loteria>(value: e, child: e.descripcion)).toList()
+                  // );
+                  
+                  return MyMultiSelectDialog<Loteria>(
+                        // height: 400,
+                        // controlAffinity: !isSmallOrMedium ? ListTileControlAffinity.trailing : ListTileControlAffinity.leading,
+                        showButtonLimpiar: true,
+                        showButtonSeleccionarTodos: true,
+                        initialSelectedValues: _selectedLoterias != null ? _selectedLoterias : null,
+                        items: listaLoteria.map<MyMultiSelectDialogItem<Loteria>>((e) => MyMultiSelectDialogItem<Loteria>(e, _getLoteriaStream(e, isSmallOrMedium: isSmallOrMedium))).toList(),
+                      );
+                }
+              );
+
+              print("_loteriasScreen loterias: $loterias");
+              setState(() => _selectedLoterias = loterias);
+          }else{
             showMyOverlayEntry(
               context: mContext, 
               onClose: (){
@@ -3268,111 +3277,109 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
 
   _myPrincipalScreen([boxConstraints]){
     
-    return ListView(
-                    children: <Widget>[
-                      Container(
-                        constraints: BoxConstraints(maxHeight: boxConstraints.maxHeight),
-                        child: AbsorbPointer(
-                              absorbing: _cargando,
-                              child: Column(
-                                children: <Widget>[
-                                  
-                                  // _bancaAndTimeWidget(),
-                                  
-                                  _totalDescuentoAndIconWidget(),
-                                  _loteriasScreen(),
-                                  // SizedBox(height: 8,),
-                                  _jugadaMontoScreen(true),
-                                  // SizedBox(height: 8,),
-                                  
-                                  // SizedBox(height: 8,),
-                                  Expanded(
-                                    // flex: 3,
-                                    flex: 3,
-                                    child: Container(
-                                      // color: Colors.red,
-                                      child: LayoutBuilder(
-                                      builder: (BuildContext context, BoxConstraints constraints) {
-                                        return Column(
-                                          children: <Widget>[
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('.', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('S', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('D', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5), color: Colors.red[700],), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                                // SizedBox(
-                                                //   width: MediaQuery.of(context).size.width / 4,
-                                                //   height: constraints.maxHeight / 5,
-                                                //   child: RaisedButton(
-                                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
-                                                //     elevation: 0,
-                                                //     color: Utils.fromHex("#FFEDEBEB"),
-                                                //     onPressed: (){},
-                                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
-                                                //   ),
-                                                // )
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('7', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('8', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('9', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('/', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('4', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('5', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('6', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(
-                                                  ValueListenableBuilder(
-                                                    valueListenable: _connectionNotify, 
-                                                    builder: (context, value, __){
-                                                      if(value)
-                                                        return Text('-', style: TextStyle(fontSize: 22, color: _colorPrimary),);
-                                                      else
-                                                        return Icon(Icons.cloud_off, size: 20, color: Theme.of(context).primaryColor);
-                                                    }
-                                                  ),
-                                                  Utils.fromHex("#FFEDEBEB"), 
-                                                  constraints.maxHeight , 
-                                                  4, 
-                                                  5,
-                                                  value: '-'
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('1', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('2', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('3', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
-                                                _buildButton(Text('+', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: <Widget>[
-                                                _buildButton(Text('0', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
-                                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
-                                              ],
-                                            )
-                                          ],
-                                        );
-                                      }
-                                    ),
-                                    ),
+    return SingleChildScrollView(
+      child: Container(
+        constraints: BoxConstraints(maxHeight: boxConstraints.maxHeight),
+        child: AbsorbPointer(
+              absorbing: _cargando,
+              child: Column(
+                children: <Widget>[
+                  
+                  // _bancaAndTimeWidget(),
+                  
+                  _totalDescuentoAndIconWidget(),
+                  _loteriasScreen(),
+                  // SizedBox(height: 8,),
+                  _jugadaMontoScreen(true),
+                  // SizedBox(height: 8,),
+                  
+                  // SizedBox(height: 8,),
+                  Expanded(
+                    // flex: 3,
+                    flex: 3,
+                    child: Container(
+                      // color: Colors.red,
+                      child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        return Column(
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('.', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('S', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('D', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                _buildButton(Icon(Icons.backspace, size: ((constraints.maxHeight - 25) / 5).abs(), color: Colors.red[700],), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                                // SizedBox(
+                                //   width: MediaQuery.of(context).size.width / 4,
+                                //   height: constraints.maxHeight / 5,
+                                //   child: RaisedButton(
+                                //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: .3)),
+                                //     elevation: 0,
+                                //     color: Utils.fromHex("#FFEDEBEB"),
+                                //     onPressed: (){},
+                                //     child: Center(child: Text('', style: TextStyle(fontSize: 23, color: _colorPrimary),)),
+                                //   ),
+                                // )
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('7', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('8', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('9', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('/', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('4', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('5', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('6', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(
+                                  ValueListenableBuilder(
+                                    valueListenable: _connectionNotify, 
+                                    builder: (context, value, __){
+                                      if(value)
+                                        return Text('-', style: TextStyle(fontSize: 22, color: _colorPrimary),);
+                                      else
+                                        return Icon(Icons.cloud_off, size: 20, color: Theme.of(context).primaryColor);
+                                    }
                                   ),
-                                  _copyAndDeleteWidget()
-                                ],
-                              ),
+                                  Utils.fromHex("#FFEDEBEB"), 
+                                  constraints.maxHeight , 
+                                  4, 
+                                  5,
+                                  value: '-'
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('1', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('2', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('3', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 4, 5),
+                                _buildButton(Text('+', style: TextStyle(fontSize: 22, color: _colorPrimary),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 4, 5),
+                              ],
+                            ),
+                            Row(
+                              children: <Widget>[
+                                _buildButton(Text('0', style: TextStyle(fontSize: 22, color: Colors.black),), Utils.fromHex("#FFF7F6F6"), constraints.maxHeight , 2, 5),
+                                _buildButton(Text('ENTER', style: TextStyle(fontSize: 22, color: Colors.green, fontWeight: FontWeight.bold),), Utils.fromHex("#FFEDEBEB"), constraints.maxHeight , 2, 5),
+                              ],
                             )
-                          ,
-                      ),
-                    ],
-                  );
+                          ],
+                        );
+                      }
+                    ),
+                    ),
+                  ),
+                  _copyAndDeleteWidget()
+                ],
+              ),
+            )
+          ,
+      ),
+    );
                 
               
   }
@@ -4909,7 +4916,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
             Expanded(
               child: LayoutBuilder(
                 builder: (context, boxConstraint){
-                  return _myPrincipalScreen(boxConstraint);
+                  return  _myPrincipalScreen(boxConstraint.maxHeight > 85 ? boxConstraint : BoxConstraints(maxHeight: 100));
                 },
               )
             ),
@@ -5031,7 +5038,7 @@ void _getTime() {
 
   StreamBuilder _getLoteriaStream(Loteria loteria, {bool isSmallOrMedium = true}){
     Color _textColor;
-    if(loteria.color != null && !isSmallOrMedium){
+    if(loteria.color != null){
      var lotterycolor = _listaLotteryColor.firstWhere((element) => element.toHex() == loteria.color, orElse:() => null,);
      if(lotterycolor != null)
       _textColor = lotterycolor.color;
@@ -5081,7 +5088,7 @@ void _getTime() {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Text("${_selectedLoterias[0].descripcion}"),
-            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: false, listaLotteryColor: _listaLotteryColor),
+            Principal.loteriasSeleccionadasToString(_selectedLoterias, _colorSegundary, isSmallOrMedium: isSmallOrMedium, listaLotteryColor: _listaLotteryColor),
             // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
@@ -5384,10 +5391,10 @@ void _getTime() {
   }
 
   _showLigarDialog() async {
-    setState((){
+    // setState((){
       _ckbLigarPale = true;
       _ckbLigarTripleta = false;
-    });
+    // });
 
     _txtLoteriasSeleccionadasParaLigar.text = "";
     _txtMontoLigar.text = "";
@@ -5460,12 +5467,14 @@ void _getTime() {
            
 
             return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               title: Text("Ligar pale y tripleta"),
-              content: Container(
-                height: 180,
+              content: SingleChildScrollView(
                 child: Form(
                   key: _formLigarKey,
-                  child: Column(children: <Widget>[
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
                     InkWell(
                       onTap: (){
                         _showMultiSelectLigar(context);
@@ -5496,87 +5505,29 @@ void _getTime() {
                       validator: (data){
                         if(data.isEmpty)
                           return 'No tiene datos';
-
+              
                         return null;
                       },
                     ),
                     SizedBox(height: 20,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        Row(children: <Widget>[
-                        //   MyCheckbox(
-                        //   useTapTarget: false,
-                        //   value: _ckbLigarPale,
-                        //   onChanged: (newValue){
-                        //     setState(() {
-                        //     _ckbLigarPale = newValue; 
-                        //     });
-                        //   },
-                        // ),
-                        SizedBox(
-                          width: 10,
-                          height: 8,
-                          child: Checkbox(
-                            // useTapTarget: false,
-                            value: _ckbLigarPale,
-                            onChanged: (newValue){
-                              setState(() {
-                              _ckbLigarPale = newValue; 
-                              });
-                            },
-                          ),
-                        ),
-                        // Checkbox(
-                        //   // useTapTarget: false,
-                        //   value: _ckbDescuento,
-                        //   onChanged: (newValue){
-                        //     setState(() {
-                        //     _ckbDescuento = newValue; 
-                        //     });
-                        //   },
-                        // ),
-                        SizedBox(width: 5,),
-                        GestureDetector(child: Text('Pale', ), onTap: (){setState(() => _ckbLigarPale = !_ckbLigarPale);},)
-                        ],),
-                        Row(children: <Widget>[
-                        //   MyCheckbox(
-                        //   useTapTarget: false,
-                        //   value: _ckbLigarTripleta,
-                        //   onChanged: (newValue){
-                        //     setState(() {
-                        //     _ckbLigarTripleta = newValue; 
-                        //     });
-                        //   },
-                        // ),
-                        SizedBox(
-                          width: 10,
-                          height: 8,
-                          child: Checkbox(
-                            // useTapTarget: false,
-                            value: _ckbLigarTripleta,
-                            onChanged: (newValue){
-                              setState(() {
-                              _ckbLigarTripleta = newValue; 
-                              });
-                            },
-                          ),
-                        ),
-                        // Checkbox(
-                        //   // useTapTarget: false,
-                        //   value: _ckbDescuento,
-                        //   onChanged: (newValue){
-                        //     setState(() {
-                        //     _ckbDescuento = newValue; 
-                        //     });
-                        //   },
-                        // ),
-                        SizedBox(width: 5,),
-                        GestureDetector(child: Text('Tripleta', ), onTap: (){setState(() => _ckbLigarTripleta = !_ckbLigarTripleta);},)
-                        ],)
-                        
-                      ],
-                    ),
+                    Wrap(children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                       children: [
+                          Checkbox(value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
+                          Text("Pale"),
+                       ],
+                      ),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                       children: [
+                          Checkbox(value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value)),
+                          Text("Tripleta"),
+                       ],
+                      ),
+                      // MyCheckBox(small: 2, title: "Pale", value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
+                      // MyCheckBox(small: 2, title: "Tripleta", value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value))
+                    ],)
                   ],),
                 ),
               ),
@@ -5680,7 +5631,7 @@ void _getTime() {
       },
       title: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 
-        builder: (context, value, __) => value ? Text('Combinando pale...') : Text('Error monto', softWrap: true,)
+        builder: (context, value, __) => value ? Text('Combinando...', softWrap: true) : Text('Error monto', softWrap: true,)
       ),
       okButton: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 
@@ -5758,7 +5709,7 @@ void _getTime() {
       },
       title: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 
-        builder: (context, value, __) => value ? Text('Combinando tripleta...') : Text('Error monto', softWrap: true,)
+        builder: (context, value, __) => value ? Text('Combinando...') : Text('Error monto', softWrap: true,)
       ),
       okButton: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 

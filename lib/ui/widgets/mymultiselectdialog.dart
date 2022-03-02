@@ -29,7 +29,7 @@ class MyMultiSelectDialogItem<V> {
 }
 
 class MyMultiSelectDialog<V> extends StatefulWidget {
-  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints, this.controlAffinity = ListTileControlAffinity.leading, this.onItemTap}) : super(key: key);
+  MyMultiSelectDialog({Key key, this.items, this.initialSelectedValues, this.type = MyMultiselectType.dialog, this.boxConstraints, this.controlAffinity = ListTileControlAffinity.leading, this.onItemTap, this.showButtonLimpiar = false, this.showButtonSeleccionarTodos = false}) : super(key: key);
 
   final List<MyMultiSelectDialogItem<V>> items;
   final List<V> initialSelectedValues;
@@ -37,6 +37,9 @@ class MyMultiSelectDialog<V> extends StatefulWidget {
   final BoxConstraints boxConstraints;
   final controlAffinity;
   final ValueChanged<V> onItemTap;
+
+  final bool showButtonSeleccionarTodos;
+  final bool showButtonLimpiar;
 
   @override
   State<StatefulWidget> createState() => MyMultiSelectDialogState<V>();
@@ -113,6 +116,27 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
     Navigator.pop(context, _selectedValues);
   }
 
+  _seleccionarTodos(){
+    var selectedItems = [];
+    if(widget.items == null)
+      return;
+    if(widget.items.length == 0)
+      return;
+
+    
+
+    setState((){
+      for (var item in widget.items) {
+        if(_selectedValues.firstWhere((element) => element == item, orElse: () => null) == null)
+          _selectedValues.add(item.value);
+      }
+    });
+  }
+
+  _limpiar(){
+    setState(() => _selectedValues.clear());
+  }
+
   Widget _dataScreen(){
    return Container(
     //  height: widget.height,
@@ -139,17 +163,21 @@ class MyMultiSelectDialogState<V> extends State<MyMultiSelectDialog<V>> {
     ?
     AlertDialog(
       title: Text('Select loterias'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       contentPadding: EdgeInsets.only(top: 12.0),
       content: _dataScreen(),
       actions: <Widget>[
-        TextButton(
-          child: Text('CANCEL'),
-          onPressed: _onCancelTap,
-        ),
-        TextButton(
-          child: Text('OK'),
-          onPressed: _onSubmitTap,
-        )
+        // TextButton(
+        //   child: Text('CANCEL'),
+        //   onPressed: _onCancelTap,
+        // ),
+        // TextButton(
+        //   child: Text('OK'),
+        //   onPressed: _onSubmitTap,
+        // )
+        Visibility(visible: widget.showButtonLimpiar, child: TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),))),
+        Visibility(visible: widget.showButtonSeleccionarTodos, child: TextButton(onPressed: _seleccionarTodos, child: Text("Todos"))),
+        TextButton(onPressed: _onSubmitTap, child: Text("Ok")),
       ],
     )
     :
