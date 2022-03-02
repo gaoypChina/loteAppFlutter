@@ -629,7 +629,7 @@ class TicketService{
   }
 
 
-  static Future<void> showDialogJugadasSinMontoDisponible(BuildContext context, FutureOr<List<Jugada>> Function() function, {dynamic title = "Error monto disponible", bool isDeleteDialog = false, Function okFuncion, Widget okButton}) async {
+  static Future<void> showDialogJugadasSinMontoDisponible(BuildContext context, FutureOr<List<Jugada>> Function() function, {dynamic title = "Error monto", bool isDeleteDialog = false, Function okFuncion, Widget okButton}) async {
     Future<List<Jugada>> future;
     await showDialog(
       context: context, 

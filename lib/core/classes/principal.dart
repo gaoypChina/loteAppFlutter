@@ -111,7 +111,7 @@ class Principal{
         // Loteria loteria = l;
         Color _textColor;
 
-        if(l.color != null && !isSmallOrMedium){
+        if(l.color != null){
           var lotterycolor = listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,);
           if(lotterycolor != null)
             _textColor = lotterycolor.color;
@@ -129,8 +129,8 @@ class Principal{
 
         listaOfTextSpan.add(
           TextSpan(
-            style: TextStyle(color: isSmallOrMedium ? color : _textColor != null ? _textColor : Colors.black, fontWeight: isSmallOrMedium ? null : FontWeight.w600),
-            text: l.descripcion.toUpperCase()
+            style: TextStyle(color: _textColor != null ? _textColor : Colors.black, fontWeight: isSmallOrMedium ? null : FontWeight.w600),
+            text: l.descripcion
           )
         );
 
@@ -240,7 +240,7 @@ class Principal{
             }
 
             return 
-            !isSmallOrMedium
+            true
             ?
             MyAlertDialog(
               title: "Duplicar ticket", 
@@ -248,6 +248,8 @@ class Principal{
               okFunction: _duplicar,
               xlarge: 4,
               cargando: _cargando,
+              isFlat: isSmallOrMedium,
+              okDescription: "Duplicar",
             )
             :
             AlertDialog(
@@ -827,7 +829,7 @@ class Principal{
           }
 
            return 
-           !isSmallOrMedium
+           true
            ?
            MyAlertDialog(
              title: "Pagar ticket", 
@@ -835,6 +837,8 @@ class Principal{
              okFunction: _pagar,
              cargando: _cargando,
              xlarge: 4,
+             isFlat: isSmallOrMedium,
+              okDescription: "Pagar",
             )
             :
            AlertDialog(

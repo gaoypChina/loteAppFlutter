@@ -89,14 +89,17 @@ class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
     return AlertDialog(
       title: _title(widget.title),
       content: SingleChildScrollView(
-        child: Column(
-          children: widget.items.map((e) => CheckboxListTile(title: _title(e.child), value: _selected(e.value), onChanged: (value){_onChanged(value, e);})).toList(),
+        child: ListTileTheme(
+          contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+          child: ListBody(
+            children: widget.items.map((e) => CheckboxListTile(title: _title(e.child), value: _selected(e.value), onChanged: (value){_onChanged(value, e);})).toList(),
+          ),
         ),
       ),
       actions: [
         // Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),))),
         TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),)),
-        TextButton(onPressed: _seleccionarTodos, child: Text("Selec. todos")),
+        TextButton(onPressed: _seleccionarTodos, child: Text("Todos")),
         TextButton(onPressed: _back, child: Text("Ok")),
       ],
     );
