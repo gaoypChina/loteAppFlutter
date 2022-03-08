@@ -130,7 +130,9 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<Loteria> listaLoteriaTmp = List<Loteria>.generate(1, (i) => Loteria(descripcion: 'No hay loterias', id: 0));
   List<Venta> listaVenta = List<Venta>.generate(1, (i) => Venta(idTicket: BigInt.from(0), id: BigInt.from(0)));
   List<Jugada> listaJugadas = [];
+  List<Jugada> listaJugadasSeleccionadas = [];
   List<EstadisticaJugada> listaEstadisticaJugada = [];
+  bool _isSeleccionarScreen = false;
 
 String currentTimeZone;
 Future<String> _montoFuture;
@@ -3383,6 +3385,51 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 
               
   }
+
+  _chanceSeleccionarScreenValue(){
+    setState(() => _isSeleccionarScreen = !_isSeleccionarScreen);
+  }
+
+  _seleccionarJugada(Jugada jugada){
+    listaJugadasSeleccionadas.add(jugada);
+  }
+
+  _jugadaItemWidget(Jugada data){
+    return GestureDetector(
+      onLongPress: (){
+
+      },
+      child: Wrap(
+        children: [
+          MyResizedContainer(
+            small: 3.8,
+            child: Center(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 7.0),
+              child: Text("${Loteria.getDescripcion(data.loteria, loteriaSuperpale: data.loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
+            )),
+          ),
+          MyResizedContainer(
+            small: 4,
+            child: Center(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 7.0),
+              child: Principal.buildRichOrTextAndConvertJugadaToLegible(data.jugada)
+            )),
+          ),
+          MyResizedContainer(
+            small: 4,
+            child: Center(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 7.0),
+              child: Text("${data.monto}", style: TextStyle(fontSize: 16),),
+            )),
+          ),
+          MyResizedContainer(
+            small: 5,
+            child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 28, minHeight: 28), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.remove(data); _streamControllerJugada.add(listaJugadas);});},)),
+          ),
+        ],
+      ),
+    );
+  }
   
   _myJugadasScreen(){
     // return Column(
@@ -3478,35 +3525,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                                 ),
                                               ],
                                             ),
-                                            Wrap(
-                                              children: [
-                                                MyResizedContainer(
-                                                  small: 3.8,
-                                                  child: Center(child: Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                    child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
-                                                  )),
-                                                ),
-                                                MyResizedContainer(
-                                                  small: 4,
-                                                  child: Center(child: Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                    child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
-                                                  )),
-                                                ),
-                                                MyResizedContainer(
-                                                  small: 4,
-                                                  child: Center(child: Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                    child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
-                                                  )),
-                                                ),
-                                                MyResizedContainer(
-                                                  small: 5,
-                                                  child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, constraints: BoxConstraints(minWidth: 28, minHeight: 28), icon: Icon(Icons.delete), onPressed: (){setState((){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);});},)),
-                                                ),
-                                              ],
-                                            ),
+                                            _jugadaItemWidget(snapshot.data[index])
                                           
                                             // Wrap(
                                             //   children: [
@@ -3532,35 +3551,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                                           ],
                                         );
                                 
-                                        return Wrap(
-                                          children: [
-                                            MyResizedContainer(
-                                              small: 3.8,
-                                              child: Center(child: Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                child: Text("${Loteria.getDescripcion(snapshot.data[index].loteria, loteriaSuperpale: snapshot.data[index].loteriaSuperPale)}", style: TextStyle(fontSize: 16),),
-                                              )),
-                                            ),
-                                            MyResizedContainer(
-                                              small: 4,
-                                              child: Center(child: Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                child: Principal.buildRichOrTextAndConvertJugadaToLegible(snapshot.data[index].jugada)
-                                              )),
-                                            ),
-                                            MyResizedContainer(
-                                              small: 4,
-                                              child: Center(child: Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 7.0),
-                                                child: Text("${snapshot.data[index].monto}", style: TextStyle(fontSize: 16),),
-                                              )),
-                                            ),
-                                            MyResizedContainer(
-                                              small: 5,
-                                              child: Center(child: IconButton(padding: EdgeInsets.all(0), iconSize: 20, icon: Icon(Icons.delete), constraints: BoxConstraints(minWidth: 28, minHeight: 28), onPressed: (){listaJugadas.removeAt(index); _streamControllerJugada.add(listaJugadas);},)),
-                                            ),
-                                          ],
-                                        );
+                                        return _jugadaItemWidget(snapshot.data[index]);
                                       }
                                     );
                                   }
@@ -5015,22 +5006,22 @@ void _getTime() {
 
 
       // if(remaining.inMinutes > 0)
-        return Text("${remaining.inMinutes} minutos restantes", style: TextStyle(fontSize: 12, color: Colors.red, ), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
+        return Text("${remaining.inMinutes} minutos restantes", style: TextStyle(fontSize: 13, color: Colors.red, ), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
       // else{
       //   format = DateFormat("ss");
-      //   return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red));
+      //   return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 13, color: Colors.red));
       // }
     }
     else if(remaining.inHours == 0 && remaining.inSeconds > 0)
-        return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 12, color: Colors.red), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
+        return Text("${remaining.inSeconds} segundos restantes", style: TextStyle(fontSize: 13, color: Colors.red), softWrap: true, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start);
     else if(remaining.inHours <= 0 && remaining.inSeconds <= 0)
-        return Text("Cerrada", style: TextStyle(fontSize: 12, color: Colors.red));
+        return Text("Cerrada", style: TextStyle(fontSize: 13, color: Colors.red));
     else{
       format = new DateFormat('hh:mm a');
     // print("Cerrado _getLoteriaRemainingTime: m:${remaining.inMinutes} s:${remaining.inSeconds}");
 
       // dateString = "${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}";
-      return Text("${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}", style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)));
+      return Text("${format.format(convertirHoraCierreLoteriaAHoraCierreCurrentTimeZone)}", style: TextStyle(fontSize: 13, color: Colors.black.withOpacity(0.5)));
     }
     dateString = '${remaining.inHours}:${format.format(DateTime.fromMillisecondsSinceEpoch(remaining.inMilliseconds))}';
     // return dateString;
@@ -5051,7 +5042,7 @@ void _getTime() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : null, color: _textColor)),
+           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : 15, color: _textColor)),
             _getLoteriaRemainingTime(loteria)
            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
           ],
