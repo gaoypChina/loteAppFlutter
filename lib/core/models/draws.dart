@@ -19,7 +19,7 @@ Draws.fromMap(Map snapshot) :
         bolos = snapshot['bolos'] != null ? Utils.toInt(snapshot['bolos']) : 0,
         cantidadNumeros = snapshot['cantidadNumeros'] != null ? Utils.toInt(snapshot['cantidadNumeros']) : 0,
         status = snapshot['status'] != null ? Utils.toInt(snapshot['status']) : 0,
-        created_at = (snapshot['created_at'] != null) ? snapshot["created_at"] is int ? DateTime.fromMillisecondsSinceEpoch(snapshot["created_at"]) : DateTime.parse(snapshot['created_at'].toString()) : null,
+        created_at = (snapshot['created_at'] != null && snapshot['created_at'] != 'null') ? snapshot["created_at"] is int ? DateTime.fromMillisecondsSinceEpoch(snapshot["created_at"]) : DateTime.parse(snapshot['created_at'].toString()) : null,
         monto = snapshot['monto'] != null ? Utils.toDouble(snapshot['monto']) : null
         ;
 

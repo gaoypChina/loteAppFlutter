@@ -467,7 +467,7 @@ class Principal{
     );
   }
 
-    static showDialogDuplicarV2({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias}) async {
+    static showDialogDuplicarV2({BuildContext context, GlobalKey<ScaffoldState> scaffoldKey, Map<String, dynamic> mapVenta, List<Loteria> loterias, bool esCopiarJugadasSeleccionadas = false}) async {
     
     return await showDialog(
       context: context,
@@ -489,10 +489,10 @@ class Principal{
 
             //Ahora insertamos la loteria principal con sus respectivas loteriasSuperpale
             for (var item in listaLoteriasSuperPale) {
-              listDuplicar.add(Duplicar(loteria: Loteria.fromMap(l), loteriaSuperpale: Loteria.fromMap(item), loteriasADuplicar: [loterias[0]]));
+              listDuplicar.add(Duplicar(loteria: Loteria.fromMap(l), loteriaSuperpale: Loteria.fromMap(item), loteriasADuplicar: [esCopiarJugadasSeleccionadas ? loterias[1] : loterias[0]]));
             }
           }else
-            listDuplicar.add(Duplicar(loteria: Loteria.fromMap(l), loteriasADuplicar: [loterias[0]]));
+            listDuplicar.add(Duplicar(loteria: Loteria.fromMap(l), loteriasADuplicar: [esCopiarJugadasSeleccionadas ? loterias[1] : loterias[0]]));
         }
         
         return StatefulBuilder(
@@ -500,7 +500,7 @@ class Principal{
             return MyAlertDialog(
               xlarge: 6,
               large: 6,
-              title: "Duplicar", 
+              title: "${esCopiarJugadasSeleccionadas ? 'Copiar' : 'Duplicar'}", 
               content: Wrap(
                 children: listDuplicar.map((l) => 
                     Visibility(
@@ -514,6 +514,9 @@ class Principal{
                                 MyDescripcon(title: "${l.loteriaSuperpale != null ? l.loteria.descripcion + '/' + l.loteriaSuperpale.descripcion : l.loteria.descripcion}", fontSize: 16,),
                                 MyDropdown(
                                         title: null,
+                                        leading: SizedBox.shrink(),
+                                        color: esCopiarJugadasSeleccionadas ? Colors.grey[200] : null,
+                                        textColor: esCopiarJugadasSeleccionadas ? Colors.black : null,
                                         hint: "${l.loteriasADuplicar.map((e) => e.descripcion).join(l.loteriaSuperpale != null ? "/" : ", ")}",
                                         onTap: () async {
                                           List<Loteria> selectedLoterias = await showDialog(

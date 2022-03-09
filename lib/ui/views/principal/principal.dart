@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:badges/badges.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -49,6 +50,7 @@ import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/mymultiselectdialog.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
@@ -1581,19 +1583,22 @@ _showIntentNotificationIfExists() async {
     });
   }
 
-  _duplicar(Map<String, dynamic> datos) async {
+  _duplicar(Map<String, dynamic> datos, [bool copiarJugadasSeleccionadas = false]) async {
     bool cargando = true;
     ValueNotifier cargandoNotifier = ValueNotifier(true);
     List loteriasAbiertas = listaLoteria.map((l) => l).toList();
     print("PrincipalView _duplicar: ${datos['loterias']}");
     List<dynamic> loteriasAduplicar = [];
-    List<Duplicar> listaDuplicar = await Principal.showDialogDuplicarV2(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas);
+    List<Duplicar> listaDuplicar = await Principal.showDialogDuplicarV2(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos, loterias: loteriasAbiertas, esCopiarJugadasSeleccionadas: copiarJugadasSeleccionadas);
     
-    if(loteriasAduplicar == null || listaDuplicar == null)
+    if(loteriasAduplicar == null || listaDuplicar == null){
+      if(copiarJugadasSeleccionadas)
+        listaJugadasSeleccionadas.clear();
+
       return;
+    }
 
-
-    TicketService.showDialogJugadasSinMontoDisponible(
+    await TicketService.showDialogJugadasSinMontoDisponible(
       context, 
       () async {
         List<Jugada> jugadasSinMontoDisponible = [];
@@ -1602,25 +1607,43 @@ _showIntentNotificationIfExists() async {
             continue;
             
             if(duplicar.loteriaSuperpale == null){
-              List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["sorteo"] != Draws.superPale).toList();
+              List<dynamic> jugadas = 
+                copiarJugadasSeleccionadas ? 
+                listaJugadasSeleccionadas.where((element) => element.idLoteria == duplicar.loteria.id && element.sorteo != Draws.superPale).toList()
+                :
+                List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["sorteo"] != Draws.superPale).toList();
+
               for (var jugada in jugadas) {
                 print("No super: $jugada");
-                jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
+                if(!copiarJugadasSeleccionadas)
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                
+                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: copiarJugadasSeleccionadas ? jugada.jugada : Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: copiarJugadasSeleccionadas ? jugada.monto.toString() : jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
                 if(jugadasSinMontoDisponibleTmp.length > 0)
                   jugadasSinMontoDisponible.addAll(jugadasSinMontoDisponibleTmp);
+                  
               }
             }else{
-              List<dynamic> jugadas = List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["idLoteriaSuperpale"] == duplicar.loteriaSuperpale.id && e["sorteo"] == Draws.superPale).toList();
+              List<dynamic> jugadas = 
+              copiarJugadasSeleccionadas ? 
+                listaJugadasSeleccionadas.where((element) => element.idLoteria == duplicar.loteria.id && element.idLoteriaSuperpale == duplicar.loteriaSuperpale.id && element.sorteo == Draws.superPale).toList()
+                :
+                List.from(datos["jugadas"]).where((e) => e["idLoteria"] == duplicar.loteria.id && e["idLoteriaSuperpale"] == duplicar.loteriaSuperpale.id && e["sorteo"] == Draws.superPale).toList();
+              
               for (var jugada in jugadas) {
                 print("Si super: $jugada");
-                jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
-                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
+                if(!copiarJugadasSeleccionadas)
+                  jugada["jugada"] = await Utils.esSorteoPickOSuperpaleAgregarUltimoSigno(jugada["jugada"], jugada["sorteo"]);
+                
+                List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: copiarJugadasSeleccionadas ? jugada.jugada : Utils.ordenarMenorAMayor(jugada["jugada"]), montoDisponible: "0", monto: copiarJugadasSeleccionadas ? jugada.monto.toString() : jugada["monto"], selectedLoterias: duplicar.loteriasADuplicar, cambiarFocusJugadaMonto: false);
                 if(jugadasSinMontoDisponibleTmp.length > 0)
                   jugadasSinMontoDisponible.addAll(jugadasSinMontoDisponibleTmp);
               }
             }
         }
+
+        if(copiarJugadasSeleccionadas)
+          listaJugadasSeleccionadas.clear();
 
         if(jugadasSinMontoDisponible.length == 0)
           Navigator.pop(context);
@@ -1632,13 +1655,14 @@ _showIntentNotificationIfExists() async {
       // title: cargando ? 'Duplicando...' : 'Error monto disponible'
       title: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 
-        builder: (context, value, __) => value ? Text('Duplicando...') : Text('Error monto', softWrap: true,)
+        builder: (context, value, __) => value ? Text('${copiarJugadasSeleccionadas ? 'Copiando' : 'Duplicando'}...') : Text('Error monto', softWrap: true,)
       ),
       okButton: ValueListenableBuilder(
         valueListenable: cargandoNotifier, 
         builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
       ),
     );
+    
     return;
 
     loteriasAduplicar.forEach((l) async {
@@ -2254,121 +2278,88 @@ _bluetoothScreen([bool isSmallOrMedium = true]){
   );
 }
 
-AppBar _appBar(bool screenHeightIsSmall){
-    double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
-    double _iconPaddingHorizontal = 12;
-    
-    return AppBar(
-      elevation: 0,
-      // backgroundColor: Utils.colorMaterialCustom,
-      // backgroundColor: Colors.transparent,
-      // iconTheme: IconThemeData(color: Colors.white),
-      // actionsIconTheme: IconThemeData(color: Colors.white),
-      title: screenHeightIsSmall 
-        ? 
-        Padding(
-          padding: EdgeInsets.only(top: 5), 
-          child: _bancasScreen()
-  //         Row(
-  //         children: [
-  //           Expanded(child: _bancasScreen()),
-  //           Padding(
-  //             padding: const EdgeInsets.only(left: 4.0),
-  //             child: ValueListenableBuilder<bool>(
-  //               valueListenable: _connectionNotify,
-  //               builder: (context, value, __) {
-  //                 if(value)
-  //                   return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
-  //                     listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-  // //                     var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-  // //   print("Database.deleteDb after delete stocks: ${query}");
-  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
-  // //   print("Database.deleteDb after delete users: ${query}");
-  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
-  // //   print("Database.deleteDb after delete Branches: ${query}");
-  // //  query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-  // //   print("Database.deleteDb after delete sales: ${query}");
-  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-  // //   print("Database.deleteDb after delete Salesdetails: ${query}");
-  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-  // //   print("Database.deleteDb after delete tickets: ${query}");
+_seleccionarTodasLasJugadas(){
+  if(listaJugadas == null)
+    return;
+  if(listaJugadas.length == 0)
+    return;
+  List<Jugada> jugadasASeleccionar = [];
+  for (var jugada in listaJugadas) {
+    if(listaJugadasSeleccionadas.indexWhere((element) => element == jugada) == -1)
+      jugadasASeleccionar.add(jugada);
+  }
 
-                      
+  if(jugadasASeleccionar.length > 0)
+    setState(() => listaJugadasSeleccionadas.addAll(jugadasASeleccionar));
+}
 
-  //                   },);
+_copiarJugadas(){
+  List<dynamic> loteriasACopiar = [];
+  
+  if(listaJugadasSeleccionadas.length == 0)
+    return;
 
-  //                 return Icon(Icons.cloud_off, color: Colors.white, size: 16);
-  //               }
-  //             ),
-  //           )
-  //         ],
-  //       ) ,
-          // Stack(
-          //   children: [
-          //     Text('Principal', style: TextStyle(fontSize: 17)),
-          //     Positioned(child: Icon(Icons.language, color: Colors.green))
-          //   ],
-          // )
-        ) 
-        : 
-        _bancasScreen(),
-        // Text('Principal'),
-//         Row(
-//           children: [
-//             // Text('Principal', style: TextStyle(color: Colors.black)),
-//             Expanded(child: _bancasScreen()),
-//             Padding(
-//               padding: const EdgeInsets.only(left: 4.0),
-//               child: ValueListenableBuilder<bool>(
-//                 valueListenable: _connectionNotify,
-//                 builder: (context, value, __) {
-//                   if(value)
-//                     return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 18), onTap: () async {
-//                       // Banca banca = await getBanca();
-//                       // print("PrincipalView cloud_done banca: ${banca.id}");
-//                       // var ticket = await Db.getNextTicket(banca.id);
-//                       // print("PrincipalView cloud_done ticket: ${ticket}");
-//                       // listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
-// // var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
-// //     print("Database.deleteDb after delete stocks: ${query}");
-// //     query = await Db.database.rawQuery('SELECT * FROM Users');
-// //     print("Database.deleteDb after delete users: ${query}");
-// //     query = await Db.database.rawQuery('SELECT * FROM Branches');
-// //     print("Database.deleteDb after delete Branches: ${query}");
-// //    query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
-// //     print("Database.deleteDb after delete sales: ${query}");
-// //     query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
-// //     print("Database.deleteDb after delete Salesdetails: ${query}");
-// //     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
-// //     print("Database.deleteDb after delete tickets: ${query}");
-
-
-//                       // deleteSubidaYesterdaysSale();
-
-//                       // var query = await Db.database.rawQuery("SELECT * FROM Sales");
-//                       // query.forEach((e) => print("PrincipalView cloud sale: $e"));
-//                       // query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
-//                       // query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
-
-//                       // print("PrincipalView cloud: $query");
-
-//                       // deleteSubidaYesterdaysSale();
-
-                      
-//                     },);
-
-//                   return Icon(Icons.cloud_off, color: Colors.white, size: 18);
-//                 }
-//               ),
-//             )
-//           ],
-//         ) ,
+  Utils.removeDuplicateJugadasFromList(listaJugadasSeleccionadas);
+  List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(listaJugadasSeleccionadas)).cast<Jugada>().toList();
+  for (var loteria in listaLoteriasJugadas) {
+      List<dynamic> listaLoteriasSuperpaleTmp = [];
       
-      // leading: SizedBox(),
-      // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
-      //   _scaffoldKey.currentState.openDrawer();
-      // }),
-      actions: <Widget>[
+      //Añadimos la loteria
+      Map<String, dynamic> loteriaMap = loteria.loteria.toJson();
+      loteriaMap["loteriaSuperpale"] = [];
+      if(listaJugadasSeleccionadas.firstWhere((element) => element.loteria.id == loteria.loteria.id && element.idSorteo != 4, orElse: () => null) != null)
+        loteriasACopiar.add(loteriaMap);
+
+      //Buscamos los superPale pertenecientes a la loteria de arriba
+      List<Jugada> jugadasSuperTmp = listaJugadasSeleccionadas.where((element) => element.loteria.id == loteria.loteria.id && element.idSorteo == 4).toList();
+      List<Jugada> jugadasSuper = [];
+  print("_copiarJugadas jugadasSuperTmp: ${jugadasSuperTmp.length}");
+      if(jugadasSuperTmp.length > 0)
+        jugadasSuper = Utils.removeDuplicateLoteriasSuperPaleFromList(jugadasSuperTmp).cast<Jugada>().toList();
+
+  print("_copiarJugadas jugadasSuper: ${jugadasSuperTmp.length}");
+      //Insertamos los superPale pertenecientes a la loteria de arriba en la variable listaLoteriasSuperpaleTmp
+      for (var loteriaSuper in jugadasSuper) {
+        Map<String, dynamic> loteriaSuperpaleMap = loteriaSuper.loteriaSuperPale.toJson();
+        listaLoteriasSuperpaleTmp.add(loteriaSuperpaleMap);
+      }
+
+      //Si la variable listaLoteriasSuperpaleTmp es mayor que cero entonces eso quiere decir que la loteria de arriba tiene superPale
+      //Asi que los insertamos la loteria de arriba y le asignamos sus respectivos superPale y la insertamos en la variable loteriasACopiar
+      if(listaLoteriasSuperpaleTmp.length > 0){
+        Map<String, dynamic> loteriaMap2 = loteria.loteria.toJson();
+        loteriaMap2["loteriaSuperpale"] = listaLoteriasSuperpaleTmp;
+        loteriasACopiar.add(loteriaMap2);
+      }
+      
+  }
+
+  print("_copiarJugadas: $loteriasACopiar");
+  _duplicar({"loterias" : loteriasACopiar}, true);
+  _chanceSeleccionarScreenValue(false);
+}
+
+List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
+  double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
+  double _iconPaddingHorizontal = 12;
+
+  return 
+  _isSeleccionarScreen
+  ?
+  <Widget>[
+    IconButton(
+      tooltip: "Seleccionar todas",
+      icon: Icon(Icons.select_all, color: Colors.black),
+      onPressed: _seleccionarTodasLasJugadas,
+    ),
+    IconButton(
+      tooltip: "Copiar jugadas",
+      icon: Icon(Icons.copy, color: Colors.black),
+      onPressed: _copiarJugadas,
+    ),
+  ]
+  :
+  <Widget>[
         Container(),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -2473,36 +2464,133 @@ AppBar _appBar(bool screenHeightIsSmall){
               }),
             ),
           ),
-        // )
-        // IconButton(
-        //   icon: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 23 : 30,),
-        //   onPressed: () async{
-        //     // print("Screensize: ${MediaQuery.of(context).size.height}");
-        //     Navigator.of(context).pushNamed('/bluetooth');
-        //   },
-        // ),
-        // IconButton(
-        //   icon: Icon(Icons.message, size: 30,),
-        //   onPressed: () async{
-        //     showDialog(
-        //       context: context,
-        //       builder: (context){
-        //         return AlertDialog(
-        //           title: Text("Errores socket"),
-        //           content: ListView.builder(
-        //             itemCount: _listaMensajes.length,
-        //             itemBuilder: (context, idx){
-        //               return ListTile(
-        //                 title: Text(_listaMensajes[idx]),
-        //               );
-        //             },
-        //           ),
-        //         );
-        //       }
-        //     );
-        //   },
-        // )
-      ],
+        
+       
+      ];
+      
+}
+
+AppBar _appBar(bool screenHeightIsSmall){
+    
+    
+    return AppBar(
+      elevation: 0,
+      // backgroundColor: Utils.colorMaterialCustom,
+      // backgroundColor: Colors.transparent,
+      // iconTheme: IconThemeData(color: Colors.white),
+      // actionsIconTheme: IconThemeData(color: Colors.white),
+      leading: _isSeleccionarScreen ? IconButton(icon: Icon(Icons.clear, color: Colors.black,), onPressed: () => _chanceSeleccionarScreenValue(),) : null,
+      title: 
+      _isSeleccionarScreen
+      ?
+      Text("${listaJugadasSeleccionadas.length}", style: TextStyle(color: Colors.black))
+      :
+      screenHeightIsSmall 
+        ? 
+        Padding(
+          padding: EdgeInsets.only(top: 5), 
+          child: _bancasScreen()
+  //         Row(
+  //         children: [
+  //           Expanded(child: _bancasScreen()),
+  //           Padding(
+  //             padding: const EdgeInsets.only(left: 4.0),
+  //             child: ValueListenableBuilder<bool>(
+  //               valueListenable: _connectionNotify,
+  //               builder: (context, value, __) {
+  //                 if(value)
+  //                   return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 16), onTap: () async {
+  //                     listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
+  // //                     var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+  // //   print("Database.deleteDb after delete stocks: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as usuarios FROM Users');
+  // //   print("Database.deleteDb after delete users: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as bancas FROM Branches');
+  // //   print("Database.deleteDb after delete Branches: ${query}");
+  // //  query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+  // //   print("Database.deleteDb after delete sales: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+  // //   print("Database.deleteDb after delete Salesdetails: ${query}");
+  // //   query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+  // //   print("Database.deleteDb after delete tickets: ${query}");
+
+                      
+
+  //                   },);
+
+  //                 return Icon(Icons.cloud_off, color: Colors.white, size: 16);
+  //               }
+  //             ),
+  //           )
+  //         ],
+  //       ) ,
+          // Stack(
+          //   children: [
+          //     Text('Principal', style: TextStyle(fontSize: 17)),
+          //     Positioned(child: Icon(Icons.language, color: Colors.green))
+          //   ],
+          // )
+        ) 
+        : 
+        _bancasScreen(),
+        // Text('Principal'),
+//         Row(
+//           children: [
+//             // Text('Principal', style: TextStyle(color: Colors.black)),
+//             Expanded(child: _bancasScreen()),
+//             Padding(
+//               padding: const EdgeInsets.only(left: 4.0),
+//               child: ValueListenableBuilder<bool>(
+//                 valueListenable: _connectionNotify,
+//                 builder: (context, value, __) {
+//                   if(value)
+//                     return GestureDetector(child: Icon(Icons.cloud_done, color: Colors.white, size: 18), onTap: () async {
+//                       // Banca banca = await getBanca();
+//                       // print("PrincipalView cloud_done banca: ${banca.id}");
+//                       // var ticket = await Db.getNextTicket(banca.id);
+//                       // print("PrincipalView cloud_done ticket: ${ticket}");
+//                       // listaJugadas.forEach((element) {print("PrincipalView Icons.cloud_done: jugada: ${element.jugada} disponible: ${element.stock.monto} ");});
+// // var query = await Db.database.rawQuery('SELECT COUNT(*) as stocks FROM STOCKS');
+// //     print("Database.deleteDb after delete stocks: ${query}");
+// //     query = await Db.database.rawQuery('SELECT * FROM Users');
+// //     print("Database.deleteDb after delete users: ${query}");
+// //     query = await Db.database.rawQuery('SELECT * FROM Branches');
+// //     print("Database.deleteDb after delete Branches: ${query}");
+// //    query = await Db.database.rawQuery('SELECT COUNT(*) as sales FROM Sales');
+// //     print("Database.deleteDb after delete sales: ${query}");
+// //     query = await Db.database.rawQuery('SELECT COUNT(*) as salesdetails FROM Salesdetails');
+// //     print("Database.deleteDb after delete Salesdetails: ${query}");
+// //     query = await Db.database.rawQuery('SELECT COUNT(*) as tickets FROM Tickets');
+// //     print("Database.deleteDb after delete tickets: ${query}");
+
+
+//                       // deleteSubidaYesterdaysSale();
+
+//                       // var query = await Db.database.rawQuery("SELECT * FROM Sales");
+//                       // query.forEach((e) => print("PrincipalView cloud sale: $e"));
+//                       // query = await Db.database.rawQuery("SELECT * FROM Salesdetails");
+//                       // query.forEach((e) => print("PrincipalView cloud salesdetails: idVenta: ${e["idVenta"]}, jugada: ${e["jugada"]}, , monto: ${e["monto"]} created_at: ${e["created_at"]}"));
+
+//                       // print("PrincipalView cloud: $query");
+
+//                       // deleteSubidaYesterdaysSale();
+
+                      
+//                     },);
+
+//                   return Icon(Icons.cloud_off, color: Colors.white, size: 18);
+//                 }
+//               ),
+//             )
+//           ],
+//         ) ,
+      
+      // leading: SizedBox(),
+      // leading: _drawerIsOpen ? SizedBox() :  IconButton(icon: Icon(Icons.menu, color:  Colors.white,), onPressed: (){
+      //   _scaffoldKey.currentState.openDrawer();
+      // }),
+      actions: _appBarActionsWidget(screenHeightIsSmall)
+      
       // bottom: TabBar(
       //   // labelPadding: EdgeInsets.all(-20),
       //   // isScrollable: true,
@@ -3386,27 +3474,54 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
               
   }
 
-  _chanceSeleccionarScreenValue(){
-    setState(() => _isSeleccionarScreen = !_isSeleccionarScreen);
+  void _chanceSeleccionarScreenValue([bool limpiarListJugadasSeleccionadas = true]){
+    setState((){
+      _isSeleccionarScreen = !_isSeleccionarScreen;
+      if(!_isSeleccionarScreen){
+        if(limpiarListJugadasSeleccionadas)
+          listaJugadasSeleccionadas.clear();
+      }
+    });
   }
 
-  _seleccionarJugada(Jugada jugada){
-    listaJugadasSeleccionadas.add(jugada);
+  void _seleccionarJugada(Jugada jugada){
+    if(listaJugadasSeleccionadas.firstWhere((element) => element == jugada, orElse: () => null) != null){
+      setState((){
+        listaJugadasSeleccionadas.remove(jugada);
+        if(listaJugadasSeleccionadas.length == 0)
+          _chanceSeleccionarScreenValue();
+      });
+
+    }else
+      setState(() => listaJugadasSeleccionadas.add(jugada));
   }
 
   _jugadaItemWidget(Jugada data){
     return GestureDetector(
       onLongPress: (){
-
+        if(_isSeleccionarScreen == false){
+          _chanceSeleccionarScreenValue();
+          _seleccionarJugada(data);
+        }else{
+          _chanceSeleccionarScreenValue();
+          listaJugadasSeleccionadas = [];
+        }
       },
+      onTap: !_isSeleccionarScreen ? null : () => _seleccionarJugada(data),
       child: Wrap(
         children: [
           MyResizedContainer(
             small: 3.8,
-            child: Center(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 7.0),
-              child: Text("${Loteria.getDescripcion(data.loteria, loteriaSuperpale: data.loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
-            )),
+            child: Badge(
+              badgeColor: Colors.green,
+              position: BadgePosition(top: 0, end: 0),
+              showBadge: listaJugadasSeleccionadas.firstWhere((element) => element == data, orElse: () => null) != null,
+              badgeContent: Icon(Icons.check, size: 10),
+              child: Center(child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 7.0),
+                child: Text("${Loteria.getDescripcion(data.loteria, loteriaSuperpale: data.loteriaSuperPale) }", style: TextStyle(fontSize: 16),),
+              )),
+            ),
           ),
           MyResizedContainer(
             small: 4,

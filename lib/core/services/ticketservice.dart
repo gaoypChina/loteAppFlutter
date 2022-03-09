@@ -654,6 +654,8 @@ class TicketService{
                 builder: (context, snapshot) {
                   if(snapshot.connectionState != ConnectionState.done)
                     return _circularProgressIndicator();
+                  else if(snapshot.data == null)
+                    return _circularProgressIndicator();
                   else if(snapshot.data.length == 0)
                     return _circularProgressIndicator();
 
