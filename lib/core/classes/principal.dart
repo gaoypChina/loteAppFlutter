@@ -29,6 +29,7 @@ import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/main.dart';
 import 'package:loterias/ui/login/login.dart';
 import 'package:loterias/ui/views/actualizar/actualizar.dart';
 import 'package:loterias/ui/views/principal/multiselectdialogitem.dart';
@@ -1282,12 +1283,27 @@ class Principal{
   if(version["urgente"] != 1)
     return;
     print("Principal.version: ${version}");
-  if(packageInfo.buildNumber != version["version"]){
-     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
-    );
-    // Navigator.pushReplacementNamed(context, "actualizar", arguments: version["enlace"]);
-  }
+  if(packageInfo.buildNumber == version["version"])
+    return;
+  if(packageInfo.buildNumber == version["version2"])
+    return;
+  if(packageInfo.buildNumber == version["version3"])
+    return;
+     
+  // if(packageInfo.buildNumber != version["version"]){
+  //    Navigator.of(context).pushReplacement(
+  //     MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
+  //   );
+  //   // Navigator.pushReplacementNamed(context, "actualizar", arguments: version["enlace"]);
+  // }
+
+  navigatorKey.currentState.pushAndRemoveUntil(
+    MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"])),
+    (route) => false
+  );
+  // Navigator.of(context).pushReplacement(
+  //     MaterialPageRoute(builder: (BuildContext context) => ActualizarScreen(version["enlace"]))
+  //   );
  }
 
  static showVersion({Map<String, dynamic> version, BuildContext context}) async {

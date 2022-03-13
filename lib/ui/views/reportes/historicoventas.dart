@@ -1023,7 +1023,7 @@ _monedaChanged(moneda){
     if(!isSmallOrMedium)
       return Column(
         children: [
-          MySubtitle(title: "$executeTime"),
+          // MySubtitle(title: "$executeTime"),
           MyTable(
             // type: MyTableType.custom,
             showColorWhenImpar: true,
@@ -1075,7 +1075,7 @@ _monedaChanged(moneda){
     
     return Column(
       children: [
-          MySubtitle(title: "$executeTime"),
+          // MySubtitle(title: "$executeTime"),
         Expanded(
           child: HorizontalDataTable(
             leftHandSideColumnWidth: 120,

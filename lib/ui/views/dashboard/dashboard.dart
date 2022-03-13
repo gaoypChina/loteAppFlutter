@@ -28,6 +28,9 @@ import 'package:loterias/ui/widgets/mytogglebuttons.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
+import '../../../core/classes/databasesingleton.dart';
+import '../../widgets/myfilterv2.dart';
+
 class DashboardScreen extends StatefulWidget {
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
@@ -64,6 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Moneda _moneda;
   Grupo _grupo;
   Timer _timer;
+  List<MyFilterItem> _filters = [];
+  Future _futureFilter;
+  int idGrupo;
 
   @override
   initState(){
@@ -74,20 +80,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _streamControllerGrafica = BehaviorSubject();
     _streamControllerJugadasPorLoteria = BehaviorSubject();
     _date = MyDate.getTodayDateRange();
-    _dashboard();
+    _futureFilter = _dashboard();
     super.initState();
   }
 
   _dashboard() async {
     try{
       // setState(() => _cargando = true);
+      if(_onCreate){
+        idGrupo = await Db.idGrupo();
+      }
       _streamControllerGrafica.add(null);
-      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start, idMoneda: _moneda != null ? _moneda.id : null, idGrupo: _grupo != null ? _grupo.id : null);
+      var datos = await DashboardService.dashboard(scaffoldKey: _scaffoldKey, fecha: _date.start, idMoneda: _moneda != null ? _moneda.id : null, idGrupo: idGrupo != null ? idGrupo : _grupo != null ? _grupo.id : null);
       if(_onCreate){
         listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
         listaGrupo = datos["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList();
-        listaGrupo.insert(0, Grupo(id: 0, descripcion: "Todos los grupos"));
-        _grupo = listaGrupo[0];
+        listaGrupo.insert(0, Grupo(id: 0, descripcion: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? "Todos" : "Todos los grupos"));
+
+        if(idGrupo != null){
+          _grupo = listaGrupo.firstWhere((element) => element.id == idGrupo, orElse: () => null);
+          if(_grupo == null)
+            _grupo = listaGrupo[0];
+        }
+        else
+          _grupo = listaGrupo[0];
+
+
+        //Nuevo filtro
+        // _filters.add(MyFilterItem(hint: "Grupo", data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList()));
+        // _filters.add(MyFilterItem(hint: "Moneda", data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList()));
 
         if(listaMoneda != null){
           if(listaMoneda.length > 0)
@@ -159,7 +180,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // _streamControllerJugadasPorLoteria.add([]);
       var datos = await DashboardService.getJugadasPorLoteria(scaffoldKey: _scaffoldKey, fecha: _fecha, idLoteria: loteria["id"], idMoneda: _moneda != null ? _moneda.id : null, idGrupo: _grupo.id != 0 ? _grupo.id : null);
-      print("Dashboard _loteriaChanged: $datos");
       _valueNotifyCargandoLoteria.value = false;
       listaLoteriasJugadasDashboard[_indexLoteriaJugadas] = datos["loteria"];
       // _streamControllerJugadasPorLoteria.add([]);
@@ -181,6 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Map<String, dynamic> sort = sorteosLoteriasJugadas.firstWhere((s) => s["descripcion"] == sorteo);
       if(sort != null){
         listaJugada = sort["jugadas"] != null ? List.from(sort["jugadas"]) : [];
+        if(!_streamControllerJugadasPorLoteria.isClosed)
         _streamControllerJugadasPorLoteria.add(listaJugada);
         // if(sort["jugadas"] != null)
         //   setState(() => listaJugada = List.from(sort["jugadas"]));
@@ -221,29 +242,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return
     isSmallOrMedium
     ?
-    SingleChildScrollView(
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
       child: MyCollapseChanged(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              MyFilter(
-                filterTitle: '',
-                filterLeading: SizedBox.shrink(),
-                leading: SizedBox.shrink(),
-                value: _date, 
-                onChanged: _dateChanged,
-                showListNormalCortaLarga: 2,
-              ),
-              // _mysearch()
-            ]
-          ),
+        child: FutureBuilder<void>(
+          future: _futureFilter,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SizedBox.shrink();
+
+            return Row(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    _back(){
+                      Navigator.pop(context);
+                    }
+                    _dateDialog();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0, bottom: 14),
+                    child: Container(
+                      height: 50,
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                      decoration: BoxDecoration(
+                        // border: Border.all(color: Colors.blue[900]),
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(15)
+                      ),
+                      child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: MyFilterV2(
+                    item: [
+                      MyFilterItem(
+                        hint: "${_moneda != null ? 'Moneda: ' + _moneda.abreviatura: 'Moneda...'}", 
+                        data: listaMoneda.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _monedaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        enabled: idGrupo == null,
+                        hint: "${_grupo != null ? 'Grupo: ' + _grupo.descripcion: 'Grupo...'}", 
+                        data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _grupoChanged(value);
+                        }
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
         )
-        
-          
-        ,
       ),
     )
+    // SingleChildScrollView(
+    //   child: MyCollapseChanged(
+    //     child: Padding(
+    //       padding: const EdgeInsets.symmetric(horizontal: 20),
+    //       child: Column(
+    //         children: [
+    //           MyFilter(
+    //             filterTitle: '',
+    //             filterLeading: SizedBox.shrink(),
+    //             leading: SizedBox.shrink(),
+    //             value: _date, 
+    //             onChanged: _dateChanged,
+    //             showListNormalCortaLarga: 2,
+    //           ),
+    //           // _mysearch()
+    //         ]
+    //       ),
+    //     )
+        
+          
+    //     ,
+    //   ),
+    // )
     :
     SizedBox();
   }
@@ -340,12 +421,12 @@ _showBottomSheetMoneda() async {
   }
 
   _grupoChanged(Grupo data){
-    _grupo = data;
+    setState(() => _grupo = data);
     _dashboard();
   }
 
   _monedaChanged(Moneda data){
-    _moneda = data;
+    setState(() => _moneda = data);
     _dashboard();
   }
 
@@ -407,7 +488,7 @@ _showBottomSheetMoneda() async {
           expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
             
-            _monedaScreen(isSmallOrMedium),
+            // _monedaScreen(isSmallOrMedium),
               
             MySliverButton(
               title: "", 

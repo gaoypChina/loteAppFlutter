@@ -871,7 +871,12 @@ class Realtime{
     else if(Utils.toInt(usuario["status"]) != 1){
       print("Realtime usuario() usuarioCerrarSesio: ${usuario["status"]}");
       await Principal.cerrarSesion(context);
-    }else{
+    }
+    // else if(usuario["imei"] != null && usuario["imei"] != ''){
+    //   print("Realtime usuario() usuarioCerrarSesio: ${usuario["status"]}");
+    //   await Principal.cerrarSesion(context);
+    // }
+    else{
       // await Db.delete("Permissions");
       // await Db.delete("Users");
       await Db.deleteAllPermission();

@@ -111,6 +111,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   var _loteriasNotifier = ValueNotifier<bool>(false);
   var _gruposNotifier = ValueNotifier<bool>(false);
   var _ajustesNotifier = ValueNotifier<bool>(false);
+  var _versionesNotifier = ValueNotifier<bool>(false);
 
 
   _gotTo(String route){
@@ -177,6 +178,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
     _loteriasNotifier.value = await Db.existePermiso("Manejar loterias");
     _gruposNotifier.value = await Db.existePermiso("Manejar grupos");
     _ajustesNotifier.value  = await Db.existePermiso("Ver ajustes");
+    _versionesNotifier.value  = permisoProgramador;
 
     if(PERMISSIONS_CHANGED){
       PERMISSIONS_CHANGED = false;
@@ -543,6 +545,12 @@ _streamControllerListTile = BehaviorSubject();
                                         valueListenable: _ajustesNotifier,
                                         builder: (context, value, snapshot) {
                                           return _myListTile(title: "Ajustes", icon: Icons.settings, selected: widget.ajustes, visible: value, onTap: (){_gotTo("/ajustes");},);
+                                        }
+                                      ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _versionesNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "Versiones", icon: Icons.settings, selected: widget.ajustes, visible: value, onTap: (){_gotTo("/versiones/agregar");},);
                                         }
                                       ),
                                     ],),

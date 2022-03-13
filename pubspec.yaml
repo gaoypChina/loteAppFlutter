@@ -77,6 +77,7 @@ dependencies:
   firebase_core_web: ^1.5.4
   phone_form_field: ^4.3.1
   badges: ^2.0.2
+  device_information: ^0.0.4
 #  phone_form_field:
 #    git:
 #      url: https://github.com/jeancc29/phone_form_field

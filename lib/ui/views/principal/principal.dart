@@ -4467,6 +4467,18 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
             Principal.showVersion(context: context);
             },
           ),
+          Visibility(
+            visible: _tienePermisoProgramador,
+            child: ListTile(
+              title: Text('Versiones'),
+              leading: Icon(Icons.format_list_numbered_outlined),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/versiones");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
           ListTile(
             title: Text('Cerrar sesion'),
             dense: true,

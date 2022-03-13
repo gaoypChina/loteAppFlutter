@@ -54,6 +54,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("A message just showed up: ${message.messageId}");
 }
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   HttpOverrides.global = new MyHttpOverrides();
@@ -127,6 +128,7 @@ class MyApp extends StatelessWidget {
     //   ],
     //   child: 
       return MaterialApp(
+        navigatorKey: navigatorKey,
         localizationsDelegates: [
           ...GlobalMaterialLocalizations.delegates,
           PhoneFieldLocalization.delegate
