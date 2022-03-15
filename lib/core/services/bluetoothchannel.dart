@@ -177,6 +177,8 @@ class BluetoothChannel{
         generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
       }
 
+      generatedCuadreToWeb.add("\n\n\n\n");
+
 
       channel.sink.add(generatedCuadreToWeb);
       channel.sink.close();
@@ -1257,7 +1259,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
           if(banca.piepagina4.isNotEmpty)
             map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
         }
-        if(banca.imprimirCodigoQr == 1)
+        if(banca.imprimirCodigoQr == 1  && !kIsWeb)
           map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
         
         map[map.length] = _getMapNuevo(text:"\n\n\n");
@@ -1490,7 +1492,7 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
         if(banca.piepagina4 != null){
           if(banca.piepagina4.isNotEmpty)
             map[map.length] = _getMapNuevo(text:"${banca.piepagina4}\n", cmd: CMD.p);
-        }if(banca.imprimirCodigoQr == 1){
+        }if(banca.imprimirCodigoQr == 1 && !kIsWeb){
           map[map.length] = _getMapNuevo(text:"${sale.ticket.codigoBarra}\n", cmd: CMD.h1);
           map[map.length] = _getMapNuevo(text: Utils.toBase64(sale.ticket.codigoBarra), cmd: CMD.qr);
         }else
