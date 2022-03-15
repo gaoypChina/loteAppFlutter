@@ -12,6 +12,7 @@ import 'package:loterias/core/models/loteriasventas.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/dashboardservice.dart';
 import 'package:loterias/ui/views/dashboard/grafica.dart';
+import 'package:loterias/ui/widgets/mycirclebutton.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -254,27 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             return Row(
               children: [
-                GestureDetector(
-                  onTap: () async {
-                    _back(){
-                      Navigator.pop(context);
-                    }
-                    _dateDialog();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, bottom: 14),
-                    child: Container(
-                      height: 50,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                      decoration: BoxDecoration(
-                        // border: Border.all(color: Colors.blue[900]),
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(15)
-                      ),
-                      child: Center(child: Text(MyDate.dateRangeToNameOrString(_date), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w700)),),
-                    ),
-                  ),
-                ),
+                MyCircleButton(child: MyDate.dateRangeToNameOrString(_date), onTap: _dateDialog),
                 Expanded(
                   child: MyFilterV2(
                     item: [
@@ -490,12 +471,12 @@ _showBottomSheetMoneda() async {
             
             // _monedaScreen(isSmallOrMedium),
               
-            MySliverButton(
-              title: "", 
-              iconWhenSmallScreen: Icons.date_range,
-              showOnlyOnSmall: true,
-              onTap: _dateDialog,
-            ),
+            // MySliverButton(
+            //   title: "", 
+            //   iconWhenSmallScreen: Icons.date_range,
+            //   showOnlyOnSmall: true,
+            //   onTap: _dateDialog,
+            // ),
             MySliverButton(
               showOnlyOnLarge: true,
               title: Container(

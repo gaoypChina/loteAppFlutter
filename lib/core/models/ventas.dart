@@ -14,9 +14,10 @@ class Venta {
   DateTime fechaCancelacion;
   double montoAPagar;
   double montoPagado;
+  String descripcion;
 
 
-  Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra, this.usuario});
+  Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra, this.usuario, this.descripcion});
 
   Venta.fromMap(Map snapshot) :
         id = BigInt.from(snapshot['id']) ?? BigInt.from(0),
@@ -30,7 +31,8 @@ class Venta {
         usuarioCancelacion = (snapshot['usuarioCancelacion'] != null) ? snapshot['usuarioCancelacion'] : null,
         fechaCancelacion = (snapshot['fechaCancelacion'] != null) ? DateTime.parse(snapshot['fechaCancelacion']) : null,
         montoAPagar = Utils.toDouble(snapshot['montoAPagar'].toString()) ?? 0,
-        montoPagado = Utils.toDouble(snapshot['montoPagado'].toString()) ?? 0
+        montoPagado = Utils.toDouble(snapshot['montoPagado'].toString()) ?? 0,
+        descripcion = (snapshot['descripcion'] != null) ? snapshot['descripcion'] : ''
         ;
 
   toJson() {

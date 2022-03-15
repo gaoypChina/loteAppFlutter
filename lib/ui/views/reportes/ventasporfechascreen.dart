@@ -20,6 +20,7 @@ import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
+import 'package:loterias/ui/widgets/myfilterv2.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
@@ -28,6 +29,8 @@ import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
+
+import '../../widgets/mycirclebutton.dart';
 
 class VentasPorFechaScreen extends StatefulWidget {
   const VentasPorFechaScreen({ Key key }) : super(key: key);
@@ -53,12 +56,16 @@ class _VentasPorFechaScreenState extends State<VentasPorFechaScreen> {
   List<MyFilterSubData2> _selectedFilter = [];
   List<MyFilterData2> listaFiltros = [];
   int _idGrupoDeEsteUsuario;
+  Grupo _grupo;
+  Banca _banca;
+  Moneda _moneda;
+  Future _futureData;
 
 
   _getData() async {
      try {
        _streamController.add(null);
-       var parsed = await ReporteService.ventasPorFecha(context: context, date: _date, idGrupos: _grupos.map((e) => e.id).toList(), idBancas: _bancas.map((e) => e.id).toList(), idMonedas: _monedas.map((e) => e.id).toList(),);
+       var parsed = await ReporteService.ventasPorFecha(context: context, date: _date, idGrupos: _grupo != null ? [_grupo.id] : [], idBancas: _banca != null ? [_banca.id] : [], idMonedas: _moneda != null ? [_moneda.id] : [],);
        listaData = parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
        _streamController.add(listaData);
      } on Exception catch (e) {
@@ -72,25 +79,16 @@ class _VentasPorFechaScreenState extends State<VentasPorFechaScreen> {
      var parsed = await ReporteService.ventasPorFecha(context: context, date: _date, retornarMonedas: true, retornarBancas: true, retornarGrupos: true, idGrupos: _idGrupoDeEsteUsuario != null ? [_idGrupoDeEsteUsuario] : []);
      listaData = parsed["data"].map<VentaPorFecha>((e) => VentaPorFecha.fromMap(e)).toList();
      listaBanca = parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList();
+     listaBanca.insert(0, Banca(id: 0, descripcion: 'Todas'));
      listaMoneda = parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList();
      listaGrupo = parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList();
-     if(listaMoneda.length > 0){
-      listaFiltros.add(MyFilterData2(child: "Moneda", data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
+     listaGrupo.insert(0, Grupo(id: 0, descripcion: "Todos"));
+     
+     _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null;
+    if(_idGrupoDeEsteUsuario != null){
+      if(listaGrupo.length > 0)
+        _grupo = listaGrupo.firstWhere((element) => element.id == _idGrupoDeEsteUsuario, orElse: () => null);
     }
-    if(listaBanca.length > 0){
-      listaFiltros.add(MyFilterData2(child: "Banca", isMultiple: true, data: listaBanca.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList()));
-    }
-    if(listaBanca.length > 0){
-      var filtroGrupo = MyFilterData2(child: "Grupo", isMultiple: true, fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList());
-      listaFiltros.add(filtroGrupo);
-      if(_idGrupoDeEsteUsuario != null){
-        setState(() {
-          _selectedFilter.add(filtroGrupo.data.firstWhere((element) => element.value.id == _idGrupoDeEsteUsuario, orElse: () => null));
-        });
-        _grupos = listaGrupo.where((element) => element.id == _idGrupoDeEsteUsuario).toList();
-      }
-    }
-
 
     _streamController.add(listaData);
     _streamControllerMoneda.add(listaMoneda);
@@ -105,7 +103,59 @@ class _VentasPorFechaScreenState extends State<VentasPorFechaScreen> {
     });
   }
 
+
+  _bancaChanged(data){
+    setState((){
+      _banca = data.id != 0 ? data : null;
+      _getData();
+    });
+  }
+
+  _grupoChanged(data){
+    setState((){
+      _grupo = data.id != 0 ? data : null;
+      _getData();
+    });
+  }
+
+   _monedaChanged(data){
+    setState((){
+      _moneda = data;
+      _getData();
+    });
+  }
+
   _myFilterWidget(bool isSmallOrMedium){
+    return MyFilterV2(
+      item: [
+        MyFilterItem(
+          color: Colors.blue[800],
+          hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
+          data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+          onChanged: (value){
+            _bancaChanged(value);
+          }
+        ),
+        MyFilterItem(
+          enabled: _idGrupoDeEsteUsuario == null,
+          color: Colors.blue[800],
+          hint: "${_grupo != null ? 'Grupo:  ' + _grupo.descripcion: 'Grupo...'}", 
+          data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+          onChanged: (value){
+            _grupoChanged(value);
+          }
+        ),
+        MyFilterItem(
+          color: Colors.green[700],
+          hint: "${_moneda != null ? 'Moneda:  ' + _moneda.descripcion: 'Moneda...'}", 
+          data: listaMoneda.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+          onChanged: (value){
+            _monedaChanged(value);
+          }
+        ),
+      ],
+    );
+    
     return MyFilter2(
             key: _myFilterKey,
             xlarge: 1.1,
@@ -278,17 +328,87 @@ class _VentasPorFechaScreenState extends State<VentasPorFechaScreen> {
     );
   }
 
+  dynamic _dateWidget(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
+    );
+
+
+    return Container(
+      width: 180,
+      child: Builder(
+        builder: (context) {
+          return MyDropdown(title: null, 
+            padding: EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+            hint: "${MyDate.dateRangeToNameOrString(_date)}",
+            onTap: (){
+              showMyOverlayEntry(
+                context: context,
+                right: 20,
+                builder: (context, overlay){
+                  _cancel(){
+                    overlay.remove();
+                  }
+                  return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                }
+              );
+            },
+          );
+        }
+      ),
+    );
+              
+
+  }
+
 
   _subtitle(bool isSmallOrMedium){
     return
     isSmallOrMedium
     ?
-    MyCollapseChanged(
-      child: 
-      
-          _myFilterWidget(isSmallOrMedium)
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: MyCollapseChanged(
+        child: FutureBuilder<void>(
+              future: _futureData,
+              builder: (context, snapshot) {
+                if(snapshot.connectionState != ConnectionState.done)
+                  return SizedBox.shrink();
+
+                return Row(
+                  children: [
+                  _dateWidget(isSmallOrMedium),
+                    Expanded(child: _myFilterWidget(isSmallOrMedium))
+                  ],
+                );
+              }
+            )
         
-      ,
+            // _myFilterWidget(isSmallOrMedium)
+          
+        ,
+      ),
     )
     :
     "Filtre y agrupe todas las ventas por fecha.";
@@ -406,7 +526,7 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
     _streamControllerMoneda = BehaviorSubject();
     _streamControllerBanca = BehaviorSubject();
     initializeDateFormatting();
-    _init();
+    _futureData = _init();
     super.initState();
   }
 
@@ -465,121 +585,7 @@ _showDialogBancas(AsyncSnapshot snapshot) async {
               }
             ),
             
-            MySliverButton(
-              title: "title", 
-              iconWhenSmallScreen: Icons.filter_alt_rounded,
-              showOnlyOnSmall: true,
-              onTap: () async {
-                if(isSmallOrMedium){
-                  _myFilterKey.currentState.openFilter(context);
-                  // List data = await showDialog(
-                  //   context: context, 
-                  //   builder: (context){
-                  //     return StatefulBuilder(
-                  //       builder: (context, setState) {
-                  //         _back(){
-                  //           Navigator.pop(context);
-                  //         }
-                  //         _guardarFiltro(){
-                  //           Navigator.pop(context, [_bancas, _moneda]);
-                  //         }
-
-                  //         showDialogBancas(AsyncSnapshot snapshot) async {
-                  //           var bancasRetornadas = await showDialog(
-                  //             context: context, 
-                  //             builder: (context){
-                  //               return MyMultiselect(
-                  //                 title: "Agregar bancas",
-                  //                 items: snapshot.data != null ? snapshot.data.map<MyValue>((e) => MyValue(value: e, child: "${e.descripcion}")).toList() : [],
-                  //                 initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map<MyValue>((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
-                  //               );
-                  //             }
-                  //           );
-
-                  //           setState((){
-                  //             _bancas = bancasRetornadas != null ? List.from(bancasRetornadas) : [];
-                  //           });
-                  //         }
-
-                  //         bancasWidget(bool isSmallOrMedium){
-                  //           return Padding(
-                  //           padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0.0 : 8.0, vertical: isSmallOrMedium ? 10 : 0),
-                  //             child: StreamBuilder<List<Banca>>(
-                  //               stream: _streamControllerBanca.stream,
-                  //               builder: (context, snapshot) {
-                  //                 return MyDropdown(
-                  //                   title: "Bancas", 
-                  //                   xlarge: 5.8,
-                  //                   large: 5.8,
-                  //                   hint: "${_bancas.length > 0 ? _bancas.map((e) => e.descripcion).join(", ") : "Selec. bancas "}",
-                  //                   onTap: (){
-                  //                     showDialogBancas(snapshot);
-                  //                   },
-                  //                 );
-                  //               }
-                  //             ),
-                  //           );
-                  //         }
-
-                  //         monedasWidget(bool isSmallOrMedium){
-                  //           return Padding(
-                  //             padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 0.0 : 8.0, vertical: isSmallOrMedium ? 10 : 0),
-                  //             child: StreamBuilder<List<Moneda>>(
-                  //                 stream: _streamControllerMoneda.stream,
-                  //                 builder: (context, snapshot) {
-                  //                   if(snapshot.data == null)
-                  //                     return SizedBox.shrink();
-
-                  //                   return MyDropdownButton(
-                  //                     title: "Moneda",
-                  //                     hint: "Selec. moneda",
-                  //                     xlarge: 5.8,
-                  //                     large: 5.8,
-                  //                     value: _moneda,
-                  //                     items: snapshot.data.map((e) => [e, "${e.descripcion}"]).toList(),
-                  //                     onChanged: (data){
-                  //                       setState((){
-                  //                         _moneda = data;
-                  //                         if(data != null){
-                  //                           _bancas = [];
-                  //                           _streamControllerBanca.add(listaBanca.where((element) => element.idMoneda == data.id).toList());
-                  //                         }
-                  //                       });
-                  //                     }
-                  //                   );
-                  //                 }
-                  //               ),
-                  //           );
-                                        
-                  //         }
-
-
-                  //         return MyAlertDialog(
-                  //           title: "Filtrar", 
-                  //           content: Wrap(
-                  //             children: [
-                  //               monedasWidget(isSmallOrMedium),
-                  //               bancasWidget(isSmallOrMedium),
-                  //             ],
-                  //           ), 
-                  //           okFunction: _guardarFiltro
-                  //         );
-                  //       }
-                  //     );
-                  //   }
-                  // );                  
-                  // if(data == null)
-                  //   return;
-
-                  // setState(() {
-                  //   _bancas = data[0];
-                  //   _moneda = data[1];
-                  //   _getData();
-                  // });
-                }
-              }
-            ),
-            
+           
             // MySliverButton(
             //   showOnlyOnLarge: true,
             //   title: Padding(

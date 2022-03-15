@@ -328,7 +328,7 @@ class MyDate {
     return dateString != null ? dateString : '';
   }
 
-  static String datetimeToHour(DateTime fechaInicial, [mostrarAno = false]){
+  static String datetimeToHour(DateTime fechaInicial, [mostrarAno = false, mostrarSegundos = false]){
     String fechaString = "fecha";
     var now = DateTime.now();
     if(fechaInicial == null)
@@ -339,13 +339,13 @@ class MyDate {
       String ano = mostrarAno ? " ${fechaInicial.year}" : '';
 
       if(dia.isEmpty)
-        fechaString = "${DateFormat('hh:mm a').format(fechaInicial)}$ano" ;
+        fechaString = "${mostrarSegundos ? DateFormat('hh:mm:ss a').format(fechaInicial) : DateFormat('hh:mm a').format(fechaInicial)}$ano" ;
       else
-        fechaString = "$dia ${DateFormat.LLL(MyApp.myLocale.languageCode).format(fechaInicial)} ${DateFormat('hh:mm a').format(fechaInicial)} $ano" ;
+        fechaString = "$dia ${DateFormat.LLL(MyApp.myLocale.languageCode).format(fechaInicial)} ${ mostrarSegundos ? DateFormat('hh:mm:ss a').format(fechaInicial) : DateFormat('hh:mm a').format(fechaInicial)} $ano" ;
     }
     else if((fechaInicial.month != now.month) && (fechaInicial.year == now.year)){
       String ano = mostrarAno ? " ${fechaInicial.year}" : '';
-      fechaString = "${DateFormat.LLL(MyApp.myLocale.languageCode).format(fechaInicial)} ${DateFormat('hh:mm a').format(fechaInicial)} $ano" ;
+      fechaString = "${DateFormat.LLL(MyApp.myLocale.languageCode).format(fechaInicial)} ${mostrarSegundos ? DateFormat('hh:mm:ss a').format(fechaInicial) : DateFormat('hh:mm a').format(fechaInicial)} $ano" ;
     }
     else if((fechaInicial.month != now.month) && (fechaInicial.year != now.year)){
       fechaString = "${DateFormat.yMd(MyApp.myLocale.languageCode).format(fechaInicial)}" ;

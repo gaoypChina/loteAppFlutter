@@ -5169,7 +5169,7 @@ void _getTime() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : 15, color: _textColor)),
+           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : 17, color: _textColor)),
             _getLoteriaRemainingTime(loteria)
            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
           ],
@@ -5424,7 +5424,7 @@ void _getTime() {
     }
 
     if(_txtJugada.text.length == 0 && caracter == '-' && !_isLargeAndWeb()){
-      guardar();
+      // guardar();
       return;
     }
 

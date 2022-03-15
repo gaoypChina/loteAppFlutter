@@ -75,7 +75,7 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
 
   _init() async {
     try{
-      setState(() => _cargando = true);
+      // setState(() => _cargando = true);
       var datos = await TransaccionService.grupo(scaffoldKey: _scaffoldKey);
       // _initListaTipoTransaccion();
       listaTipo = datos["tipos"].map<Tipo>((t) => Tipo.fromMap(t)).toList();
@@ -85,9 +85,9 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
       _streamControllerBanca.add(listaBanca);
       _streamControllerEntidad.add(listaEntidad);
       print("datos: ${datos.toString()}");
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
     }catch(e){
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
     }
   }
 
@@ -923,7 +923,7 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
         sliverAppBar: MySliverAppBar(
           title: "Agregar transacciones",
           actions: [
-            MySliverButton(title: "Guardar", onTap: guardar)
+            MySliverButton(title: "Guardar", onTap: guardar, cargando: _cargando,)
           ],
         ), 
         sliver: FutureBuilder<void>(
