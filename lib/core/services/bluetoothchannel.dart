@@ -127,7 +127,7 @@ class BluetoothChannel{
      
   }
 
-  static printTicketV2({@required Sale sale, @required List<Salesdetails> salesdetails, @required String type}) async {
+  static Future<void> printTicketV2({@required Sale sale, @required List<Salesdetails> salesdetails, @required String type}) async {
     var c = await DB.create();
     var printer = await c.getValue("printer");
     if(_connectado){

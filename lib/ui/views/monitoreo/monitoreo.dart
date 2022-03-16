@@ -940,9 +940,10 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   
   _myFilterWidget(bool isSmallOrMedium){
     return MyFilterV2(
+        padding: !isSmallOrMedium ? EdgeInsets.symmetric(horizontal: 15, vertical: 10) : null,
                     item: [
                       MyFilterItem(
-                        color: Colors.blue[800],
+                        // color: Colors.blue[800],
                         hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
                         data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -950,7 +951,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.green[700],
+                        // color: Colors.green[700],
                         hint: "${_loteria != null ? 'Loteria:  ' + _loteria.descripcion: 'Loteria...'}", 
                         data: listaLoteria.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -958,7 +959,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.orange[700],
+                        // color: Colors.orange[700],
                         hint: "${_tipoTicket != null ? 'Estado:  ' + _tipoTicket[1] : 'Estados...'}", 
                         data: listaTipoTicket.map((e) => MyFilterSubItem(child: e[1], value: e)).toList(),
                         onChanged: (value){
@@ -1138,40 +1139,54 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          // Padding(
-          //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-          //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-          // ),
-          Padding(
-            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-          ),
-          MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
-        ],
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+              // height: ,
+        child: Row(
+          // alignment: WrapAlignment.start,
+          // crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            // _mydropdown(),
+            // MyDropdown(
+            //   large: 5.8,
+            //   title: "Filtrar",
+            //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+            //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+            //   onTap: (value){
+            //     _opcionChanged(value);
+            //   },
+            // ),
+            // MyDropdown(
+            //   large: 5.8,
+            //   title: "Grupos",
+            //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+            //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+            //   onTap: (value){
+            //     _opcionChanged(value);
+            //   },
+            // ),
+          //  _myFilterWidget(isSmallOrMedium),
+            // Padding(
+            //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+            //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+            // ),
+            Expanded(
+              child: Container(
+                // width: MediaQuery.of(context).size.width,
+                height: 50,
+                child: _myFilterWidget(isSmallOrMedium),
+              ),
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width / 3,
+              child: Padding(
+                padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+              ),
+            ),
+            MyDivider(padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
+          ],
+        ),
       ),
     );
   }
@@ -1363,6 +1378,11 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                                       ),
                     ),
                     _myWebFilterScreen(isSmallOrMedium),
+                    // Container(
+                    //   width: MediaQuery.of(context).size.width,
+                    //   height: 50,
+                    //   child: _myFilterWidget(isSmallOrMedium),
+                    // ),
                     MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25), showOnlyOnLarge: true,),
                     snapshot.hasData && snapshot.data.length == 0
                     ?

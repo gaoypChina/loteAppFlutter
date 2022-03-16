@@ -469,7 +469,7 @@ _showBottomSheetMoneda() async {
           expandedHeight: isSmallOrMedium ? 105 : 0,
           actions: [
             
-            // _monedaScreen(isSmallOrMedium),
+            _monedaScreen(isSmallOrMedium),
               
             // MySliverButton(
             //   title: "", 

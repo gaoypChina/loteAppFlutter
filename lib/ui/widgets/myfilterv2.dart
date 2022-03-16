@@ -22,14 +22,21 @@ class MyFilterItem {
 
 class MyFilterV2 extends StatefulWidget {
   final List<MyFilterItem> item;
+  final EdgeInsets padding;
 
-  const MyFilterV2({ Key key, this.item }) : super(key: key);
+  const MyFilterV2({ Key key, this.item, this.padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 8)}) : super(key: key);
 
   @override
   State<MyFilterV2> createState() => _MyFilterV2State();
 }
 
 class _MyFilterV2State extends State<MyFilterV2> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -46,9 +53,9 @@ class _MyFilterV2State extends State<MyFilterV2> {
             leading: SizedBox.shrink(),
             // textColor: Colors.black,
             // color: Colors.grey[200],
-            // textColor: widget.item[index].color != null ? widget.item[index].color : Colors.black,
-            // color: widget.item[index].color != null ? widget.item[index].color.withOpacity(0.1) : Colors.grey[300],
-            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+            textColor: widget.item[index].color != null ? widget.item[index].color : null,
+            color: widget.item[index].color != null ? widget.item[index].color.withOpacity(0.2) : null,
+            padding: widget.padding != null ? widget.padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
             hint: widget.item[index].hint,
             resized: false,
             elements: widget.item[index].data.map((e) => [e.value, e.child is Widget ? e.child : Text("${e.child}")]).toList(),
