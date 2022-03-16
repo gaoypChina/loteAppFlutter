@@ -58,7 +58,8 @@ dependencies:
   # moor_flutter: ^4.0.0
   drift: ^1.0.1
   sqlite3_flutter_libs: ^0.5.0
-  socket_io_client: ^1.0.1
+  # socket_io_client: ^1.0.1
+  socket_io_client: ^1.0.2
   file_picker: ^4.3.3
   syncfusion_flutter_datepicker: ^19.1.66-beta
   device_info_plus: ^2.0.1

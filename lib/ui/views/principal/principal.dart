@@ -1403,7 +1403,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     });
     socket.on('connect_error', (data) {
       _connectionNotify.value = false;
-      print(data);
+      print("PrincipalView initSocket connect_error: $data");
     });
     socket.on('error', (data) {
       _connectionNotify.value = false;
