@@ -39,6 +39,8 @@ abstract class CrossSembas {
   Future<void> removePagoPendiente();
   Future<void> addAjuste(Ajuste ajuste);
   Future<Ajuste> getAjuste();
+  Future<bool> addScreenDesign(bool isNewScreen);
+  Future<bool> getScreenDesign();
 
   factory CrossSembas() => getSembas();
   

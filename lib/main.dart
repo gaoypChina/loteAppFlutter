@@ -42,6 +42,7 @@ class MyHttpOverrides extends HttpOverrides {
 bool DRAWER_IS_OPEN = false;
 bool PERMISSIONS_CHANGED = false;
 bool SHOW_PAYMENT_APPBAR = false;
+bool IS_NEW_SCREEN = true;
 
 // void main() => runApp(Prueba2());
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();

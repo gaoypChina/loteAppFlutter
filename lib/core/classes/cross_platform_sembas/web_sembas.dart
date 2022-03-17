@@ -260,6 +260,20 @@ static final SembasWeb _singleton = SembasWeb._internal();
       return null;
     }
   }
+
+  @override
+  Future<bool> addScreenDesign(bool isNewScreen) {
+    // TODO: implement addScreenDesign
+    print("Web_sembas.dart addScreenDesign not implemented");
+    // throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> getScreenDesign() {
+    // TODO: implement getScreenDesign
+    print("Web_sembas.dart getScreenDesign not implemented");
+    // throw UnimplementedError();
+  }
   
 }
 

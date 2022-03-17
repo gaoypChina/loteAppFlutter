@@ -267,6 +267,34 @@ static final MobileSembas _singleton = MobileSembas._internal();
     }
   }
 
+  @override
+  Future<bool> addScreenDesign(bool isNewScreen) async {
+    // TODO: implement addScreenDesign
+     try {
+      await this.delete("isNewScreen");
+      await this.add("isNewScreen", isNewScreen);
+      print("Mobile_sembas addScreenDesign: $isNewScreen");
+    } on Exception catch (e) {
+      print("Mobile_sembas Exception addScreenDesign: error ${e.toString()}");
+      // TODO
+    }
+  }
+
+  @override
+  Future<bool> getScreenDesign() async {
+     try {
+      bool dataMap = await _store.record("isNewScreen").get(_db) as bool;
+      if(dataMap == null)
+        return true;
+
+      print("Mobile_sembas getScreenDesign: $dataMap");
+      return dataMap;
+    } catch (e) {
+      print("Mobile_sembas error getScreenDesign: ${e.toString()}");
+      return true;
+    }
+  }
+
   
 }
 
