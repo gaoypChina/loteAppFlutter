@@ -25,6 +25,7 @@ import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
@@ -913,7 +914,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                   builder: (context) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 12.0),
-                      child: MyDropdown(title: null, 
+                      child: MyDropdown(
+                        title: null, 
                         leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
                         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
                         hint: "${MyDate.dateRangeToNameOrString(_date)}",
@@ -1139,54 +1141,58 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-              // height: ,
-        child: Row(
-          // alignment: WrapAlignment.start,
-          // crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            // _mydropdown(),
-            // MyDropdown(
-            //   large: 5.8,
-            //   title: "Filtrar",
-            //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-            //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-            //   onTap: (value){
-            //     _opcionChanged(value);
-            //   },
-            // ),
-            // MyDropdown(
-            //   large: 5.8,
-            //   title: "Grupos",
-            //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-            //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-            //   onTap: (value){
-            //     _opcionChanged(value);
-            //   },
-            // ),
-          //  _myFilterWidget(isSmallOrMedium),
-            // Padding(
-            //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-            // ),
-            Expanded(
-              child: Container(
-                // width: MediaQuery.of(context).size.width,
-                height: 50,
-                child: _myFilterWidget(isSmallOrMedium),
-              ),
+      child: Column(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+                  // height: ,
+            child: Row(
+              // alignment: WrapAlignment.start,
+              // crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                // _mydropdown(),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Filtrar",
+                //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+                //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Grupos",
+                //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+                //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+              //  _myFilterWidget(isSmallOrMedium),
+                // Padding(
+                //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                // ),
+                Expanded(
+                  child: Container(
+                    // width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: _myFilterWidget(isSmallOrMedium),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                    child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                  ),
+                ),
+              ],
             ),
-            Container(
-              width: MediaQuery.of(context).size.width / 3,
-              child: Padding(
-                padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-                child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-              ),
-            ),
-            MyDivider(padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
-          ],
-        ),
+          ),
+          MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
+        ],
       ),
     );
   }
@@ -1383,7 +1389,20 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                     //   height: 50,
                     //   child: _myFilterWidget(isSmallOrMedium),
                     // ),
-                    MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25), showOnlyOnLarge: true,),
+                    Visibility(
+                      visible: !isSmallOrMedium,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceEvenly,
+                          children: [
+                            MyDescripcon(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", color: Colors.black, fontSize: 20,),
+                            MyDescripcon(title: "Ventas: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.total).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold,),
+                            MyDescripcon(title: "Premios: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.premios).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.pink, fontWeight: FontWeight.bold)
+                          ],
+                        ),
+                      ),
+                    ),
                     snapshot.hasData && snapshot.data.length == 0
                     ?
                     Center(child:  MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),)

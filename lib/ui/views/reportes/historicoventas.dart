@@ -1714,10 +1714,10 @@ _getListaFiltro(){
 
   _myFilterWidget(bool isSmallOrMedium){
     return MyFilterV2(
+                  padding: !isSmallOrMedium ? EdgeInsets.symmetric(horizontal: 15, vertical: 10) : null,
                     item: [
                       MyFilterItem(
                         enabled: _idGrupoDeEsteUsuario == null,
-                        color: Colors.blue[800],
                         hint: "${_grupo != null ? 'Grupo:  ' + _grupo.descripcion: 'Grupo...'}", 
                         data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -1725,7 +1725,6 @@ _getListaFiltro(){
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.green[700],
                         hint: "${_moneda != null ? 'Moneda:  ' + _moneda.descripcion: 'Moneda...'}", 
                         data: listaMoneda.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -1733,7 +1732,6 @@ _getListaFiltro(){
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.orange[700],
                         hint: "${_selectedOption != null ? 'Opcion:  ' + _selectedOption : 'Opciones...'}", 
                         data: listaOpciones.map((e) => MyFilterSubItem(child: e, value: e)).toList(),
                         onChanged: (value){
@@ -1867,33 +1865,47 @@ _getListaFiltro(){
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
         children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          Padding(
-            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            child: Row(
+              children: [
+                // _mydropdown(),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Filtrar",
+                //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+                //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Grupos",
+                //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+                //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+               Expanded(
+                  child: Container(
+                    // width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: _myFilterWidget(isSmallOrMedium),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                    child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                  ),
+                ),
+              ],
+            ),
           ),
           MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0),),
         ],

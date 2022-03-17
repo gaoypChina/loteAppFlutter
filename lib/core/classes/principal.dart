@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_firebase/cross_platform_firebase.dart';
 import 'package:loterias/core/classes/database.dart';
@@ -1278,6 +1279,9 @@ class Principal{
 
  static version({Map<String, dynamic> version, BuildContext context}) async {
   //  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  if(kIsWeb)
+    return;
+    
    PackageInfo packageInfo = await CrossPlatformPackageInfo().fromPlatform();
    print("appName: ${packageInfo.appName} \npackageName: ${packageInfo.packageName} \nversion: ${packageInfo.version} \nbuildNumber: ${packageInfo.buildNumber}");
   if(version["urgente"] != 1)

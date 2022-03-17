@@ -231,33 +231,47 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
         children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          Padding(
-            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            child: Row(
+              children: [
+                // _mydropdown(),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Filtrar",
+                //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+                //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Grupos",
+                //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+                //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+               Expanded(
+                  child: Container(
+                    // width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: _myFilterWidget(isSmallOrMedium),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                    child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                  ),
+                ),
+              ],
+            ),
           ),
           MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
         ],
@@ -610,9 +624,9 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
 
  _myFilterWidget(bool isSmallOrMedium){
    return MyFilterV2(
+        padding: !isSmallOrMedium ? EdgeInsets.symmetric(horizontal: 15, vertical: 10) : null,
                     item: [
                       MyFilterItem(
-                        color: Colors.blue[800],
                         hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
                         data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -620,7 +634,6 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.green[700],
                         hint: "${_usuario != null ? 'Usuario:  ' + _usuario.usuario: 'Usuario...'}", 
                         data: listaUsuario.map((e) => MyFilterSubItem(child: e.usuario, value: e)).toList(),
                         onChanged: (value){
@@ -628,7 +641,6 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                         }
                       ),
                       MyFilterItem(
-                        color: Colors.orange[700],
                         hint: "${_tipo != null ? 'Tipo:  ' + _tipo.descripcion : 'Tipo...'}", 
                         data: listaTipo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
