@@ -422,10 +422,10 @@ class  Utils {
   var jws = builder.build();
 
   // output the compact serialization
-  print('jws compact serialization: ${jws.toCompactSerialization()}');
+  // print('jws compact serialization: ${jws.toCompactSerialization()}');
 
   // output the json serialization
-  print('jws json serialization: ${jws.toJson()}');
+  // print('jws json serialization: ${jws.toJson()}');
   return jws.toCompactSerialization();
   }
 
@@ -466,10 +466,10 @@ class  Utils {
   var jws = builder.build();
 
   // output the compact serialization
-  print('jws compact serialization: ${jws.toCompactSerialization()}');
+  // print('jws compact serialization: ${jws.toCompactSerialization()}');
 
   // output the json serialization
-  print('jws json serialization: ${jws.toJson()}');
+  // print('jws json serialization: ${jws.toJson()}');
   return jws.toCompactSerialization();
   }
 
@@ -520,10 +520,10 @@ class  Utils {
   var jws = builder.build();
 
   // output the compact serialization
-  print('jws compact serialization: ${jws.toCompactSerialization()}');
+  // print('jws compact serialization: ${jws.toCompactSerialization()}');
 
   // output the json serialization
-  print('jws json serialization: ${jws.toJson()}');
+  // print('jws json serialization: ${jws.toJson()}');
   return jws.toCompactSerialization();
   }
 

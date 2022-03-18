@@ -12,6 +12,7 @@ class TransaccionService{
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["servidor"] = await Db.servidor();
+    map["idGrupo"] = await Db.idGrupo();
     var jwt = await Utils.createJwt(map);
     var response = await http.get(Uri.parse(Utils.URL + "/api/transacciones/v2?token=$jwt"), headers: Utils.header);
     int statusCode = response.statusCode;
@@ -50,6 +51,7 @@ class TransaccionService{
     map["idTipo"] = idTipo != null ? idTipo : 0;
     map["idUsuario"] = idUsuario != null ? idUsuario : 0;
     // mapDatos["datos"] = map;
+    map["idGrupo"] = await Db.idGrupo();
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;

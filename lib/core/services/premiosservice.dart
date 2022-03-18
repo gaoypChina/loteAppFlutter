@@ -133,6 +133,7 @@ class PremiosService{
 
     map["idLoteria"] = loteria.id;
     map["descripcionLoteria"] = loteria.descripcion;
+    map["abreviaturaLoteria"] = loteria.abreviatura;
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
     map["layout"] = "";

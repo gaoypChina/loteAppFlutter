@@ -25,11 +25,13 @@ import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
+import 'package:loterias/ui/widgets/myfilterv2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
@@ -38,6 +40,8 @@ import 'package:loterias/ui/widgets/mytable.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
+
+import '../../widgets/mycirclebutton.dart';
 
 class MonitoreoScreen extends StatefulWidget {
   @override
@@ -62,7 +66,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   int _indexBanca = 0;
   List<Venta> _listaVenta;
   List<Venta> _tmpListaVenta;
-  List<List<dynamic>> listaTipoTicket = [[-1, "Todos los tickets"], [1, "Pendientes"], [2, "Ganadores"], [3, "Perdedores"], [0, "Cancelados"]];
+  List<List<dynamic>> listaTipoTicket = [[-1, "Todos"], [1, "Pendientes"], [2, "Ganadores"], [3, "Perdedores"], [0, "Cancelados"]];
   List<dynamic> _tipoTicket;
   List<MyFilterData2> listaFiltro = [];
   List<MyFilterSubData2> _filtros = [];
@@ -70,6 +74,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   Grupo _grupo;
   Loteria _loteria;
   int _idBancaDeEsteUsuario;
+  Future _futureData;
+  int idGrupo;
 
   _getDefaultDateRange(){
     return DateTimeRange(
@@ -85,7 +91,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   _streamControllerMonitoreo = BehaviorSubject();
   _streamControllerBanca = BehaviorSubject();
   _tipoTicket = listaTipoTicket[0];
-    _init();
+    _futureData = _init();
     // listaBancaFuture = _futureBancas();
     super.initState();
   }
@@ -122,19 +128,25 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
    _tienePermisoCancelarCualquierMomento = await Db.existePermiso("Cancelar tickets en cualquier momento");
   }
 
-  _init() async {
+  Future<void> _init() async {
    try{
     //  setState(() => _cargando = true);
     _date = MyDate.getTodayDateRange();
     await _confirmarTienePermiso();
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
+    idGrupo = await Db.idGrupo();
     _idBancaDeEsteUsuario = await Db.idBanca();
-    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _idBancaDeEsteUsuario, retornarBancas: true, idGrupo: await Db.idGrupo());
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _idBancaDeEsteUsuario, retornarBancas: true, idGrupo: idGrupo);
     print("MonitoreoScreen _init parsed: ${parsed["bancas"]}");
+    
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     listaBanca = parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList();
+    listaBanca.insert(0, Banca(id: 0, descripcion: "Todas"));
     listaLoteria = parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList();
+    listaLoteria.insert(0, Loteria(id: 0, descripcion: 'Todas'));
+    _loteria = listaLoteria[0];
+    
     _seleccionarBancaPertenecienteAUsuario();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
@@ -173,7 +185,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
     int idBanca = (_tienePermisoJugarComoCualquierBanca && listaBanca != null) ? _banca != null ? _banca.id : await Db.idBanca() : await Db.idBanca();
     print("MonitoreoScreen _getMonitoreo idBanca: $idBanca, _tienePermisoJugarComoCualquierBanca: $_tienePermisoJugarComoCualquierBanca");
-    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: idBanca, idLoteria: _loteria != null ? _loteria.id : null);
+    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _banca != null ? _banca.id != 0 ? _banca.id : null : null, idLoteria: _loteria != null ? _loteria.id != 0 ? _loteria.id : null : null, idGrupo: idGrupo);
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
@@ -185,14 +197,28 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   }
 
   _seleccionarBancaPertenecienteAUsuario() async {
+  // var bancaMap = await Db.getBanca();
+  // Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
+  // if(banca != null && listaBanca != null){
+  //   int idx = listaBanca.indexWhere((b) => b.id == banca.id);
+  //   // print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
+  //   _indexBanca = (idx != -1) ? idx : 0;
+  // }else{
+  //   setState(() =>_indexBanca = 0);
+  // }
+
   var bancaMap = await Db.getBanca();
   Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
   if(banca != null && listaBanca != null){
-    int idx = listaBanca.indexWhere((b) => b.id == banca.id);
-    // print('_seleccionarBancaPertenecienteAUsuario idx: $idx : ${listaBanca.length}');
-    _indexBanca = (idx != -1) ? idx : 0;
+    banca = listaBanca.firstWhere((b) => b.id == banca.id, orElse: () => null);
+    if(banca == null && _tienePermisoJugarComoCualquierBanca)
+      banca = listaBanca.firstWhere((b) => b.id == 0, orElse: () => null);
+
+    setState(() => _banca = banca);
   }else{
-    setState(() =>_indexBanca = 0);
+    if(_tienePermisoJugarComoCualquierBanca)
+      banca = listaBanca.firstWhere((b) => b.id == 0, orElse: () => null);
+    setState(() => _banca = banca);
   }
 
   // print('seleccionarBancaPerteneciente: $_indexBanca : ${banca.descripcion} : ${listaBanca.length}');
@@ -711,10 +737,24 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
         },
       );
   }
+
+  _bancaChanged(data){
+    setState((){
+        _banca = data;
+        _getMonitoreo();
+      });
+  }
  
-  _bancaChanged(index){
+  _bancaChangedViejo(index){
     setState((){
         _indexBanca = index;
+        _getMonitoreo();
+      });
+  }
+
+  _loteriaChanged(data){
+    setState((){
+        _loteria = data;
         _getMonitoreo();
       });
   }
@@ -735,7 +775,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
             }
             bancaChanged(index){
               setState(() => _indexBanca = index);
-              _bancaChanged(index);
+              _bancaChangedViejo(index);
               _back();
             }
         return Container(
@@ -841,8 +881,95 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     //   });
   }
 
+  dynamic _dateWidget(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
+    );
+
+  
+
+    return Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: MyDropdown(
+                        title: null, 
+                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                        onTap: (){
+                          showMyOverlayEntry(
+                            context: context,
+                            right: 20,
+                            builder: (context, overlay){
+                              _cancel(){
+                                overlay.remove();
+                              }
+                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                            }
+                          );
+                        },
+                      ),
+                    );
+                  }
+                ),
+              );
+              
+  }
+
   
   _myFilterWidget(bool isSmallOrMedium){
+    return MyFilterV2(
+        padding: !isSmallOrMedium ? EdgeInsets.symmetric(horizontal: 15, vertical: 10) : null,
+                    item: [
+                      MyFilterItem(
+                        // color: Colors.blue[800],
+                        hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
+                        data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _bancaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        // color: Colors.green[700],
+                        hint: "${_loteria != null ? 'Loteria:  ' + _loteria.descripcion: 'Loteria...'}", 
+                        data: listaLoteria.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _loteriaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        // color: Colors.orange[700],
+                        hint: "${_tipoTicket != null ? 'Estado:  ' + _tipoTicket[1] : 'Estados...'}", 
+                        data: listaTipoTicket.map((e) => MyFilterSubItem(child: e[1], value: e)).toList(),
+                        onChanged: (value){
+                          _tipoTicketChanged(value);
+                        }
+                      ),
+                    ],
+                  );
     return MyFilter2(
             key: _myFilterKey,
             xlarge: 1.65,
@@ -1014,37 +1141,55 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
         children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          // Padding(
-          //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-          //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-          // ),
-          Padding(
-            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          Container(
+            width: MediaQuery.of(context).size.width,
+                  // height: ,
+            child: Row(
+              // alignment: WrapAlignment.start,
+              // crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                // _mydropdown(),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Filtrar",
+                //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+                //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Grupos",
+                //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+                //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+              //  _myFilterWidget(isSmallOrMedium),
+                // Padding(
+                //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                // ),
+                Expanded(
+                  child: Container(
+                    // width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: _myFilterWidget(isSmallOrMedium),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                    child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                  ),
+                ),
+              ],
+            ),
           ),
           MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
         ],
@@ -1058,14 +1203,28 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     return
     isSmallOrMedium
     ?
-    MyCollapseChanged(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: _myFilterWidget(isSmallOrMedium),
-      )
-      
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: MyCollapseChanged(
+        child: FutureBuilder<void>(
+          future: _futureData,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SizedBox.shrink();
+
+            return Row(
+              children: [
+              _dateWidget(isSmallOrMedium),
+                Expanded(child: _myFilterWidget(isSmallOrMedium))
+              ],
+            );
+          }
+        )
         
-      ,
+          
+        ,
+      ),
     )
     :
     "Visualiza informes detallados y personalizables sobre los tickets creados por cada banca";
@@ -1130,7 +1289,9 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
         style: TextStyle(color: Colors.grey),
         children: [
           // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-          TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
+          TextSpan(text: "${MyDate.datetimeToHour(e.created_at, false, true)}"),
+          TextSpan(text: "  •  ${e.usuario}  •  "),
+          TextSpan(text: "${e.descripcion}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
         ]
       ))
       :
@@ -1175,56 +1336,31 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
           actions: [
             // IconButton(icon: Icon(Icons.date_range, color: Utils.colorPrimary), onPressed: _showFiltrarScreen),
             // IconButton(icon: Icon(Icons.filter_alt, color: Utils.colorPrimary), onPressed: _showBottomSheetTicket),
-            MySliverButton(
-              title: "", 
-              iconWhenSmallScreen: Icons.date_range,
-              showOnlyOnSmall: true,
-              onTap: () {
-                // _showFiltrarScreen();
-                _showDateTimeRangeCalendar();
-              },
-            ),
-            MySliverButton(
-              title: "title", 
-              iconWhenSmallScreen: Icons.filter_alt_rounded,
-              showOnlyOnSmall: true,
-              onTap: () async {
-                if(isSmallOrMedium){
-                  _myFilterKey.currentState.openFilter(context);
-                }
-              }
-            ),
+            // MySliverButton(
+            //   title: "", 
+            //   iconWhenSmallScreen: Icons.date_range,
+            //   showOnlyOnSmall: true,
+            //   onTap: () {
+            //     // _showFiltrarScreen();
+            //     _showDateTimeRangeCalendar();
+            //   },
+            // ),
+            // MySliverButton(
+            //   title: "title", 
+            //   iconWhenSmallScreen: Icons.filter_alt_rounded,
+            //   showOnlyOnSmall: true,
+            //   onTap: () async {
+            //     if(isSmallOrMedium){
+            //       _myFilterKey.currentState.openFilter(context);
+            //     }
+            //   }
+            // ),
             MySliverButton(
               showOnlyOnLarge: true,
-              title: Container(
-                width: 180,
-                child: Builder(
-                  builder: (context) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: MyDropdown(title: null, 
-                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
-                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
-                        onTap: (){
-                          showMyOverlayEntry(
-                            context: context,
-                            right: 20,
-                            builder: (context, overlay){
-                              _cancel(){
-                                overlay.remove();
-                              }
-                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
-                            }
-                          );
-                        },
-                      ),
-                    );
-                  }
-                ),
-              ), 
+              title: _dateWidget(isSmallOrMedium),
               onTap: (){}
-              ),
+              )
+            
           ],
         ), 
         sliver: StreamBuilder<List<Venta>>(
@@ -1248,7 +1384,25 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                                       ),
                     ),
                     _myWebFilterScreen(isSmallOrMedium),
-                    MySubtitle(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", padding: EdgeInsets.only(bottom: 20, top: 25), showOnlyOnLarge: true,),
+                    // Container(
+                    //   width: MediaQuery.of(context).size.width,
+                    //   height: 50,
+                    //   child: _myFilterWidget(isSmallOrMedium),
+                    // ),
+                    Visibility(
+                      visible: !isSmallOrMedium,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0),
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceEvenly,
+                          children: [
+                            MyDescripcon(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", color: Colors.black, fontSize: 20,),
+                            MyDescripcon(title: "Ventas: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.total).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold,),
+                            MyDescripcon(title: "Premios: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.premios).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.pink, fontWeight: FontWeight.bold)
+                          ],
+                        ),
+                      ),
+                    ),
                     snapshot.hasData && snapshot.data.length == 0
                     ?
                     Center(child:  MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),)
@@ -1289,340 +1443,6 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
               )
       )
     );
-
-    return  Scaffold(
-      key: _scaffoldKey,
-        // appBar: AppBar(
-        //   leading: BackButton(
-        //     color: Utils.colorPrimary,
-        //   ),
-        //   title: Text("Monitoreo", style: TextStyle(color: Colors.black)),
-        //   backgroundColor: Colors.transparent,
-        //   elevation: 0,
-        //   actions: <Widget>[
-        //      Column(
-        //         mainAxisAlignment: MainAxisAlignment.center,
-        //         children: <Widget>[
-        //           Padding(
-        //             padding: const EdgeInsets.all(8.0),
-        //             child: SizedBox(
-        //               width: 30,
-        //               height: 30,
-        //               child: Visibility(
-        //                 visible: _cargando,
-        //                 child: Theme(
-        //                   data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-        //                   child: new CircularProgressIndicator(),
-        //                 ),
-        //               ),
-        //             ),
-        //           ),
-        //         ],
-        //       ),
-        //   ],
-        // ),
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                leading: BackButton(color: Utils.colorPrimary,),
-                backgroundColor: Colors.white,
-                title: StreamBuilder<List<Banca>>(
-                  stream: _streamControllerBanca.stream,
-                  builder: (context, snapshot) {
-                    return AnimatedCrossFade(
-                      firstChild: Text("Monitoreo", style: TextStyle(color: Colors.black),), 
-                      secondChild: _dropdownBancas(), 
-                      crossFadeState: !_tienePermisoJugarComoCualquierBanca ? CrossFadeState.showFirst : CrossFadeState.showSecond, 
-                      duration: Duration(milliseconds: 200)
-                      );
-                  }
-                ),
-                
-                expandedHeight: 120,
-                flexibleSpace: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: MyFilter(
-                    showListNormalCortaLarga: 2,
-                    value: _date,
-                    onChanged: _dateChanged,
-                    onDeleteAll: _onDeleteAll,
-                  ),
-                ),
-                actions: [
-                  IconButton(icon: Icon(Icons.date_range, color: Utils.colorPrimary), onPressed: _showFiltrarScreen),
-                  IconButton(icon: Icon(Icons.filter_alt, color: Utils.colorPrimary), onPressed: _showBottomSheetTicket),
-                ],
-              ),
-              StreamBuilder<List<Venta>>(
-                stream: _streamControllerMonitoreo.stream,
-                builder: (context, snapshot) {
-                  if(snapshot.data == null)
-                    return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
-
-                  if(snapshot.hasData && _listaVenta.length == 0)
-                    return SliverFillRemaining(child: MyEmpty(title: "No hay tickets creados", icon: Icons.receipt, titleButton: "No hay tickets"));
-
-                  return SliverList(delegate: SliverChildListDelegate([
-                    Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      decoration: InputDecoration(hintText: "Numero ticket"),
-                      onChanged: (String text){
-                        print("TextField chagned: $text");
-                        if(text.isEmpty)
-                          _listaVenta = _tmpListaVenta;
-                        else
-                          _listaVenta = _tmpListaVenta.where((v) => v.idTicket.toString().indexOf(text) != -1).toList();
-                        
-                        _streamControllerMonitoreo.add(_listaVenta);  
-                      },
-                    ),
-                  ),
-                  Column(
-                          children: snapshot.data.map((e) => ListTile(
-                            // onTap: (){_showOpciones(e);},
-                          // leading: _getAvatar(e),
-                          trailing: 
-                          (e.premios <= 0)
-                          ?
-                          Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
-                          :
-                          Column(
-                            children: [
-                              Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                              Text(Utils.toCurrency(e.premios), style: TextStyle(color: Colors.pink, fontSize: 16),),
-                            ],
-                          ),
-                          title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca].descripcion : _banca.descripcion, e.idTicket, false)}", style: TextStyle(fontWeight: FontWeight.w700),),
-                          subtitle: 
-                          e.status != 0
-                          ?
-                          RichText(text: TextSpan(
-                            style: TextStyle(color: Colors.grey),
-                            children: [
-                              // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-                              TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
-                            ]
-                          ))
-                          :
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(text: TextSpan(
-                                text: "${MyDate.datetimeToHour(e.created_at)}",
-                                style: TextStyle(color: Colors.grey),
-                              )),
-                              RichText(text: TextSpan(
-                                style: TextStyle(color: Colors.red[700]),
-                                children: [
-                                  TextSpan(text: "Cancelado por ${e.usuarioCancelacion}"),
-                                  TextSpan(text: "  •  ${MyDate.datetimeToHour(e.fechaCancelacion)}"),
-                                ]
-                              ))
-                            ],
-                          )
-                        )
-                          ).toList(),
-                        )
-                       
-                  // StreamBuilder<List<Venta>>(
-                  //   stream: _streamControllerMonitoreo.stream,
-                  //   builder: (context, snapshot){
-                  //     // print("${snapshot.hasData}");
-                  //     if(snapshot.hasData){
-                  //     var lista = snapshot.data.where((v) => v.status != 0 && v.status != 5).toList();
-                  //       return Column(
-                  //         children: lista.map((e) => ListTile(
-                  //         leading: _getAvatar(e),
-                  //         trailing: 
-                  //         (e.premios <= 0)
-                  //         ?
-                  //         Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
-                  //         :
-                  //         Column(
-                  //           children: [
-                  //             Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-                  //             Text(Utils.toCurrency(e.premios), style: TextStyle(color: Colors.pink, fontSize: 16),),
-                  //           ],
-                  //         ),
-                  //         title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca].descripcion : _banca.descripcion, e.idTicket, false)}", style: TextStyle(fontWeight: FontWeight.w700),),
-                  //         subtitle: RichText(text: TextSpan(
-                  //           style: TextStyle(color: Colors.grey),
-                  //           children: [
-                  //             // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-                  //             TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
-                  //           ]
-                  //         )),
-                  //       )
-                  //         ).toList(),
-                  //       );
-                  //       return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca] : _banca);
-                  //     }
-                  //     return _buildTable(List<Venta>(), null);
-                  //   },
-                  // )
-           
-                  ]));
-                }
-              )
-            ],
-          )
-          // ListView(
-          //   children: <Widget>[
-          //     Row(
-          //       children: <Widget>[
-          //         Visibility(
-          //           visible: _tienePermisoJugarComoCualquierBanca,
-          //           child: Expanded(
-          //             child: Padding(
-          //               padding: const EdgeInsets.all(8.0),
-          //               child: FutureBuilder<bool>(
-          //                 future: listaBancaFuture,
-          //                 builder: (context, snapshot){
-          //                   // print("FutureBuilder: ${snapshot.connectionState}");
-          //                   if(snapshot.hasData){
-                              
-          //                     // listaBanca = snapshot.data;
-          //                     return DropdownButton(
-          //                       hint: Text("Sel. banca"),
-          //                       // isExpanded: true,
-          //                       value: listaBanca[_indexBanca],
-          //                       onChanged: (Banca banca) async {
-          //                         int idx = listaBanca.indexWhere((b) => b.id == banca.id);
-          //                         setState(() => _indexBanca = (idx != -1) ? idx : 0);
-          //                         // print("banca: ${banca.descripcion}");
-          //                         _getMonitoreo();
-          //                       },
-          //                       items: listaBanca.map((b) => DropdownMenuItem<Banca>(
-          //                         value: b,
-          //                         child: Text("${b.descripcion}"),
-          //                       )).toList(),
-          //                     );
-          //                   }
-          //                   return DropdownButton(
-          //                     value: "No hay bancas",
-          //                     onChanged: (String data){},
-          //                     items: [DropdownMenuItem(value: "No hay bancas", child: Text("No hay bancas"),)],
-          //                   );
-          //                 },
-          //               ),
-          //             ),
-          //           ),
-          //         ),
-          //         Expanded(
-          //           child: Padding(
-          //             padding: const EdgeInsets.all(8.0),
-          //             child: RaisedButton(
-          //               child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
-          //               color: Colors.transparent, 
-          //               onPressed: () async {
-          //                 var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
-          //                 setState(() => _fecha = (fecha != null) ? fecha : _fecha);
-          //                 await _getMonitoreo();
-          //                 // showModalBottomSheet(
-          //                 //   context: context, 
-                            
-          //                 //   builder: (context){
-          //                 //     return Container(
-          //                 //       height: MediaQuery.of(context).size.height / 3,
-          //                 //       child: CupertinoDatePicker(
-          //                 //         initialDateTime: DateTime.now(),
-          //                 //         mode: CupertinoDatePickerMode.date,
-          //                 //         minuteInterval: 1,
-          //                 //         onDateTimeChanged: (fecha){
-          //                 //           setState(() => _fecha = fecha);
-          //                 //         }
-          //                 //       ),
-          //                 //     );
-          //                 //   }
-          //                 // );
-          //                 // showDialog(
-          //                 //   context: context,
-          //                 //   builder: (context){
-          //                 //     return AlertDialog(
-          //                 //       title: Text("Seleccionar fecha"),
-          //                 //       content: Container(
-          //                 //       height: MediaQuery.of(context).size.height / 3,
-                                
-          //                 //       child: SizedBox(
-          //                 //         width: MediaQuery.of(context).size.width - 100,
-          //                 //         child: CupertinoDatePicker(
-          //                 //           initialDateTime: DateTime.now(),
-          //                 //           mode: CupertinoDatePickerMode.date,
-          //                 //           minuteInterval: 1,
-
-          //                 //           onDateTimeChanged: (fecha){
-          //                 //             setState(() => _fecha = fecha);
-          //                 //           }
-          //                 //         ),
-          //                 //       ),
-          //                 //     ),
-          //                 //     );
-          //                 //   }
-          //                 // );
-          //               }, 
-          //               elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
-          //           )
-          //         )
-          //       ],
-          //     ),
-          //     Padding(
-          //       padding: const EdgeInsets.all(8.0),
-          //       child: TextField(
-          //         decoration: InputDecoration(hintText: "Numero ticket"),
-          //         onChanged: (String text){
-          //           print("TextField chagned: $text");
-          //           if(text.isEmpty)
-          //             _listaVenta = _tmpListaVenta;
-          //           else
-          //             _listaVenta = _tmpListaVenta.where((v) => v.idTicket.toString().indexOf(text) != -1).toList();
-                    
-          //           _streamControllerMonitoreo.add(true);  
-          //         },
-          //       ),
-          //     ),
-          //     StreamBuilder<bool>(
-          //       stream: _streamControllerMonitoreo.stream,
-          //       builder: (context, snapshot){
-          //         // print("${snapshot.hasData}");
-          //         if(snapshot.hasData){
-          //         var lista = _listaVenta.where((v) => v.status != 0 && v.status != 5).toList();
-          //           return Column(
-          //             children: lista.map((e) => ListTile(
-          //             leading: _getAvatar(e),
-          //             trailing: 
-          //             (e.premios <= 0)
-          //             ?
-          //             Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),)
-          //             :
-          //             Column(
-          //               children: [
-          //                 Text(Utils.toCurrency(e.total), style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.w700, fontSize: 16),),
-          //                 Text(Utils.toCurrency(e.premios), style: TextStyle(color: Colors.pink, fontSize: 16),),
-          //               ],
-          //             ),
-          //             title: Text("${Utils.toSecuencia((_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca].descripcion : _banca.descripcion, e.idTicket, false)}", style: TextStyle(fontWeight: FontWeight.w700),),
-          //             subtitle: RichText(text: TextSpan(
-          //               style: TextStyle(color: Colors.grey),
-          //               children: [
-          //                 // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
-          //                 TextSpan(text: "${MyDate.datetimeToHour(e.created_at)}"),
-          //               ]
-          //             )),
-          //           )
-          //             ).toList(),
-          //           );
-          //           return _buildTable(_listaVenta.where((v) => v.status != 0 && v.status != 5).toList(), (_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca] : _banca);
-          //         }
-          //         return _buildTable(List<Venta>(), null);
-          //       },
-          //     )
-          //   ],
-          // ),
-        ),
-      );
-    
+   
   }
 }

@@ -33,7 +33,9 @@ class MyDropdown extends StatefulWidget {
   final bool onlyBorder;
   final int maxLengthToEllipsis;
   final int topPositionOfOverlay;
-  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false, this.maxLengthToEllipsis = 60, this.topPositionOfOverlay}) : super(key: key);
+  final bool resized;
+  final bool isExpanded;
+  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false, this.maxLengthToEllipsis = 60, this.topPositionOfOverlay, this.resized: true, this.isExpanded: true}) : super(key: key);
   @override
   _MyDropdownState createState() => _MyDropdownState();
 }
@@ -241,6 +243,10 @@ class _MyDropdownState extends State<MyDropdown> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? _textColor() : Colors.grey,),
+        !widget.isExpanded
+        ?
+         (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+:
         Expanded(
           child:  (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ),
@@ -251,7 +257,85 @@ class _MyDropdownState extends State<MyDropdown> {
   }
 
   _normalScreen(){
-    return MyResizedContainer(
+    return 
+    !widget.resized
+    ?
+    Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Visibility(visible: widget.title != null, child: Text("${(widget.title == null) ? '' : widget.title}", style: TextStyle(fontFamily: "GoogleSans"),)),
+          // LayoutBuilder(
+          //   builder: (context, boxConstraints) {
+          //     return Builder(
+          //       builder: (context) {
+          //         return InkWell(
+          //           onTap: (){
+          //             if(widget.elements == null && widget.enabled)
+          //               widget.onTap();
+          //             else{
+          //               print("Mydropdown inside Inkwell");
+          //               textChanged(context, boxConstraints.maxWidth);
+          //             }
+          //           },
+          //           child: Container(
+          //             padding: widget.padding,
+          //             decoration: _getDecoration(),
+          //             child: _getContentRow(),
+          //           ),
+          //         );
+          //       }
+          //     );
+          //   }
+          // ),
+          Builder(
+                builder: (context) {
+                  return InkWell(
+                    onTap: !widget.enabled ? null : (){
+                      if(widget.elements == null && widget.enabled)
+                        widget.onTap();
+                      else{
+                        print("Mydropdown inside Inkwell");
+                        // textChanged(context, boxConstraints.maxWidth);
+                        if(widget.enabled)
+                        showModalBottomSheet(
+                          shape:  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(10),
+                            ),
+                          ),
+                          context: context, 
+                          builder: (context){
+                            return Container(
+                              height: widget.elements.length > 3 ? MediaQuery.of(context).size.height / 2 : 200,
+                              child: ListView.builder(
+                                itemCount: widget.elements.length,
+                                itemBuilder: (context, index){
+                                  return ListTile(
+                                    title: widget.elements[index][1] is Widget ? widget.elements[index][1] : Text("${widget.elements[index][1]}"),
+                                    onTap: (){
+                                      widget.onTap(widget.elements[index][0]);
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                }
+                              ),
+                            );
+                          }
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: widget.padding,
+                      decoration: _getDecoration(),
+                      child: _getContentRow(),
+                    ),
+                  );
+                }
+              )
+        ],
+      )
+    :
+    MyResizedContainer(
       xlarge: widget.xlarge,
       large: widget.large,
       medium: widget.medium,
@@ -285,6 +369,7 @@ class _MyDropdownState extends State<MyDropdown> {
           ),
         ],
       ),
+    
     );
   }
 

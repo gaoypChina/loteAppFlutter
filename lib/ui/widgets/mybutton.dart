@@ -59,6 +59,9 @@ class MyButton extends StatefulWidget {
 class _MyButtonState extends State<MyButton> {
 
   Color _color(){
+    if(widget.cargando)
+      return Colors.grey[300];
+      
     switch (widget.type) {
       case MyButtonType.rounded:
         if(widget.color == null){
@@ -126,7 +129,9 @@ class _MyButtonState extends State<MyButton> {
         color: _color(),
         borderRadius: BorderRadius.circular(5)
       ),
-      child: Center(child: Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),))
+      child: Center(
+        child: widget.cargando ? SizedBox(height: 12, width: 12, child: CircularProgressIndicator()) : Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+      )
     );
     return InkWell(
     onTap: widget.function,
@@ -227,6 +232,10 @@ class _MyButtonState extends State<MyButton> {
       child: 
       widget.cargandoNotify == null
       ?
+      widget.cargando
+      ?
+      CircularProgressIndicator()
+      :
       text
       :
       ValueListenableBuilder(
@@ -324,6 +333,9 @@ class _MyButtonState extends State<MyButton> {
 
 
   Widget _screen(){
+    // if(!widget.isResponsive)
+    //   return _buttonNoResponsive();
+
     switch (widget.type) {
       case MyButtonType.roundedWithOnlyBorder:
         return _buttonRoundedWithOnlyBorder();
@@ -344,7 +356,7 @@ class _MyButtonState extends State<MyButton> {
 
   _responsiveOrNoResponsiveScreen(){
     return InkWell(
-    onTap: widget.function,
+    onTap: widget.cargando ? null : widget.function,
     child: 
     widget.isResponsive == false
     ?

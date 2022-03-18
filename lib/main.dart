@@ -42,6 +42,7 @@ class MyHttpOverrides extends HttpOverrides {
 bool DRAWER_IS_OPEN = false;
 bool PERMISSIONS_CHANGED = false;
 bool SHOW_PAYMENT_APPBAR = false;
+bool IS_NEW_SCREEN = true;
 
 // void main() => runApp(Prueba2());
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
@@ -54,6 +55,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("A message just showed up: ${message.messageId}");
 }
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   HttpOverrides.global = new MyHttpOverrides();
@@ -127,6 +129,7 @@ class MyApp extends StatelessWidget {
     //   ],
     //   child: 
       return MaterialApp(
+        navigatorKey: navigatorKey,
         localizationsDelegates: [
           ...GlobalMaterialLocalizations.delegates,
           PhoneFieldLocalization.delegate

@@ -354,7 +354,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       setState(() => _cargando = true);
 
       // var listaDatos = await Realtime.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
-      var listaDatos = await Db.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
+      var listaDatos = await Db.guardarVentaV2(banca: await getBanca(), jugadas: List<Jugada>.from(listaJugadas), socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
       // var parsed = await TicketService.guardarGzipV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
       // print("PrincipalView _guardarLocal: $parsed");
@@ -368,9 +368,9 @@ String initSocketNotificationTask = "initSocketNotificationTask";
      _seleccionarPrimeraLoteria();
       listaJugadas = [];
       _streamControllerJugada.add(listaJugadas);
-      if(_ckbPrint)
+      if(_ckbPrint){
         BluetoothChannel.printTicketV2(sale: listaDatos[0], salesdetails: listaDatos[1], type: BluetoothChannel.TYPE_ORIGINAL);
-      else{
+      }else{
         // var ticketImage = await TicketImage.create(listaDatos[0], listaDatos[1]);
         // ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
         // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
@@ -4467,6 +4467,18 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
             Principal.showVersion(context: context);
             },
           ),
+          Visibility(
+            visible: _tienePermisoProgramador,
+            child: ListTile(
+              title: Text('Versiones'),
+              leading: Icon(Icons.format_list_numbered_outlined),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/versiones");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
           ListTile(
             title: Text('Cerrar sesion'),
             dense: true,
@@ -5157,7 +5169,7 @@ void _getTime() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : 15, color: _textColor)),
+           Text("${loteria.descripcion}", style: TextStyle(fontSize: !isSmallOrMedium ? 16 : 17, color: _textColor)),
             _getLoteriaRemainingTime(loteria)
            // Text(dateString, style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5) ))
           ],
@@ -5412,7 +5424,7 @@ void _getTime() {
     }
 
     if(_txtJugada.text.length == 0 && caracter == '-' && !_isLargeAndWeb()){
-      guardar();
+      // guardar();
       return;
     }
 

@@ -24,12 +24,16 @@ import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
+import 'package:loterias/ui/widgets/myfilterv2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:unicons/unicons.dart';
+
+import '../../widgets/mycirclebutton.dart';
+import '../../widgets/showmyoverlayentry.dart';
 
 class ReporteJugadasScreen extends StatefulWidget {
   @override
@@ -68,6 +72,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   List<MyFilterSubData2> _filtros = [];
   List<String> listaOrden = ["Por monto", "Por jugada"];
   String _selectedOrden;
+  Future _futureData;
   
  
 
@@ -79,52 +84,20 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     var parsed = await ReporteService.jugadas(context: context, scaffoldKey: _scaffoldKey, fechaInicial: _fechaInicial, fechaFinal: _fechaFinal, retornarLoterias: true, retornarSorteos: true, retornarMonedas: true, retornarBancas: true, retornarGrupos: true, idGrupo: _idGrupoDeEsteUsuario);
     print("ReporteJugadasScreen _init: $parsed");
     listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((e) => Loteria.fromMap(e)).toList() : [];
+    listaLoteria.insert(0, Loteria(id: 0, descripcion: 'Todas'));
     listaSorteo = (parsed["sorteos"] != null) ? parsed["sorteos"].map<Draws>((e) => Draws.fromMap(e)).toList() : [];
+    listaSorteo.insert(0, Draws(0, 'Todos', null, null, null, null));
     listaJugada = (parsed["data"] != null) ? parsed["data"].map<Jugada>((e) => Jugada.fromMap(e)).toList() : [];
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((e) => Moneda.fromMap(e)).toList() : [];
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList() : [];
+    listaGrupo.insert(0, Grupo(id: 0, descripcion: 'Todos'));
     listaBanca = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList() : [];
     
-
-    if(listaGrupo.length > 0){
-      var filtro = MyFilterData2(child: "Grupo", fixed: _idGrupoDeEsteUsuario != null, enabled: _idGrupoDeEsteUsuario == null, data: listaGrupo.map((e) => MyFilterSubData2(child: e.descripcion, value: e, type: "Grupo")).toList());
-      listaFiltro.add(filtro);
-      if(_idGrupoDeEsteUsuario != null){
-        var filtroSub = filtro.data.firstWhere((element) => element.value.id == _idGrupoDeEsteUsuario, orElse: () => null);
-        if(filtroSub != null){
-          _filtros.add(filtroSub);
-          _grupo = filtroSub.value;
-        }
-      }
+    _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null;
+    if(_idGrupoDeEsteUsuario != null){
+      if(listaGrupo.length > 0)
+        _grupo = listaGrupo.firstWhere((element) => element.id == _idGrupoDeEsteUsuario, orElse: () => null);
     }
-
-    if(listaBanca.length > 0){
-      var filtro = MyFilterData2(child: "Banca", data: listaBanca.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList());
-      listaFiltro.add(filtro);
-    }
-
-    if(listaLoteria.length > 0){
-      var filtro = MyFilterData2(child: "Loteria", data: listaLoteria.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList());
-      listaFiltro.add(filtro);
-    }
-
-    if(listaSorteo.length > 0){
-      var filtro = MyFilterData2(child: "Sorteo", data: listaSorteo.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList());
-      listaFiltro.add(filtro);
-    }
-
-    if(listaMoneda.length > 0){
-      var filtro = MyFilterData2(child: "Moneda", fixed: true, data: listaMoneda.map((e) => MyFilterSubData2(child: e.descripcion, value: e)).toList());
-      listaFiltro.add(filtro);
-      setState(() {
-        _filtros.add(filtro.data[0]);
-        _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null;
-      });
-    }
-
-    
-
-   
     
     _streamController.add(listaSorteo);
     _streamControllerLoteria.add(listaLoteria);
@@ -152,17 +125,31 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     groupValue.value = data;
     // setState(() => groupValue = data);
   }
-
-  _loteriaChanged(loteria){
+  
+  _bancaChanged(data){
     setState((){
-        _loteria = loteria;
+        _banca = data.id != 0 ? data : null;
         _filtrar();
       });
   }
 
-  _monedaChanged(moneda){
+  _loteriaChanged(data){
     setState((){
-        _moneda = moneda;
+        _loteria = data.id != 0 ? data : null;
+        _filtrar();
+      });
+  }
+
+  _grupoChanged(data){
+    setState((){
+        _grupo = data.id != 0 ? data : null;
+        _filtrar();
+      });
+  }
+
+  _monedaChanged(data){
+    setState((){
+        _moneda = data;
         _filtrar();
       });
   }
@@ -191,6 +178,44 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
 
  
   _myFilterWidget(bool isSmallOrMedium){
+    return MyFilterV2(
+                    item: [
+                      MyFilterItem(
+                        color: Colors.blue[800],
+                        hint: "${_loteria != null ? 'Loteria:  ' + _loteria.descripcion: 'Loteria...'}", 
+                        data: listaLoteria.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _loteriaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        color: Colors.blue[800],
+                        hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
+                        data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _bancaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        enabled: _idGrupoDeEsteUsuario == null,
+                        color: Colors.blue[800],
+                        hint: "${_grupo != null ? 'Grupo:  ' + _grupo.descripcion: 'Grupo...'}", 
+                        data: listaGrupo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _grupoChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        color: Colors.green[700],
+                        hint: "${_moneda != null ? 'Moneda:  ' + _moneda.descripcion: 'Moneda...'}", 
+                        data: listaMoneda.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _monedaChanged(value);
+                        }
+                      ),
+                    ],
+                  );
+    
     return MyFilter2(
             key: _myFilterKey,
             xlarge: 1.1,
@@ -380,17 +405,87 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     );
   }
 
+ dynamic _dateWidget(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
+    );
+
+
+    return Container(
+      width: 180,
+      child: Builder(
+        builder: (context) {
+          return MyDropdown(title: null, 
+            padding: EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+            hint: "${MyDate.dateRangeToNameOrString(_date)}",
+            onTap: (){
+              showMyOverlayEntry(
+                context: context,
+                right: 20,
+                builder: (context, overlay){
+                  _cancel(){
+                    overlay.remove();
+                  }
+                  return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                }
+              );
+            },
+          );
+        }
+      ),
+    );
+              
+
+  }
+
 
   _subtitle(bool isSmallOrMedium){
     return
     isSmallOrMedium
     ?
-    MyCollapseChanged(
-      child: 
-      
-          _myFilterWidget(isSmallOrMedium)
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: MyCollapseChanged(
+        child: FutureBuilder<void>(
+            future: _futureData,
+            builder: (context, snapshot) {
+              if(snapshot.connectionState != ConnectionState.done)
+                return SizedBox.shrink();
+
+              return Row(
+                children: [
+                _dateWidget(isSmallOrMedium),
+                  Expanded(child: _myFilterWidget(isSmallOrMedium))
+                ],
+              );
+            }
+          )
         
-      ,
+            // _myFilterWidget(isSmallOrMedium)
+          
+        ,
+      ),
     )
     :
     "Filtre y agrupe todas las ventas por fecha.";
@@ -500,7 +595,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     _streamControllerLoteria = BehaviorSubject();
     _fechaInicial = DateTime.parse("${_fechaActual.year}-${Utils.toDosDigitos(_fechaActual.month.toString())}-${Utils.toDosDigitos(_fechaActual.day.toString())} 00:00");
     _fechaFinal = DateTime.parse("${_fechaActual.year}-${Utils.toDosDigitos(_fechaActual.month.toString())}-${Utils.toDosDigitos(_fechaActual.day.toString())} 23:59:59");
-    _init();
+    _futureData = _init();
     super.initState();
   }
 

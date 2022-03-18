@@ -30,6 +30,8 @@ import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../../widgets/mycirclebutton.dart';
+import '../../widgets/myfilterv2.dart';
 import 'add.dart';
 
 class TransaccionesScreen extends StatefulWidget {
@@ -61,6 +63,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   Entidad _entidad;
   int _idGrupoDeEsteUsuario;
   DateTimeRange _date;
+  Future _futureData;
   
 
   @override
@@ -68,20 +71,23 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     // TODO: implement initState
     _streamControllerTransacciones = BehaviorSubject();
     _date = MyDate.getTodayDateRange();
-    _init();
+    _futureData = _init();
     super.initState();
   }
 
   _init() async {
     try{
-      setState(() => _cargando = true);
+      // setState(() => _cargando = true);
       var parsed = await TransaccionService.transacciones(scaffoldKey: _scaffoldkey);
       listaTransaccion = List.from(parsed["transacciones"]);
       listaEntidad = parsed["entidades"] != null ? parsed["entidades"].map<Tipo>((e) => Tipo.fromMap(e)).toList() : [];
       listaBanca = parsed["bancas"] != null ? parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList() : [];
+      listaBanca.insert(0, Banca(id: 0, descripcion: 'Todas'));
       listaBanco = parsed["bancos"] != null ? parsed["bancos"].map<Entidad>((e) => Entidad.fromMap(e)).toList() : [];
       listaUsuario = parsed["usuarios"] != null ? parsed["usuarios"].map<Usuario>((e) => Usuario.fromMap(e)).toList() : [];
+      listaUsuario.insert(0, Usuario(id: 0, usuario: 'Todos'));
       listaTipo = parsed["tipos"] != null ? parsed["tipos"].map<Tipo>((e) => Tipo.fromMap(e)).toList() : [];
+      listaTipo.insert(0, Tipo(0, 'Todos', null, null, null));
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
       print("transaccionesscreen transacciones: ${parsed['entidades']}");
@@ -111,7 +117,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
       }
 
       
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
     }on Exception catch(e){
       setState(() => _cargando = false);
     }
@@ -123,8 +129,8 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
       // var fechaHasta = new DateTime(_fecha.year, _fecha.month, _fecha.day, 23, 55);
       _streamControllerTransacciones.add(null);
       var entidad = _banca != null ? listaEntidad.firstWhere((element) => element.descripcion == "Banca", orElse: () => null) : _banco != null ? listaEntidad.firstWhere((element) => element.descripcion == "Banco", orElse: () => null) : null;
-      var idEntidad = _banca != null ? _banca.id : _banco != null ? _banco.id : null;
-      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, fechaDesde: _date.start, fechaHasta: _date.end, idUsuario: _usuario != null ? _usuario.id : null, idTipoEntidad: entidad != null ? entidad.id : null, idEntidad: idEntidad, idTipo: _tipo != null ? _tipo.id : null );
+      var idEntidad = _banca != null ? _banca.id != 0 ? _banca.id : null : _banco != null ? _banco.id : null;
+      var datos = await TransaccionService.buscarTransacciones(scaffoldKey: _scaffoldkey, fechaDesde: _date.start, fechaHasta: _date.end, idUsuario: _usuario != null ? _usuario.id != 0 ? _usuario.id : null : null, idTipoEntidad: entidad != null ? entidad.id : null, idEntidad: idEntidad, idTipo: _tipo != null ? _tipo.id != 0 ? _tipo.id : null : null );
       listaTransaccion = List.from(datos["transacciones"]);
       _streamControllerTransacciones.add(listaTransaccion);
       listaTransaccion.forEach((f) => print("debito: ${f["debito"]} - credito: ${f["credito"]}"));
@@ -225,33 +231,47 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     :
     Padding(
       padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
         children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          Padding(
-            padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-            child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            child: Row(
+              children: [
+                // _mydropdown(),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Filtrar",
+                //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+                //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+                // MyDropdown(
+                //   large: 5.8,
+                //   title: "Grupos",
+                //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+                //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+                //   onTap: (value){
+                //     _opcionChanged(value);
+                //   },
+                // ),
+               Expanded(
+                  child: Container(
+                    // width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: _myFilterWidget(isSmallOrMedium),
+                  ),
+                ),
+                Container(
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+                    child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+                  ),
+                ),
+              ],
+            ),
           ),
           MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
         ],
@@ -581,7 +601,54 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
     );
   }
 
+  _bancaChanged(data){
+    setState((){
+        _banca = data;
+        _buscarTransacciones();
+      });
+  }
+
+  _usuarioChanged(data){
+    setState((){
+        _usuario = data;
+        _buscarTransacciones();
+      });
+  }
+
+  _tipoChanged(data){
+    setState((){
+        _tipo = data;
+        _buscarTransacciones();
+      });
+  }
+
  _myFilterWidget(bool isSmallOrMedium){
+   return MyFilterV2(
+        padding: !isSmallOrMedium ? EdgeInsets.symmetric(horizontal: 15, vertical: 10) : null,
+                    item: [
+                      MyFilterItem(
+                        hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
+                        data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _bancaChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        hint: "${_usuario != null ? 'Usuario:  ' + _usuario.usuario: 'Usuario...'}", 
+                        data: listaUsuario.map((e) => MyFilterSubItem(child: e.usuario, value: e)).toList(),
+                        onChanged: (value){
+                          _usuarioChanged(value);
+                        }
+                      ),
+                      MyFilterItem(
+                        hint: "${_tipo != null ? 'Tipo:  ' + _tipo.descripcion : 'Tipo...'}", 
+                        data: listaTipo.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _tipoChanged(value);
+                        }
+                      ),
+                    ],
+                  );
     return MyFilter2(
             key: _myFilterKey,
             xlarge: 1.65,
@@ -731,19 +798,85 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
   
   }
 
+  dynamic _dateWidget(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
+    );
+
+
+    return Builder(
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 12.0),
+          child: MyDropdown(title: null, 
+            leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            hint: "${MyDate.dateRangeToNameOrString(_date)}",
+            onTap: (){
+              showMyOverlayEntry(
+                context: context,
+                right: 20,
+                builder: (context, overlay){
+                  _cancel(){
+                    overlay.remove();
+                  }
+                  return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                }
+              );
+            },
+          ),
+        );
+      }
+    );
+  }
+
   
  _subtitle(bool isSmallOrMedium){
     return
     isSmallOrMedium
     ?
-    MyCollapseChanged(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: _myFilterWidget(isSmallOrMedium),
-      )
-      
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: MyCollapseChanged(
+        child: FutureBuilder<void>(
+          future: _futureData,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SizedBox.shrink();
+
+            return Row(
+              children: [
+                _dateWidget(isSmallOrMedium),
+                Expanded(child: _myFilterWidget(isSmallOrMedium)),
+              ],
+            );
+          }
+        )
         
-      ,
+          
+        ,
+      ),
     )
     :
     "Filtre y agrupe todas las ventas por fecha.";
@@ -767,52 +900,29 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
           subtitle: _subtitle(isSmallOrMedium),
           expandedHeight: isSmallOrMedium ? 105 : 85,
           actions: [
-            MySliverButton(
-              title: "", 
-              iconWhenSmallScreen: Icons.date_range,
-              showOnlyOnSmall: true,
-              onTap: () {
-                _showDateTimeRangeCalendar();
-              },
-            ),
-            MySliverButton(
-              title: "title", 
-              iconWhenSmallScreen: Icons.filter_alt_rounded,
-              showOnlyOnSmall: true,
-              onTap: () async {
-                if(isSmallOrMedium){
-                  _myFilterKey.currentState.openFilter(context);
-                }
-              }
-            ),
+            // MySliverButton(
+            //   title: "", 
+            //   iconWhenSmallScreen: Icons.date_range,
+            //   showOnlyOnSmall: true,
+            //   onTap: () {
+            //     _showDateTimeRangeCalendar();
+            //   },
+            // ),
+            // MySliverButton(
+            //   title: "title", 
+            //   iconWhenSmallScreen: Icons.filter_alt_rounded,
+            //   showOnlyOnSmall: true,
+            //   onTap: () async {
+            //     if(isSmallOrMedium){
+            //       _myFilterKey.currentState.openFilter(context);
+            //     }
+            //   }
+            // ),
             MySliverButton(
               showOnlyOnLarge: true,
               title: Container(
                 width: 180,
-                child: Builder(
-                  builder: (context) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: MyDropdown(title: null, 
-                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
-                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
-                        onTap: (){
-                          showMyOverlayEntry(
-                            context: context,
-                            right: 20,
-                            builder: (context, overlay){
-                              _cancel(){
-                                overlay.remove();
-                              }
-                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
-                            }
-                          );
-                        },
-                      ),
-                    );
-                  }
-                ),
+                child: _dateWidget(isSmallOrMedium)
               ), 
               onTap: (){}
               ),
@@ -865,73 +975,6 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
         )
       )
     );
-    return Scaffold(
-      key: _scaffoldkey,
-      appBar: AppBar(
-          leading: BackButton(
-            color: Utils.colorPrimary,
-          ),
-          title: Text("Transacciones", style: TextStyle(color: Colors.black)),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          actions: <Widget>[
-             Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: Visibility(
-                        visible: _cargando,
-                        child: Theme(
-                          data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                          child: new CircularProgressIndicator(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: (){
-            Navigator.pushNamed(context, "/addTransacciones");
-          },
-        ),
-        body: SafeArea(
-          child: ListView(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: RaisedButton(
-                  // child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
-                  child: Text(""), 
-                  color: Colors.transparent, 
-                  onPressed: () async {
-                    var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
-                    setState(() => _fecha = (fecha != null) ? fecha : _fecha);
-                    await _buscarTransacciones();
-                  }, 
-                  elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
-              ),
-              StreamBuilder<List>(
-                stream: _streamControllerTransacciones.stream,
-                builder: (context, snapshot){
-                  if(snapshot.hasData){
-                    return  _buildTableTransaccion(snapshot.data, false);
-                  }
-                  return _buildTableTransaccion(List(), false);
-                },
-              ),
-              
-              
-            ],
-          ),
-        ),
-    );
+    
   }
 }

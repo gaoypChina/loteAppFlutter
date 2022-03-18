@@ -295,6 +295,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
+  device_information:
+    dependency: "direct main"
+    description:
+      name: device_information
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
   drift:
     dependency: "direct main"
     description:
