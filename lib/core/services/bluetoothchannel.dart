@@ -86,29 +86,30 @@ class BluetoothChannel{
 
 
     if(kIsWeb){
-      var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
-      channel.stream.listen((message) {
-        print("principalView received! from websocket: ${generatedCuadre.length}");
-        List<String> generatedCuadreToWeb = [printer];
-        for (int i = 0; i < generatedCuadre.length; i++) {
-          print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]} : ${generatedCuadre[i]["text"]}");
-          // if(generatedCuadre[i]["cmd"] == CMD.h1)
-          //   generatedCuadreToWeb.add(CMD.h1Web);
-          // if(generatedCuadre[i]["cmd"] == CMD.h2)
-          //   generatedCuadreToWeb.add(CMD.h2Web);
-          // if(generatedCuadre[i]["cmd"] == CMD.center)
-          //   generatedCuadreToWeb.add(CMD.centerWeb);
-          String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
-          if(cmdWeb != null)
-            generatedCuadreToWeb.add(cmdWeb);
+      // var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+      // channel.stream.listen((message) {
+      //   print("principalView received! from websocket: ${generatedCuadre.length}");
+      //   List<String> generatedCuadreToWeb = [printer];
+      //   for (int i = 0; i < generatedCuadre.length; i++) {
+      //     print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]} : ${generatedCuadre[i]["text"]}");
+      //     // if(generatedCuadre[i]["cmd"] == CMD.h1)
+      //     //   generatedCuadreToWeb.add(CMD.h1Web);
+      //     // if(generatedCuadre[i]["cmd"] == CMD.h2)
+      //     //   generatedCuadreToWeb.add(CMD.h2Web);
+      //     // if(generatedCuadre[i]["cmd"] == CMD.center)
+      //     //   generatedCuadreToWeb.add(CMD.centerWeb);
+      //     String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
+      //     if(cmdWeb != null)
+      //       generatedCuadreToWeb.add(cmdWeb);
 
-          generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
-        }
+      //     generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
+      //   }
 
 
-        channel.sink.add(generatedCuadreToWeb);
-        channel.sink.close();
-      });
+      //   channel.sink.add(generatedCuadreToWeb);
+      //   channel.sink.close();
+      // });
+      _printWeb(printer, generatedCuadre);
     }else{
       _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
         (onData) async {
@@ -178,7 +179,7 @@ class BluetoothChannel{
       }
 
       generatedCuadreToWeb.add("\n\n\n\n");
-
+      generatedCuadreToWeb.add("CUT_PAPER");
 
       channel.sink.add(generatedCuadreToWeb);
       channel.sink.close();
@@ -204,29 +205,31 @@ class BluetoothChannel{
     Map<int, dynamic> generatedCuadre = generateCuadre(mapCuadre: map, imprimirNumerosGanadores: imprimirNumerosGanadores, imprimirTotalesPorLoteria: imprimirTotalesPorLoteria, imprimirTicketsGanadores: imprimirTicketsGanadores);
 
     if(kIsWeb){
-      var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
-      channel.stream.listen((message) {
-        print("principalView received! from websocket: ${generatedCuadre.length}");
-        List<String> generatedCuadreToWeb = [printer];
-        for (int i = 0; i < generatedCuadre.length; i++) {
-          print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]}");
-          // if(generatedCuadre[i]["cmd"] == CMD.h1)
-          //   generatedCuadreToWeb.add(CMD.h1Web);
-          // if(generatedCuadre[i]["cmd"] == CMD.h2)
-          //   generatedCuadreToWeb.add(CMD.h2Web);
-          // if(generatedCuadre[i]["cmd"] == CMD.center)
-          //   generatedCuadreToWeb.add(CMD.centerWeb);
-          String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
-          if(cmdWeb != null)
-            generatedCuadreToWeb.add(cmdWeb);
+      // var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+      // channel.stream.listen((message) {
+      //   print("principalView received! from websocket: ${generatedCuadre.length}");
+      //   List<String> generatedCuadreToWeb = [printer];
+      //   for (int i = 0; i < generatedCuadre.length; i++) {
+      //     print("BluetoothChannel printCuadre web: ${generatedCuadre[i]["cmd"]}");
+      //     // if(generatedCuadre[i]["cmd"] == CMD.h1)
+      //     //   generatedCuadreToWeb.add(CMD.h1Web);
+      //     // if(generatedCuadre[i]["cmd"] == CMD.h2)
+      //     //   generatedCuadreToWeb.add(CMD.h2Web);
+      //     // if(generatedCuadre[i]["cmd"] == CMD.center)
+      //     //   generatedCuadreToWeb.add(CMD.centerWeb);
+      //     String cmdWeb = CMD.cmdToWeb(generatedCuadre[i]["cmd"]);
+      //     if(cmdWeb != null)
+      //       generatedCuadreToWeb.add(cmdWeb);
 
-          generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
-        }
+      //     generatedCuadreToWeb.add(generatedCuadre[i]["text"]);
+      //   }
 
 
-        channel.sink.add(generatedCuadreToWeb);
-        channel.sink.close();
-      });
+        
+      //   channel.sink.add(generatedCuadreToWeb);
+      //   channel.sink.close();
+      // });
+      _printWeb(printer, generatedCuadre);
     }else{
       _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
         (onData) async {
@@ -1267,6 +1270,9 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
         map[map.length] = _getMapNuevo(text:"\n\n\n");
       }
 
+    if(kIsWeb)
+      map[map.length] = _getMapNuevo(text:"\n\n", cmd: CMD.h1);
+
     return map;
     // print("printicket: ${map.length}");
     // for(Map<String, dynamic> map in mapVenta["jugadas"]){
@@ -1502,6 +1508,9 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
       }else{
         map[map.length] = _getMapNuevo(text:"\n\n\n");
       }
+
+    if(kIsWeb)
+      map[map.length] = _getMapNuevo(text:"\n\n", cmd: CMD.h1);
 
     return map;
     // print("printicket: ${map.length}");

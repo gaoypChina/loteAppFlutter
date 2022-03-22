@@ -188,6 +188,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _banca != null ? _banca.id != 0 ? _banca.id : null : null, idLoteria: _loteria != null ? _loteria.id != 0 ? _loteria.id : null : null, idGrupo: idGrupo);
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
+    print("_getMonitoreo data: ${_listaVenta.length}");
     _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
     // setState(() => _cargando = false);
    } on Exception catch(e){
@@ -946,6 +947,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                     item: [
                       MyFilterItem(
                         // color: Colors.blue[800],
+                        enabled: _tienePermisoJugarComoCualquierBanca,
+                        visible: _tienePermisoJugarComoCualquierBanca,
                         hint: "${_banca != null ? 'Banca:  ' + _banca.descripcion: 'Banca...'}", 
                         data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
                         onChanged: (value){
@@ -1237,6 +1240,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   _screen(List<Venta> data, bool isSmallOrMedium){
     if(data == null)
       return Center(child: CircularProgressIndicator());
+      
     if(!isSmallOrMedium)
       return MyTable(
         columns: ["Estado", "Numero", "Creado", "Usuario", "Monto", "Premio", "Cancelado por", "Fecha cancelado", "Monto a pagar", "Monto pagado", ""], 
@@ -1397,18 +1401,23 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
                           alignment: WrapAlignment.spaceEvenly,
                           children: [
                             MyDescripcon(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", color: Colors.black, fontSize: 20,),
-                            MyDescripcon(title: "Ventas: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.total).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold,),
-                            MyDescripcon(title: "Premios: ${snapshot.data != null ? Utils.toCurrency(snapshot.data.map((e) => e.premios).reduce((value, element) => value + element)) : 0}", fontSize: 20, color: Colors.pink, fontWeight: FontWeight.bold)
+                            MyDescripcon(title: "Ventas: ${snapshot.data != null ? snapshot.data.length > 0 ? Utils.toCurrency(snapshot.data.map((e) => e.total).reduce((value, element) => value + element)) : 0 : 0}", fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold,),
+                            MyDescripcon(title: "Premios: ${snapshot.data != null ? snapshot.data.length > 0 ? Utils.toCurrency(snapshot.data.map((e) => e.premios).reduce((value, element) => value + element)) : 0 : 0}", fontSize: 20, color: Colors.pink, fontWeight: FontWeight.bold)
                           ],
                         ),
                       ),
                     ),
                     snapshot.hasData && snapshot.data.length == 0
                     ?
-                    Center(child:  MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),)
+                    Center(child:  Padding(
+                      padding: const EdgeInsets.only(top: 15.0),
+                      child: MyEmpty(title: "No hay tickets realizadaos", titleButton: "No hay tickets", icon: Icons.transfer_within_a_station),
+                    ),)
                     :
                   _screen(snapshot.data, isSmallOrMedium)
                   ];
+
+                  print("MonitoreoScreen Antes del SliverList: ${widgets.length}");
 
 
                   return SliverList(delegate: SliverChildBuilderDelegate(

@@ -17,7 +17,8 @@ class MyFilterItem {
   bool fixed;
   final ValueChanged<dynamic> onChanged;
   final bool enabled;
-  MyFilterItem({this.hint, @required this.data, this.color, this.onChanged, this.isMultiple = false, this.fixed = false, this.enabled = true});
+  final bool visible;
+  MyFilterItem({this.hint, @required this.data, this.color, this.onChanged, this.isMultiple = false, this.fixed = false, this.enabled = true, this.visible = true});
 }
 
 class MyFilterV2 extends StatefulWidget {
@@ -44,25 +45,28 @@ class _MyFilterV2State extends State<MyFilterV2> {
       shrinkWrap: true,
       itemCount: widget.item.length,
       itemBuilder: (context, index){
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-          child: MyDropdown(
-            enabled: widget.item[index].enabled,
-            isExpanded: false,
-            title: null,
-            leading: SizedBox.shrink(),
-            // textColor: Colors.black,
-            // color: Colors.grey[200],
-            textColor: widget.item[index].color != null ? widget.item[index].color : null,
-            color: widget.item[index].color != null ? widget.item[index].color.withOpacity(0.2) : null,
-            padding: widget.padding != null ? widget.padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-            hint: widget.item[index].hint,
-            resized: false,
-            elements: widget.item[index].data.map((e) => [e.value, e.child is Widget ? e.child : Text("${e.child}")]).toList(),
-            onTap: (value){
-              if(widget.item[index].onChanged != null)
-                widget.item[index].onChanged(value);
-            },
+        return Visibility(
+          visible: widget.item[index].visible,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+            child: MyDropdown(
+              enabled: widget.item[index].enabled,
+              isExpanded: false,
+              title: null,
+              leading: SizedBox.shrink(),
+              // textColor: Colors.black,
+              // color: Colors.grey[200],
+              textColor: widget.item[index].color != null ? widget.item[index].color : null,
+              color: widget.item[index].color != null ? widget.item[index].color.withOpacity(0.2) : null,
+              padding: widget.padding != null ? widget.padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+              hint: widget.item[index].hint,
+              resized: false,
+              elements: widget.item[index].data.map((e) => [e.value, e.child is Widget ? e.child : Text("${e.child}")]).toList(),
+              onTap: (value){
+                if(widget.item[index].onChanged != null)
+                  widget.item[index].onChanged(value);
+              },
+            ),
           ),
         );
       }

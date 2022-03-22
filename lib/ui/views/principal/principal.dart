@@ -697,7 +697,15 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       //   return;
       // print("PrincipalView myScaffold onChanged ${event.data.keyLabel} guardar: ${(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)}");
       // if(event.logicalKey == LogicalKeyboardKey.asterisk || event.logicalKey == LogicalKeyboardKey.numpadMultiply)
+      
+      
+
       if(mounted){
+        // print("PrincipalView CrossKeyPress mounted: $mounted route: ${ModalRoute.of(context).isCurrent}");
+        //Verificamos si es la misma ruta, si es una ruta diferente pues no dejamos que se ejecute los keypress
+        if(!ModalRoute.of(context).isCurrent)
+          return;
+
         if(e.keyCode == "*")
           guardar();
         else if(e.keyCode == "/")
