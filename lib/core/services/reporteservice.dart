@@ -323,4 +323,50 @@ class ReporteService{
   }
 
 
+  static Future<Map<String, dynamic>> general({BuildContext context, scaffoldKey, String filtro, int idGrupo, Moneda moneda, DateTime fechaInicial, DateTime fechaFinal, bool retornarVentasPremiosComisionesDescuentos = false, bool retornarMonedas = false, bool retornarGrupos = false, int limiteInicialBancas, int limiteFinalBancas}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+   
+
+    map["filtro"] = filtro;
+    map["idUsuario"] = await Db.idUsuario();
+    map["idGrupo"] = idGrupo;
+    map["idMoneda"] = moneda != null ? moneda.id : null;
+    map["fechaInicial"] = fechaInicial != null ? fechaInicial.toString() : DateTime.now().toString();
+    map["fechaFinal"] = fechaFinal != null ? fechaFinal.toString() : DateTime.now().toString();
+    map["limiteInicialBancas"] = limiteInicialBancas;
+    map["limiteFinalBancas"] = limiteFinalBancas;
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    print("ReporteService general: ${map.toString()}");
+    // return listaBanca;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/general"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ReporteService historico: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      // else
+      //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+
 }
