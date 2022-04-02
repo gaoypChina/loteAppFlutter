@@ -25,6 +25,10 @@ Moneda.fromMap(Map snapshot) :
         permiteDecimales = Utils.toInt(snapshot['permiteDecimales'], returnNullIfNotInt: true)
         ;
 
+  static List<Moneda> fromMapList(parsed){
+    return parsed != null ? parsed.map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       "id": id,

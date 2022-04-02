@@ -24,6 +24,8 @@ import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../main.dart';
+
 class  Utils {
   static final String URL = 'http://127.0.0.1:8000';
   static final String URL_SOCKET = 'http://127.0.0.1:3000';
@@ -632,10 +634,17 @@ class  Utils {
     return parDeNumeros[1] + parDeNumeros[0];
   }
 
-  static toCurrency(var number, [quitarSignoDolar = false]){
+  static toCurrency(var number, [quitarSignoDolar = false, dejarCerosSoloSiElNumeroEsCero = false]){
     final formatCurrency = new NumberFormat.simpleCurrency();
+
     number = Utils.toDouble(number.toString());
-    var data = formatCurrency.format(number).replaceFirst(".00", "");
+    var data = formatCurrency.format(number);
+    if(dejarCerosSoloSiElNumeroEsCero && data == '0.00')
+      data = data.replaceFirst(".00", "");
+    else
+      data = data.replaceFirst(".00", "");
+
+
     return (quitarSignoDolar) ? data.replaceFirst("\$", "") : data;
   }
 
@@ -1032,6 +1041,10 @@ class  Utils {
         context,
         MaterialPageRoute(builder: (context) => pageRef),
         (Route<dynamic> route) => false);
+  }
+
+  static navigateToReporteGeneral(bool showDrawer){
+    navigatorKey.currentState.pushReplacementNamed("/general", arguments: showDrawer);
   }
  
 }

@@ -27,6 +27,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class VentasScreen extends StatefulWidget {
+  final int idBancaReporteGeneral;
+  VentasScreen({Key key, this.idBancaReporteGeneral}) : super(key: key);
   @override
   _VentasScreenState createState() => _VentasScreenState();
 }
@@ -37,7 +39,7 @@ class _VentasScreenState extends State<VentasScreen> {
    var _fechaHoy = DateTime.now();
   StreamController<List<Banca>> _streamControllerBancas;
   StreamController<Map<String, dynamic>> _streamControllerTablas;
-  List<Banca> listaBanca = List();
+  List<Banca> listaBanca = [];
   int _indexBanca = 0;
   DateTime _fechaInicial = DateTime.now();
   DateTime _fechaFinal = DateTime.now();
@@ -151,7 +153,7 @@ class _VentasScreenState extends State<VentasScreen> {
     if(_tienePermiso && listaBanca.length > 0)
       return (_banca != null) ? _banca.id : 0;
     else
-      return await Db.idBanca();
+      return widget.idBancaReporteGeneral != null ? widget.idBancaReporteGeneral : await Db.idBanca();
   }
 
   _confirmarTienePermiso() async {
@@ -170,7 +172,7 @@ class _VentasScreenState extends State<VentasScreen> {
   // 
    Banca banca = (bancaMap != null) ? Banca.fromMap(bancaMap) : null;
   if(banca != null && listaBanca != null){
-    var b = listaBanca.firstWhere((b) => b.id == banca.id, orElse: () => null);
+    var b = listaBanca.length == 0 ? null : widget.idBancaReporteGeneral != null ? listaBanca.firstWhere((b) => b.id == widget.idBancaReporteGeneral, orElse: () => null) : listaBanca.firstWhere((b) => b.id == banca.id, orElse: () => null);
     setState(() => _banca = (b != null) ? b : listaBanca.length > 0 ? listaBanca[0] : null);
   }else{
     if(_tienePermiso){

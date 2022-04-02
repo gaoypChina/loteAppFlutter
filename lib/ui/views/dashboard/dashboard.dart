@@ -96,7 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if(_onCreate){
         listaMoneda = datos["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList();
         listaGrupo = datos["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList();
-        listaGrupo.insert(0, Grupo(id: 0, descripcion: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) ? "Todos" : "Todos los grupos"));
+        listaGrupo.insert(0, Grupo(id: 0, descripcion: "Todos los grupos"));
 
         if(idGrupo != null){
           _grupo = listaGrupo.firstWhere((element) => element.id == idGrupo, orElse: () => null);

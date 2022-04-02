@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
@@ -85,6 +86,10 @@ _showSnackBar(String content){
     Navigator.pushReplacementNamed(context, "/principal", arguments: true);
   }
 
+  void _navigateToReporteGeneral(){
+    Navigator.pushReplacementNamed(context, "/general", arguments: true);
+  }
+
   _navigateToContact() async{
     // Navigator.pushNamed(context, "/contacto", arguments: true);
 
@@ -136,7 +141,11 @@ _showSnackBar(String content){
         await Realtime.sincronizarTodosDataBatch(_scaffoldKey, parsed["realtime"]);
         setState(() => _cargando = false);
 
-        _navigateToHome();
+        if(await Db.existePermiso("Ver reporte general"))
+          Utils.navigateToReporteGeneral(true);
+        else
+          _navigateToHome();
+
       }on dynamic catch(e){
         print("Error desde login: ${e.toString()}");
         Utils.showAlertDialog(content: e.toString(), title: "Error", context: context);

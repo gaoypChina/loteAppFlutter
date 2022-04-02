@@ -39,6 +39,7 @@ import 'package:loterias/ui/views/principal/probartiemporestante.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
 import 'package:loterias/ui/views/prueba/pruebatimezone.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
+import 'package:loterias/ui/views/reportes/reportegeneralscreen.dart';
 import 'package:loterias/ui/views/reportes/reportejugadasscreen.dart';
 import 'package:loterias/ui/views/reportes/ticketspendientespago.dart';
 import 'package:loterias/ui/views/reportes/ventas.dart';
@@ -98,7 +99,11 @@ class MyRouter {
           ) ;
         case '/ventas' :
           return MaterialPageRoute(
-            builder: (_)=> VentasScreen()
+            builder: (_)=> VentasScreen(idBancaReporteGeneral: settings.arguments,)
+          ) ;
+        case '/general' :
+          return MaterialPageRoute(
+            builder: (_)=> ReporteGeneralScreen(showDrawer: settings.arguments,)
           ) ;
         case '/balanceBancas' :
           return MaterialPageRoute(
@@ -200,7 +205,7 @@ class MyRouter {
           ) ;
         case '/bancas/agregar' :
           return MaterialPageRoute(
-            builder: (_)=> BancasAddScreen(data: settings.arguments,)
+            builder: (_)=> BancasAddScreen(idBanca: settings.arguments,)
           ) ;
         case '/screensizetest' :
           return MaterialPageRoute(

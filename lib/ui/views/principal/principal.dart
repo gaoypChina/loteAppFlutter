@@ -52,6 +52,7 @@ import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
+import 'package:loterias/ui/widgets/mymobiledrawer.dart';
 import 'package:loterias/ui/widgets/mymultiselectdialog.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -159,6 +160,7 @@ String _montoPrueba = '0';
   bool _tienePermisoManejarResultados = false;
   bool _tienePermisoMarcarTicketComoPagado = false;
   bool _tienePermisoMonitorearTicket = false;
+  bool _tienePermisoVerGeneral = false;
   bool _tienePermisoVerDashboard = false;
   bool _tienePermisoVerVentas = false;
   bool _tienePermisoVerHistoricoVentas = false;
@@ -566,7 +568,14 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       await stopSocketNoticacionInForeground();
       setState(() => _cargandoDatosSesionUsuario = false);
     }else{
-      setState(() => _cargandoDatosSesionUsuario = false);
+      if(!widget.callThisScreenFromLogin){
+        if(await Db.existePermiso("Ver reporte general")){
+          Utils.navigateToReporteGeneral(true);
+        }else
+          setState(() => _cargandoDatosSesionUsuario = false);
+      }
+      else
+        setState(() => _cargandoDatosSesionUsuario = false);
     }
 
     return seGuardaronLosDatosDeLaSesion;
@@ -782,6 +791,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     bool permisoManejarResultados = await Db.existePermiso("Manejar resultados");
     bool permisoMarcarTicketComoPagado = await Db.existePermiso("Marcar ticket como pagado");
     bool permisoMonitorearTicket = await Db.existePermiso("Monitorear ticket");
+    bool permisoVerGeneral = await Db.existePermiso("Ver reporte general");
     bool permisoVerDashboard = await Db.existePermiso("Ver Dashboard");
     bool permisoVerVentas = await Db.existePermiso("Ver ventas");
     bool permisoVerHistoricoVentas = await Db.existePermiso("Ver historico ventas");
@@ -810,6 +820,8 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       await stopSocketNoticacionInForeground();
     }
 
+    if(mounted)
+
     setState((){
       _tienePermisoJugarComoCualquierBanca = permiso;
       _tienePermisoJugarFueraDeHorario = permisoJugarFueraDeHorario;
@@ -820,6 +832,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       _tienePermisoManejarResultados = permisoManejarResultados;
       _tienePermisoMarcarTicketComoPagado = permisoMarcarTicketComoPagado;
       _tienePermisoMonitorearTicket = permisoMonitorearTicket;
+      _tienePermisoVerGeneral = permisoVerGeneral;
       _tienePermisoVerDashboard = permisoVerDashboard;
       _tienePermisoVerVentas = permisoVerVentas;
       _tienePermisoVerHistoricoVentas = permisoVerHistoricoVentas;
@@ -4060,6 +4073,23 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
   }
 
   _drawerWidget(){
+    return MyMobileDrawer(
+      scaffoldKey: _scaffoldKey, 
+      onTapCambiarServidor: (){
+        _cambiarServidor();
+        _scaffoldKey.currentState.openEndDrawer();
+      },
+      onTapDuplicar: _showDialogDuplicar,
+      onTapPagar: _pagar,
+      onTapCerrarSesion: () async {
+        // socket.close();
+        // socket.dispose();
+        _disconnectSocket();
+        await Principal.cerrarSesion(context);
+        await stopSocketNoticacionInForeground();
+      }
+    );
+    
     return Drawer(
       child: 
       ListView(
@@ -4143,6 +4173,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
               }
             ),
           ),
+          
           Visibility(
             visible: _tienePermisoVerDashboard,
             child: ListTile(
@@ -4151,6 +4182,18 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
               dense: true,
               onTap: (){
                 Navigator.of(context).pushNamed("/dashboard");
+                _scaffoldKey.currentState.openEndDrawer();
+              },
+            ),
+          ),
+          Visibility(
+            visible: _tienePermisoVerGeneral,
+            child: ListTile(
+              title: Text('General'),
+              leading: Icon(Icons.widgets_outlined),
+              dense: true,
+              onTap: (){
+                Navigator.of(context).pushNamed("/general");
                 _scaffoldKey.currentState.openEndDrawer();
               },
             ),

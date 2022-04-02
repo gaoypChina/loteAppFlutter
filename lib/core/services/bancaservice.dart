@@ -45,7 +45,7 @@ class BancaService{
     return (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
   }
 
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, Banca data, int idGrupo}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, int idBanca, int idGrupo}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // map["servidor"] = "valentin";
@@ -61,7 +61,7 @@ class BancaService{
       "servidor" : await Db.servidor(),
       "idGrupo" : idGrupo,
       "idUsuario" : await Db.idUsuario(),
-      "data" : data != null ? data.toJsonSave() : null,
+      "idBanca" : idBanca,
     };
     var jwt = await Utils.createJwt(map);
     
@@ -294,4 +294,40 @@ class BancaService{
 
     return parsed;
   }
+
+  static Future<Map<String, dynamic>> desactivar({@required BuildContext context, scaffoldKey, @required int id}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map["id"] = id;
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/desactivar"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BancaService desactivar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BancaService desactivar: ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BancaService guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
 }

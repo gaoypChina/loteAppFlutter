@@ -332,10 +332,13 @@ class ReporteService{
     map["idUsuario"] = await Db.idUsuario();
     map["idGrupo"] = idGrupo;
     map["idMoneda"] = moneda != null ? moneda.id : null;
-    map["fechaInicial"] = fechaInicial != null ? fechaInicial.toString() : DateTime.now().toString();
-    map["fechaFinal"] = fechaFinal != null ? fechaFinal.toString() : DateTime.now().toString();
+    map["fechaInicial"] = fechaInicial != null ? fechaInicial.toString() : null;
+    map["fechaFinal"] = fechaFinal != null ? fechaFinal.toString() : null;
     map["limiteInicialBancas"] = limiteInicialBancas;
     map["limiteFinalBancas"] = limiteFinalBancas;
+    map["retornarVentasPremiosComisionesDescuentos"] = retornarVentasPremiosComisionesDescuentos;
+    map["retornarMonedas"] = retornarMonedas;
+    map["retornarGrupos"] = retornarGrupos;
     map["servidor"] = await Db.servidor();
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;

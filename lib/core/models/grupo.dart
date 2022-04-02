@@ -26,6 +26,12 @@ class Grupo {
             return [];
         }
 
+  static Grupo get getGrupoNinguno => Grupo(id: 0, descripcion: 'Ninguno'); 
+
+  static List<Grupo> fromMapList(parsed){
+    return parsed != null ? parsed.map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       "id": id,

@@ -10,7 +10,7 @@ import 'myscrollbar.dart';
 class MyDropdown extends StatefulWidget {
   final String title;  
   final Function onTap; 
-  final String hint; 
+  final dynamic hint; 
   final List<List<dynamic>> elements;
   final bool enabled;
 
@@ -222,6 +222,9 @@ class _MyDropdownState extends State<MyDropdown> {
   }
 
   String _getText(){
+    if(widget.hint is Widget)
+      return "";
+
     String text = hint == null ?  'No hay datos' : hint;
     return text.substring(0, text.length >= widget.maxLengthToEllipsis ? widget.maxLengthToEllipsis : text.length) + '${widget.maxLengthToEllipsis < text.length ? '...' : ''}';
   }
@@ -232,7 +235,12 @@ class _MyDropdownState extends State<MyDropdown> {
     Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+        widget.hint is Widget ? widget.hint :
+        (widget.leading == false) 
+          ? 
+          Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) 
+          : 
+          Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ,
         // Icon(Icons.arrow_drop_down, color: Utils.fromHex("#1967d2")),
         Icon(Icons.arrow_drop_down, color: _textColor()),
@@ -245,10 +253,10 @@ class _MyDropdownState extends State<MyDropdown> {
         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? _textColor() : Colors.grey,),
         !widget.isExpanded
         ?
-         (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+         widget.hint is Widget ? widget.hint : (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
 :
         Expanded(
-          child:  (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+          child:  widget.hint is Widget ? widget.hint : (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
         ),
         // Icon(Icons.arrow_drop_down, color: widget.enabled ? Utils.fromHex("#1967d2") : Colors.grey),
         Icon(Icons.arrow_drop_down, color: widget.enabled ? _textColor() : Colors.grey),
@@ -518,7 +526,7 @@ class _MyDropdownState extends State<MyDropdown> {
   @override
   void didUpdateWidget(dynamic oldWidget) {
     if (oldWidget.hint != widget.hint) {
-      hint = widget.hint;
+      hint = widget.hint is Widget ? "" : widget.hint;
     }
     super.didUpdateWidget(oldWidget);
   }

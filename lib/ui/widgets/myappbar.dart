@@ -1097,7 +1097,8 @@ class _MyAppBarState extends State<MyAppBar> {
 
       switch (data.type) {
         case SearchDataType.branch:
-          Navigator.pushNamed(context, '/bancas/agregar', arguments: Banca(id: data.id, descripcion: data.title, codigo: data.subtitle));
+          // Navigator.pushNamed(context, '/bancas/agregar', arguments: Banca(id: data.id, descripcion: data.title, codigo: data.subtitle));
+          Navigator.pushNamed(context, '/bancas/agregar', arguments: data.id);
           break;
         case SearchDataType.user:
           Navigator.pushNamed(context, '/usuarios/agregar', arguments: Usuario(id: data.id, usuario: data.title, nombres: data.subtitle));

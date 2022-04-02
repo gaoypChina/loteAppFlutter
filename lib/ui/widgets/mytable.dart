@@ -51,10 +51,11 @@ class MyTable extends StatefulWidget {
   final bool showColorWhenImpar;
   final MyTableType type;
   final headerColor;
+  final Color headerTitleColor;
   final List<CustomCellWidth> customWidthOfOneCell;
   final double customRowHeight;
   final EdgeInsets customRowPadding;
-  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor, this.customWidthOfOneCell = const [], this.customRowHeight, this.customRowPadding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15)}) : super(key: key);
+  MyTable({Key key, @required this.columns, @required this.rows, this.totals, this.customTotals, this.onTap, this.delete, this.showDeleteIcon = true, this.indexCellKeyToReturnOnClick = 0, this.padding = const EdgeInsets.only(bottom: 15, top: 15), this.isScrolled = true, this.colorColumn, this.fontSizeColumn, this.putDeleteIconOnlyOnTheFirstRow = false, this.showColorWhenImpar = false, this.bottom, this.type = MyTableType.normal, this.headerColor, this.customWidthOfOneCell = const [], this.customRowHeight, this.customRowPadding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15), this.headerTitleColor}) : super(key: key);
   @override
   _MyTableState createState() => _MyTableState();
 }
@@ -83,6 +84,11 @@ class _MyTableState extends State<MyTable> {
 
     if(widget.rows.length == 0)
       return [];
+
+    if(widget.rows.length == 1){
+      if(widget.rows[0].length == 0)
+        return [];
+    }
 
     for (var i = 0; i < widget.rows.length; i++) {
       List<DataCell> cells = [];
@@ -171,7 +177,7 @@ class _MyTableState extends State<MyTable> {
       e 
       : 
       // Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans",), overflow: TextOverflow.ellipsis, softWrap: true, ))
-      Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, softWrap: true, ))
+      Center(child: Text(e, style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.bold, color: widget.headerTitleColor), overflow: TextOverflow.ellipsis, softWrap: true, ))
     )).toList();
     if(widget.delete != null)
       columns.add(DataColumn(label: Center(child: (widget.showDeleteIcon) ? IconButton(icon: Icon(Icons.delete), onPressed: null,) : Text(""))));
@@ -338,22 +344,29 @@ class _MyTableState extends State<MyTable> {
       ],
     )
     :
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        DataTable(
-          showCheckboxColumn: false,
-          headingRowHeight: 46,
-          decoration: BoxDecoration(
-            color: widget.headerColor,
-              borderRadius: BorderRadius.circular(5),
-            border: Border(top: BorderSide.none, bottom: BorderSide.none) 
-          ),
-          columns: _initColumn(),
-          rows: _init(),
-        ),
-        _customTotals()
-      ],
+    LayoutBuilder(
+      builder: (context, boxconstraints) {
+        return Column(
+          // crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: boxconstraints.maxWidth, minWidth: boxconstraints.minWidth),
+              child: DataTable(
+                showCheckboxColumn: false,
+                headingRowHeight: 46,
+                decoration: BoxDecoration(
+                  color: widget.headerColor,
+                    borderRadius: BorderRadius.circular(5),
+                  border: Border(top: BorderSide.none, bottom: BorderSide.none) 
+                ),
+                columns: _initColumn(),
+                rows: _init(),
+              ),
+            ),
+            _customTotals()
+          ],
+        );
+      }
     );
   }
 

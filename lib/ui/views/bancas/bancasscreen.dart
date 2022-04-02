@@ -85,7 +85,7 @@ class _BancasScreenState extends State<BancasScreen> {
   }
 
   _showDialogGuardar({Banca data}) async {
-    var data2 = await Navigator.pushNamed(context, "/bancas/agregar", arguments: data);
+    var data2 = await Navigator.pushNamed(context, "/bancas/agregar", arguments: data.id);
     if(data2 == null)
       return;
 
@@ -101,7 +101,7 @@ class _BancasScreenState extends State<BancasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return MyAlertDialog(
-              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar el grupo ", boldText: "${data.descripcion}",), 
+              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar la banca ", boldText: "${data.descripcion}",), 
               isDeleteDialog: true,
               cargando: cargando,
               okFunction: () async {

@@ -34,6 +34,7 @@ class MyDrawerType {
 }
 
 class MyDrawer extends StatefulWidget {
+  final bool general;
   final bool dashboard;
   final bool inicio;
   final bool transacciones;
@@ -68,7 +69,7 @@ class MyDrawer extends StatefulWidget {
   final Function onMouseExit;
   final Lotterycolor lotteryColor;
   // final ValueChanged onChanged;
-  MyDrawer({Key key, @required this.isExpanded, this.inicio = false, this.dashboard = false, this.transacciones = false, this.monitoreo = false, this.registrarPremios = false, this.reporteJugadas = false, this.ventasPorFecha = false, this.historicoVentas = false, this.ventas =  false, this.loterias = false, this.pendientesPago = false, this.bancas = false, this.monedas = false, this.entidades = false, this.bloqueosPorLoteria = false, this.bloqueosPorJugadas = false, this.usuarios = false, this.sesiones = false, this.balancebancos = false, this.clientesBack = false, this.horariosloterias, this.balanceBancas, this.isForSmallScreen = false, this.type = MyDrawerType.normal, this.animationBuilder, this.onMouseEnter, this.onMouseExit, this.grupos, this.ajustes, this.lotteryColor}) : super(key: key);
+  MyDrawer({Key key, @required this.isExpanded, this.inicio = false, this.general = false, this.dashboard = false, this.transacciones = false, this.monitoreo = false, this.registrarPremios = false, this.reporteJugadas = false, this.ventasPorFecha = false, this.historicoVentas = false, this.ventas =  false, this.loterias = false, this.pendientesPago = false, this.bancas = false, this.monedas = false, this.entidades = false, this.bloqueosPorLoteria = false, this.bloqueosPorJugadas = false, this.usuarios = false, this.sesiones = false, this.balancebancos = false, this.clientesBack = false, this.horariosloterias, this.balanceBancas, this.isForSmallScreen = false, this.type = MyDrawerType.normal, this.animationBuilder, this.onMouseEnter, this.onMouseExit, this.grupos, this.ajustes, this.lotteryColor}) : super(key: key);
   @override
   _MyDrawerState createState() => _MyDrawerState();
 }
@@ -87,6 +88,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   AnimationController _controllerTile;
   Animation<double> _animationTile;
 
+  var _generalNotifier = ValueNotifier<bool>(false);
   var _dashboardNotifier = ValueNotifier<bool>(false);
   var _transaccionesNotifier = ValueNotifier<bool>(false);
   var _monitoreoNotifier = ValueNotifier<bool>(false);
@@ -115,7 +117,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
 
 
   _gotTo(String route){
-    Navigator.pushNamed(context, route);
+    Navigator.pushNamed(context, route, arguments: route == "/general" ? false : null);
   }
 
   
@@ -147,6 +149,7 @@ class _MyDrawerState extends State<MyDrawer> with TickerProviderStateMixin {
   // }
 
   _getPermision() async {
+    _generalNotifier.value = await Db.existePermiso("Ver reporte general");
     _dashboardNotifier.value = await Db.existePermiso("Ver Dashboard");
     _transaccionesNotifier.value = await Db.existePermiso("Manejar transacciones");
     _monitoreoNotifier.value = await Db.existePermiso("Monitorear ticket");
@@ -365,14 +368,22 @@ _streamControllerListTile = BehaviorSubject();
                                       )
                                         
                                       ),
+                                      
                                       ValueListenableBuilder<bool>(
                                         valueListenable: _dashboardNotifier,
                                         builder: (context, value, snapshot) {
                                           return _myListTile(title: "Dashboard", icon: Icons.dashboard, selected: widget.dashboard, visible: value, onTap: (){_gotTo("/dashboard");}, );
                                         }
                                       ),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: _generalNotifier,
+                                        builder: (context, value, snapshot) {
+                                          return _myListTile(title: "General", icon: Icons.widgets_outlined, selected: widget.general, visible: value, onTap: (){_gotTo("/general");}, );
+                                        }
+                                      ),
                                       _myListTile(title: "Vender", icon: Icons.point_of_sale, selected: widget.inicio, visible: true, onTap: (){
-                                              Navigator.popUntil(context, (Route<dynamic> predicate) => predicate.isFirst);
+                                              // Navigator.popUntil(context, (Route<dynamic> predicate) => predicate.isFirst);
+                                              Navigator.pushNamed(context, "/", arguments: true);
                                       }, ),
                                       ValueListenableBuilder<bool>(
                                         valueListenable: _transaccionesNotifier,

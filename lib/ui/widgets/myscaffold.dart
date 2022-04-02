@@ -13,7 +13,7 @@ import 'mybottom.dart';
 import 'mybutton.dart';
 
 
-myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged, ValueChanged<SearchData> appBarDuplicarTicket, Lotterycolor lotteryColor, Function onTextLoteriasTap}){
+myScaffold({@required BuildContext context, key, @required bool cargando, @required ValueNotifier<bool> cargandoNotify, Widget drawer, Widget myNestedScrollBar, List<Widget> body, sliverBody, bool dashboard = false, bool general = false, bool inicio = false, bool transacciones = false, bool monitoreo = false, bool registrarPremios = false, bool reporteJugadas = false, bool ventasPorFecha = false, bool historicoVentas = false, bool ventas = false, bool pendientesPago = false, bool balancebancos = false, bool bloqueosPorLoteria = false, bool bloqueosPorJugadas = false, bool sesiones = false, bool horariosloterias = false, bool monedas = false, bool balanceBancas = false, bool usuarios = false, bool bancas = false, bool loterias = false, bool ajustes = false, bool grupos = false, bool entidades = false, bool resizeToAvoidBottomInset = true, bool isSliverAppBar = false, bottomTap, String textBottom = "Guardar", bool showDrawerOnSmallOrMedium = false, floatingActionButton, bool showDrawer = true, ValueNotifier valueNotifyDrawer, Function onDrawerChanged, ValueChanged<SearchData> appBarDuplicarTicket, Lotterycolor lotteryColor, Function onTextLoteriasTap}){
   Widget widget = SizedBox();
   var _defaultValueNotifyDrawer = ValueNotifier(DRAWER_IS_OPEN);
   var _valueNotifierAppBarPago = ValueNotifier<dynamic>(null);
@@ -42,7 +42,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       return MyDrawer(
         isExpanded: value, 
         // type: value == false ? MyDrawerType.onlyIcons : MyDrawerType.normal, 
-        dashboard: dashboard, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, 
+        dashboard: dashboard, general: general, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, 
         pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, 
         balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, entidades: entidades, bancas: bancas, loterias: loterias, grupos: grupos, ajustes: ajustes,
         lotteryColor: lotteryColor,
@@ -215,7 +215,16 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
       if(showDrawerOnSmallOrMedium == false && Utils.isSmallOrMedium(MediaQuery.of(context).size.width))
         return null;
 
-      return MyDrawer(isForSmallScreen: true, isExpanded: true, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, lotteryColor: lotteryColor);
+      // return MyDrawer(isForSmallScreen: true, isExpanded: true, general: general, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, lotteryColor: lotteryColor);
+      return MyDrawer(
+        isForSmallScreen: true,
+        isExpanded: true, 
+        // type: value == false ? MyDrawerType.onlyIcons : MyDrawerType.normal, 
+        dashboard: dashboard, general: general, inicio: inicio, transacciones: transacciones, reporteJugadas: reporteJugadas, monitoreo: monitoreo, registrarPremios: registrarPremios, ventasPorFecha: ventasPorFecha, historicoVentas: historicoVentas, ventas: ventas, 
+        pendientesPago: pendientesPago, balancebancos: balancebancos, bloqueosPorLoteria: bloqueosPorLoteria, bloqueosPorJugadas: bloqueosPorJugadas, sesiones: sesiones, 
+        balanceBancas: balanceBancas, usuarios: usuarios, horariosloterias: horariosloterias, monedas: monedas, entidades: entidades, bancas: bancas, loterias: loterias, grupos: grupos, ajustes: ajustes,
+        lotteryColor: lotteryColor);
+      // return _drawerWidget(true);
     }
 
   _initDrawerNotifier();
@@ -239,7 +248,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
           //     title: Text("Inicio"),
           //   )
           // ],),),
-          drawer: _drawerScreen(),
+          drawer: drawer,
           // appBar: (isSliverAppBar == true && (ScreenSize.isMedium(MediaQuery.of(context).size.width) || ScreenSize.isSmall(MediaQuery.of(context).size.width))) ? null : myAppBar(context: context, cargando: cargando, onTap: _onMenuTap),
           appBar: Utils.isSmallOrMedium(MediaQuery.of(context).size.width) 
           ? 

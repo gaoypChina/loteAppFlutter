@@ -36,8 +36,8 @@ import 'package:rxdart/rxdart.dart';
 
 
 class BancasAddScreen extends StatefulWidget {
-  final Banca data;
-  BancasAddScreen({Key key, this.data}) : super(key: key);
+  final int idBanca;
+  BancasAddScreen({Key key, this.idBanca}) : super(key: key);
   @override
   _BancasAddScreenState createState() => _BancasAddScreenState();
 }
@@ -124,7 +124,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
 
   _init() async {
-    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, data: widget.data);
+    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, idBanca: widget.idBanca);
     listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
     listaUsuario = (parsed["usuarios"] != null) ? parsed["usuarios"].map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
