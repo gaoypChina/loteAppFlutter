@@ -60,24 +60,31 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
 
 
   _init() async {
-    idGrupo = await Db.idGrupo();
-    var parsed = await ReporteService.general(context: context, idGrupo: idGrupo, retornarVentasPremiosComisionesDescuentos: true, retornarGrupos: true, retornarMonedas: true);
-    print("ReportegeneralsScreen _init parsed: $parsed");
-    listaGrupo = Grupo.fromMapList(parsed["grupos"]);
-    listaGrupo.insert(0, Grupo.getGrupoNinguno);
-    listaMoneda = Moneda.fromMapList(parsed["monedas"]);
-    listaBanca = Branchreport.fromMapList(parsed["bancas"]);
     _filtro = listaFiltro[0];
-
-    if(listaMoneda.length > 0)
-      _moneda = listaMoneda[0];
-
-    if(idGrupo != null){
-      _grupo = listaGrupo.firstWhere((element) => element.id == idGrupo, orElse: () => null);
+    
+    try {
+      idGrupo = await Db.idGrupo();
+      var parsed = await ReporteService.general(context: context, idGrupo: idGrupo, retornarVentasPremiosComisionesDescuentos: true, retornarGrupos: true, retornarMonedas: true);
+      print("ReportegeneralsScreen _init parsed: $parsed");
+      listaGrupo = Grupo.fromMapList(parsed["grupos"]);
+      listaGrupo.insert(0, Grupo.getGrupoNinguno);
+      listaMoneda = Moneda.fromMapList(parsed["monedas"]);
+      listaBanca = Branchreport.fromMapList(parsed["bancas"]);
+      
+      
+      if(listaMoneda.length > 0)
+        _moneda = listaMoneda[0];
+      
+      if(idGrupo != null){
+        _grupo = listaGrupo.firstWhere((element) => element.id == idGrupo, orElse: () => null);
+      }
+      
+      _streamControllerData.add(parsed);
+      _streamControllerBanca.add(listaBanca);
+    } on Exception catch (e) {
+      _streamControllerData.add({});
+      // TODO
     }
-
-    _streamControllerData.add(parsed);
-    _streamControllerBanca.add(listaBanca);
   }
 
   _general([bool soloFiltroBanca = false]) async {
@@ -87,7 +94,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
       else
         _valueNotifierCargandoFiltroBanca.value = true;
 
-      var parsed = await ReporteService.general(context: context, moneda: _moneda, idGrupo: idGrupo != null ? idGrupo : _grupo != null ? _grupo.id : null, fechaFinal: _date.start, fechaInicial: _date.end, retornarVentasPremiosComisionesDescuentos: !soloFiltroBanca, filtro: _filtro);
+      var parsed = await ReporteService.general(context: context, moneda: _moneda, idGrupo: idGrupo != null ? idGrupo : _grupo != null ? _grupo.id : null, fechaInicial: _date.start, fechaFinal: _date.end, retornarVentasPremiosComisionesDescuentos: !soloFiltroBanca, filtro: _filtro);
       listaBanca = Branchreport.fromMapList(parsed["bancas"]);
       _streamControllerBanca.add(listaBanca);
 
@@ -101,7 +108,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
     } on Exception catch (e) {
       // TODO
        if(!soloFiltroBanca)
-        _streamControllerData.add(null);
+        _streamControllerData.add({});
       else
       _valueNotifierCargandoFiltroBanca.value = false;
     }
@@ -363,7 +370,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
           mainAxisAlignment: isSmallOrMedium ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             Icon(Icons.trending_up, color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, size: 18,),
-            Text("${Utils.toCurrency(data.totalNetoPorcentaje)}%", style: TextStyle(color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, fontSize: 11),),
+            Text("${Utils.toCurrency(data.totalNetoPorcentaje, true)}%", style: TextStyle(color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, fontSize: 11),),
           ],
         )
       ],
@@ -446,6 +453,23 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
     data.map((e) => [e, e.descripcion, "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}", "${e.comisiones}", "${e.descuentos}", _totalNetoWidget(isSmallOrMedium, e), _opcionWidget(isSmallOrMedium, e)]).toList();
   }
 
+  _totalNetoPrincipalWidget(Map<String, dynamic> data){
+    return Text("${Utils.toCurrency(data["totalNeto"], false, false)}", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, color: data["totalNeto"] >= 0 ? Colors.black : Colors.pink));
+  }
+
+  _porcentajeGananciaPrincipalWidget(Map<String, dynamic> data){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Icon(Icons.trending_up, color: data["totalNeto"] == 0 ? Colors.grey : data["totalNeto"] > 0 ? Colors.green : Colors.pink, size: 18,),
+        ),
+        Text("${data['totalNetoPorcentaje']}%", style: TextStyle(color: data["totalNeto"] == 0 ? Colors.grey : data["totalNeto"] > 0 ? Colors.green : Colors.pink, fontSize: 13),)
+      ],
+    );
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -516,31 +540,35 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
           stream: _streamControllerData.stream,
           builder: (context, snapshot) {
             print("ReportesGeneralScreen streambuilder: ${snapshot.data}");
-            if(snapshot.hasError)
-              return SliverFillRemaining(child: MyEmpty(title: "Ha ocurrido un error", titleButton: "Cargar nuevamente",),);
-
             if(snapshot.data == null)
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()),);
+
+            if(snapshot.data.isEmpty)
+              return SliverFillRemaining(child: MyEmpty(title: "Ha ocurrido un error", titleButton: "Cargar nuevamente", onTap: (){_general();},),);
+
+            
 
             return SliverList(delegate: SliverChildListDelegate([
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18.0),
                 child: Column(
                   children: [
+                    isSmallOrMedium
+                    ?
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _totalNetoPrincipalWidget(snapshot.data),
+                        _porcentajeGananciaPrincipalWidget(snapshot.data)
+                      ],
+                    )
+                    :
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text("${Utils.toCurrency(snapshot.data["totalNeto"], false, false)}", style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold, color: snapshot.data["totalNeto"] >= 0 ? Colors.black : Colors.pink)),
-                        Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                              child: Icon(Icons.trending_up, color: snapshot.data["totalNeto"] == 0 ? Colors.grey : snapshot.data["totalNeto"] > 0 ? Colors.green : Colors.pink, size: 18,),
-                            ),
-                            Text("${snapshot.data['totalNetoPorcentaje']}%", style: TextStyle(color: snapshot.data["totalNeto"] == 0 ? Colors.grey : snapshot.data["totalNeto"] > 0 ? Colors.green : Colors.pink, fontSize: 13),)
-                          ],
-                        )
+                        _totalNetoPrincipalWidget(snapshot.data),
+                        _porcentajeGananciaPrincipalWidget(snapshot.data)
                       ],
                     ),
                     MyDescripcon(title: "${snapshot.data["totalNeto"] >= 0 ? 'Ganancia' : 'Perdida'}")

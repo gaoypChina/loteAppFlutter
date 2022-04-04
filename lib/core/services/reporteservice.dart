@@ -303,19 +303,19 @@ class ReporteService{
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService historico: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
-      // if(context != null)
-      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
-      // else
-      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
       throw Exception("Error: ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
     if(parsed["errores"] == 1){
-      // if(context != null)
-      //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
-      // else
-      //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error: ${parsed["mensaje"]}");
     }
 
@@ -352,19 +352,19 @@ class ReporteService{
     if(statusCode < 200 || statusCode > 400){
       print("ReporteService historico: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
-      // if(context != null)
-      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
-      // else
-      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
       throw Exception("Error: ${parsed["message"]}");
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
     if(parsed["errores"] == 1){
-      // if(context != null)
-      //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
-      // else
-      //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
       throw Exception("Error: ${parsed["mensaje"]}");
     }
 
