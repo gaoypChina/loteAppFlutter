@@ -37,11 +37,11 @@ class  Utils {
   // static final String URL = 'https://loteriasdo.gq';
   // static final String URL_SOCKET = URL.replaceFirst("https", "http") + ":3000";
 
-  static final String URL = 'https://server.loteriasdo.gq';
-  static final String URL_SOCKET = URL + ":8000";
-
-  // static final String URL = 'https://lote-app.com';
+  // static final String URL = 'https://server.loteriasdo.gq';
   // static final String URL_SOCKET = URL + ":8000";
+
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
@@ -340,10 +340,10 @@ class  Utils {
     return lista;
   }
 
-  static List removeDuplicateLoteriasSuperPaleFromList(List lista){
+  static List removeDuplicateLoteriasSuperPaleFromList(List lista, [int idLoteria]){
     // print("BEFORE DELETE");
     // var listaSuperpale = lista.where((element) => element.idLoteriaSuperpale != 0 && element.idLoteriaSuperpale != null).toList();
-    var listaSuperpale = lista.where((element) => element.idSorteo == 4).toList();
+    var listaSuperpale = idLoteria != null ? lista.where((element) => element.idSorteo == 4 && element.idLoteria == idLoteria).toList() : lista.where((element) => element.idSorteo == 4).toList();
     print("removeDuplicateLoteriasSuperPaleFromList listaSUperpale lenght: ${listaSuperpale.length}");
     if(listaSuperpale.length == 0)
       return [];

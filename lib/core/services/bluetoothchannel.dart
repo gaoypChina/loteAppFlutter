@@ -1153,17 +1153,17 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
         
         }
 
-        print("loteriaSuperpale: $loteria");
         // continue;
 
         // Buscamos todas las jugadas de tipo SuperPale que tenga esta loteria usada arriba y nos aseguramos de que los idLoteriaSuperPale sean de diferentes loterias
         // y no sea nulos
-        List<Salesdetails> jugadasSuper = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
         // List<Salesdetails> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Salesdetails>().toList();
+        // List<Salesdetails> jugadasSuper = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
+        List<Salesdetails> jugadasSuper = Utils.removeDuplicateLoteriasSuperPaleFromList(listSalesdetails, loteria.id).cast<Salesdetails>().toList();
         for(Salesdetails salesdetailLoteriaSuperPale in jugadasSuper){
           Loteria loteria = salesdetailLoteriaSuperPale.loteria;
           Loteria ls = salesdetailLoteriaSuperPale.loteriaSuperPale;
-          jugadas = jugadasSuper.where((element) => element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
+          jugadas = listSalesdetails.where((element) => element.idLoteria == salesdetailLoteriaSuperPale.loteria.id && element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
           if(jugadas.isNotEmpty){
             primerCicloJugadas = true;
             contadorCicleJugadas = 0;
@@ -1383,13 +1383,14 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
 
         // continue;
         
-        List<Salesdetails> jugadasSuper = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
         // List<Salesdetails> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Salesdetails>().toList();
-          
+        // List<Salesdetails> jugadasSuper = listSalesdetails.where((element) => element.loteria.id == loteria.id && (element.idSorteo == 4)).toList();
+        List<Salesdetails> jugadasSuper = Utils.removeDuplicateLoteriasSuperPaleFromList(listSalesdetails, loteria.id).cast<Salesdetails>().toList();
+        
         for(Salesdetails salesdetailLoteriaSuperPale in jugadasSuper){
           Loteria loteria = salesdetailLoteriaSuperPale.loteria;
           Loteria ls = salesdetailLoteriaSuperPale.loteriaSuperPale;
-          jugadas = jugadasSuper.where((element) => element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
+          jugadas = listSalesdetails.where((element) => element.idLoteria == salesdetailLoteriaSuperPale.loteria.id && element.idLoteriaSuperpale == salesdetailLoteriaSuperPale.idLoteriaSuperpale).toList();
 
           if(jugadas.isNotEmpty){
             primerCicloJugadas = true;
