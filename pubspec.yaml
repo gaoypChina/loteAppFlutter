@@ -20,12 +20,12 @@ environment:
 
 dependencies:
   provider: ^6.0.1
-  get_it: ^7.1.1
+  get_it: ^7.2.0
   intl: ^0.17.0
-  font_awesome_flutter: ^9.0.0
+  font_awesome_flutter: ^10.1.0
   http: ^0.13.4
   rxdart: ^0.26.0
-  path_provider: ^2.0.1
+  path_provider: ^2.0.9
   sembast: ^3.0.2
   sembast_web: '>=1.0.0'
   # sembast: ^2.4.8+1
