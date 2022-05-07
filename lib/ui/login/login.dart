@@ -332,7 +332,7 @@ _showSnackBar(String content){
                               ],
                             ),
                           ),
-                          Center(child: Text("Version prueba 2.3.0", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
+                          Center(child: Text("Version prueba 2.3.3", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
                         ],
                       ),
                     ),

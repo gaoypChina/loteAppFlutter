@@ -4961,6 +4961,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 AbsorbPointer(
                   absorbing: _cargando,
                   child: MyButton(
+                    medium: 4.3,
                     cargando: false,
                     type: MyButtonType.roundedWithOnlyBorder,
                     // color: Colors.blue[700],
@@ -4971,9 +4972,10 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
                   child: MyButton(
-                    xlarge: 7,
+                    xlarge: 8,
+                    large: 5,
                     medium: 5,
                     cargando: false,
                     type: MyButtonType.roundedWithOnlyBorder,
@@ -4987,11 +4989,11 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 Visibility(
                   visible: _tienePermisoMarcarTicketComoPagado,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: MyButton(
-                      xlarge: 7,
-                      large: 7,
-                      medium: 7,
+                      xlarge: 9,
+                      large: 7.5,
+                      medium: 6.8,
                       cargando: false,
                       type: MyButtonType.roundedWithOnlyBorder,
                       // color: Colors.blue[700],
@@ -5005,19 +5007,38 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
                 Visibility(
                   visible: _tienePermisoMarcarTicketComoPagado,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: MyButton(
-                      xlarge: 7,
-                      large: 6,
+                      xlarge: 9,
+                      large: 7,
                       medium: 6,
                       cargando: false,
                       type: MyButtonType.roundedWithOnlyBorder,
                       // color: Colors.blue[700],
                       // textColor: Colors.pink,
-                      title: "Duplicar",
+                      title: "Copiar",
                       function: (){_showDialogDuplicar(isSmallOrMedium);},
                       cargandoNotify: ValueNotifier<bool>(false),
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                  child: MyButton(
+                    xlarge: 9,
+                    large: 8,
+                    medium: 6,
+                    cargando: false,
+                    type: MyButtonType.roundedWithOnlyBorder,
+                    // color: Colors.blue[700],
+                    // textColor: Colors.pink,
+                    title: "Ligar",
+                    function: (){
+                      if(listaJugadas.length >= 2){
+                        _showLigarDialog();
+                        return;
+                      }
+                    },
                   ),
                 ),
                 // MyButton(
