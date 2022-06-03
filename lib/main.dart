@@ -174,7 +174,8 @@ class MyApp extends StatelessWidget {
           print("myLanguaCode: ${myLocale.languageCode}");
         },
         initialRoute: '/',
-        title: 'Product App',
+        // title: 'Product App',
+        title: 'Loterias',
         // theme: ThemeData(),
         onGenerateRoute: MyRouter.generateRoute,
       );

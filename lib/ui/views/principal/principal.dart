@@ -4381,7 +4381,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           Visibility(
             visible: _tienePermisoVerListaDeBalancesDeBancos || _tienePermisoVerListaDeBalancesDeBancass,
             child: ExpansionTile(
-              leading: Icon(Icons.six__ft_apart),
+              leading: Icon(Icons.six_ft_apart),
               title: Text("Balances"),
               children: [
                 Visibility(

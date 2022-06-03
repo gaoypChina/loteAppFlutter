@@ -237,7 +237,7 @@ class MainActivity: FlutterActivity() {
 
     fun printText(call: MethodCall, result: MethodChannel.Result){
         val args = call.arguments<Map<String, Any>>()
-        val map : Map<Int, Any> = args["data"] as Map<Int, Any>
+        val map : Map<Int, Any> = args?.get("data") as Map<Int, Any>
         for (i in 0 until map.size){
 
             val m : Map<String, Any> = map[i] as Map<String, Any>

@@ -529,7 +529,7 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
               return Visibility(
                 visible: balanceValue,
                 child: ExpansionTile(
-                  leading: Icon(Icons.six__ft_apart),
+                  leading: Icon(Icons.six_ft_apart),
                   title: Text("Balances"),
                   children: [
                     ValueListenableBuilder<bool>(

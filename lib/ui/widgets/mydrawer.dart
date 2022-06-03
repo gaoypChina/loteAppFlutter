@@ -497,7 +497,7 @@ _streamControllerListTile = BehaviorSubject();
                                             title: "Balances", 
                                             visible: balanceValue,
                                             selected: widget.balancebancos || widget.balanceBancas,
-                                            icon: Icons.six__ft_apart,
+                                            icon: Icons.six_ft_apart,
                                             initialExpanded: widget.balancebancos || widget.balanceBancas,
                                             listaMylisttile: [
                                               ValueListenableBuilder<bool>(

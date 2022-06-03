@@ -612,7 +612,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
         sliverAppBar: MySliverAppBar(
           title: "Reporte jugadas",
           subtitle: _subtitle(isSmallOrMedium),
-          expandedHeight: isSmallOrMedium ? 105 : 60,
+          expandedHeight: isSmallOrMedium ? 105 : 80,
           actions: [
             MySliverButton(
               title: Padding(
