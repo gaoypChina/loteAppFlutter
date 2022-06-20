@@ -8,6 +8,7 @@ import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
+import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
@@ -194,14 +195,110 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     var dataRetornada = await showDialog(
       context: context, 
       builder: (context){
-        return MyMultiselect(
-          title: "Agregar loterias",
-          items: listaLoteria.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
-          initialSelectedItems: _loterias.length == 0 ? [] : _loterias.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+        // return MyMultiselect(
+        //   title: "Agregar loterias",
+        //   items: listaLoteria.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+        //   initialSelectedItems: _loterias.length == 0 ? [] : _loterias.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+        // );
+        
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            _onChanged(bool value, Loteria loteria){
+              print("BloqueosPorLoteriasScreen _loteriasChanged _onChanged: $value");
+              if(value){
+                if(_loterias.firstWhere((element) => element == loteria, orElse: () => null) == null)
+                  setState(() => _loterias.add(loteria));
+              }
+              else
+                setState(() => _loterias.removeWhere((element) => element == loteria));
+            }
+
+            bool _selected(Loteria loteria){
+              return _loterias.firstWhere((element) => element == loteria, orElse: () => null) != null;
+            }
+
+            _agregarLoteriaSuperpale(Loteria loteria) async {
+              var dataRetornada = await showDialog(
+                context: context, 
+                builder: (context){
+                  return MyMultiselect(
+                    title: "Agregar loterias",
+                    subtitle: "Estas loterias se combinaran para...",
+                    items: listaLoteria.where((element) => element != loteria).map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+                    initialSelectedItems: loteria.loteriaSuperpale.length == 0 ? [] : loteria.loteriaSuperpale.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+                  );
+              });
+
+              if(dataRetornada != null)
+                setState(() => loteria.loteriaSuperpale = List.from(dataRetornada));
+            }
+
+            Widget _textButtonAgregarLoteriaSuperpale(Loteria loteria){
+              return TextButton(onPressed: () =>  _agregarLoteriaSuperpale(loteria), child: Text("Agregar loteria super pale"));
+            }
+
+            void _deleteLoteriaSuperpale(Loteria loteriaSuperpale, Loteria loteriaALaQuePerteneceElSuperpale){
+              setState(() => loteriaALaQuePerteneceElSuperpale.loteriaSuperpale.removeWhere((element) => element == loteriaSuperpale));
+            }
+
+            Widget _listTileSuperpale(Loteria loteriaSuperpale, Loteria loteriaALaQuePerteneceElSuperpale){
+              return ListTile(title: Text("${loteriaSuperpale.descripcion}"), trailing: IconButton(icon: Icon(Icons.delete), onPressed: () => _deleteLoteriaSuperpale(loteriaSuperpale, loteriaALaQuePerteneceElSuperpale),),);
+            }
+
+            void _limpiar(){
+              setState(() => _loterias = []);
+            }
+
+            void _seleccionarTodos(){
+              for (var loteria in listaLoteria) {
+                if(_loterias.firstWhere((element) => element == loteria, orElse: () => null) == null)
+                  setState(() => _loterias.add(loteria));
+              }
+            }
+
+            
+
+            return AlertDialog(
+              title: Text("Selec. Loterias"),
+              content: SingleChildScrollView(
+                child: ListTileTheme(
+                  contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+                  child: ListBody(
+                    children: listaLoteria.map((e) => ExpansionTile(
+                      childrenPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 2.0),
+                      tilePadding: EdgeInsets.symmetric(horizontal: 2.0),
+                      title: Text(e.descripcion), 
+                      controlAffinity: ListTileControlAffinity.leading,
+                      trailing: Checkbox(value: _selected(e), onChanged: (value) => _onChanged(value, e)), 
+                      children: e.loteriaSuperpale.length == 0 ? [_textButtonAgregarLoteriaSuperpale(e)] : e.loteriaSuperpale.asMap().map((key, es){
+                        if(key == 0)
+                          return MapEntry(key, Column(
+                            children: [
+                              _textButtonAgregarLoteriaSuperpale(e),
+                              _listTileSuperpale(es, e)
+                            ],
+                          ));
+
+                        return MapEntry(key, _listTileSuperpale(es, e));
+                      }).values.toList(),
+                    )
+                  ).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: _limpiar, child: Text("Limpiar", style: TextStyle(color: Colors.pink),)),
+                TextButton(onPressed: _seleccionarTodos, child: Text("Todos", style: TextStyle(color: Theme.of(context).primaryColor))),
+                TextButton(onPressed: () => Navigator.pop(context, _loterias), child: Text("Ok", style: TextStyle(color: Theme.of(context).primaryColor))),
+              ],
+            );
+          }
         );
       }
     );
 
+    print("BloqueosPorLoteriasScreen _loteriasChanged: ${dataRetornada == null}");
     if(dataRetornada != null)
       setState(() => _loterias = List.from(dataRetornada));
   }

@@ -2698,7 +2698,7 @@ _getListLotteryColor(){
       // Loteria loteria = l;
       Color _textColor;
 
-      print("PrincipalView _getListLotteryColor loteria: ${l.color}");
+      // print("PrincipalView _getListLotteryColor loteria: ${l.color}");
 
       if(l.color != null){
         var lotterycolor = _listaLotteryColor.firstWhere((element) => element.toHex() == l.color, orElse:() => null,);

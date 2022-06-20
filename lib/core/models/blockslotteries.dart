@@ -7,6 +7,7 @@ class Blockslotteries{
    int idBanca;
    int idDia;
    int idLoteria;
+   int idLoteriaSuperpale;
    int idSorteo;
    double monto;
    DateTime created_at;
@@ -20,6 +21,7 @@ Blockslotteries.fromMap(Map snapshot) :
         idBanca = snapshot['idBanca'] != null ? Utils.toInt(snapshot['idBanca']) : 0,
         idDia = snapshot['idDia'] != null ? Utils.toInt(snapshot['idDia']) : 0,
         idLoteria = snapshot['idLoteria'] != null ? Utils.toInt(snapshot['idLoteria']) : 0,
+        idLoteriaSuperpale = Utils.toInt(snapshot['idLoteriaSuperpale'], returnNullIfNotInt: true),
         idSorteo = snapshot['idSorteo'] != null ? Utils.toInt(snapshot['idSorteo']) : 0,
         monto = double.parse(snapshot['monto'].toString()) ?? 0,
         created_at = DateTime.parse(snapshot['created_at']) ?? null,
@@ -36,6 +38,7 @@ Blockslotteries.fromMap(Map snapshot) :
       "idBanca": idBanca,
       "idDia": idDia,
       "idLoteria": idLoteria,
+      "idLoteriaSuperpale": idLoteriaSuperpale,
       "idSorteo": idSorteo,
       "monto": monto,
       "created_at": created_at.toString(),

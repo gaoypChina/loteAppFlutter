@@ -8,9 +8,10 @@ class MyValue<T>{
 
 class MyMultiselect<T> extends StatefulWidget {
   final dynamic title;
+  final dynamic subtitle;
   final List<MyValue<T>> items;
   final List<MyValue<T>> initialSelectedItems;
-  MyMultiselect({Key key, @required this.title, this.items = const [], this.initialSelectedItems = const []}) : super(key: key);
+  MyMultiselect({Key key, @required this.title, this.subtitle, this.items = const [], this.initialSelectedItems = const []}) : super(key: key);
   @override
   _MyMultiselectState<T> createState() => _MyMultiselectState<T>();
 }
@@ -18,12 +19,41 @@ class MyMultiselect<T> extends StatefulWidget {
 class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
   // List<MyValue<T>> widget.initialSelectedItems = [];
 
+  _subtitle(){
+    return Visibility(visible: widget.subtitle != null, child: widget.subtitle != null ? widget.subtitle  is Widget ? widget.subtitle : Text("${widget.subtitle}", style: TextStyle(color: Colors.grey, fontSize: 12),) : Text(""));
+  }
+
   _title(dynamic data){
     print("MyMultiSelect $data");
-    if(data is Widget)
-      return data;
-    else
+    if(data is Widget){
+      if(widget.subtitle == null)
+        return data;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          data,
+          _subtitle()
+        ],
+      );
+    }else{
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("$data",),
+          _subtitle()
+        ],
+      );
+    }
+  }
+
+  _listTileTitle(dynamic data){
+    print("MyMultiSelect $data");
+    if(data is Widget){
+        return data;
+    }else{
       return Text("$data",);
+    }
   }
 
   _onChanged(bool value, MyValue<T> data){
@@ -92,7 +122,7 @@ class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
         child: ListTileTheme(
           contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
           child: ListBody(
-            children: widget.items.map((e) => CheckboxListTile(title: _title(e.child), value: _selected(e.value), onChanged: (value){_onChanged(value, e);})).toList(),
+            children: widget.items.map((e) => CheckboxListTile(title: _listTileTitle(e.child), value: _selected(e.value), onChanged: (value){_onChanged(value, e);})).toList(),
           ),
         ),
       ),
