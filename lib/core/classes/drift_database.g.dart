@@ -4100,6 +4100,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
   final double monto;
   final DateTime created_at;
   final int idMoneda;
+  final int idLoteriaSuperpale;
   Blocksgeneral(
       {@required this.id,
       @required this.idDia,
@@ -4107,7 +4108,8 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
       @required this.idSorteo,
       @required this.monto,
       this.created_at,
-      @required this.idMoneda});
+      @required this.idMoneda,
+      this.idLoteriaSuperpale});
   factory Blocksgeneral.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blocksgeneral(
@@ -4124,6 +4126,8 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       idMoneda: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
+      idLoteriaSuperpale: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}id_loteria_superpale']),
     );
   }
   @override
@@ -4150,6 +4154,9 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
     if (!nullToAbsent || idMoneda != null) {
       map['id_moneda'] = Variable<int>(idMoneda);
     }
+    if (!nullToAbsent || idLoteriaSuperpale != null) {
+      map['id_loteria_superpale'] = Variable<int>(idLoteriaSuperpale);
+    }
     return map;
   }
 
@@ -4172,6 +4179,9 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
       idMoneda: idMoneda == null && nullToAbsent
           ? const Value.absent()
           : Value(idMoneda),
+      idLoteriaSuperpale: idLoteriaSuperpale == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLoteriaSuperpale),
     );
   }
 
@@ -4186,6 +4196,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
       monto: serializer.fromJson<double>(json['monto']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
       idMoneda: serializer.fromJson<int>(json['idMoneda']),
+      idLoteriaSuperpale: serializer.fromJson<int>(json['idLoteriaSuperpale']),
     );
   }
   @override
@@ -4199,6 +4210,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
       'monto': serializer.toJson<double>(monto),
       'created_at': serializer.toJson<DateTime>(created_at),
       'idMoneda': serializer.toJson<int>(idMoneda),
+      'idLoteriaSuperpale': serializer.toJson<int>(idLoteriaSuperpale),
     };
   }
 
@@ -4209,7 +4221,8 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
           int idSorteo,
           double monto,
           DateTime created_at,
-          int idMoneda}) =>
+          int idMoneda,
+          int idLoteriaSuperpale}) =>
       Blocksgeneral(
         id: id ?? this.id,
         idDia: idDia ?? this.idDia,
@@ -4218,6 +4231,7 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
         monto: monto ?? this.monto,
         created_at: created_at ?? this.created_at,
         idMoneda: idMoneda ?? this.idMoneda,
+        idLoteriaSuperpale: idLoteriaSuperpale ?? this.idLoteriaSuperpale,
       );
   @override
   String toString() {
@@ -4228,14 +4242,15 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
           ..write('idSorteo: $idSorteo, ')
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('idLoteriaSuperpale: $idLoteriaSuperpale')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, idDia, idLoteria, idSorteo, monto, created_at, idMoneda);
+  int get hashCode => Object.hash(id, idDia, idLoteria, idSorteo, monto,
+      created_at, idMoneda, idLoteriaSuperpale);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4246,7 +4261,8 @@ class Blocksgeneral extends DataClass implements Insertable<Blocksgeneral> {
           other.idSorteo == this.idSorteo &&
           other.monto == this.monto &&
           other.created_at == this.created_at &&
-          other.idMoneda == this.idMoneda);
+          other.idMoneda == this.idMoneda &&
+          other.idLoteriaSuperpale == this.idLoteriaSuperpale);
 }
 
 class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
@@ -4257,6 +4273,7 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
   final Value<double> monto;
   final Value<DateTime> created_at;
   final Value<int> idMoneda;
+  final Value<int> idLoteriaSuperpale;
   const BlocksgeneralsCompanion({
     this.id = const Value.absent(),
     this.idDia = const Value.absent(),
@@ -4265,6 +4282,7 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
     this.monto = const Value.absent(),
     this.created_at = const Value.absent(),
     this.idMoneda = const Value.absent(),
+    this.idLoteriaSuperpale = const Value.absent(),
   });
   BlocksgeneralsCompanion.insert({
     this.id = const Value.absent(),
@@ -4274,6 +4292,7 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
     @required double monto,
     this.created_at = const Value.absent(),
     @required int idMoneda,
+    this.idLoteriaSuperpale = const Value.absent(),
   })  : idDia = Value(idDia),
         idLoteria = Value(idLoteria),
         idSorteo = Value(idSorteo),
@@ -4287,6 +4306,7 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
     Expression<double> monto,
     Expression<DateTime> created_at,
     Expression<int> idMoneda,
+    Expression<int> idLoteriaSuperpale,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4296,6 +4316,8 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
       if (monto != null) 'monto': monto,
       if (created_at != null) 'created_at': created_at,
       if (idMoneda != null) 'id_moneda': idMoneda,
+      if (idLoteriaSuperpale != null)
+        'id_loteria_superpale': idLoteriaSuperpale,
     });
   }
 
@@ -4306,7 +4328,8 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
       Value<int> idSorteo,
       Value<double> monto,
       Value<DateTime> created_at,
-      Value<int> idMoneda}) {
+      Value<int> idMoneda,
+      Value<int> idLoteriaSuperpale}) {
     return BlocksgeneralsCompanion(
       id: id ?? this.id,
       idDia: idDia ?? this.idDia,
@@ -4315,6 +4338,7 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
       monto: monto ?? this.monto,
       created_at: created_at ?? this.created_at,
       idMoneda: idMoneda ?? this.idMoneda,
+      idLoteriaSuperpale: idLoteriaSuperpale ?? this.idLoteriaSuperpale,
     );
   }
 
@@ -4342,6 +4366,9 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
     if (idMoneda.present) {
       map['id_moneda'] = Variable<int>(idMoneda.value);
     }
+    if (idLoteriaSuperpale.present) {
+      map['id_loteria_superpale'] = Variable<int>(idLoteriaSuperpale.value);
+    }
     return map;
   }
 
@@ -4354,7 +4381,8 @@ class BlocksgeneralsCompanion extends UpdateCompanion<Blocksgeneral> {
           ..write('idSorteo: $idSorteo, ')
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
-          ..write('idMoneda: $idMoneda')
+          ..write('idMoneda: $idMoneda, ')
+          ..write('idLoteriaSuperpale: $idLoteriaSuperpale')
           ..write(')'))
         .toString();
   }
@@ -4407,9 +4435,24 @@ class $BlocksgeneralsTable extends Blocksgenerals
   GeneratedColumn<int> get idMoneda =>
       _idMoneda ??= GeneratedColumn<int>('id_moneda', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _idLoteriaSuperpaleMeta =
+      const VerificationMeta('idLoteriaSuperpale');
+  GeneratedColumn<int> _idLoteriaSuperpale;
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, idDia, idLoteria, idSorteo, monto, created_at, idMoneda];
+  GeneratedColumn<int> get idLoteriaSuperpale => _idLoteriaSuperpale ??=
+      GeneratedColumn<int>('id_loteria_superpale', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        idDia,
+        idLoteria,
+        idSorteo,
+        monto,
+        created_at,
+        idMoneda,
+        idLoteriaSuperpale
+      ];
   @override
   String get aliasedName => _alias ?? 'blocksgenerals';
   @override
@@ -4458,6 +4501,12 @@ class $BlocksgeneralsTable extends Blocksgenerals
     } else if (isInserting) {
       context.missing(_idMonedaMeta);
     }
+    if (data.containsKey('id_loteria_superpale')) {
+      context.handle(
+          _idLoteriaSuperpaleMeta,
+          idLoteriaSuperpale.isAcceptableOrUnknown(
+              data['id_loteria_superpale'], _idLoteriaSuperpaleMeta));
+    }
     return context;
   }
 
@@ -4485,6 +4534,7 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
   final DateTime created_at;
   final int idMoneda;
   final int descontarDelBloqueoGeneral;
+  final int idLoteriaSuperpale;
   Blockslotterie(
       {@required this.id,
       @required this.idBanca,
@@ -4494,7 +4544,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       @required this.monto,
       this.created_at,
       @required this.idMoneda,
-      @required this.descontarDelBloqueoGeneral});
+      @required this.descontarDelBloqueoGeneral,
+      this.idLoteriaSuperpale});
   factory Blockslotterie.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Blockslotterie(
@@ -4515,6 +4566,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           .mapFromDatabaseResponse(data['${effectivePrefix}id_moneda']),
       descontarDelBloqueoGeneral: const IntType().mapFromDatabaseResponse(
           data['${effectivePrefix}descontar_del_bloqueo_general']),
+      idLoteriaSuperpale: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}id_loteria_superpale']),
     );
   }
   @override
@@ -4548,6 +4601,9 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       map['descontar_del_bloqueo_general'] =
           Variable<int>(descontarDelBloqueoGeneral);
     }
+    if (!nullToAbsent || idLoteriaSuperpale != null) {
+      map['id_loteria_superpale'] = Variable<int>(idLoteriaSuperpale);
+    }
     return map;
   }
 
@@ -4577,6 +4633,9 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           descontarDelBloqueoGeneral == null && nullToAbsent
               ? const Value.absent()
               : Value(descontarDelBloqueoGeneral),
+      idLoteriaSuperpale: idLoteriaSuperpale == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idLoteriaSuperpale),
     );
   }
 
@@ -4594,6 +4653,7 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       idMoneda: serializer.fromJson<int>(json['idMoneda']),
       descontarDelBloqueoGeneral:
           serializer.fromJson<int>(json['descontarDelBloqueoGeneral']),
+      idLoteriaSuperpale: serializer.fromJson<int>(json['idLoteriaSuperpale']),
     );
   }
   @override
@@ -4610,6 +4670,7 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
       'idMoneda': serializer.toJson<int>(idMoneda),
       'descontarDelBloqueoGeneral':
           serializer.toJson<int>(descontarDelBloqueoGeneral),
+      'idLoteriaSuperpale': serializer.toJson<int>(idLoteriaSuperpale),
     };
   }
 
@@ -4622,7 +4683,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           double monto,
           DateTime created_at,
           int idMoneda,
-          int descontarDelBloqueoGeneral}) =>
+          int descontarDelBloqueoGeneral,
+          int idLoteriaSuperpale}) =>
       Blockslotterie(
         id: id ?? this.id,
         idBanca: idBanca ?? this.idBanca,
@@ -4634,6 +4696,7 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
         idMoneda: idMoneda ?? this.idMoneda,
         descontarDelBloqueoGeneral:
             descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
+        idLoteriaSuperpale: idLoteriaSuperpale ?? this.idLoteriaSuperpale,
       );
   @override
   String toString() {
@@ -4646,14 +4709,24 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
           ..write('idMoneda: $idMoneda, ')
-          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral, ')
+          ..write('idLoteriaSuperpale: $idLoteriaSuperpale')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, idBanca, idDia, idLoteria, idSorteo,
-      monto, created_at, idMoneda, descontarDelBloqueoGeneral);
+  int get hashCode => Object.hash(
+      id,
+      idBanca,
+      idDia,
+      idLoteria,
+      idSorteo,
+      monto,
+      created_at,
+      idMoneda,
+      descontarDelBloqueoGeneral,
+      idLoteriaSuperpale);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4666,7 +4739,8 @@ class Blockslotterie extends DataClass implements Insertable<Blockslotterie> {
           other.monto == this.monto &&
           other.created_at == this.created_at &&
           other.idMoneda == this.idMoneda &&
-          other.descontarDelBloqueoGeneral == this.descontarDelBloqueoGeneral);
+          other.descontarDelBloqueoGeneral == this.descontarDelBloqueoGeneral &&
+          other.idLoteriaSuperpale == this.idLoteriaSuperpale);
 }
 
 class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
@@ -4679,6 +4753,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
   final Value<DateTime> created_at;
   final Value<int> idMoneda;
   final Value<int> descontarDelBloqueoGeneral;
+  final Value<int> idLoteriaSuperpale;
   const BlockslotteriesCompanion({
     this.id = const Value.absent(),
     this.idBanca = const Value.absent(),
@@ -4689,6 +4764,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     this.created_at = const Value.absent(),
     this.idMoneda = const Value.absent(),
     this.descontarDelBloqueoGeneral = const Value.absent(),
+    this.idLoteriaSuperpale = const Value.absent(),
   });
   BlockslotteriesCompanion.insert({
     this.id = const Value.absent(),
@@ -4700,6 +4776,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     this.created_at = const Value.absent(),
     @required int idMoneda,
     @required int descontarDelBloqueoGeneral,
+    this.idLoteriaSuperpale = const Value.absent(),
   })  : idBanca = Value(idBanca),
         idDia = Value(idDia),
         idLoteria = Value(idLoteria),
@@ -4717,6 +4794,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
     Expression<DateTime> created_at,
     Expression<int> idMoneda,
     Expression<int> descontarDelBloqueoGeneral,
+    Expression<int> idLoteriaSuperpale,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4729,6 +4807,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       if (idMoneda != null) 'id_moneda': idMoneda,
       if (descontarDelBloqueoGeneral != null)
         'descontar_del_bloqueo_general': descontarDelBloqueoGeneral,
+      if (idLoteriaSuperpale != null)
+        'id_loteria_superpale': idLoteriaSuperpale,
     });
   }
 
@@ -4741,7 +4821,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       Value<double> monto,
       Value<DateTime> created_at,
       Value<int> idMoneda,
-      Value<int> descontarDelBloqueoGeneral}) {
+      Value<int> descontarDelBloqueoGeneral,
+      Value<int> idLoteriaSuperpale}) {
     return BlockslotteriesCompanion(
       id: id ?? this.id,
       idBanca: idBanca ?? this.idBanca,
@@ -4753,6 +4834,7 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       idMoneda: idMoneda ?? this.idMoneda,
       descontarDelBloqueoGeneral:
           descontarDelBloqueoGeneral ?? this.descontarDelBloqueoGeneral,
+      idLoteriaSuperpale: idLoteriaSuperpale ?? this.idLoteriaSuperpale,
     );
   }
 
@@ -4787,6 +4869,9 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
       map['descontar_del_bloqueo_general'] =
           Variable<int>(descontarDelBloqueoGeneral.value);
     }
+    if (idLoteriaSuperpale.present) {
+      map['id_loteria_superpale'] = Variable<int>(idLoteriaSuperpale.value);
+    }
     return map;
   }
 
@@ -4801,7 +4886,8 @@ class BlockslotteriesCompanion extends UpdateCompanion<Blockslotterie> {
           ..write('monto: $monto, ')
           ..write('created_at: $created_at, ')
           ..write('idMoneda: $idMoneda, ')
-          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral')
+          ..write('descontarDelBloqueoGeneral: $descontarDelBloqueoGeneral, ')
+          ..write('idLoteriaSuperpale: $idLoteriaSuperpale')
           ..write(')'))
         .toString();
   }
@@ -4868,6 +4954,13 @@ class $BlockslotteriesTable extends Blockslotteries
       _descontarDelBloqueoGeneral ??= GeneratedColumn<int>(
           'descontar_del_bloqueo_general', aliasedName, false,
           typeName: 'INTEGER', requiredDuringInsert: true);
+  final VerificationMeta _idLoteriaSuperpaleMeta =
+      const VerificationMeta('idLoteriaSuperpale');
+  GeneratedColumn<int> _idLoteriaSuperpale;
+  @override
+  GeneratedColumn<int> get idLoteriaSuperpale => _idLoteriaSuperpale ??=
+      GeneratedColumn<int>('id_loteria_superpale', aliasedName, true,
+          typeName: 'INTEGER', requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4878,7 +4971,8 @@ class $BlockslotteriesTable extends Blockslotteries
         monto,
         created_at,
         idMoneda,
-        descontarDelBloqueoGeneral
+        descontarDelBloqueoGeneral,
+        idLoteriaSuperpale
       ];
   @override
   String get aliasedName => _alias ?? 'blockslotteries';
@@ -4942,6 +5036,12 @@ class $BlockslotteriesTable extends Blockslotteries
               _descontarDelBloqueoGeneralMeta));
     } else if (isInserting) {
       context.missing(_descontarDelBloqueoGeneralMeta);
+    }
+    if (data.containsKey('id_loteria_superpale')) {
+      context.handle(
+          _idLoteriaSuperpaleMeta,
+          idLoteriaSuperpale.isAcceptableOrUnknown(
+              data['id_loteria_superpale'], _idLoteriaSuperpaleMeta));
     }
     return context;
   }

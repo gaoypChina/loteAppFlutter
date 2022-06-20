@@ -42,7 +42,7 @@ Blocksgenerals.fromMap(Map snapshot) :
   }
 
   static List blocksgeneralsToJson(List<Blocksgenerals> lista) {
-    List jsonList = List();
+    List jsonList = [];
     lista.map((u)=>
       jsonList.add(u.toJson())
     ).toList();

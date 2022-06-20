@@ -108,6 +108,9 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       setState(() {
         _bancas = [];
         _loterias = [];
+        for (var element in listaLoteria) {
+          element.loteriaSuperpale = [];
+        }
         _sorteos = [];
         _dias = List.from(listaDia);
         for (var sorteo in listaSorteo) {
@@ -312,6 +315,10 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     return abreviatura;
   }
 
+  _selectedLoteriasDescripcion(){
+    return "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion + '${e.loteriaSuperpale.length == 0 ? '' : ' (' + e.loteriaSuperpale.map((ee) => ee.descripcion.toLowerCase()).join(", ") + ')' }').toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}";
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -480,7 +487,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                   ?
                   ListTile(
                     leading: Icon(Icons.sports_golf),
-                    title: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}"),
+                    title: Text(_selectedLoteriasDescripcion()),
                     onTap: _loteriasChanged,
                   )
                   :
@@ -492,7 +499,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                     isSideTitle: true,
                     title: "Loterias del bloqueo *",
                     helperText: "Seran las loterias afectadas por el bloqueo deseado",
-                    hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
+                    // hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
+                    hint: _selectedLoteriasDescripcion(),
                     onTap: _loteriasChanged,
                   ),
                 ),

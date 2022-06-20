@@ -170,6 +170,7 @@ class Blocksgenerals extends Table{
   RealColumn get monto => real()();
   DateTimeColumn get created_at => dateTime().nullable()();
   IntColumn get idMoneda => integer()();
+  IntColumn get idLoteriaSuperpale => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -185,6 +186,7 @@ class Blockslotteries extends Table{
   DateTimeColumn get created_at => dateTime().nullable()();
   IntColumn get idMoneda => integer()();
   IntColumn get descontarDelBloqueoGeneral => integer()();
+  IntColumn get idLoteriaSuperpale => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -276,7 +278,17 @@ class AppDatabase extends _$AppDatabase{
 
   @override
   // TODO: implement schemaVersion
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.addColumn(blocksgenerals, blocksgenerals.idLoteriaSuperpale);
+        await m.addColumn(blockslotteries, blockslotteries.idLoteriaSuperpale);
+      }
+    },
+  );
 
   Future<List<Task>> getAllTasks() => select(tasks).get();
   Stream<List<Task>> watchAllTasks() => select(tasks).watch();
@@ -408,14 +420,14 @@ class AppDatabase extends _$AppDatabase{
   }
 
   Future<void> insertAllBlocks(Map<String, dynamic> elements) async {
-    List<Stock> listElementStock = List();
-    List<Blocksgeneral> listElementBlocksgeneral = List();
-    List<Blockslotterie> listElementBlockslotterie = List();
-    List<Blocksplay> listElementBlocksplay = List();
-    List<Blocksplaysgeneral> listElementBlocksplaysgeneral = List();
-    List<Draw> listElementDraw = List();
-    List<Blocksdirtygeneral> listElementBlocksdirtygeneral = List();
-    List<Blocksdirty> listElementBlocksdirty = List();
+    List<Stock> listElementStock = [];
+    List<Blocksgeneral> listElementBlocksgeneral = [];
+    List<Blockslotterie> listElementBlockslotterie = [];
+    List<Blocksplay> listElementBlocksplay = [];
+    List<Blocksplaysgeneral> listElementBlocksplaysgeneral = [];
+    List<Draw> listElementDraw = [];
+    List<Blocksdirtygeneral> listElementBlocksdirtygeneral = [];
+    List<Blocksdirty> listElementBlocksdirty = [];
 
     if(elements["stocks"] != null)
       listElementStock = elements["stocks"].map<Stock>((e){
@@ -425,12 +437,13 @@ class AppDatabase extends _$AppDatabase{
     if(elements['blocksgenerals'] != null)
       listElementBlocksgeneral = elements['blocksgenerals'].map<Blocksgeneral>((e) {
         e = BlocksgeneralsModel.Blocksgenerals.fromMap(e);
-        return Blocksgeneral(id: e.id, idDia: e.idDia, idLoteria: e.idLoteria, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,);
+        print("Drift_database.dart AppDatabase insertAllBlocks blocksgenerals: ${e.idLoteriaSuperpale}");
+        return Blocksgeneral(id: e.id, idDia: e.idDia, idLoteria: e.idLoteria, idLoteriaSuperpale: e.idLoteriaSuperpale, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,);
       }).toList();
     if(elements['blockslotteries'] != null)
       listElementBlockslotterie = elements['blockslotteries'].map<Blockslotterie>((e) {
         e = BlockslotteriesModel.Blockslotteries.fromMap(e);
-        return Blockslotterie(id: e.id, idBanca: e.idBanca, idDia: e.idDia, idLoteria: e.idLoteria, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,);
+        return Blockslotterie(id: e.id, idBanca: e.idBanca, idDia: e.idDia, idLoteria: e.idLoteria, idLoteriaSuperpale: e.idLoteriaSuperpale, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,);
       }).toList();
     if(elements['blocksplays'] != null)
       listElementBlocksplay = elements['blocksplays'].map<Blocksplay>((e) {
@@ -558,12 +571,20 @@ class AppDatabase extends _$AppDatabase{
   Future updateBlocksgeneral(Blocksgeneral element) => update(blocksgenerals).replace(element);
   Future deleteBlocksgeneral(Blocksgeneral element) => delete(blocksgenerals).delete(element);
   Future<void> insertListBlocksgeneral(List<BlocksgeneralsModel.Blocksgenerals> elements) async {
-    List<Blocksgeneral> listElement = elements.map((e) => Blocksgeneral(id: e.id, idDia: e.idDia, idLoteria: e.idLoteria, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,)).toList();
+    List<Blocksgeneral> listElement = elements.map((e) => Blocksgeneral(id: e.id, idDia: e.idDia, idLoteria: e.idLoteria, idLoteriaSuperpale: e.idLoteriaSuperpale, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda,)).toList();
     return await batch((b) => b.insertAllOnConflictUpdate(blocksgenerals, listElement));
   }
-  Future<Map<String, dynamic>> getBlocksgeneralMonto({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda}) async {
-    QueryRow data = await customSelect("select * from blocksgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda order by id desc limit 1", readsFrom: {blocksgenerals}).getSingleOrNull();
+  Future<Map<String, dynamic>> getBlocksgeneralMonto({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale = null}) async {
+    String querySuperpale = idLoteriaSuperpale != null ? "and (id_Loteria_Superpale = $idLoteriaSuperpale OR id_Loteria_Superpale is NULL)" : '';
+    String orderBySuperpale = "${idLoteriaSuperpale == null ? 'order by id desc' : 'order by id desc, id_Loteria_Superpale desc'}";
+    QueryRow data = await customSelect("select * from blocksgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda $querySuperpale $orderBySuperpale limit 1", readsFrom: {blocksgenerals}).getSingleOrNull();
     return (data == null) ? null : data.data;
+    // List<QueryRow> data = await customSelect("select * from blocksgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda $querySuperpale $orderBySuperpale", readsFrom: {blocksgenerals}).get();
+    // for (var element in data) {
+    //   print("Drift_database.dart getBlocksgeneralsMonto: ${element.data}");
+    // }
+    //   print("Drift_database.dart getBlocksgeneralsMonto query: ${querySuperpale}");
+    // return (data == null) ? null : data.length > 0 ? data[0].data : null;
   }
   Future insertOrDeleteBlocksgenerals(List<BlocksgeneralsModel.Blocksgenerals> elements, bool delete) async {
     List<Blocksgeneral> list = elements.map<Blocksgeneral>((e) => Blocksgeneral(
@@ -574,6 +595,7 @@ class AppDatabase extends _$AppDatabase{
             monto: e.monto, 
             created_at: e.created_at, 
             idMoneda: e.idMoneda, 
+            idLoteriaSuperpale: e.idLoteriaSuperpale, 
           )).toList();
 
 
@@ -593,11 +615,14 @@ class AppDatabase extends _$AppDatabase{
   Future updateBlockslotterie(Blockslotterie element) => update(blockslotteries).replace(element);
   Future deleteBlockslotterie(Blockslotterie element) => delete(blockslotteries).delete(element);
   Future<void> insertListBlockslotterie(List<BlockslotteriesModel.Blockslotteries> elements) async {
-    List<Blockslotterie> listElement = elements.map((e) => Blockslotterie(id: e.id, idBanca: e.idBanca, idDia: e.idDia, idLoteria: e.idLoteria, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda, descontarDelBloqueoGeneral: e.descontarDelBloqueoGeneral)).toList();
+    List<Blockslotterie> listElement = elements.map((e) => Blockslotterie(id: e.id, idBanca: e.idBanca, idDia: e.idDia, idLoteria: e.idLoteria, idLoteriaSuperpale: e.idLoteriaSuperpale, idSorteo: e.idSorteo, monto: e.monto, created_at: e.created_at, idMoneda: e.idMoneda, descontarDelBloqueoGeneral: e.descontarDelBloqueoGeneral)).toList();
     return await batch((b) => b.insertAllOnConflictUpdate(blockslotteries, listElement));
   }
-  Future<Map<String, dynamic>> getBlockslotterieMonto({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda}) async {
-    QueryRow data = await customSelect("select * from blockslotteries where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda order by id desc limit 1", readsFrom: {blockslotteries}).getSingleOrNull();
+  Future<Map<String, dynamic>> getBlockslotterieMonto({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale = null}) async {
+    String querySuperpale = idLoteriaSuperpale != null ? "and (id_Loteria_Superpale = $idLoteriaSuperpale OR id_Loteria_Superpale is NULL)" : '';
+    String orderBySuperpale = "${idLoteriaSuperpale == null ? 'order by id desc' : 'order by id desc, id_Loteria_Superpale desc'}";
+    QueryRow data = await customSelect("select * from blockslotteries where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda $querySuperpale $orderBySuperpale limit 1", readsFrom: {blockslotteries}).getSingleOrNull();
+      print("Drift_database.dart getBlockslotterieMonto: ${data != null ? data.data : ''}");
     return (data == null) ? null : data.data;
   }
   Future insertOrDeleteBlockslotteries(List<BlockslotteriesModel.Blockslotteries> elements, bool delete) async {
@@ -611,6 +636,7 @@ class AppDatabase extends _$AppDatabase{
             created_at: e.created_at, 
             idMoneda: e.idMoneda, 
             descontarDelBloqueoGeneral: e.descontarDelBloqueoGeneral, 
+            idLoteriaSuperpale: e.idLoteriaSuperpale
           )).toList();
    await batch((batch){
       if(!delete)
@@ -845,6 +871,7 @@ class AppDatabase extends _$AppDatabase{
             monto: Utils.toDouble(json["monto"]), 
             created_at: MyDate.toDateTime(json["created_at"]), 
             idMoneda: Utils.toInt(json["idMoneda"]), 
+            idLoteriaSuperpale: Utils.toInt(json["idLoteriaSuperpale"], returnNullIfNotInt: true), 
           )).toList();
           print('Realtime sincronizarTodosDataBatch length blocksgenerals: ${listBlocksgenerals.length}');
           // for(Blocksgenerals b in listBlocksgenerals){
@@ -867,6 +894,7 @@ class AppDatabase extends _$AppDatabase{
             created_at: MyDate.toDateTime(json["created_at"]), 
             idMoneda: Utils.toInt(json["idMoneda"]), 
             descontarDelBloqueoGeneral: Utils.toInt(json["descontarDelBloqueoGeneral"]), 
+            idLoteriaSuperpale: Utils.toInt(json["idLoteriaSuperpale"], returnNullIfNotInt: true), 
           )).toList();
           print('Realtime sincronizarTodosDataBatch length blockslotteries: ${listBlockslotteries.length}');
           // for(Blockslotteries b in listBlockslotteries){
@@ -1262,7 +1290,7 @@ class AppDatabase extends _$AppDatabase{
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
             }else{
               // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+              query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
               if(query != null){
                 montoDisponible = query["monto"];
                 stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'],);
@@ -1314,7 +1342,7 @@ class AppDatabase extends _$AppDatabase{
 
           if(montoDisponible == null){
             // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+            query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
             if(query != null){
               montoDisponible = query["monto"];
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
@@ -1323,7 +1351,8 @@ class AppDatabase extends _$AppDatabase{
 
           if(montoDisponible == null){
             // query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+            query = await getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
+            print("drift_database.dart AppDatabase getMontoDisponible: $query");
             if(query != null){
               montoDisponible = query["monto"];
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
@@ -1391,7 +1420,7 @@ class AppDatabase extends _$AppDatabase{
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral'], esBloqueoJugada: 1);
             }else{
               // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-              query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+              query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
               if(query != null){
                 montoDisponible = query["monto"];
                 stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
@@ -1440,7 +1469,7 @@ class AppDatabase extends _$AppDatabase{
 
           if(montoDisponible == null){
             // query = await Db.database.query('Blockslotteries' ,where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [banca.id, loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+            query = await getBlockslotterieMonto(idBanca: banca.id, idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
             if(query != null){
               montoDisponible = query["monto"];
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 0, idMoneda: banca.idMoneda, descontarDelBloqueoGeneral: query['descontarDelBloqueoGeneral']);
@@ -1449,7 +1478,8 @@ class AppDatabase extends _$AppDatabase{
 
           if(montoDisponible == null){
             // query = await Db.database.query('Blocksgenerals' ,where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?', whereArgs: [loteria.id, idSorteo, idDia, banca.idMoneda]);
-            query = await getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda);
+            query = await getBlocksgeneralMonto(idLoteria: loteria.id, idSorteo: idSorteo, idDia: idDia, idMoneda: banca.idMoneda, idLoteriaSuperpale: loteriaSuperpale != null ? loteriaSuperpale.id : null);
+            print("drift_database.dart AppDatabase getMontoDisponible superPaleGeneral: $query");
             if(query != null){
               montoDisponible = query["monto"];
               stockToReturn = StockModel.Stock(idBanca: banca.id, idLoteria: loteria.id, idLoteriaSuperpale: loteriaSuperpale.id, idSorteo: idSorteo, jugada: jugada, esGeneral: 1, ignorarDemasBloqueos: 0, idMoneda: banca.idMoneda);
