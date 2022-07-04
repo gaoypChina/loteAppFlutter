@@ -238,9 +238,9 @@ class _MyDropdownState extends State<MyDropdown> {
         widget.hint is Widget ? widget.hint :
         (widget.leading == false) 
           ? 
-          Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) 
+          Expanded(child: Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))) 
           : 
-          Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+          Expanded(child: Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", letterSpacing: 0.2, color: _textColor(), fontWeight: !widget.onlyBorder ? FontWeight.w700 : null))))
         ,
         // Icon(Icons.arrow_drop_down, color: Utils.fromHex("#1967d2")),
         Icon(Icons.arrow_drop_down, color: _textColor()),

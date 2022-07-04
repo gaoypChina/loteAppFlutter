@@ -402,6 +402,7 @@ class _MyAppBarState extends State<MyAppBar> {
     RenderBox renderBox = context.findRenderObject();
     var size = renderBox.size;
     var offset = renderBox.localToGlobal(Offset.zero);
+    print("MyAppbar _createOverlayEntry");
     showMyOverlayEntry(
       context: context,
       right: 0,
@@ -780,7 +781,7 @@ class _MyAppBarState extends State<MyAppBar> {
                               return MouseRegion(
                                 cursor: SystemMouseCursors.text,
                                 child: GestureDetector(
-                                  onTap: (){
+                                  onTapDown: (TapDownDetails tapDownDetails){
                                     print("MyAppBar MySearchField onTamp");
 
                                     showMyOverlayEntry(
@@ -1364,7 +1365,7 @@ class _MyAppBarState extends State<MyAppBar> {
               child: Builder(
                 builder: (context) {
                   return InkWell(
-                    onTap: (){_showOptions(context);},
+                    onTapDown: (TapDownDetails tapDownDetails){_showOptions(context);},
                     child: CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.grey[300],

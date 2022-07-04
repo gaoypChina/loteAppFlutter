@@ -7,6 +7,8 @@ OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widge
     var offset = renderBox.localToGlobal(Offset.zero);
     var overlayEntry;
 
+    print("ShowMyOverlayEntry holaa");
+
     overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
@@ -69,7 +71,8 @@ OverlayEntry showMyOverlayEntry({@required BuildContext context, @required Widge
     );
   
     // Overlay.of(context).insert(overlayEntry);
-    WidgetsBinding.instance.addPostFrameCallback((_) => Overlay.of(context).insert(overlayEntry));
+    // WidgetsBinding.instance.addPostFrameCallback((_) => Overlay.of(context).insert(overlayEntry));
+    Overlay.of(context).insert(overlayEntry);
   }
 
   _removeOverlay(overlayEntry){

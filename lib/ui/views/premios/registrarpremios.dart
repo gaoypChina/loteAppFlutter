@@ -617,7 +617,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
       return _waitingDraw();
 
     // print("RegistrarPremiosView _drawsBallsPick: ${loteria.pick3} l: ${loteria.pick3 != null ? loteria.pick3.length : 0} s: ${loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(1, ) : 0}");
-
+    print("RegistrarPremios.dart _drawsBallsPick: ${loteria.descripcion}");
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Wrap(

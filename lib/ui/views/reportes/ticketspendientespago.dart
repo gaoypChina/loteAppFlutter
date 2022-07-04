@@ -4,12 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/monitoreo.dart';
+import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/views/reportes/ticketssearch.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
+import 'package:loterias/ui/widgets/mycirclebutton.dart';
+import 'package:loterias/ui/widgets/mycollapsechanged.dart';
+import 'package:loterias/ui/widgets/mydaterangedialog.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
+import 'package:loterias/ui/widgets/mydropdown.dart';
+import 'package:loterias/ui/widgets/myempty.dart';
+import 'package:loterias/ui/widgets/myfilterv2.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
+import 'package:loterias/ui/widgets/mysearch.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
+import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 
 class TicketsPendientesPagoScreen extends StatefulWidget {
@@ -19,6 +33,7 @@ class TicketsPendientesPagoScreen extends StatefulWidget {
 
 class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTimeRange _date;
   bool _cargando = false;
   bool _onCreate = true;
   bool _ckbTodasLasFechas = false;
@@ -32,6 +47,8 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   DateTime _fechaActual = DateTime.now();
   int _idGrupoDeEsteUsuario;
   Banca _banca;
+  Future<void> _future;
+  var _txtSearch = TextEditingController();
 
   @override
   void initState() {
@@ -39,7 +56,8 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTabla = BehaviorSubject();
     _fechaString = "${_fechaActual.year}-${_fechaActual.month}-${_fechaActual.day}";
-    _init();
+    _date = MyDate.getTodayDateRange();
+    _future = _init();
     super.initState();
     SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeRight,
@@ -63,7 +81,7 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
 
   _init() async {
     try{
-      setState(() => _cargando = true);
+      // setState(() => _cargando = true);
       _idGrupoDeEsteUsuario = await Db.idGrupo();
       var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: await Db.idBanca(), scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo(), retornarBancas: true);
       if(_onCreate && datos != null){
@@ -71,14 +89,16 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
         listaBanca = list.map((b) => Banca.fromMap(b)).toList();
         if(listaBanca.length > 0)
           _idBanca = listaBanca[0].id;
+          _banca = listaBanca[0];
         _streamControllerBancas.add(listaBanca);
         _onCreate = false;
       }
       lista = datos["ticketsPendientesDePago"];
       _streamControllerTabla.add(lista);
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
     }on Exception catch(e){
-      setState(() => _cargando = false);
+      // setState(() => _cargando = false);
+      _streamControllerTabla.addError(e.toString());
     }
   }
 
@@ -88,7 +108,8 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   _tickets() async {
     try{
       setState(() => _cargando = true);
-      var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
+      // var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
+      var datos = await ReporteService.ticketsPendientesPago(fechaString: _date.start.toString(), idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
       if(_onCreate && datos != null){
         List list = List.from(datos["bancas"]);
         listaBanca = list.map((b) => Banca.fromMap(b)).toList();
@@ -104,14 +125,14 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     }
   }
 
-  _showTicket(String codigoBarra, BuildContext context) async {
+  _showTicket(String codigoBarra, BuildContext context, isSmallOrMedium) async {
     try{
       setState(()=> _cargando = true);
       // var datos = await TicketService.ticket(scaffoldKey: _scaffoldKey, idTicket: idTicket);
       var datos = await TicketService.buscarTicketAPagar(context: context, codigoBarra: codigoBarra);
       setState(()=> _cargando = false);
       print("_showTicket datos: ${datos["venta"]}");
-      Monitoreo.showDialogVerTicket(context: context, mapVenta: datos["venta"]);
+      Monitoreo.showDialogVerTicket(context: context, mapVenta: datos["venta"], isSmallOrMedium: isSmallOrMedium);
     }on Exception catch(e){
       setState(()=> _cargando = false);
     }
@@ -161,7 +182,7 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
               children: [
                 InkWell(
                   onTap: (){
-                    _showTicket(b["codigoBarra"], context);
+                    _showTicket(b["codigoBarra"], context, true);
                   }, 
                   child: Container(
                     padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -250,20 +271,255 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   
  }
 
+ _bancaChanged(Banca banca){
+  setState(() {
+    _banca = banca;
+    _idBanca = banca.id;
+    _tickets();
+  });
+  
+ }
+
+ _dateChanged(var date){
+    print("Hola");
+    if(date == null)
+      return;
+
+    if(date != null && date is DateTime)
+      setState(() {
+        _date = DateTimeRange(
+          start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+          end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+        );
+        _tickets();
+      });
+    else
+     setState((){
+        _date = date;
+        _tickets();
+     });
+
+  }
+
+
+ _dateDialog() async {
+    var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
+    _dateChanged(date);
+    
+  }
+
+  _search(String data){
+    // _txtSearch
+    _streamControllerTabla.add(lista.where((element) => element["idTicket"].toString().indexOf(data) != -1).toList());
+  }
+
+  _circularProgressBarIndicator(){
+    return Center(child: CircularProgressIndicator());
+  }
+
+  _columns(bool isSmallOrMedium){
+    return isSmallOrMedium ? ["# de ticket", "A pagar", "Fecha"] : ["Numero de ticket", "Banca", "A pagar", "Fecha"];
+  }
+
+  List<List> _rows(AsyncSnapshot<List<dynamic>> snapshot, bool isSmallOrMedium){
+    return 
+    isSmallOrMedium
+    ?
+     snapshot.data.map((e) => [e, Text("${Utils.toSecuencia(e["primera"], BigInt.from(e["idTicket"]), false)}", style: TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.bold),), e["montoAPagar"], e["fecha"]]).toList()
+     :
+     snapshot.data.map((e) => [e, Text("${Utils.toSecuencia(e["primera"], BigInt.from(e["idTicket"]), false)}", style: TextStyle(decoration: TextDecoration.underline, fontWeight: FontWeight.bold),), e["banca"]["descripcion"], e["montoAPagar"], e["fecha"]]).toList();
+  }
+
+  dynamic _dateWidget(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: _dateDialog
+    );
+
+    return Container(
+      width: 180,
+      child: Builder(
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: MyDropdown(title: null, 
+              leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+              hint: "${MyDate.dateRangeToNameOrString(_date)}",
+              onTap: _dateDialog,
+            ),
+          );
+        }
+      ),
+    );
+
+  }
+
+    _subtitle(bool isSmallOrMedium){
+    return
+    isSmallOrMedium
+    ?
+    Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: MyCollapseChanged(
+        child: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SizedBox.shrink();
+
+            return Row(
+              children: [
+                _dateWidget(isSmallOrMedium),
+                Expanded(
+                  child: MyFilterV2(
+                    item: [
+                      MyFilterItem(
+                        hint: "${_banca != null ? 'Banca: ' + _banca.descripcion: 'Banca...'}", 
+                        data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _bancaChanged(value);
+                        }
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        )
+      ),
+    )
+    :
+    "Aqui podrá ver todos los tickets pendientes de pago";
+  }
+
+ 
+
   @override
   Widget build(BuildContext context) {
-    // return myScaffold(
-    //   context: context, 
-    //   cargando: false, 
-    //   cargandoNotify: null,
-    //   isSliverAppBar: true,
-    //   sliverBody: MySliver(
-    //     sliverAppBar: MySliverAppBar(
-    //       title: "Pendientes de pago",
-    //       subtitle: ,
-    //     ),
-    //   )
-    // );
+    var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+
+    return myScaffold(
+      context: context, 
+      cargando: false, 
+      cargandoNotify: null,
+      isSliverAppBar: true,
+      sliverBody: MySliver(
+        sliverAppBar: MySliverAppBar(
+          title: "Pendientes de pago",
+          expandedHeight: isSmallOrMedium ? 110 : 85,
+          subtitle: _subtitle(isSmallOrMedium),
+          actions: [
+            MySliverButton(title: IconButton(
+              icon: Icon(Icons.search, color: Colors.black,),
+              onPressed: () async{
+                var data = await showSearch(context: context, delegate: TicketsSearch(lista));
+                if(data == null)
+                  return;
+                _showTicket(data["codigoBarra"], context, isSmallOrMedium);
+              },
+            )),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: Container(
+                width: 150,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: FutureBuilder<Object>(
+                    future: _future,
+                    builder: (context, snapshot) {
+                      if(snapshot.connectionState != ConnectionState.done)
+                        return SizedBox.shrink();
+
+                      
+                      return MyDropdown(
+                        title: null,
+                        textColor: Colors.grey[600],
+                        color: Colors.grey[600],
+                        padding: EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+                        isFlat: true,
+                        hint: "${_banca != null ? 'Banca: ' + _banca.descripcion : 'Selec. banca'}",
+                        elements: listaBanca.map((e) => [e, e.descripcion]).toList(),
+                        onTap: _bancaChanged,
+                      );
+                    }
+                  ),
+                ),
+              ), 
+              onTap: null
+            ),
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: _dateWidget(isSmallOrMedium), 
+              onTap: (){}
+              )
+            
+          ],
+        ),
+        sliver: StreamBuilder<List>(
+          stream: _streamControllerTabla.stream,
+          builder: (context, snapshot) {
+            if(snapshot.data == null && (isSmallOrMedium || snapshot.connectionState == ConnectionState.waiting))
+              return SliverFillRemaining(child: _circularProgressBarIndicator(),);
+
+            if(snapshot.hasError)
+              return SliverFillRemaining(child: MyEmpty(title: "${snapshot.error}", titleButton: "Cargar nuevamente", onTap: (){_init();}),);
+              
+              
+            List<Widget> widgets = [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: MyDescripcon(title: "${snapshot.data != null ? snapshot.data.length : 0} Filas", color: Colors.black, fontSize: 20,),
+                  ),
+                  Visibility(
+                    visible: !isSmallOrMedium,
+                    child: Container(
+                      width: !isSmallOrMedium ? MediaQuery.of(context).size.width / 3 : null,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: isSmallOrMedium ? 0 : 15.0, top: 0.0, bottom: !isSmallOrMedium ? 20 : 0),
+                        child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar ticket...", small: 2.6, medium: 2.6, xlarge: 2.6, contentPadding: isSmallOrMedium ? EdgeInsets.only(bottom: 10, top: 10) : EdgeInsets.only(bottom: 15, top: 15),),
+                      ),
+                    ),
+                  ),
+                ],),
+              ),
+              snapshot.data == null
+              ?
+              _circularProgressBarIndicator()
+              :
+              snapshot.data.isEmpty
+              ?
+              Center(child: MyEmpty(title: "No hay tickets pendientes de pago", icon: Icons.attach_money, titleButton: "Cargar nuevamente", onTap: (){_tickets();}))
+              :
+               Padding(
+                 padding: EdgeInsets.only(left: isSmallOrMedium ? 8.0 : 0.0, right: isSmallOrMedium ? 8.0 : 18.0),
+                 child: MyTable(
+                    isScrolled: false,
+                    headerColor: Theme.of(context).primaryColor,
+                    headerTitleColor: Colors.white,
+                    columns: _columns(isSmallOrMedium),
+                    rows: snapshot.data == null ? [[]] : _rows(snapshot, isSmallOrMedium),
+                    onTap: (element) => _showTicket(element["codigoBarra"], context, isSmallOrMedium),
+                  ),
+               )
+            ];
+
+            return SliverList(delegate: SliverChildBuilderDelegate(
+              (context, index) => widgets[index],
+              childCount: widgets.length
+            ));
+          }
+        ),
+      )
+    );
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
