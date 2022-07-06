@@ -117,6 +117,7 @@ class _MyMultiselectState<T> extends State<MyMultiselect<T>> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       title: _title(widget.title),
       content: SingleChildScrollView(
         child: ListTileTheme(

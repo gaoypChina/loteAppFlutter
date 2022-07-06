@@ -226,15 +226,19 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                 context: context, 
                 builder: (context){
                   return MyMultiselect(
-                    title: "Agregar loterias",
-                    subtitle: "Estas loterias se combinaran para...",
+                    title: "Agregar loterias super...",
+                    // subtitle: "Estas loterias sirven para",
                     items: listaLoteria.where((element) => element != loteria).map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
                     initialSelectedItems: loteria.loteriaSuperpale.length == 0 ? [] : loteria.loteriaSuperpale.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
                   );
               });
 
               if(dataRetornada != null)
-                setState(() => loteria.loteriaSuperpale = List.from(dataRetornada));
+                setState((){
+                   loteria.loteriaSuperpale = List.from(dataRetornada);
+                   if(loteria.loteriaSuperpale.length > 0)
+                    _onChanged(true, loteria);
+                });
             }
 
             Widget _textButtonAgregarLoteriaSuperpale(Loteria loteria){
@@ -260,20 +264,39 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
               }
             }
 
+            Widget _checkboxWidget(Loteria e){
+              return Checkbox(value: _selected(e), onChanged: (value) => _onChanged(value, e));
+            }
+
             
 
             return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               title: Text("Selec. Loterias"),
               content: SingleChildScrollView(
                 child: ListTileTheme(
                   contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
                   child: ListBody(
-                    children: listaLoteria.map((e) => ExpansionTile(
+                    children: listaLoteria.map((e) => 
+                    e.loteriaSuperpale.length == 0
+                    ?
+                    ListTile(
+                      title: Text(e.descripcion),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 2.0),
+                      trailing: _checkboxWidget(e),
+                      leading: GestureDetector(onTap: () => _agregarLoteriaSuperpale(e), child: Icon(Icons.add)),
+                      onTap: (){
+                        _onChanged(!_selected(e), e);
+                      },
+                    )
+                    :
+                    ExpansionTile(
                       childrenPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 2.0),
                       tilePadding: EdgeInsets.symmetric(horizontal: 2.0),
                       title: Text(e.descripcion), 
                       controlAffinity: ListTileControlAffinity.leading,
-                      trailing: Checkbox(value: _selected(e), onChanged: (value) => _onChanged(value, e)), 
+                      // trailing: Checkbox(value: _selected(e), onChanged: (value) => _onChanged(value, e)), 
+                      trailing: _checkboxWidget(e), 
                       children: e.loteriaSuperpale.length == 0 ? [_textButtonAgregarLoteriaSuperpale(e)] : e.loteriaSuperpale.asMap().map((key, es){
                         if(key == 0)
                           return MapEntry(key, Column(

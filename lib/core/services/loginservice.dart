@@ -28,11 +28,11 @@ class LoginService{
     if(response.statusCode < 200 || response.statusCode > 400){
       print("GrupoService index: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
-      if(context != null)
-        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
-      else
-        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldkey);
-      throw Exception("Error del servidor GrupoService index: ${parsed["message"]}");
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldkey);
+      throw Exception("${parsed["message"]}");
     }
    
       var parsed = await compute(Utils.parseDatos, response.body);
@@ -45,11 +45,11 @@ class LoginService{
       // }
 
       if(parsed["errores"] == 1){
-        if(context != null)
-          Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
-        else
-          Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldkey);
-        throw Exception("Error GrupoService index: ${parsed["mensaje"]}");
+        // if(context != null)
+        //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+        // else
+        //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldkey);
+        throw Exception("${parsed["mensaje"]}");
       }
       
       // print('parsed ${parsed['usuario']}');

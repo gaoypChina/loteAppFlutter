@@ -21,6 +21,7 @@ class BluetoothChannel{
   static const String TYPE_ORIGINAL = "ORIGINAL";
   static const String TYPE_COPIA = "COPIA";
   static const String TYPE_CANCELADO = "CANCELADO";
+  static const String TYPE_PAGADA_ONLY_MARK = "PAGADO_SOLO_MARCAR";
   static const String TYPE_PAGADO = "PAGADO";
   static const int TYPE_ALIGN_CENTER = 1;
   static const int TYPE_ALIGN_LEFT = 0;
@@ -808,6 +809,8 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+      else if(typeTicket == TYPE_PAGADA_ONLY_MARK)
+        map[map.length] = _getMapNuevo(text:"** PAGADO **\n\n\n", cmd: CMD.h1);
       
       if(typeTicket == TYPE_ORIGINAL){
         Map<String, dynamic> banca = mapVenta["banca"];
@@ -1034,6 +1037,8 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+      else if(typeTicket == TYPE_PAGADA_ONLY_MARK)
+        map[map.length] = _getMapNuevo(text:"** PAGADO **\n\n\n", cmd: CMD.h1);
 
       if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || mapVenta["banca"]["imprimirCodigoQr"] == 0)
         map[map.length] = _getMapNuevo(text:"\n\n", cmd: CMD.h1);
@@ -1241,6 +1246,8 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+      else if(typeTicket == TYPE_PAGADA_ONLY_MARK)
+        map[map.length] = _getMapNuevo(text:"** PAGADO **\n\n\n", cmd: CMD.h1);
       
       if(typeTicket == TYPE_ORIGINAL){
         Banca banca = sale.banca;
@@ -1477,6 +1484,8 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
     
       if(typeTicket == TYPE_CANCELADO)
         map[map.length] = _getMapNuevo(text:"** CANCELADO **\n\n\n", cmd: CMD.h1);
+      if(typeTicket == TYPE_PAGADA_ONLY_MARK)
+        map[map.length] = _getMapNuevo(text:"** PAGADO **\n\n\n", cmd: CMD.h1);
 
       if((typeTicket != TYPE_ORIGINAL && typeTicket != TYPE_PAGADO) || sale.banca.imprimirCodigoQr == 0)
         map[map.length] = _getMapNuevo(text:"\n\n", cmd: CMD.h1);
@@ -1553,6 +1562,9 @@ static Map<int, dynamic> generateMapTicketOtroFormatoV2(Sale sale, List<Salesdet
           break;
         case TYPE_COPIA:
           return _getMapNuevo(text: "** $TYPE_COPIA **\n", cmd: CMD.h1);
+          break;
+        case TYPE_PAGADA_ONLY_MARK:
+          return _getMapNuevo(text: "** PAGADO **\n", cmd: CMD.h1);
           break;
         default:
           return _getMapNuevo(text: "** $TYPE_CANCELADO **\n", cmd: CMD.h1);

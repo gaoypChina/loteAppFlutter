@@ -65,7 +65,7 @@ class Banca {
         descontar = Utils.toDouble(snapshot['descontar'].toString()) ?? 0.0,
         deCada = Utils.toDouble(snapshot['deCada'].toString()) ?? 0.0,
         limiteVenta = Utils.toDouble(snapshot['limiteVenta'].toString()) ?? 0.0,
-        balanceDesactivacion = Utils.toDouble(snapshot['balanceDesactivacion'].toString()) ?? 0.0,
+        balanceDesactivacion = Utils.toDouble(snapshot['balanceDesactivacion'].toString(), returnNullIfNotDouble: true),
         minutosCancelarTicket = snapshot['minutosCancelarTicket'] != null ? Utils.toDouble(snapshot['minutosCancelarTicket'].toString()).toInt() : 0,
         imprimirCodigoQr = snapshot['imprimirCodigoQr'] != null ? Utils.toInt(snapshot['imprimirCodigoQr']) : 1,
         piepagina1 = snapshot['piepagina1'] ?? '',
@@ -129,6 +129,8 @@ class Banca {
           return jsonList;
         }
         
+  static Banca get getBancaTodas => Banca(id: 0, descripcion: 'Todas'); 
+
 
   toJson() {
     return {

@@ -332,7 +332,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
           return;
         }
 
-        if(_txtLimiteVentasPorDia.text.isEmpty || _txtBalance.text.isEmpty || _txtMinutosParaCancelarTicket.text.isEmpty){
+        if(_txtLimiteVentasPorDia.text.isEmpty || _txtMinutosParaCancelarTicket.text.isEmpty){
           if(_tabController.index != 1)
             setState(() {
               _tabController.index = 1;
@@ -363,7 +363,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
 
         _data.limiteVenta = Utils.toDouble(_txtLimiteVentasPorDia.text);
-        _data.balanceDesactivacion = Utils.toDouble(_txtBalance.text);
+        _data.balanceDesactivacion = Utils.toDouble(_txtBalance.text, returnNullIfNotDouble: true);
         _data.descontar = Utils.toDouble(_txtDescontar.text);
         _data.deCada = Utils.toDouble(_txtDeCada.text);
         _data.minutosCancelarTicket = Utils.toInt(_txtMinutosParaCancelarTicket.text);
@@ -1488,7 +1488,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "Primera" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion.id != 0,
                               onChanged: _pagosCombinacionPrimeraChanged,
                             ),
                           ),
@@ -1504,7 +1504,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint: isSmallOrMedium ? "Segunda" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionSegundaChanged,
                             ),
                           ),
@@ -1520,7 +1520,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "Tercera" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionTerceraChanged,
                             ),
                           ),
@@ -1553,7 +1553,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "1ra y 2da" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPrimeraSegundaChanged,
                             ),
                           ),
@@ -1569,7 +1569,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint: isSmallOrMedium ? "1ra y 3ra" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPrimeraTerceraChanged,
                             ),
                           ),
@@ -1585,7 +1585,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "2da y 3ra" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionSegundaTerceraChanged,
                             ),
                           ),
@@ -1618,7 +1618,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "3 numeros" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionTresNumerosChanged,
                             ),
                           ),
@@ -1634,7 +1634,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint: isSmallOrMedium ? "2 numeros" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionDosNumerosChanged,
                             ),
                           ),
@@ -1667,7 +1667,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "Primer pago" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPrimerPagoChanged,
                             ),
                           ),
@@ -1700,7 +1700,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "Todos en secuencia" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick3TodosEnSecuenciaChanged,
                             ),
                           ),
@@ -1733,7 +1733,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "3-way: 2 identicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick33WayChanged,
                             ),
                           ),
@@ -1749,7 +1749,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "6-way: 3 unicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick36WayChanged,
                             ),
                           ),
@@ -1783,7 +1783,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "Todos en secuencia" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick4TodosEnSecuenciaChanged,
                             ),
                           ),
@@ -1816,7 +1816,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "4-way: 3 identicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick44WayChanged,
                             ),
                           ),
@@ -1832,7 +1832,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "6-way: 2 identicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick46WayChanged,
                             ),
                           ),
@@ -1848,7 +1848,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "12-way: 2 identicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick412WayChanged,
                             ),
                           ),
@@ -1864,7 +1864,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                               hint:  isSmallOrMedium ? "24-way: 2 identicos" : "",
                               xlargeSide: 6.5,
                               medium: 1,
-                              isRequired: true,
+                              isRequired: selectedLoteriaPagosCombinacion != null ? selectedLoteriaPagosCombinacion.id != 0 : true,
                               onChanged: _pagosCombinacionPick424WayChanged,
                             ),
                           ),
@@ -2299,7 +2299,6 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  title: !isSmallOrMedium ? "Balance desactivacion *" : "",
                                  hint: "Balance desactivacion",
                                  medium: 1,
-                                 isRequired: true,
                                  helperText: "Cuando la banca alcance este balance el sistema no permitira que se realicen mas ventas.",
                                ),
                              ),

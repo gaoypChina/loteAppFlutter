@@ -1147,6 +1147,10 @@ class Principal{
                         if(datos.isNotEmpty){
                           if(tieneJugadasPendientes){
                             BluetoothChannel.printTicket(datos["venta"], BluetoothChannel.TYPE_PAGADO);
+                          }else{
+                            bool imprimir = await TicketService.showDialogDeseaImprimir(context: context);
+                            if(imprimir)
+                              BluetoothChannel.printTicket(datos["venta"], BluetoothChannel.TYPE_PAGADA_ONLY_MARK);
                           }
                         }
                         setState((){_cargando = false;  _showListo = true; });

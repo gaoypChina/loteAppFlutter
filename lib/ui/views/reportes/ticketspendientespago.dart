@@ -56,13 +56,12 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTabla = BehaviorSubject();
     _fechaString = "${_fechaActual.year}-${_fechaActual.month}-${_fechaActual.day}";
-    _date = MyDate.getTodayDateRange();
     _future = _init();
     super.initState();
-    SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //     DeviceOrientation.landscapeRight,
+    //     DeviceOrientation.landscapeLeft,
+    // ]);
   }
 
   @override
@@ -82,11 +81,15 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   _init() async {
     try{
       // setState(() => _cargando = true);
+      List<DateTime> fechasDeEstaSemana = MyDate.getEstaSemana();
+      _date = DateTimeRange(start: fechasDeEstaSemana[0], end: fechasDeEstaSemana[1]);
       _idGrupoDeEsteUsuario = await Db.idGrupo();
-      var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: await Db.idBanca(), scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo(), retornarBancas: true);
+      // var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: await Db.idBanca(), scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo(), retornarBancas: true);
+      var datos = await ReporteService.ticketsPendientesPago(fecha: _date, idBanca: await null, scaffoldKey: _scaffoldKey, idGrupo: await Db.idGrupo(), retornarBancas: true);
       if(_onCreate && datos != null){
         List list = List.from(datos["bancas"]);
         listaBanca = list.map((b) => Banca.fromMap(b)).toList();
+        listaBanca.insert(0, Banca.getBancaTodas);
         if(listaBanca.length > 0)
           _idBanca = listaBanca[0].id;
           _banca = listaBanca[0];
@@ -109,7 +112,7 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
     try{
       setState(() => _cargando = true);
       // var datos = await ReporteService.ticketsPendientesPago(fechaString: _fechaString, idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
-      var datos = await ReporteService.ticketsPendientesPago(fechaString: _date.start.toString(), idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
+      var datos = await ReporteService.ticketsPendientesPago(fecha: _date, idBanca: _idBanca, scaffoldKey: _scaffoldKey, idGrupo: _idGrupoDeEsteUsuario);
       if(_onCreate && datos != null){
         List list = List.from(datos["bancas"]);
         listaBanca = list.map((b) => Banca.fromMap(b)).toList();
@@ -280,33 +283,42 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   
  }
 
- _dateChanged(var date){
-    print("Hola");
-    if(date == null)
-      return;
+//  _dateChanged(var date){
+//     print("Hola");
+//     // if(date == null)
+//     //   return;
 
-    if(date != null && date is DateTime)
-      setState(() {
-        _date = DateTimeRange(
-          start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
-          end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
-        );
-        _tickets();
-      });
-    else
-     setState((){
-        _date = date;
-        _tickets();
-     });
+//     if(date != null && date is DateTime)
+//       setState(() {
+//         _date = DateTimeRange(
+//           start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+//           end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+//         );
+//         _tickets();
+//       });
+//     else
+//      setState((){
+//         _date = date;
+//         _tickets();
+//      });
 
-  }
+//   }
+
+_dateChanged(DateTimeRange value){
+  setState(() {_date = value; _tickets();});
+}
 
 
- _dateDialog() async {
-    var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
-    _dateChanged(date);
+//  _dateDialog() async {
+//     var date = await showDatePicker(
+//       context: context, 
+//       initialDate: _date != null ? _date.start : DateTime.now(), 
+//       firstDate: DateTime(DateTime.now().year - 5), 
+//       lastDate: DateTime(DateTime.now().year + 5),
+//     );
+//     _dateChanged(date);
     
-  }
+//   }
 
   _search(String data){
     // _txtSearch
@@ -333,26 +345,58 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
   dynamic _dateWidget(bool isSmallOrMedium){
     if(isSmallOrMedium)
     return MyCircleButton(
-      child: MyDate.dateRangeToNameOrString(_date), 
-      onTap: _dateDialog
+      child: _date == null ? 'Todas las fechas' : MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
     );
 
-    return Container(
-      width: 180,
-      child: Builder(
-        builder: (context) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: MyDropdown(title: null, 
-              leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-              hint: "${MyDate.dateRangeToNameOrString(_date)}",
-              onTap: _dateDialog,
-            ),
-          );
-        }
-      ),
-    );
+     return Container(
+                width: 180,
+                child: Builder(
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: MyDropdown(
+                        title: null, 
+                        leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        hint: "${MyDate.dateRangeToNameOrString(_date)}",
+                        onTap: (){
+                          showMyOverlayEntry(
+                            context: context,
+                            right: 20,
+                            builder: (context, overlay){
+                              _cancel(){
+                                overlay.remove();
+                              }
+                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                            }
+                          );
+                        },
+                      ),
+                    );
+                  }
+                ),
+              );
+     
 
   }
 
@@ -413,7 +457,9 @@ class _TicketsPendientesPagoScreenState extends State<TicketsPendientesPagoScree
           expandedHeight: isSmallOrMedium ? 110 : 85,
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
-            MySliverButton(title: IconButton(
+            MySliverButton(
+              showOnlyOnSmall: true,
+              title: IconButton(
               icon: Icon(Icons.search, color: Colors.black,),
               onPressed: () async{
                 var data = await showSearch(context: context, delegate: TicketsSearch(lista));
