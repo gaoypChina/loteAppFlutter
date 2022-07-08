@@ -2053,7 +2053,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return myScaffold(
       context: context,
-      inicio: true,
+      bancas: true,
       cargando: false,
       cargandoNotify: _cargandoNotify,
       isSliverAppBar: true,

@@ -294,7 +294,7 @@ _opcionChanged(String opcion){
       cargando: false,
       isSliverAppBar: true,
       cargandoNotify: null,
-      inicio: true,
+      bancas: true,
       floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _showDialogGuardar,) : null,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
