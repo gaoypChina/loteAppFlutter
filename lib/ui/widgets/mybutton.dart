@@ -120,6 +120,10 @@ class _MyButtonState extends State<MyButton> {
     }
   }
 
+  _circularProgressIndicator(){
+    return SizedBox(height: 12, width: 12, child: CircularProgressIndicator());
+  }
+
   _buttonNormal(){
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
@@ -130,7 +134,7 @@ class _MyButtonState extends State<MyButton> {
         borderRadius: BorderRadius.circular(5)
       ),
       child: Center(
-        child: widget.cargando ? SizedBox(height: 12, width: 12, child: CircularProgressIndicator()) : Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
+        child: widget.cargando ? _circularProgressIndicator() : Text(widget.title, style: TextStyle(color: _textColor(), fontFamily: "GoogleSans", fontWeight: FontWeight.w600),)
       )
     );
     return InkWell(

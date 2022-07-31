@@ -1308,7 +1308,8 @@ static List<charts.Series<OrdinalSales, String>> datosGrafica(List<GraficaVentas
                   padding: EdgeInsets.only(top: 5, bottom: 5),
                   color: Utils.colorGreyFromPairIndex(idx: idx),
                   child: Center(
-                    child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16)))
+                    // child: InkWell(onTap: (){}, child: Text(b["descripcion"], style: TextStyle(fontSize: 16)))
+                    child: InkWell(onTap: (){}, child: Text(listaSorteo[_indexSorteo]["descripcion"] != Draws.superPale ? b["descripcion"] : b["abreviatura"] + '/' + b["abreviaturaLoteriaSuperpale"], style: TextStyle(fontSize: 16)))
                   ),
                 ),
                 Container(

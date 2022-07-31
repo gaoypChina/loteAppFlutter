@@ -91,6 +91,9 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
   }
 
   _guardar() async {
+    if(_cargandoNotify.value)
+      return;
+
       try {
         if(!_formKey.currentState.validate())
           return;
@@ -348,7 +351,7 @@ class _LoteriasAddScreenState extends State<LoteriasAddScreen> {
           : "Agregar loteria",
           subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus loterias.",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
+            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true, cargandoNotifier: _cargandoNotify,)
           ],
         ), 
         sliver: FutureBuilder<void>(

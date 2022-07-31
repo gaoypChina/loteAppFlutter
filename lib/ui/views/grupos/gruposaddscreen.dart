@@ -41,6 +41,9 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
   }
 
   _guardar() async {
+    if(_cargandoNotify.value)
+      return;
+
       try {
         if(!_formKey.currentState.validate())
           return;
@@ -234,7 +237,7 @@ class _GruposAddScreenState extends State<GruposAddScreen> {
           : "Agregar grupo",
           subtitle: isSmallOrMedium ? '' : "Agrega grupos para que agrupes, dividas y separes tus bancas y usuarios.",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar)
+            MySliverButton(title: "Guardar", onTap: _guardar, cargandoNotifier: _cargandoNotify,)
           ],
         ), 
         sliver: 

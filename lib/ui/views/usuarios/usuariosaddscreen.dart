@@ -936,7 +936,7 @@ StreamController<List<Usuario>> _streamController;
         sliverAppBar: MySliverAppBar(
           title: "Agregar usuario",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar)
+            MySliverButton(title: "Guardar", onTap: _guardar, cargando: _cargando,)
           ],
         ),
         sliver: FutureBuilder<void>(

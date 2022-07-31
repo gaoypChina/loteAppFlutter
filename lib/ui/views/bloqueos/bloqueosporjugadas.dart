@@ -1111,6 +1111,9 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
  }
 
  _guardar() async {
+  if(_cargandoNotify.value)
+    return;
+
    if(_selectedMoneda == null){
      Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar una moneda");
      return;
@@ -1134,6 +1137,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
    }
 
    try {
+      _cargandoNotify.value = true;
       var parsed;
        if(_selectedTipo == "Por banca")
         parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date, descontarDelBloqueoGeneral: _descontarDelBloqueoGeneral);
@@ -1472,7 +1476,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               ), 
               onTap: (){}
               ),
-              MySliverButton(title: "Guardar", onTap: _guardar)
+              MySliverButton(title: "Guardar", onTap: _guardar, cargandoNotifier: _cargandoNotify,)
             // MySliverButton(
             //   title: Container(
             //     width: 52,

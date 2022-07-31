@@ -318,6 +318,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   }
 
   _guardar() async {
+    if(_cargandoNotify.value == true)
+      return;
+      
       try {
         if(!_formKey.currentState.validate())
           return;
@@ -2067,7 +2070,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
           : "Agregar banca",
           subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus bancas.",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
+            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true, cargandoNotifier: _cargandoNotify)
           ],
         ), 
         sliver: FutureBuilder<void>(

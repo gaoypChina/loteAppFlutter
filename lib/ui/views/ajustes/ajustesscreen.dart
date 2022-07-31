@@ -217,7 +217,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
             actions: [
               MySliverButton(
                   title: "Guardar",
-                  onTap: _guardar
+                  onTap: _guardar,
+                  cargando: _cargando,
               )
             ],
           ),

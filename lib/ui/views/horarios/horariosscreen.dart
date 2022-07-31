@@ -37,6 +37,9 @@ class _HorariosScreenState extends State<HorariosScreen> {
   }
 
    _guardar() async {
+    if(_cargandoNotify.value)
+      return;
+
       try {
         // if(!_formKey.currentState.validate())
         //   return;
@@ -448,7 +451,7 @@ class _HorariosScreenState extends State<HorariosScreen> {
           : "Horarios loterias",
           subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus horarios.",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
+            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true, cargandoNotifier: _cargandoNotify,)
           ],
         ), 
         sliver: FutureBuilder<void>(

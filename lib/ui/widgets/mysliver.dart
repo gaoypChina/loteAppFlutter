@@ -137,6 +137,23 @@ class _MySliverButtonState extends State<MySliverButton> {
          ?
          widget.title
          :
+         widget.cargandoNotifier != null
+         ?
+         ValueListenableBuilder(
+          valueListenable: widget.cargandoNotifier,
+           builder: (context, cargando, __) {
+             return MyButton(
+              //  type: MyButtonType.noResponsive,
+              isResponsive: false,
+               title: (widget.title is Widget) ? "" : widget.title,
+               function: widget.onTap,
+               color: widget.color,
+               cargandoNotify: widget.cargandoNotifier,
+               cargando: cargando,
+             );
+           }
+         )
+         :
          MyButton(
           //  type: MyButtonType.noResponsive,
           isResponsive: false,

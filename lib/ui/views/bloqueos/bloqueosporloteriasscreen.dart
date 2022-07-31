@@ -76,6 +76,9 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   }
 
   _guardar() async {
+    if(_cargandoNotify.value)
+      return;
+
     if(_selectedTipo == "Por banca" && _bancas.length == 0){
       Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas seleccionadas");
       return;
@@ -365,7 +368,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
           title: "Reglas",
           subtitle: "",
           actions: [
-            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true,)
+            MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true, cargandoNotifier: _cargandoNotify,)
           ],
         ), 
         sliver: StreamBuilder<List<Banca>>(
