@@ -1321,6 +1321,8 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       socket.on("blockslotteries:App\\Events\\BlockslotteriesEvent", (data) async {   //sample event
         var parsed = data.cast<String, dynamic>();
         print("PrincipalViewo initSocket blockslotteries: $parsed");
+        // print("PrincipalViewo initSocket blockslotteries action: ${parsed['action']}");
+        // print("PrincipalViewo initSocket blockslotteries data: ${parsed['blockslotteries']}");
         var blockslotteries = await compute(Blockslotteries.fromMapList, parsed['blockslotteries']);
         Principal.updateMontoBlockslotteriesFromJugadas(BlockslotteriesJugada(blockslotteries: blockslotteries, jugadas: listaJugadas, eliminar: (parsed['action'] == 'delete') ? true : false));
         await Realtime.addBlockslotteriesDatosNuevos(blockslotteries, (parsed['action'] == 'delete') ? true : false);
