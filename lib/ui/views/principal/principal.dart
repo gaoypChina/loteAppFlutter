@@ -228,9 +228,11 @@ String initSocketNotificationTask = "initSocketNotificationTask";
 
 
   getIdBanca() async {
-    if(await Db.existePermiso("Jugar como cualquier banca"))
-      return listaBanca[_indexBanca].id;
-    else
+    if(await Db.existePermiso("Jugar como cualquier banca")){
+      // return listaBanca[_indexBanca].id;
+      int idBanca = listaBanca[_indexBanca].id;
+      return idBanca == 0 ? await Db.idBanca() : idBanca;
+    }else
       return await Db.idBanca();
   }
 
@@ -1232,7 +1234,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       // 'timeout': 1000,
       // 'reconnectionDelay': 1000,
       'extraHeaders': {'foo': 'bar'}, // optional
-      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}" + "&idUsuario=" + "${await getIdBanca()}",
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}",
       // 'rejectUnauthorized': false
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
     });
@@ -1257,7 +1259,9 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       var parsed = await compute(Utils.parseDatosDynamic, data);
       if(parsed["error"] == 1)
         return;
+      // print("PrincipalView initSocket sincronizarTodos from server before: ${parsed["datos"]["idBanca"]}");
 
+      _changeSocketBranchRoom(parsed["datos"]["idBanca"]);
       _connectionNotify.value = true;
       if(listaJugadas.length > 0){
         await updateMontoBlocksgeneralsFromJugadas(data["datos"]);
