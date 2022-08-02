@@ -943,6 +943,13 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       }
   }
 
+  _changeSocketBranchRoom(int idBancaAnterior) async {
+    var idBanca = await getIdBanca();
+    print("_changeSocketBranchRoom idBanca: $idBanca");
+    if(idBanca != null)
+      socket.emit("changeBranchRoom", {"servidor" : await Db.servidor(), "idBanca" : idBanca, "idBancaAnterior" : idBancaAnterior});
+  }
+
   _emitToGetNewIdTicket() async {
     if(kIsWeb)
       return;
@@ -1214,6 +1221,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     print("initSOcket servidor beforeConnect ${await Db.servidor()}");
     print("initSOcket servidor beforeConnect builder ${OptionBuilder().setTimeout(2000).build()}");
     print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    print("initSOcket getIdBanca ${await getIdBanca()}");
     // print("initSOcket servidor beforeConnect builder ${OptionBuilder().}");
     // IO.
     IO.cache.forEach((key, value) {print("initSocket cache $key : $value");});
@@ -1224,7 +1232,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       // 'timeout': 1000,
       // 'reconnectionDelay': 1000,
       'extraHeaders': {'foo': 'bar'}, // optional
-      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}",
+      'query': 'auth_token='+signedToken +'&room=' + "${await Db.servidor()}" + "&idUsuario=" + "${await Db.idUsuario()}" + "&idUsuario=" + "${await getIdBanca()}",
       // 'rejectUnauthorized': false
       // 'query': 'auth_token='+"hola" +'&room=' + "valentin"
     });
@@ -2655,8 +2663,10 @@ Widget _bancasScreen(){
                   isExpanded: true,
                   value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
                   onChanged: (Banca banca) async {
+                      int idBancaAnterior = await getIdBanca();
                     setState(() {
                     _indexBanca = listaBanca.indexOf(banca); 
+                    _changeSocketBranchRoom(idBancaAnterior);
                     _emitToGetNewIdTicket();
                     indexPost(false);
                     for (var jugada in listaJugadas) {
