@@ -1,0 +1,3 @@
+Estas keys sirven para general .apk o appbund de la aplicacion de loterias
+
+la key es: loteria_jprint_llave

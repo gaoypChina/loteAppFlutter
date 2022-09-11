@@ -1,6 +1,6 @@
 {
-    "name": "lote_app_flutter",
-    "short_name": "lote_app_flutter",
+    "name": "loterias",
+    "short_name": "loterias",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

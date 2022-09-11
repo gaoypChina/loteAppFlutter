@@ -2212,7 +2212,7 @@ _bluetoothScreen([bool isSmallOrMedium = true]){
             ),
           ),
           MySubtitle(title: "Intrucciones"),
-          MySubtitle(title: "Descargar Java SDK 14"),
+          MySubtitle(title: "Java SDK 14. (Descargar e instalar)"),
           MyDescripcon(title: "Debera descargar e instalar Java SDK 14 para la plataforma que desee"),
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
@@ -2240,7 +2240,7 @@ _bluetoothScreen([bool isSmallOrMedium = true]){
               ],
             ),
           ),
-          MySubtitle(title: "Descargar App para imprimir"),
+          MySubtitle(title: "App para imprimir. (Descargar e instalar)"),
           MyResizedContainer(
              medium: 1,
             child: MyDescripcon(title: "Esta es la app que permitira la conexion entre el sistema y su equipo.")
@@ -2252,7 +2252,7 @@ _bluetoothScreen([bool isSmallOrMedium = true]){
               title: "Descargar",
               medium: 4,
               function: () async {
-                Utils.launchUrl('http://loteriasdo.gq/assets/java/mavenproject1-1.0-jar-with-dependencies.jar');
+                Utils.launchUrl(Utils.URL + '/assets/java/mavenproject1-1.0-jar-with-dependencies.jar');
               },
             ),
           ),
