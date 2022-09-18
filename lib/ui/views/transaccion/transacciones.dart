@@ -461,7 +461,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   color: Utils.colorGreyFromPairIndex(idx: idx), 
-                  child: Center(child: Text("${(b["tipo"]["descripcion"] != 'Ajuste') ? b["tipo"]["descripcion"].toString().substring(0, b["tipo"]["descripcion"].toString().length > 10 ? 10 : b["tipo"]["descripcion"].toString().length) : b["debito"] != 0 ? b["tipo"]["descripcion"] + '(Debito)' : b["tipo"]["descripcion"] + '(Credito)'}", style: TextStyle(fontSize: 16)))
+                  child: Center(child: Text("${(b["tipo"]["descripcion"] != 'Ajuste') ? b["tipo"]["descripcion"].toString().substring(0, b["tipo"]["descripcion"].toString().length > 10 ? 10 : b["tipo"]["descripcion"].toString().length) : Utils.toDouble(b["debito"]) != 0 ? b["tipo"]["descripcion"] + '(Debito)' : b["tipo"]["descripcion"] + '(Credito)'}", style: TextStyle(fontSize: 16)))
                 ),
                 Container(
                   padding: EdgeInsets.only(top: 10, bottom: 10),
@@ -529,7 +529,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
    MyTable(
     //  isScrolled: false,
     showColorWhenImpar: true,
-     columns: ["Fecha", "Entidad1", "Entidad2", "saldo inicial entidad #1", "saldo inicial entidad #2", "Tipo", "Monto", "saldo final entidad #2", "saldo final entidad #2", "notas"], 
+     columns: ["Fecha", "Entidad1", "Entidad2", "saldo inicial entidad #1", "saldo inicial entidad #2", "Tipo", "Monto", "saldo final entidad #1", "saldo final entidad #2", "notas"], 
      rows: map.map((e) => [
         e,
         e["created_at"] != null ? MyDate.datesToString(MyDate.toDateTime(e["created_at"]), MyDate.toDateTime(e["created_at"])) : '',
