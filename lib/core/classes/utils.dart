@@ -27,8 +27,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../main.dart';
 
 class  Utils {
-  // static final String URL = 'http://127.0.0.1:8000/';
-  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  static final String URL = 'http://127.0.0.1:8000/';
+  static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL = 'http://192.168.1.35:8000';
   // static final String URL_SOCKET = 'http://192.168.1.35:3000';
   // static final String URL = 'http://sislote.test/';
@@ -44,8 +44,11 @@ class  Utils {
   // static final String URL = 'https://server.loteriasdo.gq';
   // static final String URL_SOCKET = URL + ":8000";
 
-  static final String URL = 'https://lote-app.com';
-  static final String URL_SOCKET = URL + ":8000";
+
+  /************ ENLACES PRODUCCION ******************/
+  // static final String URL = 'https://lote-app.com';
+  // static final String URL_SOCKET = URL + ":8000";
+  /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
       // 'Content-type': 'application/json',
