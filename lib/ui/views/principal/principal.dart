@@ -228,9 +228,11 @@ String initSocketNotificationTask = "initSocketNotificationTask";
 
 
   getIdBanca() async {
-    if(await Db.existePermiso("Jugar como cualquier banca"))
-      return listaBanca[_indexBanca].id;
-    else
+    if(await Db.existePermiso("Jugar como cualquier banca")){
+      // return listaBanca[_indexBanca].id;
+      int idBanca = listaBanca[_indexBanca].id;
+      return idBanca == 0 ? await Db.idBanca() : idBanca;
+    }else
       return await Db.idBanca();
   }
 
@@ -943,6 +945,13 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       }
   }
 
+  _changeSocketBranchRoom(int idBancaAnterior) async {
+    var idBanca = await getIdBanca();
+    print("_changeSocketBranchRoom idBanca: $idBanca");
+    if(idBanca != null)
+      socket.emit("changeBranchRoom", {"servidor" : await Db.servidor(), "idBanca" : idBanca, "idBancaAnterior" : idBancaAnterior});
+  }
+
   _emitToGetNewIdTicket() async {
     if(kIsWeb)
       return;
@@ -1214,6 +1223,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     print("initSOcket servidor beforeConnect ${await Db.servidor()}");
     print("initSOcket servidor beforeConnect builder ${OptionBuilder().setTimeout(2000).build()}");
     print("initSOcket servidor beforeConnect builder ${OptionBuilder().enableForceNew().build()}");
+    print("initSOcket getIdBanca ${await getIdBanca()}");
     // print("initSOcket servidor beforeConnect builder ${OptionBuilder().}");
     // IO.
     IO.cache.forEach((key, value) {print("initSocket cache $key : $value");});
@@ -1249,7 +1259,9 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       var parsed = await compute(Utils.parseDatosDynamic, data);
       if(parsed["error"] == 1)
         return;
+      // print("PrincipalView initSocket sincronizarTodos from server before: ${parsed["datos"]["idBanca"]}");
 
+      _changeSocketBranchRoom(parsed["datos"]["idBanca"]);
       _connectionNotify.value = true;
       if(listaJugadas.length > 0){
         await updateMontoBlocksgeneralsFromJugadas(data["datos"]);
@@ -2655,8 +2667,10 @@ Widget _bancasScreen(){
                   isExpanded: true,
                   value: (listaBanca.length > 0) ? (_indexBanca > listaBanca.length) ? listaBanca[0] : listaBanca[_indexBanca] : null,
                   onChanged: (Banca banca) async {
+                      int idBancaAnterior = await getIdBanca();
                     setState(() {
                     _indexBanca = listaBanca.indexOf(banca); 
+                    _changeSocketBranchRoom(idBancaAnterior);
                     _emitToGetNewIdTicket();
                     indexPost(false);
                     for (var jugada in listaJugadas) {
