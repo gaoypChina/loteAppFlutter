@@ -46,6 +46,7 @@ import 'package:loterias/core/services/ticketservice.dart';
 // import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
+import 'package:loterias/ui/views/recargas/recargasadialogddscreen.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
@@ -2175,7 +2176,25 @@ _showIntentNotificationIfExists() async {
     }
   }
 
-_bluetoothScreen([bool isSmallOrMedium = true]){
+_bluetoothScreen([bool isSmallOrMedium = true]) async {
+  // var returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
+  //        return RecargasDialogAddScreen();
+  //      }));
+  // showDialog(context: context, builder: (context){
+  //   return StatefulBuilder(
+  //     builder: (context, setState) {
+  //       return RecargasDialogAddScreen();
+  //     }
+  //   );
+  // });
+  // return;
+
+  var returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
+         return RecargasDialogAddScreen();
+       }));
+
+       return;
+
   if(isSmallOrMedium){
     Navigator.of(context).pushNamed('/bluetooth');
     return;

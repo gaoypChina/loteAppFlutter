@@ -266,6 +266,7 @@ class BluetoothChannel{
         print("Listen OnData: $onData");
         _connectado = true;
         var map = Map<int, dynamic>();
+        map[map.length] = _getMapNuevo(cmd: CMD.center);
         map[map.length] = (normalOPrueba) ? _getMapNuevo(text: content) : _getMapNuevo(text: content);
         final bool result = await _methodChannel.invokeMethod("printText", {"data" : map});
         // if(normalOPrueba){

@@ -104,7 +104,7 @@ class _LoteriasScreenState extends State<LoteriasScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return MyAlertDialog(
-              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar el grupo ", boldText: "${data.descripcion}",), 
+              title: "Eliminar", content: MyRichText(text: "Seguro que desea eliminar la loteria ", boldText: "${data.descripcion}",), 
               isDeleteDialog: true,
               cargando: cargando,
               okFunction: () async {

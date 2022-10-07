@@ -38,6 +38,7 @@ import 'package:loterias/ui/views/principal/probarnullsafety.dart';
 import 'package:loterias/ui/views/principal/probartiemporestante.dart';
 import 'package:loterias/ui/views/principal/prueba2.dart';
 import 'package:loterias/ui/views/prueba/pruebatimezone.dart';
+import 'package:loterias/ui/views/recargas/recargasscreen.dart';
 import 'package:loterias/ui/views/reportes/historicoventas.dart';
 import 'package:loterias/ui/views/reportes/reportegeneralscreen.dart';
 import 'package:loterias/ui/views/reportes/reportejugadasscreen.dart';
@@ -278,6 +279,10 @@ class MyRouter {
         case '/versiones' :
           return MaterialPageRoute(
             builder: (_)=> VersionesScreen()
+          ) ;
+        case '/recargas' :
+          return MaterialPageRoute(
+            builder: (_)=> RecargasScreen()
           ) ;
       // case '/' :
       //   return  MaterialPageRoute(

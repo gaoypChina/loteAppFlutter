@@ -60,7 +60,8 @@ class _RolScreenState extends State<RolScreen> {
         entidad.permisos.forEach((permiso) {
           bool esPermisoRol = _tipoUsuarioDialog.permisos.indexWhere((permisoRol) => permisoRol.id == permiso.id) != -1;
           print("_showDialog esPermisoRol: $esPermisoRol}");
-          permiso.seleccionado = ( esPermisoRol || permisos.indexWhere((permisoUsuario) => permiso.id ==  permisoUsuario.id) != -1) ? true : false;
+          // permiso.seleccionado = ( esPermisoRol || permisos.indexWhere((permisoUsuario) => permiso.id ==  permisoUsuario.id) != -1) ? true : false;
+          permiso.seleccionado = (permisos.indexWhere((permisoUsuario) => permiso.id ==  permisoUsuario.id) != -1) ? true : false;
           permiso.esPermisoRol = esPermisoRol;
         });
       });

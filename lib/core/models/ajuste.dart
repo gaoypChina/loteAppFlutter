@@ -1,3 +1,4 @@
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/tipos.dart';
 
@@ -33,7 +34,24 @@ class Ajuste {
         isoCode = snapshot['isoCode'] ?? null
   ;
 
+  static Future<Ajuste> obtenerAjuste() async {
 
+    Map<String, dynamic> ajusteMap = await Db.ajustes();
+
+    return ajusteMap != null ? Ajuste.fromMap(ajusteMap) : null;
+  }
+
+  static String obtenerNombreConsorcio(Ajuste ajuste) {
+    
+    String nombreConsorcioARetornar = "";
+
+    if(ajuste != null){
+
+      nombreConsorcioARetornar = ajuste.imprimirNombreConsorcio == 1 ? ajuste.consorcio != null ? ajuste.consorcio : '' : '';
+    }
+
+    return nombreConsorcioARetornar;
+  }
 
   toJson() {
     return {

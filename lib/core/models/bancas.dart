@@ -131,6 +131,10 @@ class Banca {
         
   static Banca get getBancaTodas => Banca(id: 0, descripcion: 'Todas'); 
 
+  static List<Banca> fromMapList(parsed){
+    return parsed != null ? parsed.map<Banca>((json) => Banca.fromMap(json)).toList() : [];
+  }
+
 
   toJson() {
     return {

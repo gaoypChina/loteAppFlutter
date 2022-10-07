@@ -26,8 +26,8 @@ class MyAlertDialog extends StatefulWidget {
   final double xlarge;
   // final double padding;
   final Widget Function(BuildContext context, double width) builder;
-
-  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5, this.okButton, this.isFlat = false}) : super(key: key);
+  final List<Widget> actions;
+  MyAlertDialog({Key key, @required this.title, @required this.content, this.description, this.okDescription = "Ok", @required this.okFunction, this.isDeleteDialog = false, this.deleteDescripcion = "Eliminar", this.cargando = false, this.cargandoNotify, this.thirdButtonTitle = "", this.thirdButtonFunction, this.builder, this.small = 1, this.medium = 1.6, this.large = 2.5, this.xlarge = 2.5, this.okButton, this.isFlat = false, this.actions}) : super(key: key);
   @override
   _MyAlertDialogState createState() => _MyAlertDialogState();
 }
@@ -205,7 +205,12 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                 // )
               
               ),
-              actions: [
+              actions: 
+              widget.actions != null
+              ?
+              widget.actions
+              :
+              [
                 Container(
                   // padding: EdgeInsets.only(right: 6.0),
                   width: getWidth(width),

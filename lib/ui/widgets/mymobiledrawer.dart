@@ -60,6 +60,7 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
   var _ajustesNotifier = ValueNotifier<bool>(false);
   var _versionesNotifier = ValueNotifier<bool>(false);
   var _marcarTicketComoPagadoNotifier = ValueNotifier<bool>(false);
+  var _verRecargasNotifier = ValueNotifier<bool>(false);
 
 
   _getPermision() async {
@@ -101,6 +102,7 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
     _ajustesNotifier.value  = await Db.existePermiso("Ver ajustes");
     _versionesNotifier.value  = permisoProgramador;
     _marcarTicketComoPagadoNotifier.value  = await Db.existePermiso("Marcar ticket como pagado");
+    _verRecargasNotifier.value  = await Db.existePermiso("Ver recargas");
 
     if(PERMISSIONS_CHANGED){
       PERMISSIONS_CHANGED = false;
@@ -317,6 +319,22 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
                   dense: true,
                   onTap: (){
                     Navigator.of(context).pushNamed("/registrarPremios");
+                  widget.scaffoldKey.currentState.openEndDrawer();},
+                ),
+              );
+            }
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: _verRecargasNotifier,
+            builder: (context, value, __) {
+              return Visibility(
+                visible: value,
+                child: ListTile(
+                  title: Text('Recargas'),
+                  leading: Icon(Icons.send_to_mobile),
+                  dense: true,
+                  onTap: (){
+                    Navigator.of(context).pushNamed("/recargas");
                   widget.scaffoldKey.currentState.openEndDrawer();},
                 ),
               );

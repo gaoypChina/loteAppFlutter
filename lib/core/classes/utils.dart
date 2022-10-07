@@ -27,10 +27,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../main.dart';
 
 class  Utils {
-  static final String URL = 'http://127.0.0.1:8000/';
-  static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  // static final String URL = 'http://192.168.1.35:8000';
-  // static final String URL_SOCKET = 'http://192.168.1.35:3000';
+  // static final String URL = 'http://127.0.0.1:8000/';
+  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  static final String URL = 'http://192.168.1.37:8000';
+  static final String URL_SOCKET = 'http://192.168.1.37:3000';
   // static final String URL = 'http://sislote.test/';
   // static final String URL_SOCKET = 'http://sislote.test:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
@@ -317,6 +317,7 @@ class  Utils {
       builder: (context){
         return AlertDialog(
           title: Text(title),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           content: SingleChildScrollView(child: SelectableText(content)),
           actions: <Widget>[
             FlatButton(
@@ -1052,6 +1053,17 @@ class  Utils {
 
   static navigateToReporteGeneral(bool showDrawer){
     navigatorKey.currentState.pushReplacementNamed("/general", arguments: showDrawer);
+  }
+
+  static String toFormatoRD(String numero){
+    if(numero == null)
+      return '';
+
+    if(numero.length != 10)
+      return numero;
+
+    return "(" + numero.substring(0, 3) + ') ' + numero.substring(3, 6) + '-' + numero.substring(6);
+    
   }
  
 }

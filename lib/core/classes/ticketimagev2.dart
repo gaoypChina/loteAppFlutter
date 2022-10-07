@@ -54,6 +54,78 @@ class TicketImageV2 {
     return image;
   }
 
+  static List<Widget> construirListaDeTextWidgetParaConvertirEnImage(String ticketRecargaGenerado){
+    List<Widget> listaDeText = [];
+      List<String> ticketToListSeparadosPorSaltoDeLinea = ticketRecargaGenerado.split("\n");
+      int indiceDelNombreDelConsorcio = 0;
+      int indiceDelNombreDelaBanca = 1;
+      int contadorCicle = 0;
+
+      for (var element in ticketToListSeparadosPorSaltoDeLinea) {
+        print("RecargasScreen _compartir: $element esEncabezado: ${element.indexOf("_________RECARGA CLARO__________")}");
+
+        if(element.indexOf("_________RECARGA CLARO__________") != -1){
+
+          String numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga = element.replaceFirst("_________RECARGA CLARO__________", "");
+
+          String encabezadoDeLaRecargaExtraidoReemplazandoElNumeroDeLaRecarga = element.replaceFirst(numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga, "");
+          
+          listaDeText.add(Center(child: Text(encabezadoDeLaRecargaExtraidoReemplazandoElNumeroDeLaRecarga, style: TextStyle(fontSize: 60, color: Colors.black),)));
+          
+          listaDeText.add(Center(child: Text("", style: TextStyle(fontSize: 60, color: Colors.black),)));
+          
+          listaDeText.add(Text(numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga, style: TextStyle(fontSize: 60, color: Colors.black),));
+
+        }
+        else if(element.indexOf("********************************") != -1){
+
+          listaDeText.add(Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 26.0), child: Text(element, style: TextStyle(fontSize: 60, color: Colors.black),),
+            ),
+          ));
+
+        }
+        else if(contadorCicle == indiceDelNombreDelConsorcio || contadorCicle == indiceDelNombreDelaBanca || element.indexOf("Gracias por preferirnos!") != -1){
+
+          listaDeText.add(Center(child: Text(element, style: TextStyle(fontSize: 60, color: Colors.black),)));
+
+        }
+        else
+          listaDeText.add(Text(element, style: TextStyle(fontSize: 60, color: Colors.black),));
+
+        contadorCicle++;
+      }
+
+      return listaDeText;
+  }
+
+
+  static Future<Uint8List> imageFromWidget(Widget widget) async {
+    double screenWidth = 1250;
+    double calculatedHeight = 1200;
+
+    Widget container = Container(
+          
+          width: screenWidth,
+          padding: EdgeInsets.only(left: 20, right: 20, top: 10),
+          decoration: BoxDecoration(
+            border: Border.all(width: 3, color: Utils.fromHex("#1170ec")),
+            color: Colors.white
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 260),
+            child: widget,
+          )
+    );
+   
+    var image = await createImageFromWidget(container, imageSize: Size(screenWidth, calculatedHeight), logicalSize: Size(screenWidth, calculatedHeight));
+    
+    print("TicketImageV2 image: $image");
+
+    return image;
+  }
+
   // static Future<ThemeData> _initFont() async {
   //   final font = await rootBundle.load("assets/fonts/ProductSans-Regular.ttf");
   //   final fontBold = await rootBundle.load("assets/fonts/ProductSans-Bold.ttf");
