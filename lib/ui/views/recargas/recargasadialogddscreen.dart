@@ -21,6 +21,7 @@ import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
 import 'package:phone_form_field/phone_form_field.dart';
+import 'package:another_flushbar/flushbar.dart';
 
 class RecargasDialogAddScreen extends StatefulWidget {
   const RecargasDialogAddScreen({Key key}) : super(key: key);
@@ -118,6 +119,15 @@ class _RecargasDialogAddScreenState extends State<RecargasDialogAddScreen> {
       }
     }
 
+    void _limpiarCampos(){
+      _txtNumero.reset();
+      _txtMonto.text = '';
+      setState(() {
+        _banca = null;
+        _proveedor = null;
+      });
+    }
+
 
     try {
       // setState(() => _cargando = true);
@@ -126,19 +136,21 @@ class _RecargasDialogAddScreenState extends State<RecargasDialogAddScreen> {
       Recarga _recarga = await RecargaService.guardar(context: context, recarga: Recarga(monto: montoRecarga.toDouble(), numero: telefono, idProveedor: _proveedor.id, idBanca: !_tienePermisoJugarComoCualquierBanca ? _idBancaAsignadaAEsteUsuario : _banca.id));
       // setState(() => _cargando = false);
 
+
+
       _valueNotifierMostrarCargandoWidget.value = false;
 
-      String ticketGenerado = await Recarga.cambiarDatosDelTicketDeMidas(_recarga);
+      _limpiarCampos();
 
       if(_medioPorElCualMostrarTicketRecarga.medio == MedioPorElCualMostrarTicketRecarga.IMPRIMIR){
 
-         BluetoothChannel.printText(content: ticketGenerado + "\n\n\n", normalOPrueba: true);
+          await RecargaService.imprimir(context, _recarga);
 
       }else{
 
-        Uint8List ticketRecargaToImage = await TicketImageV2.imageFromWidget(Center(child: Text(ticketGenerado)));
+        await RecargaService.compartirTicket(context, _recarga, _medioPorElCualMostrarTicketRecarga.medio == MedioPorElCualMostrarTicketRecarga.COMPARTIR);
 
-        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketRecargaToImage, codigoQr: "", sms_o_whatsapp: _medioPorElCualMostrarTicketRecarga.medio == MedioPorElCualMostrarTicketRecarga.COMPARTIR);
+        // ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketRecargaToImage, codigoQr: "", sms_o_whatsapp: _medioPorElCualMostrarTicketRecarga.medio == MedioPorElCualMostrarTicketRecarga.COMPARTIR);
 
       }
 
@@ -146,6 +158,7 @@ class _RecargasDialogAddScreenState extends State<RecargasDialogAddScreen> {
     } on dynamic catch (e) {
       // setState(() => _cargando = false);
       _valueNotifierMostrarCargandoWidget.value = false;
+      Utils.showAlertDialog(context: context, title: "Error", content: "${e.toString()}");
     }
 
 
@@ -159,13 +172,13 @@ Widget  _roundedCotainer(MedioPorElCualMostrarTicketRecarga medioPorElCualMostra
     return GestureDetector(
       onTap: () => _medioPorElCualMostrarTicketRecargaChanged(medioPorElCualMostrarTicketRecarga),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: _medioPorElCualMostrarTicketRecarga == medioPorElCualMostrarTicketRecarga ? Theme.of(context).primaryColor.withOpacity(0.2) : Colors.transparent,
           border: _medioPorElCualMostrarTicketRecarga == medioPorElCualMostrarTicketRecarga ? null : Border.all(color: Colors.grey, width: 0.3),
           borderRadius: BorderRadius.circular(10.0)
         ),
-        child: Text(medioPorElCualMostrarTicketRecarga.medio, style: TextStyle(color: _medioPorElCualMostrarTicketRecarga == medioPorElCualMostrarTicketRecarga ? Colors.blue[700] : null, fontWeight: FontWeight.bold),),
+        child: Text(medioPorElCualMostrarTicketRecarga.medio, style: TextStyle(color: _medioPorElCualMostrarTicketRecarga == medioPorElCualMostrarTicketRecarga ? Colors.blue[700] : null, fontWeight: FontWeight.bold, fontSize: 12),),
       ),
     );
   }
@@ -173,7 +186,7 @@ Widget  _roundedCotainer(MedioPorElCualMostrarTicketRecarga medioPorElCualMostra
 Widget  _medioPorElCualMostrarTicketRecargaWidget(){
     return Wrap(
       children: listaMetodosParaMostrarTicketRecarga.map<Widget>((e) => Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
         child: _roundedCotainer(e),
       )).toList(),
     );

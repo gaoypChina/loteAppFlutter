@@ -8,6 +8,7 @@ class Historico {
   String descripcion;
   String codigo;
   double ventas;
+  double recargas;
   double descuentos;
   double comisiones;
 
@@ -21,7 +22,7 @@ class Historico {
   int ganadores;
   int perdedores;
 
-  Historico({this.idBanca, this.codigo, this.ventas, this.descuentos, this.comisiones, this.premios, this.balanceActual, this.caidaAcumulada, this.totalNeto, this.balance, this.tickets, this.pendientes, this.ganadores, this.perdedores});
+  Historico({this.idBanca, this.codigo, this.ventas, this.recargas, this.descuentos, this.comisiones, this.premios, this.balanceActual, this.caidaAcumulada, this.totalNeto, this.balance, this.tickets, this.pendientes, this.ganadores, this.perdedores});
 
   Historico.fromMap(Map snapshot) :
         idBanca = Utils.toInt(snapshot['idBanca']) ?? 0,
@@ -29,6 +30,7 @@ class Historico {
         descripcion = snapshot['descripcion'] ?? '',
         codigo = snapshot['codigo'] ?? '',
         ventas = Utils.toDouble(snapshot['ventas'].toString()) ?? 0,
+        recargas = Utils.toDouble(snapshot['recargas'].toString()) ?? 0,
         descuentos = Utils.toDouble(snapshot['descuentos'].toString()) ?? 0,
         comisiones = Utils.toDouble(snapshot['comisiones'].toString()) ?? 0,
         premios = Utils.toDouble(snapshot['premios'].toString()) ?? 0,
@@ -51,6 +53,7 @@ class Historico {
       "descripcion": descripcion,
       "codigo": codigo,
       "ventas": ventas,
+      "recargas": recargas,
       "descuentos": descuentos,
       "comisiones": comisiones,
     };

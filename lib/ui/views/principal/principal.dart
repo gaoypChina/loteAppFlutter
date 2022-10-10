@@ -154,6 +154,7 @@ String _montoPrueba = '0';
   bool _ckbLigarPale = true;
   bool _ckbLigarTripleta = false;
   bool _drawerIsOpen = false;
+  bool _tienePermisoRealizarRecargas = false;
   bool _tienePermisoJugarFueraDeHorario = false;
   bool _tienePermisoJugarSinDisponibilidad = false;
   bool _tienePermisoJugarMinutosExtras = false;
@@ -206,6 +207,10 @@ String _montoPrueba = '0';
   Banca _banca;
   Future<Map<String, dynamic>> futureBanca;
   Future<Map<String, dynamic>> futureUsuario;
+
+  static const String opcionRecargar = "recargar";
+  static const String opcionImpresora = "impresora";
+  static const String opcionNotificaciones = "notificaciones";
 
 
   
@@ -383,7 +388,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         var ticketImage = await TicketImageV2.create(listaDatos[0], listaDatos[1]);
         ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
       }
-    } on Exception catch (e) {
+    } on dynamic catch (e) {
       setState(() => _cargando = false);
       Utils.showAlertDialog(context: context, content: "$e", title: "Error");
     }
@@ -818,6 +823,10 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     bool tienePermisoManejarHorariosDeLoterias = await Db.existePermiso("Manejar horarios de loterias");
     bool tienePermisoManejarMonedas = await Db.existePermiso("Manejar monedas");
     bool tienePermisoManejarEntidadesContables = await Db.existePermiso("Manejar entidades contables");
+    bool tienePermisoRealizarRecargas = await Db.existePermiso("Realizar recargas");
+
+    print("PrincipalScreen tienePermisoRealizarRecargas: ${tienePermisoRealizarRecargas}");
+
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
       await stopSocketNoticacionInForeground();
@@ -858,6 +867,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       _tienePermisoManejarHorariosDeLoterias = tienePermisoManejarHorariosDeLoterias;
       _tienePermisoManejarMonedas = tienePermisoManejarMonedas;
       _tienePermisoManejarEntidadesContables = tienePermisoManejarEntidadesContables;
+      _tienePermisoRealizarRecargas = tienePermisoRealizarRecargas;
       // initSocketNoticacionInForeground();
     });
   }
@@ -2189,11 +2199,11 @@ _bluetoothScreen([bool isSmallOrMedium = true]) async {
   // });
   // return;
 
-  var returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
-         return RecargasDialogAddScreen();
-       }));
+  // var returnedUser = await Navigator.push(context, MaterialPageRoute(builder: (context){
+  //        return RecargasDialogAddScreen();
+  //      }));
 
-       return;
+  //      return;
 
   if(isSmallOrMedium){
     Navigator.of(context).pushNamed('/bluetooth');
@@ -2393,6 +2403,62 @@ _copiarJugadas(){
   _chanceSeleccionarScreenValue(false);
 }
 
+List<PopupMenuEntry<String>> _popupMenuEntries(){
+  PopupMenuItem recargaEntry = const PopupMenuItem<String>(
+    value: opcionRecargar,
+    child: Text("Recargar"),
+  );
+
+  PopupMenuItem notificacionesEntry = const PopupMenuItem<String>(
+    value: opcionNotificaciones,
+    child: Text("Notificaciones"),
+  );
+
+  List<PopupMenuEntry> entries = <PopupMenuEntry<String>>[
+
+      const PopupMenuItem(
+        value: opcionImpresora,
+        child: Text("Impresora")
+      ),
+      
+    ];
+
+  if(_tienePermisoRealizarRecargas)
+    entries.insert(0, recargaEntry);
+
+  if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true)
+    entries.add(notificacionesEntry);
+
+  return entries;
+}
+
+Widget _menuOpcionesWidget(bool screenHeightIsSmall){
+  double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
+  double _iconPaddingHorizontal = 12;
+
+  return PopupMenuButton(
+    child: Padding(
+      padding: EdgeInsets.only(right: _iconPaddingHorizontal),
+      child: Icon(Icons.more_vert, size: screenHeightIsSmall ? 25 :  26),
+    ),
+    onSelected: (String value)  {
+      if(value == opcionRecargar){
+         Navigator.push(context, MaterialPageRoute(builder: (context){
+         return RecargasDialogAddScreen();
+       }));
+
+      }else if(value == opcionImpresora){
+        _bluetoothScreen();
+      }
+      else if(value == opcionNotificaciones){
+        Navigator.of(context).pushNamed('/notificaciones');
+      }
+    },
+    itemBuilder: (context) => _popupMenuEntries(),
+  );
+
+}
+
 List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
   double _iconPaddingVertical = screenHeightIsSmall ? 2.0 :  8.0;
   double _iconPaddingHorizontal = 12;
@@ -2419,8 +2485,8 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(
-              width: screenHeightIsSmall ? 23 : 30,
-              height: screenHeightIsSmall ? 23 : 30,
+              width: screenHeightIsSmall ? 23 : 26,
+              height: screenHeightIsSmall ? 23 : 26,
               child: Visibility(
                 visible: _cargando,
                 child: new CircularProgressIndicator(color: Theme.of(context).primaryColor,),
@@ -2432,7 +2498,7 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
         PopupMenuButton(
           child: Padding(
             padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal, left: _iconPaddingHorizontal),
-            child: Icon(Icons.camera_alt, size: screenHeightIsSmall ? 25 :  30),
+            child: Icon(Icons.camera_alt, size: screenHeightIsSmall ? 25 :  28),
           ),
           onSelected: (String value) async {
             if(value == "duplicar"){
@@ -2490,7 +2556,7 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
             SizedBox()
           ],
         ),
-
+        _menuOpcionesWidget(screenHeightIsSmall),
         // IconButton(
         //   icon: Icon(Icons.camera_alt, size: 30),
         //   onPressed: () async {
@@ -2501,23 +2567,23 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
         //     }
         //   },
         // ),
-        Padding(
-            padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
-            child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){_bluetoothScreen();}),
-        ),
+        // Padding(
+        //     padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
+        //     child: GestureDetector(child: Icon(Icons.bluetooth, size: screenHeightIsSmall ? 25 :  30), onTap: (){_bluetoothScreen();}),
+        // ),
         // Visibility(
         //   visible: _tienePermisoAdministrador || _tienePermisoProgramador,
         //   child: 
-          Visibility(
-            visible: !_cargando && (_tienePermisoAdministrador == true || _tienePermisoProgramador == true),
-            child: Padding(
-              padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
-              child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: () async {
-                Navigator.of(context).pushNamed('/notificaciones');
-                // MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
-              }),
-            ),
-          ),
+          // Visibility(
+          //   visible: !_cargando && (_tienePermisoAdministrador == true || _tienePermisoProgramador == true),
+          //   child: Padding(
+          //     padding: EdgeInsets.only(top: _iconPaddingVertical, bottom: _iconPaddingVertical, right: _iconPaddingHorizontal),
+          //     child: GestureDetector(child: Icon(Icons.notifications, size: screenHeightIsSmall ? 25 :  30), onTap: () async {
+          //       Navigator.of(context).pushNamed('/notificaciones');
+          //       // MyNotification.show(title: "Hola", subtitle: "Esta baina esta fea", content: "Es para probar que las notificaciones se ejecutan bien", route: "/verNotificaciones");
+          //     }),
+          //   ),
+          // ),
         
        
       ];
@@ -2667,8 +2733,8 @@ Widget _bancasScreen(){
     !_tienePermisoJugarComoCualquierBanca
     ?
     Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, color: Colors.black)),
+      padding: const EdgeInsets.all(0.0),
+      child: Text("${_banca != null ? _banca.descripcion : 'Banca'}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: Colors.black)),
     )
     :
     StreamBuilder(
@@ -2679,7 +2745,7 @@ Widget _bancasScreen(){
           return SizedBox.shrink();
         
         return Padding(
-          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          padding: const EdgeInsets.only(left: 0.0, right: 0.0),
           child: DropdownButtonHideUnderline(
             child: DropdownButton(
                   hint: Text('...'),
@@ -2708,7 +2774,7 @@ Widget _bancasScreen(){
                   items: listaBanca.map((b){
                     return DropdownMenuItem<Banca>(
                       value: b,
-                      child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis,),
+                      child: Text(b.descripcion, textAlign: TextAlign.center, softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5),),
                     );
                   }).toList(),
                 ),

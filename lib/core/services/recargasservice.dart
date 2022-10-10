@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/ticketimagev2.dart';
 import 'dart:convert';
 
 import 'package:loterias/core/classes/utils.dart';
@@ -9,6 +13,8 @@ import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/proveedor.dart';
 import 'package:loterias/core/models/recarga.dart';
+import 'package:loterias/core/services/bluetoothchannel.dart';
+import 'package:loterias/core/services/sharechannel.dart';
 
 class RecargaService{
   static Future<Map<String, dynamic>> index({BuildContext context, scaffoldKey}) async {
@@ -190,6 +196,60 @@ class RecargaService{
     return parsed;
   }
 
+  static Future<void> imprimir(BuildContext context, Recarga recarga) async{
+    
+    if(await Utils.exiseImpresora() == false){
+        Utils.showAlertDialog(context: context, title: "Impresora", content: "Debe registrar una impresora");
+        return;
+      }
 
+      if(!kIsWeb){
+        if(!(await BluetoothChannel.turnOn())){
+          return;
+        }
+      }
+
+    Flushbar(
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            message: "Imprimiendo...",
+            duration: Duration(milliseconds: 1300),
+          )..show(context);
+
+    try {
+
+      String ticketRecargaGeneradoMidasModificadoANuestraManera = await Recarga.cambiarDatosDelTicketDeMidas(recarga);
+
+      BluetoothChannel.printText(content: ticketRecargaGeneradoMidasModificadoANuestraManera + "\n\n\n\n", normalOPrueba: true);
+
+    } on dynamic catch (e) {
+      // TODO
+      Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al imprimir");
+    }
+  }
+
+  static Future<void> compartirTicket(BuildContext context, Recarga recarga, [bool esSmsOWhatsApp = true]) async {
+    try {
+
+      String ticketRecargaGeneradoMidasModificadoANuestraManera = await Recarga.cambiarDatosDelTicketDeMidas(recarga);
+
+      List<Widget> listaDeText = TicketImageV2.construirListaDeTextWidgetParaConvertirEnImage(ticketRecargaGeneradoMidasModificadoANuestraManera);
+
+      Flushbar(
+          margin: EdgeInsets.all(8),
+          borderRadius: BorderRadius.circular(8),
+          message: "Compartiendo...",
+          duration: Duration(milliseconds: 1300),
+        )..show(context);
+
+      Uint8List ticketRecargaToImage = await TicketImageV2.imageFromWidget(Column(crossAxisAlignment: CrossAxisAlignment.start, children: listaDeText));
+
+      ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketRecargaToImage, codigoQr: "", sms_o_whatsapp: esSmsOWhatsApp);
+
+    } on dynamic catch (e) {
+      // TODO
+      Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al compartir");
+    }
+  }
 
 }

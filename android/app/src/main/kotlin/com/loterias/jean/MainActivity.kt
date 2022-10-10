@@ -189,11 +189,24 @@ class MainActivity: FlutterActivity() {
 
                    val ticketBitmap = Utils.base64ToBitmap(call.argument<ByteArray>("image")!!)
 //                   val ticketBitmap = getImageFromAsset(call.argument<String>("image")!!)
-                   val bitmapQr = generateQr(call.argument<String>("codigoQr"));
-//                   val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
+
+                   var codigoQr : String = call.argument<String>("codigoQr")!!;
+
+//                   var bitmapQr = generateQr(call.argument<String>("codigoQr"));
+////                   val bitmap = combinarBitmap(bitmapHtml, bitmapQr);
+////                   val bitmap = combinarBitmap(ticketBitmap, bitmapQr);
 //                   val bitmap = combinarBitmap(ticketBitmap, bitmapQr);
-                   val bitmap = combinarBitmap(ticketBitmap, bitmapQr);
-                   //val base64 = bitmapToBase64(bitmap!!)
+//                   //val base64 = bitmapToBase64(bitmap!!)
+
+                   var bitmapQr : Bitmap? = null;
+
+                   var bitmap = ticketBitmap;
+
+                   if(codigoQr.isNotEmpty()){
+                       bitmapQr = generateQr(call.argument<String>("codigoQr"));
+
+                       bitmap = combinarBitmap(ticketBitmap, bitmapQr)!!;
+                   }
 
                    SendTicket.send(this@MainActivity, bitmap, call.argument<String>("sms_o_whatsapp") as Boolean)
                    CoroutineScope(Dispatchers.Main).launch {

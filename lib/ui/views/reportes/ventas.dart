@@ -652,6 +652,18 @@ Widget _buildTableTicketsGanadores(List map){
           ]
         ),
         TableRow(
+          decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 8)),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Expanded(child: Center(child: Text("Recargas", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),),),
+                Expanded(child: Center(child: Text("${Utils.toCurrency(map["recargas"])}", style: TextStyle(fontSize: 20)),),),
+              ],
+            )
+          ]
+        ),
+        TableRow(
           decoration: BoxDecoration(color: Utils.colorGreyFromPairIndex(idx: 9)),
           children: [
             Row(

@@ -79,6 +79,7 @@ dependencies:
   phone_form_field: ^4.3.1
   badges: ^2.0.2
   device_information: ^0.0.4
+  another_flushbar: ^1.12.29
 #  phone_form_field:
 #    git:
 #      url: https://github.com/jeancc29/phone_form_field

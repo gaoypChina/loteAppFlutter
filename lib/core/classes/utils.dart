@@ -29,8 +29,8 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.37:8000';
-  static final String URL_SOCKET = 'http://192.168.1.37:3000';
+  // static final String URL = 'http://192.168.1.37:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.37:3000';
   // static final String URL = 'http://sislote.test/';
   // static final String URL_SOCKET = 'http://sislote.test:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
@@ -46,8 +46,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  // static final String URL = 'https://lote-app.com';
-  // static final String URL_SOCKET = URL + ":8000";
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -142,6 +142,9 @@ class  Utils {
 
   static double redondear(numero, [decimales = 2]){
     // print("Utils. redondear: $numero ${double.parse((numero).toStringAsFixed(decimales))}");
+    if(numero == null)
+      return 0.0;
+      
     return double.parse((numero).toStringAsFixed(decimales));
   }
 
@@ -1056,6 +1059,7 @@ class  Utils {
   }
 
   static String toFormatoRD(String numero){
+    print("Utils.toFormatoRD: $numero");
     if(numero == null)
       return '';
 

@@ -19,7 +19,7 @@ class ShareChannel{
       // await file.writeAsBytes(base64image);
       
       // result = await _methodChannel.invokeMethod('share', {"image": base64Encode(Utils.uint8ListToListIn(base64image)), "codigoQr" : codigoQr, "sms_o_whatsapp" : sms_o_whatsapp});
-      result = await _methodChannel.invokeMethod('share', {"image": base64image, "codigoQr" : codigoQr, "sms_o_whatsapp" : sms_o_whatsapp});
+      result = await _methodChannel.invokeMethod('share', {"image": base64image, "codigoQr" : codigoQr != null ? codigoQr : '', "sms_o_whatsapp" : sms_o_whatsapp});
     } on PlatformException catch (e) {
       result = "Failed to get battery level: '${e.message}'.";
     }

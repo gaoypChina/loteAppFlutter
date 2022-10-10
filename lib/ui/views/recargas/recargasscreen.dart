@@ -14,6 +14,7 @@ import 'package:loterias/core/models/recarga.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/recargasservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
+import 'package:loterias/ui/views/recargas/recargasadialogddscreen.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycirclebutton.dart';
@@ -259,7 +260,7 @@ class _RecargasScreenState extends State<RecargasScreen> {
                   _search(cargaSilenciosa: true);
                   setState(() => cargando = false);
                   Navigator.pop(context);
-                } on Exception catch (e) {
+                } on dynamic catch (e) {
                   print("_showDialogEliminar error: $e");
                   setState(() => cargando = false);
                 }
@@ -271,66 +272,11 @@ class _RecargasScreenState extends State<RecargasScreen> {
     );
   }
 
-  Future<void> _reimprimir(String ticketRecargaGenerado) async{
-    
-    if(await Utils.exiseImpresora() == false){
-        Utils.showAlertDialog(context: context, title: "Impresora", content: "Debe registrar una impresora");
-        return;
-      }
-
-      if(!kIsWeb){
-        if(!(await BluetoothChannel.turnOn())){
-          return;
-        }
-      }
-
-    try {
-
-      BluetoothChannel.printText(content: ticketRecargaGenerado + "\n\n\n\n", normalOPrueba: true);
-
-    } on dynamic catch (e) {
-      // TODO
-      Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al imprimir");
-    }
-  }
-  
-  Future<void> _compartir(String ticketRecargaGenerado) async {
-    // try {
-
-      // Uint8List ticketRecargaToImage = await TicketImageV2.imageFromWidget(Center(child: Text('''$ticketRecargaGenerado''', style: TextStyle(fontSize: 60, color: Colors.black),)));
-      
-      List<Widget> listaDeText = TicketImageV2.construirListaDeTextWidgetParaConvertirEnImage(ticketRecargaGenerado);
-
-      Uint8List ticketRecargaToImage = await TicketImageV2.imageFromWidget(Column(crossAxisAlignment: CrossAxisAlignment.start, children: listaDeText));
-
-      ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketRecargaToImage, codigoQr: "123134", sms_o_whatsapp: true);
-
-    // } on dynamic catch (e) {
-    //   // TODO
-    //   Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al compartir");
-    // }
-  }
-
-  Future<void> _enviarPorWhatsApp(String ticketRecargaGenerado) async {
-    try {
-
-      List<Widget> listaDeText = TicketImageV2.construirListaDeTextWidgetParaConvertirEnImage(ticketRecargaGenerado);
-
-      Uint8List ticketRecargaToImage = await TicketImageV2.imageFromWidget(Column(crossAxisAlignment: CrossAxisAlignment.start, children: listaDeText));
-
-      ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketRecargaToImage, codigoQr: "", sms_o_whatsapp: false);
-
-    } on dynamic catch (e) {
-      // TODO
-      Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al enviar por WhatsApp");
-    }
-  }
-
   showDialogOpciones(Recarga recarga) async {
     int valorVerRecarga = 1;
     int valorReimprimir = 2;
     int valorCompartir = 3;
-    int valorEnviarPorWhatsApp = 3;
+    int valorEnviarPorWhatsApp = 4;
     int valorAnularRecarga = 5;
 
     var value = await showMenu(
@@ -354,7 +300,7 @@ class _RecargasScreenState extends State<RecargasScreen> {
             child: Text("Enviar por WhatsApp"),
           ),
           PopupMenuItem(
-            value: 5,
+            value: valorAnularRecarga,
             child: Text("Anular"),
           ),
         ],
@@ -363,14 +309,13 @@ class _RecargasScreenState extends State<RecargasScreen> {
     if(value == valorAnularRecarga)
       _showDialogAnularRecarga(data: recarga);
     else{
-      String ticketRecargaGenerado = await Recarga.cambiarDatosDelTicketDeMidas(recarga);
 
       if(value == valorReimprimir)
-        _reimprimir(ticketRecargaGenerado);
+        RecargaService.imprimir(context, recarga);
       else if(value == valorCompartir)
-        _compartir(ticketRecargaGenerado);
+        await RecargaService.compartirTicket(context, recarga);
       else if(value == valorEnviarPorWhatsApp)
-        _enviarPorWhatsApp(ticketRecargaGenerado);
+        await RecargaService.compartirTicket(context, recarga, false);
 
     }
 
@@ -410,6 +355,14 @@ class _RecargasScreenState extends State<RecargasScreen> {
     super.initState();
   }
 
+  _irAVentanaRecargasAddSCreen() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (context){
+         return RecargasDialogAddScreen();
+       }));
+
+    _search(cargaSilenciosa: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
@@ -418,6 +371,7 @@ class _RecargasScreenState extends State<RecargasScreen> {
       context: context, 
       cargando: false, 
       cargandoNotify: null,
+      floatingActionButton: isSmallOrMedium ? FloatingActionButton(backgroundColor: Theme.of(context).primaryColor, child: Icon(Icons.add), onPressed: _irAVentanaRecargasAddSCreen,) : null,
       isSliverAppBar: true,
       sliverBody: MySliver(
       sliverAppBar: MySliverAppBar(
@@ -456,33 +410,37 @@ class _RecargasScreenState extends State<RecargasScreen> {
 
           return SliverList(delegate: SliverChildBuilderDelegate(
             (context, index){
-              return ListTile(
-                isThreeLine: true,
-                onTap: () => showDialogOpciones(snapshot.data[index]),
-                leading: CircleAvatar(
-                  backgroundColor: Utils.fromHex("${snapshot.data[index].proveedor.colorDeFondo}"),
-                  radius: 15,
-                ),
-                title: Text("${snapshot.data[index].codigoDeAutorizacion}", style: TextStyle(fontWeight: FontWeight.bold),),
-                trailing: Text("${Utils.toCurrency(snapshot.data[index].monto)}", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RichText(text: TextSpan(
-                      children: [
-                        // TextSpan(text: "${snapshot.data[index].numero}", style: TextStyle(fontWeight: FontWeight.bold)),
-                        // TextSpan(text: "  •  "),
-                        // TextSpan(text: "${snapshot.data[index].usuario.usuario}"),
-                        // TextSpan(text: "  •  "),
-                        TextSpan(text: "${snapshot.data[index].banca.descripcion}"),
-                        TextSpan(text: "  •  "),
-                        // TextSpan(text: "${snapshot.data[index].proveedor.nombre}", style: TextStyle(color: Utils.fromHex(snapshot.data[index].proveedor.colorDeFondo), fontWeight: FontWeight.bold)),
-                        // TextSpan(text: "  •  "),
-                        TextSpan(text: "${Utils.toFormatoRD(snapshot.data[index].numero)}"),
-                      ]
-                    )),
-                    Text("${MyDate.dateRangeToNameOrString(DateTimeRange(start: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '00:00')), end: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '23:59:59'))))}  ${Utils.toDosDigitos(snapshot.data[index].created_at.hour.toString())}:${Utils.toDosDigitos(snapshot.data[index].created_at.minute.toString())}")
-                  ],
+              return Padding(
+                padding: snapshot.data.length - 1 == index ? const EdgeInsets.only(bottom: 50.0) : const EdgeInsets.all(0.0),
+                child: ListTile(
+                  isThreeLine: true,
+                  onTap: () => showDialogOpciones(snapshot.data[index]),
+                  leading: CircleAvatar(
+                    backgroundColor: Utils.fromHex("${snapshot.data[index].proveedor.colorDeFondo}"),
+                    radius: 15,
+                  ),
+                  title: Text("${snapshot.data[index].codigoDeAutorizacion}", style: TextStyle(fontWeight: FontWeight.bold),),
+                  trailing: Text("${Utils.toCurrency(snapshot.data[index].monto)}", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RichText(text: TextSpan(
+                        style: TextStyle(color: Colors.black54),
+                        children: [
+                          // TextSpan(text: "${snapshot.data[index].numero}", style: TextStyle(fontWeight: FontWeight.bold)),
+                          // TextSpan(text: "  •  "),
+                          // TextSpan(text: "${snapshot.data[index].usuario.usuario}"),
+                          // TextSpan(text: "  •  "),
+                          TextSpan(text: "${snapshot.data[index].banca.descripcion}"),
+                          TextSpan(text: "  •  "),
+                          // TextSpan(text: "${snapshot.data[index].proveedor.nombre}", style: TextStyle(color: Utils.fromHex(snapshot.data[index].proveedor.colorDeFondo), fontWeight: FontWeight.bold)),
+                          // TextSpan(text: "  •  "),
+                          TextSpan(text: "${Utils.toFormatoRD(snapshot.data[index].numero)}"),
+                        ]
+                      )),
+                      Text("${MyDate.dateRangeToNameOrString(DateTimeRange(start: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '00:00')), end: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '23:59:59'))))}  ${Utils.toDosDigitos(snapshot.data[index].created_at.hour.toString())}:${Utils.toDosDigitos(snapshot.data[index].created_at.minute.toString())}")
+                    ],
+                  ),
                 ),
               );
             },

@@ -58,7 +58,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
   var _fechaInicial = DateTime.now();
   var _fechaFinal = DateTime.now();
   String _selectedOption = "Con ventas";
-  List<String> listaOpciones = ["Todos", "Con ventas", "Con premios", "Con tickets pendientes", "Sin ventas"];
+  List<String> listaOpciones = ["Todos", "Con ventas o recargas", "Con ventas", "Con premios", "Con tickets pendientes", "Sin ventas"];
   bool _cargando = false;
   DateFormat _dateFormat;
   List<int> listaLimite = [70, 120, 180, 240];
@@ -90,6 +90,7 @@ class _HistoricoVentasScreenState extends State<HistoricoVentasScreen> {
         DeviceOrientation.landscapeRight,
         DeviceOrientation.landscapeLeft,
     ]);
+    _selectedOption = listaOpciones[1];
     _futureData = _init();
   }
 
@@ -215,20 +216,20 @@ _init() async {
   }
 
   _filterTable(){
-    switch(_selectedOption){
-      case "Con ventas":
-        _streamControllerHistorio.add(listaData.where((b) => b.ventas > 0).toList());
-        break;
-      case "Con premios":
-        _streamControllerHistorio.add(listaData.where((b) => b.premios > 0).toList());
-        break;
-      case "Con tickets pendientes":
-        _streamControllerHistorio.add(listaData.where((b) => b.pendientes > 0).toList());
-        break;
-      default:
-        _streamControllerHistorio.add(listaData);
-        break;
-    }
+    // switch(_selectedOption){
+    //   case "Con ventas":
+    //     _streamControllerHistorio.add(listaData.where((b) => b.ventas > 0).toList());
+    //     break;
+    //   case "Con premios":
+    //     _streamControllerHistorio.add(listaData.where((b) => b.premios > 0).toList());
+    //     break;
+    //   case "Con tickets pendientes":
+    //     _streamControllerHistorio.add(listaData.where((b) => b.pendientes > 0).toList());
+    //     break;
+    //   default:
+    //     _streamControllerHistorio.add(listaData);
+    //     break;
+    // }
   }
 
   Widget _buildTable(List map){
@@ -579,6 +580,7 @@ _init() async {
 
  Map<String, dynamic> _calcularTotal(List<Historico> lista){
   double ventas = 0;
+  double recargas = 0;
   double comisiones = 0;
   double descuentos = 0;
   double premios = 0;
@@ -593,6 +595,7 @@ _init() async {
 
   for (var b in lista) {
     ventas += b.ventas;
+    recargas += b.recargas;
     comisiones += b.comisiones;
     descuentos += b.descuentos;
     premios += b.premios;
@@ -615,7 +618,7 @@ _init() async {
   //   balanceActual += b.balanceActual;
   // });
 
-  Map<String, dynamic> map = {"ventas" : ventas, "comisiones" : comisiones, "descuentos" : descuentos, 
+  Map<String, dynamic> map = {"ventas" : ventas, "recargas" : recargas, "comisiones" : comisiones, "descuentos" : descuentos, 
   "premios" : premios, "totalNeto" : totalNeto, "balance" : balance, "balanceActual" :  balanceActual, 
   "pendientes" :  pendientes, "ganadores" :  ganadores, "perdedores" :  perdedores, "tickets" :  tickets, };
 
@@ -1024,6 +1027,7 @@ _getListaFiltro(){
               "Perdedores",
               "Tickets",
               "Ventas",
+              "Recargas",
               "Comi.",
               "Desc.",
               "Premios",
@@ -1039,6 +1043,7 @@ _getListaFiltro(){
               "${e.perdedores}", 
               "${e.tickets}", 
               "${Utils.toCurrency(e.ventas)}", 
+              "${Utils.toCurrency(e.recargas)}", 
               "${Utils.toCurrency(e.comisiones)}", 
               "${Utils.toCurrency(e.descuentos)}", 
               "${Utils.toCurrency(e.premios)}", 
@@ -1069,7 +1074,8 @@ _getListaFiltro(){
         Expanded(
           child: HorizontalDataTable(
             leftHandSideColumnWidth: 120,
-            rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
+            // rightHandSideColumnWidth: isSmallOrMedium ? 820 : 1270,
+            rightHandSideColumnWidth: isSmallOrMedium ? 940 : 1390,
             isFixedHeader: true,
             headerWidgets: _getTitleWidget(isSmallOrMedium),
             leftSideItemBuilder: (context, index) => _generateFirstColumnRow(context, index, data.length, data),
@@ -1146,6 +1152,7 @@ _getListaFiltro(){
     [
       _getTitleItemWidget('Banca', 120),
       _getTitleItemWidget('Ventas.', 120),
+      _getTitleItemWidget('Recargas.', 120),
       _getTitleItemWidget('Comis.', 120),
       _getTitleItemWidget('Desc.', 100),
       _getTitleItemWidget('Premios', 120),
@@ -1161,6 +1168,7 @@ _getListaFiltro(){
       _getTitleItemWidget('Perded.', 100),
       _getTitleItemWidget('Tickets', 110),
       _getTitleItemWidget('Ventas.', 120),
+      _getTitleItemWidget('Recargas.', 120),
       _getTitleItemWidget('Comis.', 120),
       _getTitleItemWidget('Desc.', 100),
       _getTitleItemWidget('Premios', 120),
@@ -1208,6 +1216,14 @@ _getListaFiltro(){
       children: <Widget>[
         Container(
           child: Center(child: Text("${Utils.toCurrency(data[index].ventas)}", style: TextStyle(fontWeight: FontWeight.w600))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),
+        Container(
+          child: Center(child: Text("${Utils.toCurrency(data[index].recargas)}", style: TextStyle(fontWeight: FontWeight.w600))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
@@ -1305,6 +1321,14 @@ _getListaFiltro(){
         
         Container(
           child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["ventas"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
+          width: 120,
+          height: 30,
+          padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+          alignment: Alignment.centerLeft,
+          color: Utils.colorGreyFromPairIndex(idx: index),
+        ),
+        Container(
+          child: Center(child: Text("${Utils.toCurrency(Utils.redondear(totales["recargas"]))}", style: TextStyle(fontWeight: FontWeight.bold, color: Utils.colorPrimary))),
           width: 120,
           height: 30,
           padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
