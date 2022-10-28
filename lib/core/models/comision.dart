@@ -36,6 +36,15 @@ Comision.fromMap(Map snapshot) :
         created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : null
         ;
 
+  dynamic get(String propertyName) {
+    var _mapRep = toJson();
+    if (_mapRep.containsKey(propertyName)) {
+      return _mapRep[propertyName];
+    }
+    throw ArgumentError('propery not found');
+  }
+
+
   toJson() {
     return {
       "id": id,
@@ -50,7 +59,7 @@ Comision.fromMap(Map snapshot) :
       "pick3Box": pick3Box,
       "pick4Straight": pick4Straight,
       "pick4Box": pick4Box,
-      "created_at": created_at.toString(),
+      "created_at": created_at != null ? created_at.toString() : null,
     };
   }
 

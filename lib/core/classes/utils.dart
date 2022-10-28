@@ -29,8 +29,10 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  // static final String URL = 'http://192.168.1.37:8000';
-  // static final String URL_SOCKET = 'http://192.168.1.37:3000';
+  static final String URL = 'http://192.168.1.37:8000';
+  static final String URL_SOCKET = 'http://192.168.1.37:3000';
+  // static final String URL = 'http://10.0.0.15:8000';
+  // static final String URL_SOCKET = 'http://10.0.0.15:3000';
   // static final String URL = 'http://sislote.test/';
   // static final String URL_SOCKET = 'http://sislote.test:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
@@ -46,8 +48,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  static final String URL = 'https://lote-app.com';
-  static final String URL_SOCKET = URL + ":8000";
+  // static final String URL = 'https://lote-app.com';
+  // static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -57,10 +59,17 @@ class  Utils {
   };
 
   static Color fromHex(String hexString) {
-    final buffer = StringBuffer();
-    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-    buffer.write(hexString.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
+    if(hexString == null)
+      return null;
+    try {
+      final buffer = StringBuffer();
+      if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+      buffer.write(hexString.replaceFirst('#', ''));
+      return Color(int.parse(buffer.toString(), radix: 16));
+    } on Exception catch (e) {
+      // TODO
+      return null;
+    }
   }
 
   static Map<int, Color> color =
@@ -1068,6 +1077,11 @@ class  Utils {
 
     return "(" + numero.substring(0, 3) + ') ' + numero.substring(3, 6) + '-' + numero.substring(6);
     
+  }
+
+
+  static List quitarValoresDuplicadosDeUnaLista(List lista){
+    return [...{...lista}];
   }
  
 }

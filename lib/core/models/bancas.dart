@@ -182,6 +182,7 @@ class Banca {
       "monedaObject": monedaObject != null ? monedaObject.toJson() : null,
       "usuario": usuario != null ? usuario.toJson() : null,
       "grupo": grupo != null ? grupo.toJson() : null,
+      "idGrupo": grupo != null ? grupo.id : null,
       "loterias" : Loteria.loteriasToJson(loterias),
       "comisiones" : Comision.comisionesToJson(comisiones),
       "pagosCombinaciones" : Pagoscombinacion.pagosCombinacionesToJson(pagosCombinaciones),

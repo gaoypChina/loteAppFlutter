@@ -10,6 +10,12 @@ void main() {
       expect(data == null, false);
     });
 
+    test("Testing toDouble", () async {
+      var data = Utils.toDouble(null);
+      print("Utils_test Testing toDouble: $data");
+      expect(data == null, false);
+    });
+
     test("Testing lastMonth", () async {
       var data = Utils.getLastMonth(DateTime.parse("2021-03-01"), dayOfTheMonth: 31);
       print("data: $data");

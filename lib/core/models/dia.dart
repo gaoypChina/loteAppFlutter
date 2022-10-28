@@ -24,6 +24,10 @@ class Dia{
         minutosExtras = Utils.toInt(snapshot['minutosExtras'])
         ;
 
+  static List<Dia> fromMapList(parsed){
+    return parsed != null ? parsed.map<Dia>((json) => Dia.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       "id": id,

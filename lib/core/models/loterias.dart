@@ -42,6 +42,14 @@ class Loteria {
         dias = diasToMap(Utils.parsedToJsonOrNot(snapshot['dias'])) ?? [],
         color = snapshot['color'] ?? null
         ;
+        
+  dynamic get(String propertyName) {
+    var _mapRep = toJson();
+    if (_mapRep.containsKey(propertyName)) {
+      return _mapRep[propertyName];
+    }
+    throw ArgumentError('propery not found');
+  }
 
 List sorteosToJson() {
     if(sorteos == null)
@@ -119,6 +127,10 @@ List sorteosToJson() {
       descripcion = "${loteriaSuperpale != null ? loteria.abreviatura + '/' + loteriaSuperpale.abreviatura : loteria.descripcion}";
 
     return descripcion;
+  }
+
+  static List<Loteria> fromMapList(parsed){
+    return parsed != null ? parsed.map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
   }
 
   toJson() {

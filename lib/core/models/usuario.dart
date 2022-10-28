@@ -129,6 +129,10 @@ class Usuario {
 //     return permisos.map((data) => Permiso.fromMap(data)).toList();
 //   }
 
+  static List<Usuario> fromMapList(parsed){
+    return parsed != null ? parsed.map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
+  }
+
     toJson() {
     return {
       "id": id,

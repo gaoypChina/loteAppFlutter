@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/parametros_rutas/parametros_banca.dart';
+import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/classes/tipos/tipoVentanaBanca.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/draws.dart';
@@ -40,9 +43,22 @@ class _BancasScreenState extends State<BancasScreen> {
   List<String> opciones = ["Todos", "Activas", "Desactivadas"];
   String _selectedOpcion;
   int _idGrupoDeEsteUsuario;
+  bool _usuarioProgramador = false;
+  static String _opcionActualizarMasivamente = "ActualizarMasivamente";
+  static String _opcionCrearMasivamente = "CrearMasivamente";
+
+  _asignarValorAVariableUsuarioProgramador() async{
+     _usuarioProgramador  = (await (await DB.create()).getValue("tipoUsuario")) == "Programador";
+  }
+
+  _esUsuarioProgramador(){
+    return _usuarioProgramador;
+  }
+
 
   _init() async {
     _idGrupoDeEsteUsuario = await Db.idGrupo();
+    await _asignarValorAVariableUsuarioProgramador();
     var parsed = await BancaService.index(context: context, retornarBancas: true, idGrupo: _idGrupoDeEsteUsuario);
     listaData = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
     _streamController.add(listaData);
@@ -84,8 +100,8 @@ class _BancasScreenState extends State<BancasScreen> {
     }
   }
 
-  _showDialogGuardar({Banca data}) async {
-    var data2 = await Navigator.pushNamed(context, "/bancas/agregar", arguments: data.id);
+  _showDialogGuardar({Banca data, TipoVentanaBanca tipoVentana = TipoVentanaBanca.normal}) async {
+    var data2 = await Navigator.pushNamed(context, "/bancas/agregar", arguments: ParametrosBanca(idBanca: data != null ? data.id : null, tipoVentana: tipoVentana));
     if(data2 == null)
       return;
 
@@ -272,6 +288,93 @@ _opcionChanged(String opcion){
     );
   }
 
+  _menuOpcionesChild(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return Icon(Icons.more_vert);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Mas opciones", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),),
+        Icon(Icons.arrow_drop_down, color: Colors.grey[600])
+      ],
+    );
+  }
+
+  List<PopupMenuItem<String>> _getMenuOpciones(){
+     List<PopupMenuItem<String>> opciones = [
+      PopupMenuItem<String>(
+        value: _opcionActualizarMasivamente,
+        child: Text("Actualizar todos"),
+      )
+    ];
+
+    if(_esUsuarioProgramador())
+      opciones.add(PopupMenuItem<String>(
+      value: _opcionCrearMasivamente,
+      child: Text("Crear masivamente"),
+    ));
+
+    return opciones;
+  }
+
+  Widget _menuOpcionesWidget(bool isSmallOrMedium){
+
+  return PopupMenuButton(
+    child: Padding(
+      padding: EdgeInsets.all(10.0),
+      child: _menuOpcionesChild(isSmallOrMedium),
+    ),
+    onSelected: (String value)  {
+      if(value == _opcionActualizarMasivamente)
+         _showDialogGuardar(tipoVentana: TipoVentanaBanca.actualizarMasivamente);
+      else if(value == _opcionCrearMasivamente)
+         _showDialogGuardar(tipoVentana: TipoVentanaBanca.crearMasivamente);
+    },
+    itemBuilder: (context) => _getMenuOpciones()
+  );
+
+}
+
+_showMenuOpciones(Size screenSize) async {
+  const String _opcionActualizarMasivamente = "ActualizarMasivamente";
+  const String _opcionCrearMasivamente = "ActualizarMasivamente";
+
+  //*get the render box from the context
+  final RenderBox renderBox = context.findRenderObject() as RenderBox;
+  //*get the global position, from the widget local position
+  final offset = renderBox.localToGlobal(Offset.zero);
+
+  //*calculate the start point in this case, below the button
+  final left = offset.dx;
+  final top = offset.dy + renderBox.size.height;
+  //*The right does not indicates the width
+  final right = left + renderBox.size.width;
+
+
+   var value = await showMenu(
+      context: context, 
+      position: RelativeRect.fromLTRB(100, top, 0, 100), 
+      // position: RelativeRect.fromLTRB(offset.dx, offset.dy, 100, screenSize.height - offset.dy), 
+      items: [
+          PopupMenuItem(
+            value: _opcionActualizarMasivamente,
+            child: Text("Actualizar todas"),
+          ),
+          PopupMenuItem(
+            value: _opcionCrearMasivamente,
+            child: Text("Crear masivamente"),
+          ),
+        ],
+    );
+
+    if(value == _opcionActualizarMasivamente)
+      _showDialogGuardar(tipoVentana: TipoVentanaBanca.actualizarMasivamente);
+    else if(value == _opcionCrearMasivamente)
+      _showDialogGuardar(tipoVentana: TipoVentanaBanca.actualizarMasivamente);
+
+}
+
   @override
   void initState() {
     // TODO: implement initState
@@ -303,8 +406,9 @@ _opcionChanged(String opcion){
           title: "Bancas",
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
-            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar, showOnlyOnLarge: true,),
             MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.filter_alt_sharp, onTap: _filterScreen, showOnlyOnSmall: true,),
+            MySliverButton(title: _menuOpcionesWidget(isSmallOrMedium),),
+            MySliverButton(title: "Crear", iconWhenSmallScreen: Icons.save, onTap: _showDialogGuardar, showOnlyOnLarge: true,),
 
           ],
         ),

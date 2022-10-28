@@ -259,6 +259,86 @@ class BancaService{
     return parsed;
   }
 
+  static Future<Map<String, dynamic>> actualizarMasivamente({@required BuildContext context, scaffoldKey, @required Banca data, @required List<Banca> bancas, bool agregarYQuitarLoterias = false}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map = data.toJsonSave();
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    map["idBancas"] = bancas.map((e) => e.id).toList();
+    map["agregarYQuitarLoterias"] = agregarYQuitarLoterias;
+    var jwt = await Utils.createJwt(map);
+    // mapDatos["datos"] = jwt;
+    mapDatos = {
+      "datos" : jwt
+    };
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/actualizar/masivamente"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BancaService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BancaService guardar ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BancaService guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> crearMasivamente({@required BuildContext context, scaffoldKey, @required Banca data, @required String nombreBancaConSecuenciasSeparadasPorGuion, @required String nombreUsuarioConSecuenciasSeparadasPorGuion}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+
+    map = data.toJsonSave();
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    map["nombreBancaConSecuenciasSeparadasPorGuion"] = nombreBancaConSecuenciasSeparadasPorGuion;
+    map["nombreUsuarioConSecuenciasSeparadasPorGuion"] = nombreUsuarioConSecuenciasSeparadasPorGuion;
+    var jwt = await Utils.createJwt(map);
+    // mapDatos["datos"] = jwt;
+    mapDatos = {
+      "datos" : jwt
+    };
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bancas/crear/masivamente"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("BancaService guardar: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      else
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor BancaService guardar ${parsed["message"]}");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error BancaService guardar: ${parsed["mensaje"]}");
+    }
+
+    return parsed;
+  }
+
 
   static Future<Map<String, dynamic>> eliminar({@required BuildContext context, scaffoldKey, @required Banca data}) async {
     var map = Map<String, dynamic>();

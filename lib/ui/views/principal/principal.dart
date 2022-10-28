@@ -68,6 +68,7 @@ import 'package:ntp/ntp.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:screenshot/screenshot.dart';
+import 'package:loterias/core/extensions/listextensions.dart';
 
 
 
@@ -2848,7 +2849,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
               );
 
               print("_loteriasScreen loterias: $loterias");
-              setState(() => _selectedLoterias = loterias);
+              // List<int> listaIdLoteriasSeleccionadosUnicos = [...{...loterias.map((loteria) => loteria.id).toList()}];
+              List<int> listaIdLoteriasSeleccionadosUnicos = loterias.map((loteria) => loteria.id).toList().unique();
+              setState(() => _selectedLoterias = listaLoteria.where((element) => listaIdLoteriasSeleccionadosUnicos.contains(element.id)).toList());
           }else{
             showMyOverlayEntry(
               context: mContext, 

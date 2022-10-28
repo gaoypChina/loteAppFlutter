@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/parametros_rutas/parametros_banca.dart';
+import 'package:loterias/core/classes/singleton.dart';
+import 'package:loterias/core/classes/tipos/tipoVentanaBanca.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/extensions/listextensions.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/comision.dart';
 import 'package:loterias/core/models/dia.dart';
@@ -13,12 +17,15 @@ import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/models/pagoscombinacion.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bancaservice.dart';
+import 'package:loterias/ui/views/bancas/bancasmultiplesearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
+import 'package:loterias/ui/widgets/myhorizontalmultiselect.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
@@ -36,8 +43,8 @@ import 'package:rxdart/rxdart.dart';
 
 
 class BancasAddScreen extends StatefulWidget {
-  final int idBanca;
-  BancasAddScreen({Key key, this.idBanca}) : super(key: key);
+  final ParametrosBanca parametros;
+  BancasAddScreen({Key key, this.parametros}) : super(key: key);
   @override
   _BancasAddScreenState createState() => _BancasAddScreenState();
 }
@@ -52,6 +59,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   var _txtCodigo = TextEditingController();
   var _txtDueno = TextEditingController();
   var _txtLocalidad = TextEditingController();
+  var _txtNombreUsuarioConSecuencias = TextEditingController();
+  var _txtNombreBancaConSecuencias = TextEditingController();
 
   var _txtLimiteVentasPorDia = TextEditingController();
   var _txtBalance = TextEditingController();
@@ -107,13 +116,17 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   List<Loteria> _loteriasPagosCombinaciones;
   List<Gasto> _gastos;
   List<Comision> _comisiones;
+  Comision _comisionPorDefectoParaLlenarCamposComisionAlAgregarUnaLoteriaAEstaBanca;
   List<Pagoscombinacion> _pagosCombinaciones;
+  Pagoscombinacion _pagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca;
   List<Loteria> listaLoteria;
   List<Usuario> listaUsuario;
   List<Moneda> listaMoneda;
   List<Grupo> listaGrupo;
   List<Frecuencia> listaFrecuencia;
   List<Dia> listaDia;
+  List<Banca> listaBanca;
+  List<Banca> _bancas = [];
   List<Dia> dias;
   TabController _tabController;
   Usuario _usuario;
@@ -121,28 +134,53 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   Grupo _grupo;
   Loteria selectedLoteriaComision;
   Loteria selectedLoteriaPagosCombinacion;
+  bool _agregarYQuitarLoterias = false;
 
-
-  _init() async {
-    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, idBanca: widget.idBanca);
-    listaLoteria = (parsed["loterias"] != null) ? parsed["loterias"].map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
-    listaUsuario = (parsed["usuarios"] != null) ? parsed["usuarios"].map<Usuario>((json) => Usuario.fromMap(json)).toList() : [];
-    listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
-    listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((json) => Grupo.fromMap(json)).toList() : [];
-    listaFrecuencia = (parsed["frecuencias"] != null) ? parsed["frecuencias"].map<Frecuencia>((json) => Frecuencia.fromMap(json)).toList() : [];
-    listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
-    if(listaGrupo.length > 0)
-      listaGrupo.insert(0, Grupo(id: 0, descripcion: "Ninguno"));
-
-    for (var item in listaUsuario) {
-      print("id: ${item.id} usuario: ${item.usuario}");
-    }
-    _setAllFields(parsed);
+  bool _esTipoVentanaActualizarMasivamente(){
+    return widget.parametros.tipoVentana == TipoVentanaBanca.actualizarMasivamente;
   }
 
-  _setAllFields(parsed){
+  bool _esTipoVentanaCrearMasivamente(){
+    return widget.parametros.tipoVentana == TipoVentanaBanca.crearMasivamente;
+  }
+
+  bool _esTipoVentanaNormal(){
+    return widget.parametros.tipoVentana == TipoVentanaBanca.normal;
+  }
+
+  void _llenarListas(var parsed){
+    listaLoteria = Loteria.fromMapList(parsed["loterias"]);
+    listaUsuario = Usuario.fromMapList(parsed["usuarios"]);
+    listaMoneda = Moneda.fromMapList(parsed["monedas"]);
+    listaGrupo = Grupo.fromMapList(parsed["grupos"]);
+    listaFrecuencia = Frecuencia.fromMapList(parsed["frecuencias"]);
+    listaDia = Dia.fromMapList(parsed["dias"]);
+    listaGrupo.insert(0, Grupo(id: 0, descripcion: "Ninguno"));
+    listaBanca = Banca.fromMapList(parsed["bancas"]);
+    print("BancasAddScreen _llenarListas: ${listaBanca.length}");
+  }
+
+  _llenarVariableBancaSiEstaNula(){
+    if(_data == null)
+      _data = Banca();
+  }
+
+  _init() async {
+    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, retornarBancas: _esTipoVentanaActualizarMasivamente(), idBanca: widget.parametros.idBanca);
+    _llenarListas(parsed);
+    _llenarCampos(parsed);
+    _setsLoterias();
+    _setsComisiones();
+    _setsPagosCombinaciones(); 
+    _llenarVariableBancaSiEstaNula(); 
+  }
+
+  _llenarCampos(parsed){
+    if(_esTipoVentanaActualizarMasivamente())
+      return;
+
     _data = parsed["data"] != null ? Banca.fromMap(parsed["data"]) : null;
-    // print("BancasAddScreen _setAllFields: ${parsed['data']['minutosCancelarTicket']} - ${_data.minutosCancelarTicket}");
+    // print("BancasAddScreen _llenarCampos: ${parsed['data']['minutosCancelarTicket']} - ${_data.minutosCancelarTicket}");
     _txtDescripcion.text = (_data != null) ? _data.descripcion : '';
     _txtCodigo.text = (_data != null) ? _data.codigo : '';
     _txtDueno.text = (_data != null) ? _data.dueno : '';
@@ -163,16 +201,13 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _txtPiePagina3.text = (_data != null) ? _data.piepagina3 : '';
     _txtPiePagina4.text = (_data != null) ? _data.piepagina4 : '';
 
-    _setsLoterias();
-    _setsComisiones();
-    _setsPagosCombinaciones();  
+    // _setsLoterias();
+    // _setsComisiones();
+    // _setsPagosCombinaciones();  
     _gastos = _data != null ? _data.gastos != null ? _data.gastos : [] : [];
     listaDia = _data != null ? _data.dias != null ? _data.dias : listaDia : listaDia;
     _streamControllerGastos.add(_gastos);
 
-
-    if(_data == null)
-      _data = Banca();
   }
 
   // _setsSorteos(){
@@ -189,6 +224,14 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   //   }
   // }
 
+  _llenarComisionPorDefectoParaLlenarCamposComisionAleAgregarUnaLoteriaAEstaBanca(){
+    if(_comisiones == null)
+      return;
+    if(_comisiones.length == 0)
+      return;
+    _comisionPorDefectoParaLlenarCamposComisionAlAgregarUnaLoteriaAEstaBanca = _comisiones.firstWhere((element) => element.directo > 0, orElse: () => null);
+  }
+
   _setsComisiones(){
     _setsLoteriasComision();
     _comisiones = [];
@@ -197,8 +240,13 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _comisiones.add(Comision(idLoteria: item.id));
       } 
       return;
-    }else
+    }else{
       _comisiones = _data.comisiones;
+      if(_loterias.length > 0)
+        _removerLoteriasQueNoEstanDeUnaListaDada(_comisiones, "idLoteria", _loterias);
+
+      _llenarComisionPorDefectoParaLlenarCamposComisionAleAgregarUnaLoteriaAEstaBanca();
+    }
   }
 
   _setsLoteriasComision(){
@@ -239,6 +287,14 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       // _loteriasComisiones.insert(0, Loteria(id: 0, descripcion: "Copiar a todas"));
     }
 
+  _llenarPagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca(){
+    if(_comisiones == null)
+      return;
+    if(_comisiones.length == 0)
+      return;
+    _pagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca = _pagosCombinaciones.firstWhere((element) => element.primera > 0, orElse: () => null);
+  }
+
   _setsPagosCombinaciones(){
     _setsLoteriasPagosCombinacion();
     _pagosCombinaciones = [];
@@ -247,8 +303,13 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _pagosCombinaciones.add(Pagoscombinacion(idLoteria: item.id));
       } 
       return;
-    }else
+    }else{
       _pagosCombinaciones = _data.pagosCombinaciones;
+      if(_loterias.length > 0)
+        _removerLoteriasQueNoEstanDeUnaListaDada(_pagosCombinaciones, "idLoteria", _loterias);
+
+      _llenarPagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca();
+    }
   }
 
   _setsLoterias(){
@@ -269,12 +330,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
 
     List<Loteria> loterias = [];
-    print("_setsLoterias loteriasSeleccionadas:");
     for (var loteria in _data.loterias) {
-      var l = listaLoteria.firstWhere((element) => element.descripcion == loteria.descripcion, orElse: () => null);
+      var l = listaLoteria.firstWhere((element) => element.id == loteria.id, orElse: () => null);
       if(l != null)
         _loterias.add(l);
-      print("_setsLoterias loteriasSeleccionadas: ${l != null} : ${l != null ? l.descripcion : ''}");
     }
   }
 
@@ -317,7 +376,61 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     return false;
   }
 
+  _actualizarMasivamente() async {
+    if(_cargandoNotify.value == true)
+      return;
+
+    if(_bancas.length == 0){
+      Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas seleccionadas");
+      return;
+    }
+
+    try{
+
+      _data.descripcion = _txtDescripcion.text;
+      _data.codigo = _txtCodigo.text;
+      _data.dueno = _txtDueno.text;
+      _data.localidad = _txtLocalidad.text;
+      _data.status = _status ? 1 : 0;
+      _data.usuario = _usuario;
+      _data.monedaObject = _moneda;
+      _data.grupo = _grupo;
+
+      _data.limiteVenta = Utils.toDouble(_txtLimiteVentasPorDia.text);
+      _data.balanceDesactivacion = Utils.toDouble(_txtBalance.text, returnNullIfNotDouble: true);
+      _data.descontar = Utils.toDouble(_txtDescontar.text);
+      _data.deCada = Utils.toDouble(_txtDeCada.text);
+      _data.minutosCancelarTicket = Utils.toInt(_txtMinutosParaCancelarTicket.text);
+      _data.imprimirCodigoQr = _imprimirCodigoQr ? 1 : 0;
+      _data.piepagina1 = _txtPiePagina1.text;
+      _data.piepagina2 = _txtPiePagina2.text;
+      _data.piepagina3 = _txtPiePagina3.text;
+      _data.piepagina4 = _txtPiePagina4.text;
+
+      _data.dias = listaDia;
+      _data.comisiones = _comisiones;
+      _data.pagosCombinaciones = _pagosCombinaciones;
+      _data.loterias = _loterias;
+      _data.gastos = _gastos;
+
+      _cargandoNotify.value = true;
+      var parsed = await BancaService.actualizarMasivamente(context: context, data: _data, bancas: _bancas, agregarYQuitarLoterias: _agregarYQuitarLoterias);
+      print("_showDialogGuardar parsed: $parsed");
+      
+      _cargandoNotify.value = false;
+      _back(parsed);
+    } on dynamic catch (e) {
+      print("_showDialogGuardar _erroor: $e");
+      _cargandoNotify.value = false;
+    }
+  }
+
   _guardar() async {
+    if(_esTipoVentanaActualizarMasivamente()){
+      _actualizarMasivamente();
+      return;
+    }
+
     if(_cargandoNotify.value == true)
       return;
       
@@ -325,7 +438,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         if(!_formKey.currentState.validate())
           return;
 
-        if(_usuario == null){
+        if(_usuario == null && _esTipoVentanaNormal()){
           Utils.showAlertDialog(title: "Error", content: "Debe seleccionar un usuario", context: context);
           return;
         }
@@ -383,7 +496,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _data.gastos = _gastos;
 
         _cargandoNotify.value = true;
-        var parsed = await BancaService.guardar(context: context, data: _data);
+        var parsed = 
+        _esTipoVentanaNormal()
+          ? await BancaService.guardar(context: context, data: _data)
+          : await BancaService.crearMasivamente(context: context, nombreBancaConSecuenciasSeparadasPorGuion: _txtNombreBancaConSecuencias.text, nombreUsuarioConSecuenciasSeparadasPorGuion: _txtNombreUsuarioConSecuencias.text, data: _data);
         print("_showDialogGuardar parsed: $parsed");
         
         _cargandoNotify.value = false;
@@ -782,9 +898,171 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       return _loterias.firstWhere((element) => element.id == loteria.id, orElse: () => null) != null;
     }
 
-    _loteriasScreen(){
-      return Wrap(
-        children: listaLoteria.map((e) => MyCheckBox(xlarge: 4, title: "${e.descripcion}", value: _loteriaIsSelected(e), onChanged: (value){_ckbLoteriasChanged(value, e);},)).toList(),
+    Widget _loteriaItemColorWidget(Loteria loteria){
+      return Padding(
+        padding: const EdgeInsets.only(right: 22.0),
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: loteria.color != null ? Utils.fromHex("${loteria.color}") : null,
+            borderRadius: BorderRadius.circular(5.0)
+          ),
+        ),
+      );
+    }
+
+    Widget _loteriaItemColorDescripcionWidget(Loteria loteria){
+      return Text("${loteria.descripcion}");
+    }
+
+    Widget _loteriaItemSelectedWidget(Loteria loteria){
+      return Checkbox(value: _loteriaIsSelected(loteria), onChanged: (value) => _ckbLoteriasChanged(value, loteria),);
+    }
+
+    Widget _loteriaItemWidget(Loteria loteria){
+      return InkWell(
+        onTap: () => _ckbLoteriasChanged(!_loteriaIsSelected(loteria), loteria),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  _loteriaItemColorWidget(loteria),
+                  _loteriaItemColorDescripcionWidget(loteria),
+                ],
+              ),
+              _loteriaItemSelectedWidget(loteria)
+            ],
+          ),
+        ),
+      );
+      return ListTile(
+        minVerticalPadding: 2,
+        leading: Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: loteria.color != null ? Utils.fromHex("${loteria.color}") : null,
+            borderRadius: BorderRadius.circular(5.0)
+          ),
+        ),
+        // CircleAvatar(
+        //   backgroundColor: loteria.color != null ? Utils.fromHex("${loteria.color}") : null,
+        //   radius: 13,
+        // ),
+        title: Text("${loteria.descripcion}"),
+        trailing: Checkbox(value: _loteriaIsSelected(loteria), onChanged: (value) => _ckbLoteriasChanged(value, loteria),),
+      );
+      return MyCheckBox(xlarge: 4, title: "${loteria.descripcion}", value: _loteriaIsSelected(loteria), onChanged: (value){_ckbLoteriasChanged(value, loteria);},);
+    }
+
+  Widget  _agregarYQuitarLoteriasWidget(bool isSmallOrMedium){
+      if(isSmallOrMedium)
+        return MySwitch(leading: Icon(Icons.check_box), medium: 1, title: "Afectar loterias", value: _status, onChanged: _statusChanged, helperText: "Se agregarán las loterias marcadas y removerán las que no.",);
+      
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: MyDropdown(
+          title: "Estado", 
+          helperText: "Agregará las loterias marcadas y removerá las que no.",
+          hint: "${_status ? 'Activa' : 'Desactivada'}", isSideTitle: true, xlarge: 1.35, elements: [[true, "Activa"], [false, "Desactivada"]], onTap: _statusChanged,),
+      );
+    }
+
+   void _removerLoteriasQueNoEstanDeUnaListaDada(List listaDada, String nombreDelIdLoteriaDeLaListaDada, List<Loteria> listaLoteria){
+      if(listaDada == null)
+        return;
+      if(listaDada.length == 0)
+        return;
+
+      listaDada.removeWhere((element) => !listaLoteria.map((e) => e.id).contains(element.get("$nombreDelIdLoteriaDeLaListaDada")));
+    }
+
+    Comision _obtenerComisionPorDefectoSiExiste(Loteria loteria){
+      Comision _comisionARetornar = Comision(idLoteria: loteria.id);
+      if(_comisionPorDefectoParaLlenarCamposComisionAlAgregarUnaLoteriaAEstaBanca != null){
+        _comisionARetornar = Comision.fromMap(_comisionPorDefectoParaLlenarCamposComisionAlAgregarUnaLoteriaAEstaBanca.toJson());
+        _comisionARetornar.idLoteria = loteria.id;
+      } 
+      return _comisionARetornar;
+    }
+
+  Pagoscombinacion _obtenerPagoCombinacionPorDefectoSiExiste(Loteria loteria){
+      Pagoscombinacion _pagoCombinacionARetornar = Pagoscombinacion(idLoteria: loteria.id);
+      if(_pagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca != null){
+        _pagoCombinacionARetornar = Pagoscombinacion.fromMap(_pagoCombinacionPorDefectoParaLlenarCamposPagoCombinacionAlAgregarUnaLoteriaAEstaBanca.toJson());
+        _pagoCombinacionARetornar.idLoteria = loteria.id;
+      } 
+      return _pagoCombinacionARetornar;
+    }
+
+    _agregarLoteriasAComisiones(List<Loteria> loterias){
+      _removerLoteriasQueNoEstanDeUnaListaDada(_comisiones, "idLoteria", loterias);
+      _removerLoteriasQueNoEstanDeUnaListaDada(_loteriasComisiones, "id", loterias);
+
+      for (var loteria in loterias) {
+        if(_loteriasComisiones.firstWhere((element) => element.id == loteria.id, orElse: () => null) == null)
+          _loteriasComisiones.add(loteria);
+        if(_comisiones.firstWhere((element) => element.idLoteria == loteria.id, orElse: () => null) == null){
+          Comision comision = _obtenerComisionPorDefectoSiExiste(loteria);
+          _comisiones.add(comision);
+        }
+      }
+    }
+    
+    _agregarLoteriasAPagosCombinaciones(List<Loteria> loterias){
+      _removerLoteriasQueNoEstanDeUnaListaDada(_pagosCombinaciones, "idLoteria", loterias);
+      _removerLoteriasQueNoEstanDeUnaListaDada(_loteriasPagosCombinaciones, "id", loterias);
+      
+      for (var loteria in loterias) {
+        if(_loteriasPagosCombinaciones.indexWhere((element) => element.id == loteria.id) == -1)
+        _loteriasPagosCombinaciones.add(loteria);
+        if(_pagosCombinaciones.indexWhere((element) => element.idLoteria == loteria.id) == -1)
+          _pagosCombinaciones.add(_obtenerPagoCombinacionPorDefectoSiExiste(loteria));
+      }
+    }
+
+    _loteriasChanged(List<Loteria> listaLoteriaSeleccionadas){
+      _agregarLoteriasAComisiones(listaLoteriaSeleccionadas);
+      _agregarLoteriasAPagosCombinaciones(listaLoteriaSeleccionadas);
+      List<int> listaIdLoteriasUnicos = listaLoteriaSeleccionadas.map<int>((e) => e.id).toList().unique();
+      setState(() => _loterias = listaLoteria.where((element) => listaIdLoteriasUnicos.contains(element.id)).toList());
+    }
+
+    bool _loteriaNoEstaSeleccionada(Loteria loteria){
+      return !_loterias.map((e) => e.id).toList().contains(loteria.id);
+    }
+
+    _removerLoteria(Loteria loteria){
+      setState(() => _loterias.removeWhere((element) => element.id == loteria.id));
+    }
+
+    _loteriasScreen(bool isSmallOrMedium){
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: isSmallOrMedium ? 8.0 : 0.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Visibility(visible: _esTipoVentanaActualizarMasivamente(), child: _agregarYQuitarLoteriasWidget(isSmallOrMedium)),
+            // Wrap(
+            //   children: listaLoteria.map((e) => _loteriaItemWidget(e)).toList(),
+            // ),
+            MySubtitle(title: "Loterias asignadas"),
+            MyDescripcon(title: "Son las loterías que esta banca tendrá disponible al vender."),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: MyhorizontalMultiSelect<Loteria>(
+                items: listaLoteria.where((element) => _loteriaNoEstaSeleccionada(element)).map((e) => MyhorizontalMultiSelectItem<Loteria>(value: e, child: e.descripcion)).toList(),
+                selectedItems: _loterias.map((e) => MyhorizontalMultiSelectItem<Loteria>(value: e, child: e.descripcion, color: Utils.fromHex(e.color))).toList(),
+                onChanged: _loteriasChanged,
+                onRemove: _removerLoteria,
+              ),
+            )
+          ],
+        ),
       );
     }
 
@@ -2039,6 +2317,149 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       );
     }
 
+  _seleccionarBancas(List<Banca> lista){
+    if(lista == null)
+      return;
+
+    setState(() => _bancas = lista);
+  }
+
+  _mostrarBancasSearch() async {
+    List<Banca> data = await showSearch(context: context, delegate: BancasMultipleSearch(listaBanca, _bancas));
+    _seleccionarBancas(data);
+  }
+
+  _bancasWidget(bool isSmallOrMedium){
+    return Visibility(
+      visible: _esTipoVentanaActualizarMasivamente(),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: MyDropdown(
+          xlarge: 1.35,
+          isSideTitle: !isSmallOrMedium,
+          title: isSmallOrMedium ? null : "Bancas afectadas *",
+          hint: "${_bancas.length > 0 ? _bancas.map((e) => e.descripcion).toList().join(", ") : 'Seleccionar las bancas...'}",
+          // elements: listaBanca.map((e) => [e, "${e.descripcion}"]).toList(),
+          helperText: "Bancas que serán afectadas por los cambios",
+          onTap: () => _mostrarBancasSearch(),
+        ),
+      ),
+    );
+  }
+
+
+  _obtenerTituloCorrespondienteALTipoDeVentana(){
+    String titulo = "";
+    switch (widget.parametros.tipoVentana) {
+      case TipoVentanaBanca.actualizarMasivamente:
+        titulo = "Actualizar masivamente" ;
+        break;
+      case TipoVentanaBanca.crearMasivamente:
+        titulo = "Crear masivamente" ;
+        break;
+      default:
+        titulo = "Agregar banca";
+    }
+
+    return titulo;
+  }
+
+  _titulo(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return SizedBox.shrink();
+    
+    return _obtenerTituloCorrespondienteALTipoDeVentana();
+  }
+
+  _obtenerSubTituloCorrespondienteALTipoDeVentana(){
+    String titulo = "";
+    switch (widget.parametros.tipoVentana) {
+      case TipoVentanaBanca.actualizarMasivamente:
+        titulo = "Los campos que esten llenos serán modificados en todas las bancas seleccionadas" ;
+        break;
+      case TipoVentanaBanca.crearMasivamente:
+        titulo = "Establece las secuencias de bancas a crear" ;
+        break;
+      default:
+        titulo = "Agrega y administra todas tus bancas.";
+    }
+
+    return titulo;
+  }
+
+  _subtitulo(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return '';
+    
+    return _obtenerSubTituloCorrespondienteALTipoDeVentana();
+  }
+
+  _nombreBancaWidget(bool isSmallOrMedium){
+    return Visibility(
+      visible: _esTipoVentanaNormal(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+        child: MyTextFormField(
+          autofocus: true,
+          leading: isSmallOrMedium ? SizedBox.shrink() : null,
+          isSideTitle: isSmallOrMedium ? false : true,
+          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+          fontSize: isSmallOrMedium ? 28 : null,
+          controller: _txtDescripcion,
+          title: !isSmallOrMedium ? "Nombre de la banca *" : "",
+          hint: "Nombre banca",
+          medium: 1,
+          isRequired: true,
+          helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
+        ),
+      ),
+    );
+  }
+
+  _bancasConSecuenciasWidget(bool isSmallOrMedium){
+    return Visibility(
+      visible: _esTipoVentanaCrearMasivamente(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+        child: MyTextFormField(
+          autofocus: true,
+          leading: isSmallOrMedium ? Icon(Icons.account_balance_wallet) : null,
+          isSideTitle: isSmallOrMedium ? false : true,
+          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+          // fontSize: isSmallOrMedium ? 28 : null,
+          controller: _txtNombreBancaConSecuencias,
+          title: !isSmallOrMedium ? "Nombre de la banca con secuencias *" : "",
+          hint: "Nombre banca con secuencias",
+          medium: 1,
+          isRequired: true,
+          helperText: "Ejemplo.: Banca05-10",
+        ),
+      ),
+    );
+  }
+
+  _usuariosConSecuenciasWidget(bool isSmallOrMedium){
+    return Visibility(
+      visible: _esTipoVentanaCrearMasivamente(),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+        child: MyTextFormField(
+          autofocus: true,
+          leading: isSmallOrMedium ? Icon(Icons.person) : null,
+          isSideTitle: isSmallOrMedium ? false : true,
+          type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+          // fontSize: isSmallOrMedium ? 28 : null,
+          controller: _txtNombreUsuarioConSecuencias,
+          title: !isSmallOrMedium ? "Nombre del usuario con secuencias *" : "",
+          hint: "Nombre usuario con secuencias",
+          medium: 1,
+          isRequired: true,
+          helperText: "Ejemplo.: Usuario05-10",
+        ),
+      ),
+    );
+  }
+
 
 
   @override
@@ -2064,11 +2485,8 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       sliverBody: MySliver(
         withScroll: false,
         sliverAppBar: MySliverAppBar(
-          title: 
-          isSmallOrMedium ? 
-          SizedBox.shrink() 
-          : "Agregar banca",
-          subtitle: isSmallOrMedium ? '' : "Agrega y administra todas tus bancas.",
+          title: _titulo(isSmallOrMedium),
+          subtitle: _subtitulo(isSmallOrMedium),
           actions: [
             MySliverButton(title: "Guardar", onTap: _guardar, showOnlyOnSmall: true, cargandoNotifier: _cargandoNotify)
           ],
@@ -2081,6 +2499,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
 
             return SliverList(delegate: SliverChildListDelegate([
               MyTabBar(controller: _tabController, tabs: ["Datos", "Config.", "Horarios", "Comisiones", "Premios", "Loterias", "Gastos"], ),
+              _bancasWidget(isSmallOrMedium),
                   
                 ]));
           }
@@ -2107,35 +2526,25 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                          child: Wrap(
                            children: [
                              MySubtitle(title: "Datos basicos", showOnlyOnLarge: true,),
-                             Padding(
-                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                               child: MyTextFormField(
-                                 autofocus: true,
-                                 leading: isSmallOrMedium ? SizedBox.shrink() : null,
-                                 isSideTitle: isSmallOrMedium ? false : true,
-                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                                 fontSize: isSmallOrMedium ? 28 : null,
-                                 controller: _txtDescripcion,
-                                 title: !isSmallOrMedium ? "Nombre de la banca *" : "",
-                                 hint: "Nombre banca",
-                                 medium: 1,
-                                 isRequired: true,
-                                 helperText: "Este es el nombre que aparecera en todas partes que se haga referencia a esta banca, inclusive encima del ticket impreso.",
-                               ),
-                             ),
+                             _nombreBancaWidget(isSmallOrMedium),
+                             _bancasConSecuenciasWidget(isSmallOrMedium),
+                             _usuariosConSecuenciasWidget(isSmallOrMedium),
                              MyDivider(showOnlyOnSmall: true,),
-                             Padding(
-                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                               child: MyTextFormField(
-                                 leading: isSmallOrMedium ? Icon(Icons.code,) : null,
-                                 isSideTitle: isSmallOrMedium ? false : true,
-                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
-                                 controller: _txtCodigo,
-                                 title: !isSmallOrMedium ? "Codigo de la banca *" : "",
-                                 hint: "Codigo",
-                                 medium: 1,
-                                 isRequired: true,
-                                 helperText: "Codigo unico que le permitira filtrar esta banca",
+                             Visibility(
+                              visible: _esTipoVentanaNormal(),
+                               child: Padding(
+                                 padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                                 child: MyTextFormField(
+                                   leading: isSmallOrMedium ? Icon(Icons.code,) : null,
+                                   isSideTitle: isSmallOrMedium ? false : true,
+                                   type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                   controller: _txtCodigo,
+                                   title: !isSmallOrMedium ? "Codigo de la banca *" : "",
+                                   hint: "Codigo",
+                                   medium: 1,
+                                   isRequired: true,
+                                   helperText: "Codigo unico que le permitira filtrar esta banca",
+                                 ),
                                ),
                              ),
                              Padding(
@@ -2164,24 +2573,27 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                              ),
                              _statusScreen(isSmallOrMedium),
                              MyDivider(showOnlyOnSmall: true,),
-                             Padding(
-                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
-                               child: MyDropdownButton(
-                                 padding: EdgeInsets.all(0),
-                                 leading: isSmallOrMedium ? Icon(Icons.person, color: Colors.black,) : null,
-                                 isSideTitle: isSmallOrMedium ? false : true,
-                                 type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                                 title: !isSmallOrMedium ? "Usuario al que pertenece *" : "",
-                                 hint: "Usuario al que pertenece",
-                                 value: _usuario,
-                                 helperText: "Todos las ventas que este usuario realice se reflerejaran en esta banca.",
-                                 items: listaUsuario.map((e) => [e, "${e.usuario}"]).toList(),
-                                 onChanged: (data){
-                                   setState(() => _usuario = data);
-                                 },
+                             Visibility(
+                              visible: _esTipoVentanaNormal(),
+                               child: Padding(
+                                 padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                                 child: MyDropdownButton(
+                                   padding: EdgeInsets.all(0),
+                                   leading: isSmallOrMedium ? Icon(Icons.person, color: Colors.black,) : null,
+                                   isSideTitle: isSmallOrMedium ? false : true,
+                                   type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
+                                   title: !isSmallOrMedium ? "Usuario al que pertenece *" : "",
+                                   hint: "Usuario al que pertenece",
+                                   value: _usuario,
+                                   helperText: "Todos las ventas que este usuario realice se reflerejaran en esta banca.",
+                                   items: listaUsuario.map((e) => [e, "${e.usuario}"]).toList(),
+                                   onChanged: (data){
+                                     setState(() => _usuario = data);
+                                   },
+                                 ),
                                ),
                              ),
-                             MyDivider(showOnlyOnSmall: true,),
+                             Visibility(visible: _esTipoVentanaNormal(), child: MyDivider(showOnlyOnSmall: true,)),
                              Padding(
                                padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
                                child: MyDropdownButton(
@@ -2248,9 +2660,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                             //  ),
                              // MyDivider(showOnlyOnSmall: true,),
                              // _sorteosScreen(isSmallOrMedium),
-                             MyDivider(showOnlyOnSmall: true,),
-                             _loteriasButtonsScreen(isSmallOrMedium),
-                             MyDivider(showOnlyOnSmall: true,),
+                            //  MyDivider(showOnlyOnSmall: true,),
+                            //  _loteriasButtonsScreen(isSmallOrMedium),
+                            //  MyDivider(showOnlyOnSmall: true,),
                              // MyDropdown(
                              //   title: "Estado",
                              //   medium: 1,
@@ -2480,7 +2892,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                       xlarge: 1.02,
                       large: 1.02,
                       medium: 1,
-                      child: _loteriasScreen(),
+                      child: SingleChildScrollView(child: _loteriasScreen(isSmallOrMedium)),
                     ),
                   ),
                   

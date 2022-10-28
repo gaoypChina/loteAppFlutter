@@ -17,6 +17,10 @@ Frecuencia.fromMap(Map snapshot) :
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 
+  static List<Frecuencia> fromMapList(parsed){
+    return parsed != null ? parsed.map<Frecuencia>((json) => Frecuencia.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       "id": id,

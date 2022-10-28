@@ -206,7 +206,7 @@ class MyRouter {
           ) ;
         case '/bancas/agregar' :
           return MaterialPageRoute(
-            builder: (_)=> BancasAddScreen(idBanca: settings.arguments,)
+            builder: (_)=> BancasAddScreen(parametros: settings.arguments,)
           ) ;
         case '/screensizetest' :
           return MaterialPageRoute(
