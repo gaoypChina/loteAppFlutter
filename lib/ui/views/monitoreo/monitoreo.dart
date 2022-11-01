@@ -1237,6 +1237,16 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
   }
 
+  _obtenerTextSpanNombreDeUsuario(Venta venta){
+    String nombreUsuario = venta.usuario != null ? "  •  ${venta.usuario}  •  " : '';
+    return TextSpan(text: nombreUsuario);
+  }
+
+  _obtenerTextSpanDescripcionBanca(Venta venta){
+    String descripcionBanca = venta.descripcion != null ? "${venta.descripcion}" : '';
+    return TextSpan(text: descripcionBanca, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black));
+  }
+
   _screen(List<Venta> data, bool isSmallOrMedium){
     if(data == null)
       return Center(child: CircularProgressIndicator());
@@ -1294,8 +1304,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
         children: [
           // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
           TextSpan(text: "${MyDate.datetimeToHour(e.created_at, false, true)}"),
-          TextSpan(text: "  •  ${e.usuario}  •  "),
-          TextSpan(text: "${e.descripcion}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          _obtenerTextSpanNombreDeUsuario(e),
+          _obtenerTextSpanDescripcionBanca(e),
         ]
       ))
       :

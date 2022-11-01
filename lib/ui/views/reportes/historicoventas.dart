@@ -1057,6 +1057,7 @@ _getListaFiltro(){
                "${data.map((e) => e.perdedores).reduce((value, element) => value + element)}",
                "${data.map((e) => e.tickets).reduce((value, element) => value + element)}",
                "${Utils.toCurrency(data.map((e) => e.ventas).reduce((value, element) => value + element))}",
+               "${Utils.toCurrency(data.map((e) => e.recargas).reduce((value, element) => value + element))}",
                "${Utils.toCurrency(data.map((e) => e.comisiones).reduce((value, element) => value + element))}",
                "${Utils.toCurrency(data.map((e) => e.descuentos).reduce((value, element) => value + element))}",
                "${Utils.toCurrency(data.map((e) => e.premios).reduce((value, element) => value + element))}",

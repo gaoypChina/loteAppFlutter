@@ -8,6 +8,7 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/extensions/listextensions.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/comision.dart';
+import 'package:loterias/core/models/comisionrecarga.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/frecuencia.dart';
 import 'package:loterias/core/models/gastos.dart';
@@ -15,6 +16,7 @@ import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/models/pagoscombinacion.dart';
+import 'package:loterias/core/models/proveedor.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/ui/views/bancas/bancasmultiplesearch.dart';
@@ -107,6 +109,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   var _txtDescripcionGasto = TextEditingController();
   var _txtMontoGasto = TextEditingController();
 
+   var _txtComisionClaro = TextEditingController();
+  var _txtComisionAltice = TextEditingController();
+  var _txtComisionViva = TextEditingController();
+
 
   bool _status = true;
   bool _imprimirCodigoQr = true;
@@ -135,6 +141,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   Loteria selectedLoteriaComision;
   Loteria selectedLoteriaPagosCombinacion;
   bool _agregarYQuitarLoterias = false;
+  List<Proveedor> listaProveedor;
 
   bool _esTipoVentanaActualizarMasivamente(){
     return widget.parametros.tipoVentana == TipoVentanaBanca.actualizarMasivamente;
@@ -157,7 +164,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     listaDia = Dia.fromMapList(parsed["dias"]);
     listaGrupo.insert(0, Grupo(id: 0, descripcion: "Ninguno"));
     listaBanca = Banca.fromMapList(parsed["bancas"]);
-    print("BancasAddScreen _llenarListas: ${listaBanca.length}");
+    listaProveedor = Proveedor.fromMapList(parsed["proveedores"]);
   }
 
   _llenarVariableBancaSiEstaNula(){
@@ -165,14 +172,34 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
       _data = Banca();
   }
 
+  _llenarCamposComisionRecargas(){
+    if(_data == null || _data.comisionRecargas == null)
+      return;
+
+    for (var comisionRecarga in _data.comisionRecargas) {
+      Proveedor proveedor = listaProveedor.firstWhere((element) => element.id == comisionRecarga.idProveedor, orElse: () => null);
+      if(proveedor == null)
+        continue;
+
+      if(proveedor.esClaro())
+        _txtComisionClaro.text = comisionRecarga.porcentajeComision.toString();
+      if(proveedor.esAltice())
+        _txtComisionAltice.text = comisionRecarga.porcentajeComision.toString();
+      if(proveedor.esViva())
+        _txtComisionViva.text = comisionRecarga.porcentajeComision.toString();
+    }
+    print("BancasAddScreen _llenarCamposComisionRecargas: ${_data.comisionRecargas.length}");
+  }
+
   _init() async {
-    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, retornarBancas: _esTipoVentanaActualizarMasivamente(), idBanca: widget.parametros.idBanca);
+    var parsed = await BancaService.index(context: context, retornarLoterias: true, retornarUsuarios: true, retornarDias: true, retornarGrupos: true, retornarMonedas: true, retornarFrecuencias: true, retornarBancas: _esTipoVentanaActualizarMasivamente(), idBanca: widget.parametros.idBanca, retornarProveedores: true);
     _llenarListas(parsed);
     _llenarCampos(parsed);
     _setsLoterias();
     _setsComisiones();
     _setsPagosCombinaciones(); 
     _llenarVariableBancaSiEstaNula(); 
+    _llenarCamposComisionRecargas();
   }
 
   _llenarCampos(parsed){
@@ -425,6 +452,23 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     }
   }
 
+  List<ComisionRecarga> _getComisionRecargas(){
+    List<ComisionRecarga> _comisionRecargas = [];
+    if(_txtComisionClaro.text.isEmpty && _txtComisionAltice.text.isEmpty && _txtComisionViva.text.isEmpty)
+      return _comisionRecargas;
+
+    for (var proveedor in listaProveedor) {
+      if(proveedor.esClaro() && _txtComisionClaro.text.isNotEmpty)
+        _comisionRecargas.add(ComisionRecarga(idProveedor: proveedor.id, porcentajeComision: Utils.toDouble(_txtComisionClaro.text)));
+      if(proveedor.esAltice() && _txtComisionAltice.text.isNotEmpty)
+        _comisionRecargas.add(ComisionRecarga(idProveedor: proveedor.id, porcentajeComision: Utils.toDouble(_txtComisionAltice.text)));
+      if(proveedor.esViva() && _txtComisionViva.text.isNotEmpty)
+        _comisionRecargas.add(ComisionRecarga(idProveedor: proveedor.id, porcentajeComision: Utils.toDouble(_txtComisionViva.text)));
+    }
+
+    return _comisionRecargas;
+  }
+
   _guardar() async {
     if(_esTipoVentanaActualizarMasivamente()){
       _actualizarMasivamente();
@@ -494,6 +538,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _data.pagosCombinaciones = _pagosCombinaciones;
         _data.loterias = _loterias;
         _data.gastos = _gastos;
+        _data.comisionRecargas = _getComisionRecargas();
 
         _cargandoNotify.value = true;
         var parsed = 
@@ -2460,13 +2505,86 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     );
   }
 
+  String _validadorCamposComisionProveedor(String value){
+    if(value.isEmpty)
+      return null;
+
+    if(Utils.toDouble(value) < 0 || Utils.toDouble(value) > 100)
+      return 'El monto comision debe estar en un rango de 0 a 100';
+  }
+
+  _proveedoresScreen(bool isSmallOrMedium){
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 10 : 15.0, horizontal: isSmallOrMedium ? 10 : 0.0),
+            child: MyTextFormField(
+              mediumSide: 1,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 13.0),
+              title: "Porcentaje comision Claro",
+              // leading: isSmallOrMedium ? Text("Comi") : null,
+              isSideTitle: isSmallOrMedium ? false : true,
+              // type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+              controller: _txtComisionClaro,
+              // title: !isSmallOrMedium ? "Claro *" : "",
+              // hint: "Claro",
+              medium: 1,
+              validator: _validadorCamposComisionProveedor,
+              isDigitOnly: true,
+              type: isSmallOrMedium ? MyType.floatingLabelWithBorder : MyType.border,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 10 : 15.0, horizontal: isSmallOrMedium ? 10 : 0.0),
+            child: MyTextFormField(
+              mediumSide: 1,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 13.0),
+              title: "Porcentaje comision Altice",
+              // leading: isSmallOrMedium ? Text("Comi") : null,
+              isSideTitle: isSmallOrMedium ? false : true,
+              // type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+              controller: _txtComisionAltice,
+              // title: !isSmallOrMedium ? "Claro *" : "",
+              // hint: "Claro",
+              medium: 1,
+              validator: _validadorCamposComisionProveedor,
+              isDigitOnly: true,
+              type: isSmallOrMedium ? MyType.floatingLabelWithBorder : MyType.border,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 10 : 15.0, horizontal: isSmallOrMedium ? 10 : 0.0),
+            child: MyTextFormField(
+              mediumSide: 1,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 13.0),
+              title: "Porcentaje comision Viva",
+              // leading: isSmallOrMedium ? Text("Comi") : null,
+              isSideTitle: isSmallOrMedium ? false : true,
+              // type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+              controller: _txtComisionViva,
+              // title: !isSmallOrMedium ? "Claro *" : "",
+              // hint: "Claro",
+              medium: 1,
+              validator: _validadorCamposComisionProveedor,
+              isDigitOnly: true,
+              type: isSmallOrMedium ? MyType.floatingLabelWithBorder : MyType.border,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 
   @override
   void initState() {
     // TODO: implement initState
     _streamControllerGastos = BehaviorSubject();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
     _future = _init();
     super.initState();
   }
@@ -2498,7 +2616,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
               return SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
 
             return SliverList(delegate: SliverChildListDelegate([
-              MyTabBar(controller: _tabController, tabs: ["Datos", "Config.", "Horarios", "Comisiones", "Premios", "Loterias", "Gastos"], ),
+              MyTabBar(controller: _tabController, tabs: ["Datos", "Config.", "Horarios", "Comisiones", "Premios", "Loterias", "Comision recargas", "Gastos"], ),
               _bancasWidget(isSmallOrMedium),
                   
                 ]));
@@ -2895,6 +3013,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                       child: SingleChildScrollView(child: _loteriasScreen(isSmallOrMedium)),
                     ),
                   ),
+                  _proveedoresScreen(isSmallOrMedium),
                   
 
                   StreamBuilder<List<Gasto>>(

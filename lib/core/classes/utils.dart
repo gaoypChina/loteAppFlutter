@@ -29,10 +29,10 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.37:8000';
-  static final String URL_SOCKET = 'http://192.168.1.37:3000';
-  // static final String URL = 'http://10.0.0.15:8000';
-  // static final String URL_SOCKET = 'http://10.0.0.15:3000';
+  // static final String URL = 'http://192.168.1.39:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.39:3000';
+  // static final String URL = 'http://10.0.0.11:8000';
+  // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
   // static final String URL_SOCKET = 'http://sislote.test:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
@@ -48,8 +48,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  // static final String URL = 'https://lote-app.com';
-  // static final String URL_SOCKET = URL + ":8000";
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -1082,6 +1082,17 @@ class  Utils {
 
   static List quitarValoresDuplicadosDeUnaLista(List lista){
     return [...{...lista}];
+  }
+
+  static BigInt toBigInt(dynamic caracter, {bool returnNullIfNotInt = false}){
+    try {
+      if(!(caracter is String) && caracter != null)
+       return BigInt.from(caracter);
+
+      return BigInt.from(caracter);
+    } catch (e) {
+      return returnNullIfNotInt ? null : BigInt.from(0);
+    }
   }
  
 }

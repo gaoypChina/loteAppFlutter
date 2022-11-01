@@ -65,6 +65,10 @@ Pagoscombinacion.fromMap(Map snapshot) :
     throw ArgumentError('propery not found');
   }
 
+  static List<Pagoscombinacion> fromMapList(parsed){
+    return parsed != null ? parsed.map<Pagoscombinacion>((json) => Pagoscombinacion.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       "id": id,

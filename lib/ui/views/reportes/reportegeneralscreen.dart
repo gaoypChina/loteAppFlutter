@@ -599,31 +599,52 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
                         child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.money_off, color: Colors.pink,), title: Text("${Utils.toCurrency(snapshot.data["premios"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Premios"),
                       )),
                       MyResizedContainer(
-                        small: 3, 
-                        medium: 3,
+                        small: 2, 
+                        medium: 2,
                         large: 5,
                         xlarge: 5,
                         child: Padding(
-                        padding: isSmallOrMedium ? const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
+                        // padding: isSmallOrMedium ? const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
+                        padding: isSmallOrMedium ? const EdgeInsets.all(8.0) : const EdgeInsets.all(8.0),
                         child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.currency_exchange_rounded, color: Colors.orange, size: isSmallOrMedium ? 18 : 24,), title: Text("${Utils.toCurrency(snapshot.data["comisiones"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Comision"),
                       )),
+                      // MyResizedContainer(
+                      //   small: 3, 
+                      //   medium: 3,
+                      //   large: 5,
+                      //   xlarge: 5,
+                      //   child: Padding(
+                      //   padding: isSmallOrMedium ? const EdgeInsets.only(right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
+                      //   child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.send_to_mobile, color: Colors.blue, size: isSmallOrMedium ? 20 : 24,), title: Text("${Utils.toCurrency(snapshot.data["recargas"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Recargas"),
+                      // )),
                       MyResizedContainer(
-                        small: 3, 
-                        medium: 3,
+                        small: 2, 
+                        medium: 2,
                         large: 5,
                         xlarge: 5,
                         child: Padding(
-                        padding: isSmallOrMedium ? const EdgeInsets.only(right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
+                        // padding: isSmallOrMedium ? const EdgeInsets.only(right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
+                        padding: isSmallOrMedium ? const EdgeInsets.all(8.0) : const EdgeInsets.all(8.0),
+                        child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.discount, color: Colors.orange, size: isSmallOrMedium ? 18 : 24,), title: Text("${Utils.toCurrency(snapshot.data["descuentos"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Descuentos"),
+                      )),
+
+                       MyResizedContainer(
+                        small: 2, 
+                        medium: 2,
+                        large: 5,
+                        xlarge: 5,
+                        child: Padding(
+                        padding: isSmallOrMedium ? const EdgeInsets.all(8.0) : const EdgeInsets.all(8.0),
                         child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.send_to_mobile, color: Colors.blue, size: isSmallOrMedium ? 20 : 24,), title: Text("${Utils.toCurrency(snapshot.data["recargas"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Recargas"),
                       )),
                       MyResizedContainer(
-                        small: 3, 
-                        medium: 3,
+                        small: 2, 
+                        medium: 2,
                         large: 5,
                         xlarge: 5,
                         child: Padding(
-                        padding: isSmallOrMedium ? const EdgeInsets.only(right: 8.0, top: 8.0) : const EdgeInsets.all(8.0),
-                        child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.discount, color: Colors.orange, size: isSmallOrMedium ? 18 : 24,), title: Text("${Utils.toCurrency(snapshot.data["descuentos"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Descuentos"),
+                        padding: isSmallOrMedium ? const EdgeInsets.all(8.0) : const EdgeInsets.all(8.0),
+                        child: _roundedWidget(isSmallOrMedium: isSmallOrMedium, icon: Icon(Icons.install_mobile_rounded, color: Colors.blueGrey, size: isSmallOrMedium ? 20 : 24,), title: Text("${Utils.toCurrency(snapshot.data["balanceRecargas"], false, true)}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallOrMedium ? 12 : 16)), subtitle: "Balance recargas"),
                       )),
                       
                     ],
