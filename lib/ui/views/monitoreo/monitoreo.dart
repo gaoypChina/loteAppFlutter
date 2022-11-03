@@ -64,7 +64,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   bool _tienePermisoCancelarCualquierMomento = false;
   bool _cargando = false;
   int _indexBanca = 0;
-  List<Venta> _listaVenta;
+  List<Venta> _listaVenta = [];
   List<Venta> _tmpListaVenta;
   List<List<dynamic>> listaTipoTicket = [[-1, "Todos"], [1, "Pendientes"], [2, "Ganadores"], [3, "Perdedores"], [0, "Cancelados"]];
   List<dynamic> _tipoTicket;
@@ -171,7 +171,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
 
     // setState(() => _cargando = false);
-   } on Exception catch(e){
+   } on dynamic catch(e){
       // setState(() => _cargando = false);
     _streamControllerMonitoreo.add([]);
    }

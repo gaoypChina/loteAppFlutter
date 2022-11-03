@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 // import 'package:corsac_jwt/corsac_jwt.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +28,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../main.dart';
 
 class  Utils {
-  // static final String URL = 'http://127.0.0.1:8000/';
-  // static final String URL_SOCKET = 'http://127.0.0.1:3000';
+  static final String URL = 'http://127.0.0.1:8000/';
+  static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL = 'http://192.168.1.39:8000';
   // static final String URL_SOCKET = 'http://192.168.1.39:3000';
   // static final String URL = 'http://10.0.0.11:8000';
@@ -48,8 +49,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  static final String URL = 'https://lote-app.com';
-  static final String URL_SOCKET = URL + ":8000";
+  // static final String URL = 'https://lote-app.com';
+  // static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -1093,6 +1094,15 @@ class  Utils {
     } catch (e) {
       return returnNullIfNotInt ? null : BigInt.from(0);
     }
+  }
+
+  static void showFlushbar(context, String message){
+     Flushbar(
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            message: message,
+            duration: Duration(milliseconds: 1300),
+          )..show(context);
   }
  
 }
