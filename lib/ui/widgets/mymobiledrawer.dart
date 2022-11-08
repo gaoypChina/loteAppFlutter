@@ -68,7 +68,7 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
     _dashboardNotifier.value = await Db.existePermiso("Ver Dashboard");
     _transaccionesNotifier.value = await Db.existePermiso("Manejar transacciones");
     _monitoreoNotifier.value = await Db.existePermiso("Monitorear ticket");
-    _registrarNotifier.value = await Db.existePermiso("Manejar resultados");
+    _registrarNotifier.value = await Db.existePermiso("Ver resultados");
 
     _reporteJugadasNotifier .value = await Db.existePermiso("Ver reporte jugadas");
     _reporteHistoricoNotifier.value = await Db.existePermiso("Ver historico ventas");

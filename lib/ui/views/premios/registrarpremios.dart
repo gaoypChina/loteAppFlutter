@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -47,6 +48,8 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
   bool _cargando = false;
   bool _cargoPorPrimeraVez = false;
   DateTimeRange _date;
+  bool _tienePermisoManejarResultados = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -57,8 +60,13 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
     _txtPick3FocusNode = FocusNode();
     _txtPick4FocusNode = FocusNode();
     _date = MyDate.getTodayDateRange();
+    _llenarVariablesPermisos();
     _getLoterias();
     super.initState();
+  }
+
+  _llenarVariablesPermisos() async {
+    _tienePermisoManejarResultados = await Db.existePermiso("Manejar resultados");
   }
 
   _llenarCampos(){
@@ -186,6 +194,9 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
   }
 
   _showForm(Loteria loteria){
+    if(!_tienePermisoManejarResultados)
+      return;
+      
     _txtPrimera.text = loteria != null ? loteria.primera != null ? loteria.primera : '' : '';
     _txtSegunda.text = loteria != null ? loteria.segunda != null ? loteria.segunda : '' : '';
     _txtTercera.text = loteria != null ? loteria.tercera != null ? loteria.tercera : '' : '';
@@ -708,6 +719,9 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
     );
   }
 
+  Widget _deleteResultadoWidget(Loteria loteria){
+    return _tienePermisoManejarResultados ? IconButton(onPressed: (){_showDialogEliminar(data: loteria);}, icon: Icon(Icons.delete)) : null;
+  }
 
   List<Widget> _screen(List<Loteria> data, bool isSmallOrMedium){
 
@@ -730,7 +744,7 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
               ],
             ),
           ),
-          trailing: IconButton(onPressed: (){_showDialogEliminar(data: e);}, icon: Icon(Icons.delete)),
+          trailing: _deleteResultadoWidget(e),
         ),
       )).toList();
 
@@ -834,6 +848,78 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
           
   }
 
+  Widget _imprimirWidget(bool isSmallOrMedium){
+    // if(!isSmallOrMedium)
+    //   return Container(
+    //     width: 115,
+    //     child: MyDropdown(
+    //             isFlat: true,
+    //             title: null, 
+    //             leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+    //             padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+    //             textColor: Colors.blue[600],
+    //             color: Colors.grey[600],
+    //             hint: "Imprimir",
+    //             onTap: _mostrarDialogImprimir,
+    //           )
+    //   );
+
+    return IconButton(constraints: _actionIconsConstraint(isSmallOrMedium), padding: EdgeInsets.all(0.0), onPressed: _mostrarDialogImprimir, icon: Icon(Icons.print, color: _actionsIconsColor(isSmallOrMedium),));
+  }
+
+  BoxConstraints _actionIconsConstraint(bool isSmallOrMedium){
+    return isSmallOrMedium ? BoxConstraints(minHeight: 20) : null;
+  }
+
+  Future<void> _mostrarDialogImprimir() async{
+    bool _imprimirSoloLoteriasConResultados = true;
+
+    List<Loteria> _loteriasAImprimir= await showDialog(
+      context: context, 
+      builder: (context){
+
+        void __imprimirSoloLoteriasConResultadosChanged(value, statefulBuilderSetState){
+          statefulBuilderSetState(() => _imprimirSoloLoteriasConResultados = value);
+        }
+
+        _back({List<Loteria> loteriasAImprimir}){
+          Navigator.pop(context, loteriasAImprimir);
+        }
+
+        List<Loteria> _loteriasAImprimir(){
+          List<Loteria> _loteriasARetornar = [];
+          if(_imprimirSoloLoteriasConResultados){
+            _loteriasARetornar = listaLoteria.where((element) => element.primera.isNotEmpty || element.segunda.isNotEmpty || element.tercera.isNotEmpty || element.pick3.isNotEmpty || element.pick4.isNotEmpty).toList();
+            print("RegistrarPremios _mostrarDialogAImprimir _loteriasAImprimir: ${_loteriasARetornar.length}");
+          }else
+            _loteriasARetornar = listaLoteria;
+
+          return _loteriasARetornar;
+        }
+
+        return AlertDialog(
+          title: Text("Imprimir"),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          content: SingleChildScrollView(
+            child: Container(
+              width: 100, 
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return MySwitch(title: "Imprimir solo loterias con resultados", value: _imprimirSoloLoteriasConResultados, onChanged: (value) => __imprimirSoloLoteriasConResultadosChanged(value, setState));
+                }
+              )
+            )
+          ),
+          actions: [
+            TextButton(onPressed: _back, child: Text("cancelar", style: TextStyle(color: Colors.grey),)),
+            TextButton(onPressed: () => _back(loteriasAImprimir: _loteriasAImprimir()), child: Text("Imprimir")),
+          ],
+        );
+      }
+    );
+    _imprimirResultados(_loteriasAImprimir);
+  }
+
   Future<void> _imprimirResultados(List<Loteria> loterias) async {
     if(loterias == null)
       return;
@@ -846,65 +932,17 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
         return;
       }
 
-    await BluetoothChannel.printNumerosGanadores(loterias: listaLoteria);
+    await BluetoothChannel.printNumerosGanadores(loterias: loterias);
   }
 
-  Widget _imprimirWidget(bool isSmallOrMedium){
-    if(!isSmallOrMedium)
-      return Container(
-        width: 115,
-        child: MyDropdown(
-                isFlat: true,
-                title: null, 
-                leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
-                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
-                textColor: Colors.blue[600],
-                color: Colors.grey[600],
-                hint: "Imprimir",
-                onTap: _mostrarDialogImprimir,
-              )
-      );
-
-    return IconButton(onPressed: _mostrarDialogImprimir, icon: Icon(Icons.print));
+  _actualizarDatos(){
+    _buscar();
   }
 
-  Future<void> _mostrarDialogImprimir() async{
-    bool _imprimirSoloLoteriasConResultados = true;
+_actionsIconsColor(bool isSmallOrMedium){
+  return isSmallOrMedium ? Colors.black : null;
+}
 
-    List<Loteria> _loteriasAImprimir= await showDialog(
-      context: context, 
-      builder: (context){
-
-        void __imprimirSoloLoteriasConResultadosChanged(value){
-          setState(() => _imprimirSoloLoteriasConResultados = value);
-        }
-
-        _back({List<Loteria> loteriasAImprimir}){
-          Navigator.pop(context, loteriasAImprimir);
-        }
-
-        List<Loteria> _loteriasAImprimir(){
-          List<Loteria> _loteriasARetornar = [];
-          if(_imprimirSoloLoteriasConResultados)
-            _loteriasARetornar = listaLoteria.where((element) => (element.primera != null || element.segunda != null || element.tercera != null) || (element.pick3 != null || element.pick4 != null));
-          else
-            _loteriasARetornar = listaLoteria;
-
-          return _loteriasARetornar;
-        }
-
-        return AlertDialog(
-          title: Text("Imprimir"),
-          content: MySwitch(title: "Solo loterias con resultados", value: _imprimirSoloLoteriasConResultados, onChanged: __imprimirSoloLoteriasConResultadosChanged),
-          actions: [
-            TextButton(onPressed: _back, child: Text("cancelar")),
-            TextButton(onPressed: () => _back(loteriasAImprimir: _loteriasAImprimir()), child: Text("Imprimir")),
-          ],
-        );
-      }
-    );
-    _imprimirResultados(_loteriasAImprimir);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -921,14 +959,21 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
           title: "Registrar premios",
           subtitle: _subtitleWidget(isSmallOrMedium),
           actions: [
-            MySliverButton(
-              showOnlyOnLarge: true,
+            // MySliverButton(
+            //   showOnlyOnLarge: true,
+            //   title: _imprimirWidget(isSmallOrMedium), 
+            //   onTap: (){}
+            // ),
+             MySliverButton(
+              padding: EdgeInsets.all(0.0),
+              // showOnlyOnSmall: true,
               title: _imprimirWidget(isSmallOrMedium), 
               onTap: (){}
             ),
-             MySliverButton(
-              showOnlyOnSmall: true,
-              title: _imprimirWidget(isSmallOrMedium), 
+            MySliverButton(
+              // showOnlyOnSmall: true,
+              padding: EdgeInsets.all(0.0),
+              title: IconButton(constraints: _actionIconsConstraint(isSmallOrMedium), padding: EdgeInsets.all(0.0), icon: Icon(Icons.refresh, color: _actionsIconsColor(isSmallOrMedium),), onPressed: _actualizarDatos,), 
               onTap: (){}
             ),
           ],
