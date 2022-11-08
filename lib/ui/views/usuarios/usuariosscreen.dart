@@ -1045,7 +1045,7 @@ _avatarScreen(Usuario data){
   _seleccionarUsuariosYVerContrasenas(bool isSmallOrMedium) async {
     List<Usuario> usuariosSeleccionados = [];
     if(isSmallOrMedium)
-      usuariosSeleccionados = await showSearch(context: context, delegate: UsuariosMultipleSearch(listaData, []));
+      usuariosSeleccionados = await showSearch(context: context, delegate: UsuariosMultiSearch(listaData, []));
       
     showDialog(context: context, builder: (context) => VerContrasenasDialog(idUsuarios: usuariosSeleccionados.map((e) => e.id).toList(),));
   }

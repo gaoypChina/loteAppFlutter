@@ -6,10 +6,10 @@ import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 
-class UsuariosMultipleSearch extends SearchDelegate <List<Usuario>>{
+class UsuariosMultiSearch extends SearchDelegate <List<Usuario>>{
   final List<Usuario> data;
   List<Usuario> usuariosSeleccionados;
-  UsuariosMultipleSearch(this.data, this.usuariosSeleccionados);
+  UsuariosMultiSearch(this.data, this.usuariosSeleccionados);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
 
