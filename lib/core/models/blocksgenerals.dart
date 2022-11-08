@@ -21,7 +21,7 @@ Blocksgenerals.fromMap(Map snapshot) :
         idLoteriaSuperpale = Utils.toInt(snapshot['idLoteriaSuperpale'], returnNullIfNotInt: true),
         idSorteo = snapshot['idSorteo'] != null ? Utils.toInt(snapshot['idSorteo']) : 0,
         monto = double.parse(snapshot['monto'].toString()) ?? 0,
-        created_at = DateTime.parse(snapshot['created_at']) ?? null,
+        created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : DateTime.now(),
         idMoneda = snapshot['idMoneda'] != null ? Utils.toInt(snapshot['idMoneda']) : 0
         ;
 

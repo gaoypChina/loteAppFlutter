@@ -205,4 +205,47 @@ class LoginService{
 
 
   // }
+
+  static Future<Map<String, dynamic>> accederGzip({String usuario, String password, scaffoldkey, context}) async {
+    var map = Map<String, dynamic>();
+    var map2 = Map<String, dynamic>();
+
+    map["usuario"] = usuario;
+    map["password"] = password;
+    map2["datos"] = map;
+    final response = await http.post(Uri.parse(Utils.URL + '/api/acceder/v2/gzip'), body: json.encode(map2), headers: Utils.header);
+    
+    if(response.statusCode < 200 || response.statusCode > 400){
+      print("GrupoService index: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      // if(context != null)
+      //   Utils.showAlertDialog(context: context, content: "${parsed["message"]}", title: "Error");
+      // else
+      //   Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldkey);
+      throw Exception("${parsed["message"]}");
+    }
+   
+      var parsed = await compute(Utils.parseDatos, response.body);
+      print("loginserviceAcceder parsed compute: $parsed");
+      // if(parsed["errores"] == 1){
+      //   if(scaffoldkey != null)
+      //   print("loginservice acceder: $parsed");
+      //   Utils.showSnackBar(scaffoldKey: scaffoldkey, content:parsed["mensaje"] );
+      //   throw Exception('Failed to load usuario datos incorrectos');
+      // }
+
+      if(parsed["errores"] == 1){
+        // if(context != null)
+        //   Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+        // else
+        //   Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldkey);
+        throw Exception("${parsed["mensaje"]}");
+      }
+      
+      // print('parsed ${parsed['usuario']}');
+      // _usuario = Usuario.fromMap(parsed['usuario']);
+      // _banca = Banca.fromMap(parsed['bancaObject']);
+      // return parsed['usuario'].map<Usuario>((json) => Usuario.fromMap(json)).toList();
+      return parsed;
+  }
 }

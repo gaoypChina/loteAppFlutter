@@ -434,7 +434,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     if(_cargandoNotify.value == true)
       return;
       
-      try {
+      // try {
         if(!_formKey.currentState.validate())
           return;
 
@@ -504,10 +504,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         
         _cargandoNotify.value = false;
         _back(parsed);
-      } on dynamic catch (e) {
-        print("_showDialogGuardar _erroor: $e");
-        _cargandoNotify.value = false;
-      }
+      // } on dynamic catch (e) {
+      //   print("_showDialogGuardar _erroor: $e");
+      //   _cargandoNotify.value = false;
+      // }
     }
 
     _back(Map<String, dynamic> parsed){

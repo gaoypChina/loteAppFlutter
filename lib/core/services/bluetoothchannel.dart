@@ -252,6 +252,38 @@ class BluetoothChannel{
     
      
   }
+  static Future<void> printNumerosGanadores({List<Loteria> loterias}) async {
+    var c = await DB.create();
+    var printer = await c.getValue("printer");
+    if(_connectado){
+      return;
+    }
+
+    Map<int, dynamic> generatedNumerosGanadores = generateNumerosGanadores(loterias);
+
+    if(kIsWeb){
+      _printWeb(printer, generatedNumerosGanadores);
+    }else{
+      _subscription = channelConnect.receiveBroadcastStream(printer["address"]).listen(
+        (onData) async {
+          print("Listen OnData: $onData");
+          _connectado = true;
+          final bool result = await _methodChannel.invokeMethod("printText", {"data" : generatedNumerosGanadores});
+          disconnect();
+          print("Listen OnData print: $result");
+
+          // generateCuadre(map);
+        },
+        onError: (error){
+          _connectado = false;
+          print("Listen Error: $error");
+        }
+      );
+    }
+
+    
+     
+  }
 
   static printText({String content, int nWidthTimes = 1, normalOPrueba = true}) async {
     var c = await DB.create();
@@ -612,6 +644,85 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     map[map.length] = _getMapNuevo(text:"\n\n");
 
     return map;
+  }
+
+  static Map<int, dynamic> generateNumerosGanadores(List<Loteria> loterias){
+    Map<int, dynamic> map = Map<int, dynamic>();
+    String espaciosEnBlancoOcupadosEnPrimera = "        ";
+    String espaciosEnBlancoOcupadosEnSegunda = "            ";
+    String espaciosEnBlancoOcupadosEnTercera = "                ";
+    String espaciosEnBlancoOcupadosEnPick3 = "                    ";
+    String espaciosEnBlancoOcupadosEnPick4 = "                        ";
+    String espacioTotal = "                           ";
+    int cantidadDeCaracteresYaAgregados = 0; 
+    String textoAImprimir = "";
+
+    map[map.length] = _getMapNuevo(cmd: CMD.center);
+    map[map.length] = _getMapNuevo(text: "Numeros Ganadores\n\n");
+    map[map.length] = _getMapNuevo(cmd: CMD.left);
+
+    map[map.length] = _getMapNuevo(text:"LOTERIA 1RA 2DA 3RA PI3 PI4\n", cmd: CMD.p);
+    cantidadDeCaracteresYaAgregados = 0; 
+    textoAImprimir = "";
+    for(int i=0; i < loterias.length; i++){
+      Loteria element = loterias[i];
+      cantidadDeCaracteresYaAgregados = 0; 
+      textoAImprimir = "";
+      map[map.length] = _getMapNuevo(text: element.abreviatura, cmd: CMD.p);
+      cantidadDeCaracteresYaAgregados = element.abreviatura.length;
+
+      anadirCaracteresAImprimirDelPrimerPremio(element, map, textoAImprimir, espaciosEnBlancoOcupadosEnPrimera, cantidadDeCaracteresYaAgregados);
+      anadirCaracteresAImprimirDelSegundoPremio(element, map, textoAImprimir, espaciosEnBlancoOcupadosEnSegunda, cantidadDeCaracteresYaAgregados);
+      anadirCaracteresAImprimirDelTercerPremio(element, map, textoAImprimir, espaciosEnBlancoOcupadosEnTercera, cantidadDeCaracteresYaAgregados);
+      anadirCaracteresAImprimirDelPremioPick3(element, map, textoAImprimir, espaciosEnBlancoOcupadosEnPick3, cantidadDeCaracteresYaAgregados);
+      anadirCaracteresAImprimirDelPremioPick4(element, map, textoAImprimir, espaciosEnBlancoOcupadosEnPick4, cantidadDeCaracteresYaAgregados);
+      
+      map[map.length] = _getMapNuevo(text:"\n");
+      print("bluetoothChannel generateCuadre Loteria abreviatura: ${element.abreviatura} 1ra: ${element.primera} 2da: ${element.segunda} 3ra: ${element.tercera}");
+    }
+      map[map.length] = _getMapNuevo(text:"\n\n\n");
+
+    return map;
+  }
+
+  static anadirCaracteresAImprimirDelPrimerPremio(Loteria loteria, Map<int, dynamic> ticketYaGenerado, String textoAImprimir, String espaciosEnBlancoOcupadosPorElPrimerPremio, int cantidadDeCaracteresYaAgregados){
+    textoAImprimir = Utils.sustituirEspaciosEnBlancoPorCaracteresDados(cantidadDeEspaciosEnBlanco: espaciosEnBlancoOcupadosPorElPrimerPremio.length, cantidadDeCaracteresASustituir: cantidadDeCaracteresYaAgregados);
+    if(loteria.primera != null)
+      textoAImprimir += loteria.primera;
+    ticketYaGenerado[ticketYaGenerado.length] = _getMapNuevo(text: textoAImprimir, cmd: loteria.primera != null ? CMD.p : CMD.h2);
+    cantidadDeCaracteresYaAgregados += textoAImprimir.length;
+  }
+
+  static anadirCaracteresAImprimirDelSegundoPremio(Loteria loteria, Map<int, dynamic> ticketYaGenerado, String textoAImprimir, String espaciosEnBlancoOcupadosPorSegundoPremio, int cantidadDeCaracteresYaAgregados){
+    textoAImprimir = Utils.sustituirEspaciosEnBlancoPorCaracteresDados(cantidadDeEspaciosEnBlanco: espaciosEnBlancoOcupadosPorSegundoPremio.length, cantidadDeCaracteresASustituir: cantidadDeCaracteresYaAgregados);
+    if(loteria.segunda != null)
+      textoAImprimir += loteria.segunda;
+    ticketYaGenerado[ticketYaGenerado.length] = _getMapNuevo(text: textoAImprimir, cmd: loteria.segunda != null ? CMD.p : CMD.h2);
+    cantidadDeCaracteresYaAgregados += textoAImprimir.length;
+  }
+
+  static anadirCaracteresAImprimirDelTercerPremio(Loteria loteria, Map<int, dynamic> ticketYaGenerado, String textoAImprimir, String espaciosEnBlancoOcupadosPorElTercerPremio, int cantidadDeCaracteresYaAgregados){
+    textoAImprimir = Utils.sustituirEspaciosEnBlancoPorCaracteresDados(cantidadDeEspaciosEnBlanco: espaciosEnBlancoOcupadosPorElTercerPremio.length, cantidadDeCaracteresASustituir: cantidadDeCaracteresYaAgregados);
+    if(loteria.tercera != null)
+      textoAImprimir += loteria.tercera;
+    ticketYaGenerado[ticketYaGenerado.length] = _getMapNuevo(text: textoAImprimir, cmd: loteria.tercera != null ? CMD.p : CMD.h2);
+    cantidadDeCaracteresYaAgregados += textoAImprimir.length;
+  }
+
+  static anadirCaracteresAImprimirDelPremioPick3(Loteria loteria, Map<int, dynamic> ticketYaGenerado, String textoAImprimir, String espaciosEnBlancoOcupadosPorElPremioPick3, int cantidadDeCaracteresYaAgregados){
+    textoAImprimir = Utils.sustituirEspaciosEnBlancoPorCaracteresDados(cantidadDeEspaciosEnBlanco: espaciosEnBlancoOcupadosPorElPremioPick3.length, cantidadDeCaracteresASustituir: cantidadDeCaracteresYaAgregados);
+    if(loteria.pick3 != null)
+      textoAImprimir += loteria.pick3;
+    ticketYaGenerado[ticketYaGenerado.length] = _getMapNuevo(text: textoAImprimir, cmd: loteria.pick3 != null ? CMD.p : CMD.h2);
+    cantidadDeCaracteresYaAgregados += textoAImprimir.length;
+  }
+
+  static anadirCaracteresAImprimirDelPremioPick4(Loteria loteria, Map<int, dynamic> ticketYaGenerado, String textoAImprimir, String espaciosEnBlancoOcupadosPorElPremioPick4, int cantidadDeCaracteresYaAgregados){
+    textoAImprimir = Utils.sustituirEspaciosEnBlancoPorCaracteresDados(cantidadDeEspaciosEnBlanco: espaciosEnBlancoOcupadosPorElPremioPick4.length, cantidadDeCaracteresASustituir: cantidadDeCaracteresYaAgregados);
+    if(loteria.pick4 != null)
+      textoAImprimir += loteria.pick4;
+    ticketYaGenerado[ticketYaGenerado.length] = _getMapNuevo(text: textoAImprimir, cmd: loteria.pick4 != null ? CMD.p : CMD.h2);
+    cantidadDeCaracteresYaAgregados += textoAImprimir.length;
   }
 
   static quitarOPonerEspaciosJugada({primeraJugadaEnLaFila, montoAnterior = '', espaciosDePrimerMontoA2daJugada}){

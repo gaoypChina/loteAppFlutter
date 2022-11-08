@@ -6,6 +6,7 @@ import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/loterias.dart';
+import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/premiosservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
@@ -833,6 +834,78 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
           
   }
 
+  Future<void> _imprimirResultados(List<Loteria> loterias) async {
+    if(loterias == null)
+      return;
+      
+    if(loterias.length == 0)
+      return;
+
+    if(await Utils.exiseImpresora() == false){
+        Utils.showAlertDialog(context: context, title: "Impresora", content: "Debe registrar una impresora");
+        return;
+      }
+
+    await BluetoothChannel.printNumerosGanadores(loterias: listaLoteria);
+  }
+
+  Widget _imprimirWidget(bool isSmallOrMedium){
+    if(!isSmallOrMedium)
+      return Container(
+        width: 115,
+        child: MyDropdown(
+                isFlat: true,
+                title: null, 
+                leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                textColor: Colors.blue[600],
+                color: Colors.grey[600],
+                hint: "Imprimir",
+                onTap: _mostrarDialogImprimir,
+              )
+      );
+
+    return IconButton(onPressed: _mostrarDialogImprimir, icon: Icon(Icons.print));
+  }
+
+  Future<void> _mostrarDialogImprimir() async{
+    bool _imprimirSoloLoteriasConResultados = true;
+
+    List<Loteria> _loteriasAImprimir= await showDialog(
+      context: context, 
+      builder: (context){
+
+        void __imprimirSoloLoteriasConResultadosChanged(value){
+          setState(() => _imprimirSoloLoteriasConResultados = value);
+        }
+
+        _back({List<Loteria> loteriasAImprimir}){
+          Navigator.pop(context, loteriasAImprimir);
+        }
+
+        List<Loteria> _loteriasAImprimir(){
+          List<Loteria> _loteriasARetornar = [];
+          if(_imprimirSoloLoteriasConResultados)
+            _loteriasARetornar = listaLoteria.where((element) => (element.primera != null || element.segunda != null || element.tercera != null) || (element.pick3 != null || element.pick4 != null));
+          else
+            _loteriasARetornar = listaLoteria;
+
+          return _loteriasARetornar;
+        }
+
+        return AlertDialog(
+          title: Text("Imprimir"),
+          content: MySwitch(title: "Solo loterias con resultados", value: _imprimirSoloLoteriasConResultados, onChanged: __imprimirSoloLoteriasConResultadosChanged),
+          actions: [
+            TextButton(onPressed: _back, child: Text("cancelar")),
+            TextButton(onPressed: () => _back(loteriasAImprimir: _loteriasAImprimir()), child: Text("Imprimir")),
+          ],
+        );
+      }
+    );
+    _imprimirResultados(_loteriasAImprimir);
+  }
+
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
@@ -847,6 +920,18 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
         sliverAppBar: MySliverAppBar(
           title: "Registrar premios",
           subtitle: _subtitleWidget(isSmallOrMedium),
+          actions: [
+            MySliverButton(
+              showOnlyOnLarge: true,
+              title: _imprimirWidget(isSmallOrMedium), 
+              onTap: (){}
+            ),
+             MySliverButton(
+              showOnlyOnSmall: true,
+              title: _imprimirWidget(isSmallOrMedium), 
+              onTap: (){}
+            ),
+          ],
         ), 
         sliver: StreamBuilder<List<Loteria>>(
           stream: _streamControllerLoteria.stream,

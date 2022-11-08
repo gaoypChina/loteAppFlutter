@@ -29,8 +29,8 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.37:8000';
-  static final String URL_SOCKET = 'http://192.168.1.37:3000';
+  static final String URL = 'http://192.168.1.39:8000';
+  static final String URL_SOCKET = 'http://192.168.1.39:3000';
   // static final String URL = 'http://10.0.0.15:8000';
   // static final String URL_SOCKET = 'http://10.0.0.15:3000';
   // static final String URL = 'http://sislote.test/';
@@ -697,6 +697,22 @@ class  Utils {
    for(int i=0; i < tamanoString; i++)
     string += " ";
    return string.substring(0, tamanoString - cantidadDeCaracteresAQuitar);
+  }
+
+  static sustituirEspaciosEnBlancoPorCaracteresDados({@required int cantidadDeEspaciosEnBlanco, @required int cantidadDeCaracteresASustituir}){
+   //Creamos un string de espacios en blanco y su tamano sera igual a la variable tamanoString
+   //Si la variable tamanoString = 3 entonces la variable string tendra como valor 3 espacios
+   String espaciosEnBlancoGenerados = generarEspaciosEnBlanco(cantidadDeEspaciosEnBlancoAGenerar: cantidadDeEspaciosEnBlanco);
+   return espaciosEnBlancoGenerados.substring(0, cantidadDeEspaciosEnBlanco - cantidadDeCaracteresASustituir);
+  }
+
+  static String generarEspaciosEnBlanco({@required int cantidadDeEspaciosEnBlancoAGenerar}){
+    String string = "";
+
+    for(int i=0; i < cantidadDeEspaciosEnBlancoAGenerar; i++)
+      string += " ";
+
+    return string;
   }
 
   static diasDelMes(DateTime fecha){

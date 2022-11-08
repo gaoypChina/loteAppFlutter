@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/parametros_rutas/parametros_banca.dart';
 import 'package:loterias/core/models/branchreport.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/monedas.dart';
@@ -389,7 +390,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
         }
         else if(value == "editar"){
           try{
-            Navigator.pushNamed(context, '/bancas/agregar', arguments: data.idBanca);
+            Navigator.pushNamed(context, '/bancas/agregar', arguments: ParametrosBanca(idBanca: data.idBanca));
           } on Exception catch(e){
             // setState(() => _cargando = false);
           }
