@@ -29,7 +29,7 @@ Stock.fromMap(Map snapshot) :
         jugada = snapshot['jugada'] ?? '',
         montoInicial = double.parse(snapshot['montoInicial'].toString()) ?? 0,
         monto = double.parse(snapshot['monto'].toString()) ?? 0,
-        created_at = DateTime.parse(snapshot['created_at']) ?? null,
+        created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : DateTime.now(),
         esBloqueoJugada =  Utils.toInt(snapshot['esBloqueoJugada']) ?? 0,
         esGeneral = Utils.toInt(snapshot['esGeneral']) ?? 0,
         ignorarDemasBloqueos = Utils.toInt(snapshot['ignorarDemasBloqueos']),
