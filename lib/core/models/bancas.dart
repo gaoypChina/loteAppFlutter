@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/comision.dart';
+import 'package:loterias/core/models/comisionrecarga.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/gastos.dart';
 import 'package:loterias/core/models/grupo.dart';
@@ -44,6 +45,7 @@ class Banca {
   List<Dia> dias;
   double ventasDelDia;
   double balance;
+  List<ComisionRecarga> comisionRecargas;
 
 
   Banca({this.id, this.descripcion, this.codigo, this.dueno, this.localidad, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.limiteVenta, this.balanceDesactivacion, this.minutosCancelarTicket, this.imprimirCodigoQr, this.usuario, this.grupo, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos, this.dias});
@@ -80,7 +82,8 @@ class Banca {
         gastos = (snapshot["gastos"] != null) ? gastosToMap(Utils.parsedToJsonOrNot(snapshot["gastos"])) : [],
         dias = (snapshot["dias"] != null) ? diasToMap(Utils.parsedToJsonOrNot(snapshot["dias"])) : [],
         ventasDelDia = Utils.toDouble(snapshot['ventasDelDia'].toString()) ?? 0.0,
-        balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0.0
+        balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0.0,
+        comisionRecargas = ComisionRecarga.fromMapList(Utils.parsedToJsonOrNot(snapshot["comisionRecargas"]))
         ;
 
         static List<Loteria> loteriasToMap(loterias){
@@ -130,6 +133,8 @@ class Banca {
         }
         
   static Banca get getBancaTodas => Banca(id: 0, descripcion: 'Todas'); 
+
+  static int get idBancaTodas => 0;
 
   static List<Banca> fromMapList(parsed){
     return parsed != null ? parsed.map<Banca>((json) => Banca.fromMap(json)).toList() : [];
@@ -188,6 +193,7 @@ class Banca {
       "pagosCombinaciones" : Pagoscombinacion.pagosCombinacionesToJson(pagosCombinaciones),
       "gastos" : Gasto.gastosToJson(gastos),
       "dias" : Dia.diasToJson(dias),
+      "comisionRecargas" : ComisionRecarga.listToJson(comisionRecargas)
     };
   }
 }

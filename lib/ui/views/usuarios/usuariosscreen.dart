@@ -15,7 +15,9 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/usuarioservice.dart';
 import 'package:loterias/ui/views/usuarios/rolscreen.dart';
 import 'package:loterias/ui/views/usuarios/usuariosaddscreen.dart';
+import 'package:loterias/ui/views/usuarios/usuariosmultisearch.dart';
 import 'package:loterias/ui/views/usuarios/usuariossearch.dart';
+import 'package:loterias/ui/views/usuarios/vercontrasenasdialog.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
@@ -65,6 +67,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
   List<String> opciones = ["Todos", "Activos", "Desactivados"];
   String _selectedOpcion;
   int _idGrupoDeEsteUsuario;
+  static String _opcionObtenerContrasenas = "Obtener contrasenas";
 
 
   _init() async {
@@ -1015,6 +1018,54 @@ _avatarScreen(Usuario data){
     );
   }
 
+  _menuOpcionesChild(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return Icon(Icons.more_vert);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Mas opciones", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),),
+        Icon(Icons.arrow_drop_down, color: Colors.grey[600])
+      ],
+    );
+  }
+
+  List<PopupMenuItem<String>> _getMenuOpciones(){
+     List<PopupMenuItem<String>> opciones = [
+      PopupMenuItem<String>(
+        value: _opcionObtenerContrasenas,
+        child: Text("Ver contrasenas"),
+      )
+    ];
+
+    return opciones;
+  }
+
+  _seleccionarUsuariosYVerContrasenas(bool isSmallOrMedium) async {
+    List<Usuario> usuariosSeleccionados = [];
+    if(isSmallOrMedium)
+      usuariosSeleccionados = await showSearch(context: context, delegate: UsuariosMultiSearch(listaData, []));
+      
+    showDialog(context: context, builder: (context) => VerContrasenasDialog(idUsuarios: usuariosSeleccionados.map((e) => e.id).toList(),));
+  }
+
+  Widget _menuOpcionesWidget(bool isSmallOrMedium){
+
+  return PopupMenuButton(
+    child: Padding(
+      padding: EdgeInsets.all(10.0),
+      child: _menuOpcionesChild(isSmallOrMedium),
+    ),
+    onSelected: (String value)  async {
+      if(value == _opcionObtenerContrasenas)
+        _seleccionarUsuariosYVerContrasenas(isSmallOrMedium);
+    },
+    itemBuilder: (context) => _getMenuOpciones()
+  );
+
+}
+
 
   @override
   void initState() {
@@ -1054,6 +1105,7 @@ _avatarScreen(Usuario data){
               onTap: _showDialogGuardar,
               showOnlyOnLarge: true,
             ),
+            MySliverButton(title: _menuOpcionesWidget(isSmallOrMedium),),
           ],
         ), 
         sliver: StreamBuilder<List<Usuario>>(

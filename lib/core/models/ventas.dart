@@ -20,18 +20,18 @@ class Venta {
   Venta({this.id, this.idTicket, this.total, this.status, this.codigoBarra, this.usuario, this.descripcion});
 
   Venta.fromMap(Map snapshot) :
-        id = BigInt.from(snapshot['id']) ?? BigInt.from(0),
-        idTicket = BigInt.from(snapshot['idTicket']) ?? BigInt.from(0),
-        total = Utils.toDouble(snapshot['total'].toString()) ?? 0,
-        premios = Utils.toDouble(snapshot['premios'].toString()) ?? 0,
-        status = Utils.toInt(snapshot['status']) ?? 1,
-        codigoBarra = snapshot['codigoBarra'] ?? 1,
+        id = Utils.toBigInt(snapshot['id']),
+        idTicket = Utils.toBigInt(snapshot['idTicket']),
+        total = Utils.toDouble(snapshot['total']),
+        premios = Utils.toDouble(snapshot['premios']),
+        status = Utils.toInt(snapshot['status']),
+        codigoBarra = snapshot['codigoBarra'] ?? '1',
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null,
         usuario = (snapshot['usuario'] != null) ? snapshot['usuario'] : null,
         usuarioCancelacion = (snapshot['usuarioCancelacion'] != null) ? snapshot['usuarioCancelacion'] : null,
         fechaCancelacion = (snapshot['fechaCancelacion'] != null) ? DateTime.parse(snapshot['fechaCancelacion']) : null,
-        montoAPagar = Utils.toDouble(snapshot['montoAPagar'].toString()) ?? 0,
-        montoPagado = Utils.toDouble(snapshot['montoPagado'].toString()) ?? 0,
+        montoAPagar = Utils.toDouble(snapshot['montoAPagar']),
+        montoPagado = Utils.toDouble(snapshot['montoPagado']),
         descripcion = (snapshot['descripcion'] != null) ? snapshot['descripcion'] : ''
         ;
 
