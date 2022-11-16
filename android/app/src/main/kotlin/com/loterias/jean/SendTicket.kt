@@ -42,5 +42,32 @@ class SendTicket{
                 }
             }
         }
+        fun sendText(context: Context, textToShare: String, sms: Boolean) {
+            val pack = "com.whatsapp"
+            val titleImage = "ticket"
+            if (sms) {
+                val mmsIntent = Intent(Intent.ACTION_SEND)
+                // mmsIntent.setType("vnd.android-dir/mms-sms");
+                mmsIntent.putExtra(Intent.EXTRA_TEXT, textToShare)
+                mmsIntent.type = "text/plain"
+                context.startActivity(Intent.createChooser(mmsIntent, "Send"))
+            } else {
+                val pm = context.packageManager
+                try {
+                    val info = pm.getPackageInfo(pack, PackageManager.GET_META_DATA)
+
+                    val waIntent = Intent(Intent.ACTION_SEND)
+                    waIntent.type = "image/*"
+                    waIntent.setPackage(pack)
+                    waIntent.putExtra(Intent.EXTRA_TEXT, textToShare)
+                    waIntent.putExtra(Intent.EXTRA_TEXT, "Ticket")
+                    context.startActivity(Intent.createChooser(waIntent, "Share with"))
+
+                } catch (e: Exception) {
+                    Log.e("Error on sharing", "$e ")
+                    Toast.makeText(context, "App not Installed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

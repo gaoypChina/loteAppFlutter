@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,5 +26,16 @@ class ShareChannel{
     }
 
     return result;
+  }
+  static Future<void> shareText({String textToShare, bool sms_o_whatsapp}) async {
+    if(kIsWeb)
+      return;
+
+    String result = "";
+    try{
+      result = await _methodChannel.invokeMethod('shareText', {"text": textToShare, "sms_o_whatsapp" : sms_o_whatsapp});
+    } on PlatformException catch (e) {
+      result = "Failed to get battery level: '${e.message}'.";
+    }
   }
 }

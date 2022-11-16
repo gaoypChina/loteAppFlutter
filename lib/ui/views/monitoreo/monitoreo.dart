@@ -506,7 +506,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
             _compartirTicket() async {
               try{
                     setState(() => _cargandoCompartirTicket = true);
-                    var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id);
+                    var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id, compartirTicket: true);
                     Sale sale = parsed["sale"] != null ? Sale.fromMap(parsed["sale"]) : null;
                     if(sale == null)
                       return;

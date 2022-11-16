@@ -366,9 +366,9 @@ String initSocketNotificationTask = "initSocketNotificationTask";
 
       // var listaDatos = await Realtime.guardarVentaV2(banca: await getBanca(), jugadas: listaJugadas, socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
       var listaDatos = await Db.guardarVentaV2(banca: await getBanca(), jugadas: List<Jugada>.from(listaJugadas), socket: socket, listaLoteria: listaLoteria, compartido: !_ckbPrint, descuentoMonto: await _calcularDescuento(), tienePermisoJugarFueraDeHorario: _tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: _tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: _tienePermisoJugarSinDisponibilidad);
-      var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
-      // var parsed = await TicketService.guardarGzipV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
-      // print("PrincipalView _guardarLocal: $parsed");
+      // var parsed = await TicketService.guardarV2(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
+      var parsed = await TicketService.guardarV4Gzip(context: context, sale: listaDatos[0], listSalesdetails: listaDatos[1], usuario: listaDatos[2], codigoBarra: listaDatos[3], idLoterias: listaDatos[4], idLoteriasSuperpale: listaDatos[5]);
+      print("PrincipalView _guardarLocal: $parsed");
       listaDatos[0].idTicket = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.codigoBarra = listaDatos[3];
@@ -386,8 +386,12 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         // ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
         // Navigator.push(context, MaterialPageRoute(builder: (context) => PruebaTicketImage(image: ticketImage,)));
         // ScreenshotController screenshotController = ScreenshotController();
-        var ticketImage = await TicketImageV2.create(listaDatos[0], listaDatos[1]);
-        ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
+        if(parsed["rutaUrlDelTicket"] != null){
+          ShareChannel.shareText(textToShare: TicketService.agregarUrlActualALaRutaDelTicket(parsed["rutaUrlDelTicket"]), sms_o_whatsapp: _ckbMessage);
+        }else{
+          var ticketImage = await TicketImageV2.create(listaDatos[0], listaDatos[1]);
+          ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: ticketImage, codigoQr: listaDatos[0].ticket.codigoBarra, sms_o_whatsapp: _ckbMessage);
+        }
       }
     } on dynamic catch (e) {
       setState(() => _cargando = false);

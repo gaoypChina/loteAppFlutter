@@ -130,6 +130,7 @@ class MainActivity: FlutterActivity() {
         when(call.method){
             "requestPermissions" -> requestPermission(result)
             "share" -> HmltToBitmapAndSendSMSWhatsapp(call, result)
+            "shareText" -> sendText(call, result)
             "printText" -> printText(call, result)
             "turnOnBluetooth" -> turnOnBluetooth(result)
             "quickPrinter" -> quickPrinter(result)
@@ -222,6 +223,26 @@ class MainActivity: FlutterActivity() {
 ////           sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", e.message)
 //           result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, e.message);
 //       }
+    }
+    fun sendText(call:MethodCall, result:MethodChannel.Result ) {
+            Utils.comprobarPermisos(this);
+
+           CoroutineScope(IO).launch{
+               try {
+
+                   val textToShare : String = call.argument<String>("text")!!
+
+
+                   SendTicket.sendText(this@MainActivity, textToShare, call.argument<String>("sms_o_whatsapp") as Boolean)
+                   CoroutineScope(Dispatchers.Main).launch {
+                       result.success("se hizo")
+                       Log.e("Advertencia", "Despues de resultado")
+                   }
+               }catch (e:Exception){
+                   e.message?.let { sendErrorMessage("HmltToBitmapAndSendSMSWhatsapp", it) }
+                   result.error("HmltToBitmapAndSendSMSWhatsapp",e.message, {});
+               }
+           }
     }
 
     fun getImageFromAsset(name : String) : Bitmap{
