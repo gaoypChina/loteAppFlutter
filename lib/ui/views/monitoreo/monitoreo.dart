@@ -64,7 +64,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
   bool _tienePermisoCancelarCualquierMomento = false;
   bool _cargando = false;
   int _indexBanca = 0;
-  List<Venta> _listaVenta;
+  List<Venta> _listaVenta = [];
   List<Venta> _tmpListaVenta;
   List<List<dynamic>> listaTipoTicket = [[-1, "Todos"], [1, "Pendientes"], [2, "Ganadores"], [3, "Perdedores"], [0, "Cancelados"]];
   List<dynamic> _tipoTicket;
@@ -133,11 +133,9 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     //  setState(() => _cargando = true);
     _date = MyDate.getTodayDateRange();
     await _confirmarTienePermiso();
-    print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
-    print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
     idGrupo = await Db.idGrupo();
     _idBancaDeEsteUsuario = await Db.idBanca();
-    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _idBancaDeEsteUsuario, retornarBancas: true, idGrupo: idGrupo);
+    var parsed = await TicketService.ticketsIndex(context: context);
     print("MonitoreoScreen _init parsed: ${parsed["bancas"]}");
     
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
@@ -171,7 +169,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
 
     // setState(() => _cargando = false);
-   } on Exception catch(e){
+   } on dynamic catch(e){
       // setState(() => _cargando = false);
     _streamControllerMonitoreo.add([]);
    }
@@ -185,7 +183,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
     int idBanca = (_tienePermisoJugarComoCualquierBanca && listaBanca != null) ? _banca != null ? _banca.id : await Db.idBanca() : await Db.idBanca();
     print("MonitoreoScreen _getMonitoreo idBanca: $idBanca, _tienePermisoJugarComoCualquierBanca: $_tienePermisoJugarComoCualquierBanca");
-    var parsed = await TicketService.monitoreoV2(scaffoldKey: _scaffoldKey, fecha: _date.start, fechaFinal: _date.end, idBanca: _banca != null ? _banca.id != 0 ? _banca.id : null : null, idLoteria: _loteria != null ? _loteria.id != 0 ? _loteria.id : null : null, idGrupo: idGrupo);
+    var parsed = await TicketService.ticketsBuscar(context: context, fecha: _date.start, fechaFinal: _date.end, idBanca: _obtenerIdBanca(), idLoteria: _loteria != null ? _loteria.id != 0 ? _loteria.id : null : null, idGrupo: idGrupo);
     _listaVenta = parsed["monitoreo"].map<Venta>((json) => Venta.fromMap(json)).toList();
     _tmpListaVenta = _listaVenta.map((v) => v).toList();;
     print("_getMonitoreo data: ${_listaVenta.length}");
@@ -195,6 +193,14 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
       // setState(() => _cargando = false);
     _streamControllerMonitoreo.add([]);
    }
+  }
+
+  int _obtenerIdBanca(){
+    if(_banca == null)
+      return null;
+    if(_banca.id == Banca.idBancaTodas)
+      return null;
+     return _banca.id;
   }
 
   _seleccionarBancaPertenecienteAUsuario() async {
@@ -507,6 +513,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
               try{
                     setState(() => _cargandoCompartirTicket = true);
                     var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id, compartirTicket: true);
+                    print("MonitoreoViews _showOpciones _compartirTicket: $parsed");
                     Sale sale = parsed["sale"] != null ? Sale.fromMap(parsed["sale"]) : null;
                     if(sale == null)
                       return;
@@ -1237,6 +1244,16 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
   }
 
+  _obtenerTextSpanNombreDeUsuario(Venta venta){
+    String nombreUsuario = venta.usuario != null ? "  •  ${venta.usuario}  •  " : '';
+    return TextSpan(text: nombreUsuario);
+  }
+
+  _obtenerTextSpanDescripcionBanca(Venta venta){
+    String descripcionBanca = venta.descripcion != null ? "${venta.descripcion}" : '';
+    return TextSpan(text: descripcionBanca, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black));
+  }
+
   _screen(List<Venta> data, bool isSmallOrMedium){
     if(data == null)
       return Center(child: CircularProgressIndicator());
@@ -1294,8 +1311,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
         children: [
           // TextSpan(text: "${_loteria != null ? _loteria.abreviatura.substring(0, _loteria.abreviatura.length < 3 ? _loteria.abreviatura.length : 3) : ''}"),
           TextSpan(text: "${MyDate.datetimeToHour(e.created_at, false, true)}"),
-          TextSpan(text: "  •  ${e.usuario}  •  "),
-          TextSpan(text: "${e.descripcion}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+          _obtenerTextSpanNombreDeUsuario(e),
+          _obtenerTextSpanDescripcionBanca(e),
         ]
       ))
       :

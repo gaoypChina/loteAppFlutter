@@ -44,6 +44,10 @@ Comision.fromMap(Map snapshot) :
     throw ArgumentError('propery not found');
   }
 
+  static List<Comision> fromMapList(parsed){
+    return parsed != null ? parsed.map<Comision>((json) => Comision.fromMap(json)).toList() : [];
+  }
+
 
   toJson() {
     return {

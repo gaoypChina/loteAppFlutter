@@ -45,7 +45,7 @@ class BancaService{
     return (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((json) => Banca.fromMap(json)).toList() : [];
   }
 
-  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, int idBanca, int idGrupo}) async {
+  static Future<Map<String, dynamic>> index({@required BuildContext context, scaffoldKey, retornarBancas = false, retornarUsuarios = false, retornarMonedas = false, retornarLoterias = false, retornarFrecuencias = false, retornarDias = false, retornarGrupos = false, int idBanca, int idGrupo, retornarProveedores = false}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     // map["servidor"] = "valentin";
@@ -62,6 +62,7 @@ class BancaService{
       "idGrupo" : idGrupo,
       "idUsuario" : await Db.idUsuario(),
       "idBanca" : idBanca,
+      "retornarProveedores" : retornarProveedores,
     };
     var jwt = await Utils.createJwt(map);
     

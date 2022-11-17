@@ -370,7 +370,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v3/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -395,6 +395,84 @@ class TicketService{
 
     return parsed;
   }
+
+  static Future<Map<String, dynamic>> ticketsIndex({BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/tickets"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService monitoreo: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["message"], title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService monitoreo", scaffoldKey: scaffoldKey);
+      throw Exception(parsed["message"]);
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
+    }
+
+    print("ticketservice monitoreo: $parsed");
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> ticketsBuscar({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo, int idLoteria}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idUsuario"] = await Db.idUsuario();
+    map["fechaInicial"] = (fecha != null) ? fecha.toString() : DateTime.now().toString();
+    map["fechaFinal"] = (fechaFinal != null) ? fechaFinal.toString() : DateTime.now().toString();
+    map["servidor"] = await Db.servidor();
+    map["idBanca"] = idBanca;
+    map["idGrupo"] = idGrupo;
+    map["idLoteria"] = idLoteria;
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/tickets/buscar"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService monitoreo: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["message"], title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService monitoreo", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService monitoreo");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
+    }
+
+    print("ticketservice monitoreo: $parsed");
+
+    return parsed;
+  }
+
 
   static Future<Map<String, dynamic>> monitoreoGzipV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo, int idLoteria}) async {
     var map = Map<String, dynamic>();
@@ -642,7 +720,7 @@ class TicketService{
     // mapDatos["datos"] = jwt;
     mapDatos = {
       "datos" : kIsWeb ? jwt : MyFileManager.compress(json.encode(map)),
-      "esGzip" : true
+      "esGzip" : !kIsWeb
     };
 
     var response = await http.post(Uri.parse(Utils.URL + "/api/principal/storeMobileV4"), body: json.encode(mapDatos), headers: Utils.header);

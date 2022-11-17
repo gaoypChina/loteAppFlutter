@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 // import 'package:corsac_jwt/corsac_jwt.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +32,8 @@ class  Utils {
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   static final String URL = 'http://192.168.1.36:8000';
   static final String URL_SOCKET = 'http://192.168.1.36:3000';
-  // static final String URL = 'http://10.0.0.15:8000';
-  // static final String URL_SOCKET = 'http://10.0.0.15:3000';
+  // static final String URL = 'http://10.0.0.11:8000';
+  // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
   // static final String URL_SOCKET = 'http://sislote.test:3000';
   // static final String URL_SOCKET = 'http://192.168.43.63:3000';
@@ -1098,6 +1099,26 @@ class  Utils {
 
   static List quitarValoresDuplicadosDeUnaLista(List lista){
     return [...{...lista}];
+  }
+
+  static BigInt toBigInt(dynamic caracter, {bool returnNullIfNotInt = false}){
+    try {
+      if(!(caracter is String) && caracter != null)
+       return BigInt.from(caracter);
+
+      return BigInt.from(caracter);
+    } catch (e) {
+      return returnNullIfNotInt ? null : BigInt.from(0);
+    }
+  }
+
+  static void showFlushbar(context, String message){
+     Flushbar(
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            message: message,
+            duration: Duration(milliseconds: 1300),
+          )..show(context);
   }
  
 }

@@ -362,7 +362,7 @@ class MyDate {
   }
 
   static toDateTime(dynamic fecha){
-    var datetime = DateTime.tryParse(fecha);
+    var datetime = fecha != null ? DateTime.tryParse(fecha) : DateTime.now();
     return datetime != null ? datetime : DateTime.now();
   }
 

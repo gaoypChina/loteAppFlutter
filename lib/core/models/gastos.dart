@@ -29,8 +29,13 @@ Gasto.fromMap(Map snapshot) :
         idDia = Utils.toInt(snapshot['idDia']) ?? 0,
         monto = Utils.toDouble(snapshot['monto'].toString()) ?? 0,
         descripcion = snapshot['descripcion'] ?? '',
-        created_at = DateTime.parse(snapshot['created_at']) ?? null
+        created_at = snapshot['created_at'] != null ? DateTime.tryParse(snapshot['created_at']) : null
         ;
+
+
+  static List<Gasto> fromMapList(parsed){
+    return parsed != null ? parsed.map<Gasto>((json) => Gasto.fromMap(json)).toList() : [];
+  }
 
   toJson() {
     return {
