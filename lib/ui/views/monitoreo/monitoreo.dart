@@ -170,7 +170,7 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     }
 
 
-    // setState(() => _cargando = false);
+    setState(() => _cargando = false);
    } on Exception catch(e){
       // setState(() => _cargando = false);
     _streamControllerMonitoreo.add([]);

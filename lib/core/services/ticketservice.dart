@@ -642,7 +642,7 @@ class TicketService{
     // mapDatos["datos"] = jwt;
     mapDatos = {
       "datos" : kIsWeb ? jwt : MyFileManager.compress(json.encode(map)),
-      "esGzip" : true
+      "esGzip" : !kIsWeb
     };
 
     var response = await http.post(Uri.parse(Utils.URL + "/api/principal/storeMobileV4"), body: json.encode(mapDatos), headers: Utils.header);
