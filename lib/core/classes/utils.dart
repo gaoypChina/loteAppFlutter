@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jose/jose.dart';
+import 'package:loterias/core/classes/cross_platform_package_info/cross_platform_package_info.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/screensize.dart';
@@ -22,6 +23,7 @@ import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
+import 'package:package_info/package_info.dart';
 import 'package:timezone/timezone.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,8 +32,8 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.38:8000';
-  static final String URL_SOCKET = 'http://192.168.1.38:3000';
+  // static final String URL = 'http://192.168.1.38:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.38:3000';
   // static final String URL = 'http://10.0.0.11:8000';
   // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
@@ -49,8 +51,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  // static final String URL = 'https://lote-app.com';
-  // static final String URL_SOCKET = URL + ":8000";
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -1123,6 +1125,11 @@ class  Utils {
 
   static RoundedRectangleBorder alertDialogRoundedShape(){
     return RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+  }
+
+  static Future<String> obtenerVersion() async {
+    PackageInfo packageInfo = await CrossPlatformPackageInfo().fromPlatform();
+    return packageInfo.buildNumber;
   }
  
 }

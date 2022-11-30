@@ -100,7 +100,7 @@ class _DialogVerImprimirCompartirYCancelarTicketState extends State<DialogVerImp
                 ),
               ),
             ),
-            onTap: () => _verTicket(),
+            onTap: _verTicket,
           ),
           ListTile(
             leading: Icon(Icons.print),
@@ -168,10 +168,12 @@ class _DialogVerImprimirCompartirYCancelarTicketState extends State<DialogVerImp
 
   _verTicket() async {
     try{
+      print("DialogVerImprimirCompartirYCancelar _verTicket");
       setState(() => _cargandoVerTicket = true);
       var datos = await TicketService.buscarTicket(context: context, codigoBarra: widget.venta.codigoBarra);
+      print("DialogVerImprimirCompartirYCancelar _verTicket: $datos");
       setState(() => _cargandoVerTicket = false);
-      _irAtras();
+      await _irAtras();
       Monitoreo.showDialogVerTicket(context: context, mapVenta: datos["venta"], isSmallOrMedium: _isSmall());
     } on Exception catch(e){
       setState(() => _cargandoVerTicket = false);
@@ -279,8 +281,8 @@ class _DialogVerImprimirCompartirYCancelarTicketState extends State<DialogVerImp
   }
 
   _irAtras({bool seHaCanceladoElTicket = false}){
-    Future.delayed(Duration.zero, (){
+    // Future.delayed(Duration.zero, (){
       Navigator.pop(context, seHaCanceladoElTicket);
-    });
+    // });
   }
 }

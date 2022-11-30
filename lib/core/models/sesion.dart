@@ -9,9 +9,10 @@ class Sesion {
   DateTime ultimoInicioSesionPC;
   DateTime primerInicioSesionCelular;
   DateTime ultimoInicioSesionCelular;
+  String versionApp;
 
 
-  Sesion({this.usuario, this.banca, this.primerInicioSesionPC, this.ultimoInicioSesionPC, this.primerInicioSesionCelular, this.ultimoInicioSesionCelular});
+  Sesion({this.usuario, this.banca, this.primerInicioSesionPC, this.ultimoInicioSesionPC, this.primerInicioSesionCelular, this.ultimoInicioSesionCelular, this.versionApp});
 
   Sesion.fromMap(Map snapshot) :
         usuario = snapshot['usuario'] ?? '',
@@ -20,7 +21,8 @@ class Sesion {
         primerInicioSesionPC = (snapshot['primerInicioSesionPC'] != null && snapshot['primerInicioSesionPC'] != "-") ? DateTime.parse(snapshot['primerInicioSesionPC']) : null,
         ultimoInicioSesionPC = (snapshot['ultimoInicioSesionPC'] != null && snapshot['ultimoInicioSesionPC'] != "-") ? DateTime.parse(snapshot['ultimoInicioSesionPC']) : null,
         primerInicioSesionCelular = (snapshot['primerInicioSesionCelular'] != null  && snapshot['primerInicioSesionCelular'] != "-") ? DateTime.parse(snapshot['primerInicioSesionCelular']) : null,
-        ultimoInicioSesionCelular = (snapshot['ultimoInicioSesionCelular'] != null && snapshot['ultimoInicioSesionCelular'] != "-") ? DateTime.parse(snapshot['ultimoInicioSesionCelular']) : null
+        ultimoInicioSesionCelular = (snapshot['ultimoInicioSesionCelular'] != null && snapshot['ultimoInicioSesionCelular'] != "-") ? DateTime.parse(snapshot['ultimoInicioSesionCelular']) : null,
+        versionApp = snapshot['versionapp'] ?? ''
         ;
 
   toJson() {
@@ -31,6 +33,7 @@ class Sesion {
       "ultimoInicioSesionPC": (ultimoInicioSesionPC != null) ? ultimoInicioSesionPC.toString() : null,
       "primerInicioSesionCelular": (primerInicioSesionCelular != null) ? primerInicioSesionCelular.toString() : null,
       "ultimoInicioSesionCelular": (ultimoInicioSesionCelular != null) ? ultimoInicioSesionCelular.toString() : null,
+      "versionApp": versionApp ?? '',
     };
   }
 }

@@ -22,6 +22,7 @@ class LoginService{
 
     map["usuario"] = usuario;
     map["password"] = password;
+    map["versionapp"] = await Utils.obtenerVersion();
     map2["datos"] = map;
     final response = await http.post(Uri.parse(Utils.URL + '/api/acceder/v3'), body: json.encode(map2), headers: Utils.header);
     

@@ -87,7 +87,6 @@ class _SesionesScreenState extends State<SesionesScreen> {
                 child: Wrap(
                   alignment: WrapAlignment.start,
                   children: [
-                    Icon(Icons.computer, size: 17),
                     Padding(
                       padding: const EdgeInsets.only(left: 2.0),
                       child: Text("${sesion.primerInicioSesionPC != null ? MyDate.datetimeToHour(sesion.primerInicioSesionPC) : ''}"),
@@ -96,6 +95,7 @@ class _SesionesScreenState extends State<SesionesScreen> {
                       padding: const EdgeInsets.only(left: 5.0),
                       child: Text("${sesion.ultimoInicioSesionPC != null ? MyDate.datetimeToHour(sesion.ultimoInicioSesionPC) : ''}"),
                     ),
+                    Icon(Icons.computer, size: 17),
                   ],
                 ),
               ),
@@ -104,7 +104,6 @@ class _SesionesScreenState extends State<SesionesScreen> {
                 child: Wrap(
                   alignment: WrapAlignment.start,
                   children: [
-                    Icon(Icons.phone_android, size: 17),
                     Padding(
                       padding: const EdgeInsets.only(left: 2.0),
                       child: Text("${sesion.primerInicioSesionCelular != null ? MyDate.datetimeToHour(sesion.primerInicioSesionCelular) : ''}"),
@@ -113,9 +112,11 @@ class _SesionesScreenState extends State<SesionesScreen> {
                       padding: const EdgeInsets.only(left: 5.0),
                       child: Text("${sesion.ultimoInicioSesionCelular != null ? MyDate.datetimeToHour(sesion.ultimoInicioSesionCelular) : ''}"),
                     ),
+                    Icon(Icons.phone_android, size: 17),
                   ],
                 ),
               ),
+              _sesionAppWidget(sesion)
             ],
           ),
           trailing: Text("${sesion.banca}"),
@@ -123,6 +124,10 @@ class _SesionesScreenState extends State<SesionesScreen> {
       );
   }
 
+  _sesionAppWidget(Sesion sesion, [TextStyle textStyle = const TextStyle(fontSize: 14)]){
+    String version = sesion.versionApp.isNotEmpty ? "Version ${sesion.versionApp}" : '';
+    return Text("$version", style: textStyle,);
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -244,7 +249,15 @@ class _SesionesScreenState extends State<SesionesScreen> {
               isScrolled: false,
               columns: ["Banca", "Usuario", "1er inicio en (PC)", "Ultimo inicio en (PC)", "1er inicio en (Celular)", "Ultimo inicio en (Celular)"], 
               rows: snapshot.data.map((e) => [
-                e, e.banca, 
+                e, 
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(e.banca),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 5.0), child: _sesionAppWidget(e, TextStyle(fontSize: 12, color: Colors.grey[600])),),
+                  ],
+                ), 
                 e.usuario, 
                 e.primerInicioSesionPC != null ? MyDate.datetimeToHour(e.primerInicioSesionPC) : '', 
                 e.ultimoInicioSesionPC != null ? MyDate.datetimeToHour(e.ultimoInicioSesionPC) : '', 
