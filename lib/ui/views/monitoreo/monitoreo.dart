@@ -22,6 +22,7 @@ import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/views/monitoreo/dialogVerImprimirCompartirYCancelarTicket.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
@@ -175,10 +176,11 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
    }
   }
 
-  _getMonitoreo() async {
+  _getMonitoreo({bool cargarSilenciosamente = false}) async {
    try{
     //  setState(() => _cargando = true);
-    _streamControllerMonitoreo.add(null);
+    if(!cargarSilenciosamente)
+      _streamControllerMonitoreo.add(null);
     print("_getMonitoreo fechaInicial: ${_date.start.toString()}");
     print("_getMonitoreo fechaFinal: ${_date.end.toString()}");
     int idBanca = (_tienePermisoJugarComoCualquierBanca && listaBanca != null) ? _banca != null ? _banca.id : await Db.idBanca() : await Db.idBanca();
@@ -191,7 +193,8 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
     // setState(() => _cargando = false);
    } on Exception catch(e){
       // setState(() => _cargando = false);
-    _streamControllerMonitoreo.add([]);
+    if(!cargarSilenciosamente)
+      _streamControllerMonitoreo.add([]);
    }
   }
 
@@ -456,11 +459,24 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
 
 
   _showOpciones(Venta venta, bool isSmallOrMedium) async {
-    bool _cargandoVerTicket = false;
-    bool _cargandoImprimirTicket = false;
-    bool _cargandoCompartirTicket = false;
-    bool _cargandoCancelarTicket = false;
-    return await showModalBottomSheet(
+    if(!isSmallOrMedium)
+      await _mostrarOpcionesEnPantallaGrande(venta);
+    else
+      await _mostrarOpcionesEnPantallaPequena(venta);
+  }
+
+  Future<void> _mostrarOpcionesEnPantallaGrande(Venta venta) async {
+    var seHaCanceladoElTicket = await showDialog(
+        context: context,
+        builder: (context){
+          return DialogVerImprimirCompartirYCancelarTicket(venta: venta,);
+        }
+      );
+      _actualizarDatosSiSeHaCanceladoElTicket(seHaCanceladoElTicket: seHaCanceladoElTicket);
+  }
+
+  Future<void> _mostrarOpcionesEnPantallaPequena(Venta venta) async {
+    var seHaCanceladoElTicket = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape:  RoundedRectangleBorder(
@@ -469,236 +485,17 @@ class _MonitoreoScreenState extends State<MonitoreoScreen> {
               ),
             ),
             clipBehavior: Clip.antiAliasWithSaveLayer,
-      builder: (context){
-            
-        return StatefulBuilder(
-          builder: (context, setState) {
+      builder: (context) => DialogVerImprimirCompartirYCancelarTicket(venta: venta,)
+    );
 
-            _back(){
-              Navigator.pop(context);
-            }
+    _actualizarDatosSiSeHaCanceladoElTicket(seHaCanceladoElTicket: seHaCanceladoElTicket);
+  }
 
-            _verTicket() async {
-               try{
-                    setState(() => _cargandoVerTicket = true);
-                    var datos = await TicketService.buscarTicket(context: context, codigoBarra: venta.codigoBarra);
-                    setState(() => _cargandoVerTicket = false);
-                    _back();
-                    Monitoreo.showDialogVerTicket(context: context, mapVenta: datos["venta"], isSmallOrMedium: isSmallOrMedium);
-                  } on Exception catch(e){
-                    setState(() => _cargandoVerTicket = false);
-                  }
-            }
-
-            _reImprimirTicket() async {
-              try{
-                  if(await Utils.exiseImpresora() == false){
-                    _back();
-                    Utils.showAlertDialog(context: context, title: "Alerta", content: "Debe registrar una impresora");
-                    return;
-                  }
-
-                  setState(() => _cargandoImprimirTicket = true);
-                  var datos = await TicketService.buscarTicketAPagar(context: context, codigoBarra: venta.codigoBarra);
-                  print("Monitoreo _showOpciones: $datos");
-                  await BluetoothChannel.printTicket(datos["venta"], BluetoothChannel.TYPE_COPIA);
-                  setState(() => _cargandoImprimirTicket = false);
-                  _back();
-                } on Exception catch(e){
-                  setState(() => _cargandoImprimirTicket = false);
-                }
-            }
-
-            _compartirTicket() async {
-              try{
-                    setState(() => _cargandoCompartirTicket = true);
-                    var parsed = await TicketService.ticketV2(context: context, idVenta: venta.id, compartirTicket: true);
-                    print("MonitoreoViews _showOpciones _compartirTicket: $parsed");
-                    Sale sale = parsed["sale"] != null ? Sale.fromMap(parsed["sale"]) : null;
-                    if(sale == null)
-                      return;
-
-                    print("_compartirTicket datos: ${parsed}");
-                    List<Salesdetails> salesdetails = (parsed["salesdetails"] != null) ? parsed["salesdetails"].map<Salesdetails>((json) => Salesdetails.fromMap(json)).toList() : [];
-                    // Uint8List image = await TicketImage.create(sale, salesdetails);
-                    Uint8List image = await TicketImageV2.create(sale, salesdetails);
-                    print("_compartirTicket datos descuento: ${sale.descuentoMonto} hayDescuento: ${sale.hayDescuento}");
-
-                    // ShareChannel.shareHtmlImageToSmsWhatsapp(html: datos["ticket"]["img"], codigoQr: datos["ticket"]["codigoQr"], sms_o_whatsapp: true);
-                    ShareChannel.shareHtmlImageToSmsWhatsapp(base64image: image, codigoQr: sale.ticket.codigoBarra, sms_o_whatsapp: true);
-                    setState(() => _cargandoCompartirTicket = false);
-                    _back();
-                  } on Exception catch(e){
-                    Utils.showAlertDialog(context: context, content: "$e", title: "Error");
-                    setState(() => _cargandoCompartirTicket = false);
-                  }
-            }
-
-            _updateStreamControllerVenta(ventaMap){
-              if(ventaMap == null)
-                return;
-
-              print("_updateStreamControllerVenta validation1 passed: ${ventaMap.runtimeType}");
-              // if(!(ventaMap is Map<String, dynamic>))
-              //   return;
-
-                print("_updateStreamControllerVenta validation2 passed");
-              var index = _listaVenta.indexWhere((element) => element.id == venta.id);
-              if(index == -1)
-                return;
-
-                print("_updateStreamControllerVenta validation3 passed");
-
-              _listaVenta[index].status = 0;
-              _listaVenta[index].usuarioCancelacion = ventaMap["usuarioCancelacion"];
-              _listaVenta[index].fechaCancelacion = ventaMap["fechaCancelacion"] != null ? DateTime.parse(ventaMap["fechaCancelacion"]) : null;
-                print("_updateStreamControllerVenta before _stremaController");
-              _streamControllerMonitoreo.add(_listaVenta.where((element) => element.status != 0).toList());
-            }
-
-            _cancelarTicket() async {
-              bool cancelar = await TicketService.showDialogAceptaCancelar(context: context, ticket: Utils.toSecuencia((_tienePermisoMonitoreo && listaBanca != null) ? listaBanca[_indexBanca].codigo : _banca.codigo, venta.idTicket, false));
-                  if(!cancelar){
-                    _back();
-                    return;
-                  }
-
-                  
-                  bool imprimir = await TicketService.showDialogDeseaImprimir(context: context);
-                  if(imprimir){
-                       if(await Utils.exiseImpresora() == false){
-                        Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: "Debe registrar una impresora");
-                        return;
-                      }
-
-                      if(!(await BluetoothChannel.turnOn())){
-                        return;
-                      }
-
-                      try{
-                        setState(() => _cargandoCancelarTicket = true);
-                        var datos = await TicketService.cancelar(scaffoldKey: _scaffoldKey, codigoBarra: venta.codigoBarra);
-                        await BluetoothChannel.printTicket(datos["ticket"], BluetoothChannel.TYPE_CANCELADO);
-                        setState(() => _cargandoCancelarTicket = false);
-                        Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
-                        _back();
-                      } on Exception catch(e){
-                        setState(() => _cargandoCancelarTicket = false);
-                      }
-                    }else{
-                      try{
-                        setState(() => _cargandoCancelarTicket = true);
-                        var datos = await TicketService.cancelar(scaffoldKey: _scaffoldKey, codigoBarra: venta.codigoBarra);
-                        setState(() => _cargandoCancelarTicket = false);
-                        Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: datos["mensaje"]);
-                        _updateStreamControllerVenta(datos["ticketToUpdateList"]);
-                        _back();
-                      }on Exception catch(e){
-                        setState(() => _cargandoCancelarTicket = false);
-                      }
-                    }
-                  
-                
-            }
-
-            return Container(
-                  height: 290,
-                  child: Column(
-                    children: [
-                      Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(child: Container(height: 5, width: 40, decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(5)),)),
-                            ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
-                                child: Center(child: Text("${Utils.toSecuencia(null,venta.idTicket, false)}", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16))),
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.remove_red_eye),
-                                title: Text("Ver ticket", style: TextStyle(color: Colors.black)),
-                                trailing: SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: Visibility(
-                                    visible: _cargandoVerTicket,
-                                    child: Theme(
-                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                                      child: new CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                ),
-                                onTap: _verTicket,
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.print),
-                                title: Text("Reimprimir", style: TextStyle(color: Colors.black)),
-                                trailing: SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: Visibility(
-                                    visible: _cargandoImprimirTicket,
-                                    child: Theme(
-                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                                      child: new CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                ),
-                                onTap: _reImprimirTicket,
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.share),
-                                title: Text("Compartir", style: TextStyle(color: Colors.black)),
-                                trailing: SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: Visibility(
-                                    visible: _cargandoCompartirTicket,
-                                    child: Theme(
-                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                                      child: new CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                ),
-                                onTap: _compartirTicket,
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.delete),
-                                title: Text("Eliminar", style: TextStyle(color: Colors.black)),
-                                trailing: SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: Visibility(
-                                    visible: _cargandoCancelarTicket,
-                                    child: Theme(
-                                      data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-                                      child: new CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                ),
-                                onTap: _cancelarTicket,
-                              ),
-                            ],
-                          ),
-                        )
-                       
-                        
-                      
-                      ),
-                    ],
-                  ),
-                );
-          }
-        );
-        
-      
-      }
-  );
-    
+  _actualizarDatosSiSeHaCanceladoElTicket({bool seHaCanceladoElTicket}){
+    if(seHaCanceladoElTicket == true){
+      Utils.showFlushbar(context, "Se ha cancelado correctamente");
+      _getMonitoreo(cargarSilenciosamente: true);
+    }
   }
 
   _dropdownBancas(){

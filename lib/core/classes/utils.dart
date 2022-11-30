@@ -30,8 +30,8 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.36:8000';
-  static final String URL_SOCKET = 'http://192.168.1.36:3000';
+  static final String URL = 'http://192.168.1.38:8000';
+  static final String URL_SOCKET = 'http://192.168.1.38:3000';
   // static final String URL = 'http://10.0.0.11:8000';
   // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
@@ -1119,6 +1119,10 @@ class  Utils {
             message: message,
             duration: Duration(milliseconds: 1300),
           )..show(context);
+  }
+
+  static RoundedRectangleBorder alertDialogRoundedShape(){
+    return RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
   }
  
 }
