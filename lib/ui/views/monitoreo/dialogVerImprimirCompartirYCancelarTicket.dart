@@ -267,8 +267,10 @@ class _DialogVerImprimirCompartirYCancelarTicketState extends State<DialogVerImp
       return;
     if(await Utils.exiseImpresora() == false)
       throw Exception("Debe registrar una impresora");
-    if(!(await BluetoothChannel.turnOn()))
-      throw Exception("Debe encender el Bluetooth de su dispositivo");
+    if(!Utils.esAplicacionWeb()){
+      if(!(await BluetoothChannel.turnOn()))
+        throw Exception("Debe encender el Bluetooth de su dispositivo");
+    }
   }
 
   _mostrarUOcultarCirculoCargandoDeCancelarTicket({bool mostrar = true}){

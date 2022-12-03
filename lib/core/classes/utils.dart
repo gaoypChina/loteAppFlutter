@@ -1135,5 +1135,9 @@ class  Utils {
   static navegarAtras(context){
     Navigator.pop(context);
   }
+
+  static esAplicacionWeb(){
+    return kIsWeb;
+  }
  
 }
