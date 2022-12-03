@@ -272,16 +272,22 @@ class _RecargasScreenState extends State<RecargasScreen> {
     );
   }
 
-  showDialogOpciones(Recarga recarga) async {
+  showDialogOpciones(Recarga recarga, Offset tapPosition) async {
     int valorVerRecarga = 1;
     int valorReimprimir = 2;
     int valorCompartir = 3;
     int valorEnviarPorWhatsApp = 4;
     int valorAnularRecarga = 5;
 
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject();
+
     var value = await showMenu(
       context: context, 
-      position: RelativeRect.fromLTRB(100, 100, 100, 100), 
+      // position: RelativeRect.fromLTRB(100, 100, 100, 100), 
+      position: RelativeRect.fromRect(
+          tapPosition & Size(40, 40), // smaller rect, the touch area
+          Offset.zero & overlay.size // Bigger rect, the entire screen
+          ),
       items: [
           PopupMenuItem(
             value: 1,
@@ -316,7 +322,8 @@ class _RecargasScreenState extends State<RecargasScreen> {
         await RecargaService.compartirTicket(context, recarga);
       else if(value == valorEnviarPorWhatsApp)
         await RecargaService.compartirTicket(context, recarga, false);
-
+      else if(value == valorVerRecarga)
+        _verRecarga(recarga);        
     }
 
     return;
@@ -341,6 +348,73 @@ class _RecargasScreenState extends State<RecargasScreen> {
           ),
         );
       }
+    );
+  }
+
+  _verRecarga(Recarga recarga) async {
+    String ticketRecargaModificado = await recarga.quitarDatosDeMidasYPonerNombreConsorcioYBancaYObtenerTicket();
+    List<Widget> listaDeText = RecargaService.convertirTicketGeneradoEnWidgets(ticketRecargaGenerado: ticketRecargaModificado, tipoTicket: TipoTicketRecarga.ver);
+
+    showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+        shape: Utils.alertDialogRoundedShape(),
+        title: Text("${recarga.proveedor.nombre}"),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              _numeroTelefonoWidget(recarga),
+              _codigoAutorizacionWidget(recarga),
+              _montoWidget(recarga),
+              _fechaWidget(recarga)
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Utils.navegarAtras(context), child: Text("Ok", style: TextStyle(color: Colors.black),))
+        ],
+      )
+    );
+  }
+
+  _numeroTelefonoWidget(Recarga recarga){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Numero"),
+        Text("${_convertirNumeroAFormatoRD(recarga)}", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700),)
+      ],
+    );
+  }
+
+  _convertirNumeroAFormatoRD(Recarga recarga){
+    return Utils.toFormatoRD(recarga.numero);
+  }
+
+  _codigoAutorizacionWidget(Recarga recarga){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Transaccion"),
+        Text("${recarga.codigoDeAutorizacion}")
+      ],
+    );
+  }
+
+  _montoWidget(Recarga recarga){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Monto"),
+        Text("${Utils.toCurrency(recarga.monto)}", style: TextStyle(color: Colors.green, fontWeight: FontWeight.w700, fontSize: 16),)
+      ],
+    );
+  }
+  
+  _fechaWidget(Recarga recarga){
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0),
+      child: Center(child: Text("${recarga.created_at}", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700),)),
     );
   }
 
@@ -410,36 +484,39 @@ class _RecargasScreenState extends State<RecargasScreen> {
 
           return SliverList(delegate: SliverChildBuilderDelegate(
             (context, index){
-              return Padding(
-                padding: snapshot.data.length - 1 == index ? const EdgeInsets.only(bottom: 50.0) : const EdgeInsets.all(0.0),
-                child: ListTile(
-                  isThreeLine: true,
-                  onTap: () => showDialogOpciones(snapshot.data[index]),
-                  leading: CircleAvatar(
-                    backgroundColor: Utils.fromHex("${snapshot.data[index].proveedor.colorDeFondo}"),
-                    radius: 15,
-                  ),
-                  title: Text("${snapshot.data[index].codigoDeAutorizacion}", style: TextStyle(fontWeight: FontWeight.bold),),
-                  trailing: Text("${Utils.toCurrency(snapshot.data[index].monto)}", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RichText(text: TextSpan(
-                        style: TextStyle(color: Colors.black54),
-                        children: [
-                          // TextSpan(text: "${snapshot.data[index].numero}", style: TextStyle(fontWeight: FontWeight.bold)),
-                          // TextSpan(text: "  •  "),
-                          // TextSpan(text: "${snapshot.data[index].usuario.usuario}"),
-                          // TextSpan(text: "  •  "),
-                          TextSpan(text: "${snapshot.data[index].banca.descripcion}"),
-                          TextSpan(text: "  •  "),
-                          // TextSpan(text: "${snapshot.data[index].proveedor.nombre}", style: TextStyle(color: Utils.fromHex(snapshot.data[index].proveedor.colorDeFondo), fontWeight: FontWeight.bold)),
-                          // TextSpan(text: "  •  "),
-                          TextSpan(text: "${Utils.toFormatoRD(snapshot.data[index].numero)}"),
-                        ]
-                      )),
-                      Text("${MyDate.dateRangeToNameOrString(DateTimeRange(start: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '00:00')), end: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '23:59:59'))))}  ${Utils.toDosDigitos(snapshot.data[index].created_at.hour.toString())}:${Utils.toDosDigitos(snapshot.data[index].created_at.minute.toString())}")
-                    ],
+              return GestureDetector(
+                onTapDown: (TapDownDetails tapDownDetails) => showDialogOpciones(snapshot.data[index], tapDownDetails.globalPosition),
+                child: Padding(
+                  padding: snapshot.data.length - 1 == index ? const EdgeInsets.only(bottom: 50.0) : const EdgeInsets.all(0.0),
+                  child: ListTile(
+                    isThreeLine: true,
+                    // onTap: () => showDialogOpciones(snapshot.data[index]),
+                    leading: CircleAvatar(
+                      backgroundColor: Utils.fromHex("${snapshot.data[index].proveedor.colorDeFondo}"),
+                      radius: 15,
+                    ),
+                    title: Text("${snapshot.data[index].codigoDeAutorizacion}", style: TextStyle(fontWeight: FontWeight.bold),),
+                    trailing: Text("${Utils.toCurrency(snapshot.data[index].monto)}", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(text: TextSpan(
+                          style: TextStyle(color: Colors.black54),
+                          children: [
+                            // TextSpan(text: "${snapshot.data[index].numero}", style: TextStyle(fontWeight: FontWeight.bold)),
+                            // TextSpan(text: "  •  "),
+                            // TextSpan(text: "${snapshot.data[index].usuario.usuario}"),
+                            // TextSpan(text: "  •  "),
+                            TextSpan(text: "${snapshot.data[index].banca.descripcion}"),
+                            TextSpan(text: "  •  "),
+                            // TextSpan(text: "${snapshot.data[index].proveedor.nombre}", style: TextStyle(color: Utils.fromHex(snapshot.data[index].proveedor.colorDeFondo), fontWeight: FontWeight.bold)),
+                            // TextSpan(text: "  •  "),
+                            TextSpan(text: "${Utils.toFormatoRD(snapshot.data[index].numero)}"),
+                          ]
+                        )),
+                        Text("${MyDate.dateRangeToNameOrString(DateTimeRange(start: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '00:00')), end: DateTime.parse(Utils.dateTimeToDate(snapshot.data[index].created_at, '23:59:59'))))}  ${Utils.toDosDigitos(snapshot.data[index].created_at.hour.toString())}:${Utils.toDosDigitos(snapshot.data[index].created_at.minute.toString())}")
+                      ],
+                    ),
                   ),
                 ),
               );

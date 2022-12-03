@@ -231,9 +231,8 @@ class RecargaService{
   static Future<void> compartirTicket(BuildContext context, Recarga recarga, [bool esSmsOWhatsApp = true]) async {
     try {
 
-      String ticketRecargaGeneradoMidasModificadoANuestraManera = await Recarga.cambiarDatosDelTicketDeMidas(recarga);
-
-      List<Widget> listaDeText = TicketImageV2.construirListaDeTextWidgetParaConvertirEnImage(ticketRecargaGeneradoMidasModificadoANuestraManera);
+      String ticketRecarga = await recarga.quitarDatosDeMidasYPonerNombreConsorcioYBancaYObtenerTicket();
+      List<Widget> listaDeText = RecargaService.convertirTicketGeneradoEnWidgets(ticketRecargaGenerado: ticketRecarga);
 
       Flushbar(
           margin: EdgeInsets.all(8),
@@ -250,6 +249,53 @@ class RecargaService{
       // TODO
       Utils.showAlertDialog(context: context, content: "${e != null ? e.toString() : 'Error'}", title: "Error al compartir");
     }
+  }
+
+  static List<Widget> convertirTicketGeneradoEnWidgets({String ticketRecargaGenerado, tipoTicket = TipoTicketRecarga.compartir}){
+    List<Widget> listaDeText = [];
+      List<String> ticketToListSeparadosPorSaltoDeLinea = ticketRecargaGenerado.split("\n");
+      int indiceDelNombreDelConsorcio = 0;
+      int indiceDelNombreDelaBanca = 1;
+      int contadorCicle = 0;
+      double fontSize = tipoTicket == TipoTicketRecarga.compartir ? 60 : 16;
+
+      for (var element in ticketToListSeparadosPorSaltoDeLinea) {
+        print("RecargasScreen _compartir: $element esEncabezado: ${element.indexOf("_________RECARGA CLARO__________")}");
+
+        if(element.indexOf("_________RECARGA CLARO__________") != -1){
+
+          String numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga = element.replaceFirst("_________RECARGA CLARO__________", "");
+
+          String encabezadoDeLaRecargaExtraidoReemplazandoElNumeroDeLaRecarga = element.replaceFirst(numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga, "");
+          
+          listaDeText.add(Center(child: Text(encabezadoDeLaRecargaExtraidoReemplazandoElNumeroDeLaRecarga, style: TextStyle(fontSize: fontSize, color: Colors.black),)));
+          
+          listaDeText.add(Center(child: Text("", style: TextStyle(fontSize: fontSize, color: Colors.black),)));
+          
+          listaDeText.add(Text(numeroDeLaRecargaExtraidoReemplazandoElEncabezadoDeLaRecarga, style: TextStyle(fontSize: fontSize, color: Colors.black),));
+
+        }
+        else if(element.indexOf("********************************") != -1){
+
+          listaDeText.add(Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 26.0), child: Text(element, style: TextStyle(fontSize: fontSize, color: Colors.black),),
+            ),
+          ));
+
+        }
+        else if(contadorCicle == indiceDelNombreDelConsorcio || contadorCicle == indiceDelNombreDelaBanca || element.indexOf("Gracias por preferirnos!") != -1){
+
+          listaDeText.add(Center(child: Text(element, style: TextStyle(fontSize: fontSize, color: Colors.black),)));
+
+        }
+        else
+          listaDeText.add(Text(element, style: TextStyle(fontSize: fontSize, color: Colors.black),));
+
+        contadorCicle++;
+      }
+
+      return listaDeText;
   }
 
 }

@@ -1131,5 +1131,9 @@ class  Utils {
     PackageInfo packageInfo = await CrossPlatformPackageInfo().fromPlatform();
     return packageInfo.buildNumber;
   }
+
+  static navegarAtras(context){
+    Navigator.pop(context);
+  }
  
 }
