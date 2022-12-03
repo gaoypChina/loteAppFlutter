@@ -25,7 +25,7 @@ class Loteria {
   Loteria({this.id, this.descripcion, this.abreviatura, this.status, this.sorteos, this.horaApertura, this.horaCierre, this.minutosExtras, this.loteriaSuperpale, this.color});
 
   Loteria.fromMap(Map snapshot) :
-        id = Utils.toInt(snapshot['id']) ?? 0,
+        id = Utils.toInt(snapshot['id']),
         descripcion = snapshot['descripcion'] ?? '',
         abreviatura = snapshot['abreviatura'] ?? '',
         primera = snapshot['primera'] ?? '',
@@ -33,12 +33,12 @@ class Loteria {
         tercera = snapshot['tercera'] ?? '',
         pick3 = snapshot['pick3'] ?? '',
         pick4 = snapshot['pick4'] ?? '',
-        status = Utils.toInt(snapshot['status']) ?? 0,
+        status = Utils.toInt(snapshot['status']),
         sorteos = sorteosToMap(Utils.parsedToJsonOrNot(snapshot['sorteos'])) ?? [],
         loteriaSuperpale = loteriaSuperpaleToMap(snapshot['loteriaSuperpale']) ?? [],
         horaApertura= snapshot['horaApertura'] ?? '',
         horaCierre= snapshot['horaCierre'] ?? '',
-        minutosExtras = Utils.toInt(snapshot['minutosExtras']) ?? 0,
+        minutosExtras = Utils.toInt(snapshot['minutosExtras']),
         dias = diasToMap(Utils.parsedToJsonOrNot(snapshot['dias'])) ?? [],
         color = snapshot['color'] ?? null
         ;

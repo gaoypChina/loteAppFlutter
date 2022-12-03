@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/classes/utils.dart';
 
 
@@ -16,10 +17,24 @@ void main() {
       expect(data == null, false);
     });
 
+    test("Testing toBigInt", () async {
+      var data = Utils.toBigInt(10);
+      print("Utils_test Testing toBigInt: $data");
+      expect(data == null, false);
+    });
+
     test("Testing lastMonth", () async {
       var data = Utils.getLastMonth(DateTime.parse("2021-03-01"), dayOfTheMonth: 31);
       print("data: $data");
       expect(data == null, false);
     });
+
+   
+
+    
+
+
   });
+
+  
 }

@@ -56,9 +56,15 @@ class Recarga {
         created_at = (snapshot['created_at'] != null) ? DateTime.parse(snapshot['created_at']) : null
         ;
 
+  set setTicketGeneradoApi(String data){
+    ticketGeneradoApi = data;
+  }
+
   static List<Recarga> fromMapList(parsed){
     return parsed != null ? parsed.map<Recarga>((json) => Recarga.fromMap(json)).toList() : [];
   }
+
+
         
   static Recarga get getRecargaTodas => Recarga(id: 0, codigoTransaccionApiKey: 'Todas'); 
 
@@ -77,6 +83,42 @@ class Recarga {
     return ticketConReemplazoDeEnlaceDeMidas;
   }
 
+  Future<String> quitarDatosDeMidasYPonerNombreConsorcioYBancaYObtenerTicket() async {
+    String ticketGeneradoApiOriginal = ticketGeneradoApi;
+    _quitarCodigoYNombreClienteDelTicketGeneradoPorMidas();    
+    await _reemplazarNombreYNumeroMidasPorNombreConsorcioYBanca();
+    _quitarEnlaceDeMidas();
+    return _reestablecerElValorOriginalDelTicketGeneradoPorMidasYRetornarElTicketModificado(ticketGeneradoApiOriginal);
+  }
+
+  _quitarCodigoYNombreClienteDelTicketGeneradoPorMidas(){
+    if(ticketGeneradoApi != null) 
+      ticketGeneradoApi = ticketGeneradoApi.replaceFirst("[33508] JEAN CONTRERAS     \n", "");
+  }
+
+  Future<void> _reemplazarNombreYNumeroMidasPorNombreConsorcioYBanca() async {
+    Ajuste ajuste = await Ajuste.obtenerAjuste();
+    _reemplazarNombreMidasPorNombreConsorcio(ajuste);
+    _reemplazarNombreMidasPorNombreBanca(ajuste);
+  }
+
+  _reemplazarNombreMidasPorNombreConsorcio(Ajuste ajuste){
+    ticketGeneradoApi = ticketGeneradoApi.replaceFirst("        MIDASRED S.R.L         ", Ajuste.obtenerNombreConsorcio(ajuste).toUpperCase());
+  }
+  
+  _reemplazarNombreMidasPorNombreBanca(Ajuste ajuste){
+    ticketGeneradoApi = ticketGeneradoApi.replaceFirst("         809-489-4100          ", ajuste.imprimirNombreBanca == 1 ? banca.descripcion.toUpperCase() : "");
+  }
+
+  _quitarEnlaceDeMidas(){
+    ticketGeneradoApi = ticketGeneradoApi.replaceFirst("www.midasred.do", "");
+  }
+
+  String _reestablecerElValorOriginalDelTicketGeneradoPorMidasYRetornarElTicketModificado(String ticketOriginal){
+    String ticketModificadoARetornar = ticketGeneradoApi;
+    ticketGeneradoApi = ticketOriginal;
+    return ticketModificadoARetornar;
+  }
 
   toJson() {
     return {
@@ -98,4 +140,22 @@ class Recarga {
       "created_at": created_at != null ? created_at.toString() : null,
     };
   }
+}
+
+class TipoTicketRecarga {
+  const TipoTicketRecarga._(this.index);
+
+  /// The encoded integer value of this font weight.
+  final int index;
+
+  /// Thin, the least thick
+  static const TipoTicketRecarga ver = TipoTicketRecarga._(0);
+
+  /// Extra-light
+  static const TipoTicketRecarga compartir = TipoTicketRecarga._(1);
+
+  /// A list of all the font weights.
+  static const List<TipoTicketRecarga> values = <TipoTicketRecarga>[
+    ver, compartir
+  ];
 }

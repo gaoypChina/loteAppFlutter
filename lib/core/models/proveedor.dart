@@ -24,6 +24,18 @@ Proveedor.fromMap(Map snapshot) :
   }
 
   static Proveedor get getProveedorTodos => Proveedor(id: 0, nombre: 'Todos'); 
+
+  bool esClaro(){
+    return this.nombre == "CLARO";
+  }
+
+  bool esAltice(){
+    return this.nombre == "ORANGE" || this.nombre == "ALTICE";
+  }
+
+   bool esViva(){
+    return this.nombre == "VIVA";
+  }
   
 
   toJson() {

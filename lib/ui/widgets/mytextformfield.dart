@@ -48,7 +48,7 @@ class MyTextFormField extends StatefulWidget {
   final bool isDecimal;
   final bool isMoneyFormat;
   final bool isPassword;
-  final ValueChanged<String> validator;
+  final String Function(String) validator;
   final MyType type;
   final bool isSideTitle;
   final double flexOfSideText;

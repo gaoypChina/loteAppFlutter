@@ -68,7 +68,7 @@ class TicketService{
   }
   
 
-  static Future<Map<String, dynamic>> cancelar({String codigoBarra, scaffoldKey}) async {
+  static Future<Map<String, dynamic>> cancelar({String codigoBarra, context, scaffoldKey}) async {
     var map = Map<String, dynamic>();
     var mapDatos = Map<String, dynamic>();
     map["idUsuario"] = await Db.idUsuario();
@@ -85,15 +85,21 @@ class TicketService{
     if(statusCode < 200 || statusCode > 400){
       print("ticketService cancelar: ${response.body}");
       var parsed = await compute(Utils.parseDatos, response.body);
-      Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
-      throw Exception("Error del servidor ticketService cancelar");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["message"], title: "Error");
+      else if(scaffoldKey != null)
+        Utils.showSnackBar(content: "${parsed["message"]}", scaffoldKey: scaffoldKey);
+      throw Exception(parsed["message"]);
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
     print("ticketservice duplicar: $parsed");
     if(parsed["errores"] == 1){
-      Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
-      throw Exception("Error ticketService cancelar: ${parsed["mensaje"]}");
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else if(scaffoldKey != null)
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("${parsed["mensaje"]}");
     }
 
     return parsed;
@@ -252,7 +258,7 @@ class TicketService{
     map["idUsuario"] = await Db.idUsuario();
     map["idBanca"] = await Db.idBanca();
     map["servidor"] = await Db.servidor();
-    // map["compartirTicket"] = compartirTicket;
+    map["compartirTicket"] = compartirTicket;
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
@@ -261,10 +267,11 @@ class TicketService{
 
     if(statusCode < 200 || statusCode > 400){
       print("ticketService ticketById: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
       if(context != null)
-        Utils.showAlertDialog(context: context, content: "Error del servidor ticketService ticketById", title: "Error");
+        Utils.showAlertDialog(context: context, content: "${parsed["message"] != null ? parsed["message"] : ''}", title: "Error");
       else
-        Utils.showSnackBar(content: "Error del servidor ticketService ticketById", scaffoldKey: scaffoldKey);
+        Utils.showSnackBar(content: "${parsed["message"] != null ? parsed["message"] : ''}", scaffoldKey: scaffoldKey);
       throw Exception("Error del servidor ticketService ticketById");
     }
 
@@ -370,7 +377,7 @@ class TicketService{
     var jwt = await Utils.createJwt(map);
     mapDatos["datos"] = jwt;
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v2/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/v3/monitoreoMovil"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -395,6 +402,84 @@ class TicketService{
 
     return parsed;
   }
+
+  static Future<Map<String, dynamic>> ticketsIndex({BuildContext context, scaffoldKey}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idUsuario"] = await Db.idUsuario();
+    map["servidor"] = await Db.servidor();
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/tickets"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService monitoreo: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["message"], title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService monitoreo", scaffoldKey: scaffoldKey);
+      throw Exception(parsed["message"]);
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
+    }
+
+    print("ticketservice monitoreo: $parsed");
+
+    return parsed;
+  }
+
+  static Future<Map<String, dynamic>> ticketsBuscar({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo, int idLoteria}) async {
+    var map = Map<String, dynamic>();
+    var mapDatos = Map<String, dynamic>();
+    
+    map["idUsuario"] = await Db.idUsuario();
+    map["fechaInicial"] = (fecha != null) ? fecha.toString() : DateTime.now().toString();
+    map["fechaFinal"] = (fechaFinal != null) ? fechaFinal.toString() : DateTime.now().toString();
+    map["servidor"] = await Db.servidor();
+    map["idBanca"] = idBanca;
+    map["idGrupo"] = idGrupo;
+    map["idLoteria"] = idLoteria;
+    var jwt = await Utils.createJwt(map);
+    mapDatos["datos"] = jwt;
+
+    var response = await http.post(Uri.parse(Utils.URL + "/api/reportes/tickets/buscar"), body: json.encode(mapDatos), headers: Utils.header);
+    int statusCode = response.statusCode;
+
+    if(statusCode < 200 || statusCode > 400){
+      print("ticketService monitoreo: ${response.body}");
+      var parsed = await compute(Utils.parseDatos, response.body);
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["message"], title: "Error");
+      else
+        Utils.showSnackBar(content: "Error del servidor ticketService monitoreo", scaffoldKey: scaffoldKey);
+      throw Exception("Error del servidor ticketService monitoreo");
+    }
+
+    var parsed = await compute(Utils.parseDatos, response.body);
+    if(parsed["errores"] == 1){
+      if(context != null)
+        Utils.showAlertDialog(context: context, content: parsed["mensaje"], title: "Error");
+      else
+        Utils.showSnackBar(content: parsed["mensaje"], scaffoldKey: scaffoldKey);
+      throw Exception("Error ticketService monitoreo: ${parsed["mensaje"]}");
+    }
+
+    print("ticketservice monitoreo: $parsed");
+
+    return parsed;
+  }
+
 
   static Future<Map<String, dynamic>> monitoreoGzipV2({DateTime fecha, DateTime fechaFinal, int idBanca, BuildContext context, scaffoldKey, bool retornarBancas = false, int idGrupo, int idLoteria}) async {
     var map = Map<String, dynamic>();
@@ -444,11 +529,12 @@ class TicketService{
       barrierDismissible: false,
       builder: (context){
         return AlertDialog(
+          shape: Utils.alertDialogRoundedShape(),
           title: Text("Desea cancelar"),
           content: Text("Desea cancelar ticket $ticket"),
           actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop(false);}, child: Text("No")),
-            FlatButton(onPressed: (){Navigator.of(context).pop(true);}, child: Text("Si"))
+            TextButton(onPressed: (){Navigator.of(context).pop(false);}, child: Text("No", style: TextStyle(color: Colors.black))),
+            TextButton(onPressed: (){Navigator.of(context).pop(true);}, child: Text("Si", style: TextStyle(color: Colors.black)))
           ],
         );
       }
@@ -461,11 +547,12 @@ class TicketService{
       barrierDismissible: false,
       builder: (context){
         return AlertDialog(
+          shape: Utils.alertDialogRoundedShape(),
           title: Text("Desea imprimir"),
           content: Text("Desea imprimir?"),
           actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop(false);}, child: Text("No")),
-            FlatButton(onPressed: (){Navigator.of(context).pop(true);}, child: Text("Si"))
+            TextButton(onPressed: (){Navigator.of(context).pop(false);}, child: Text("No", style: TextStyle(color: Colors.black))),
+            TextButton(onPressed: (){Navigator.of(context).pop(true);}, child: Text("Si", style: TextStyle(color: Colors.black)))
           ],
         );
       }
@@ -785,5 +872,9 @@ class TicketService{
 
   static String agregarUrlActualALaRutaDelTicket(String rutaTicket){
     return "${Utils.URL}/$rutaTicket";
+  }
+
+  static bool esCompatirUrl(Map<String, dynamic> map){
+    return map["rutaUrlDelTicket"] != null;
   }
 }

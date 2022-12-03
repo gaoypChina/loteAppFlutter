@@ -22,8 +22,9 @@ class LoginService{
 
     map["usuario"] = usuario;
     map["password"] = password;
+    map["versionapp"] = await Utils.obtenerVersion();
     map2["datos"] = map;
-    final response = await http.post(Uri.parse(Utils.URL + '/api/acceder/v2'), body: json.encode(map2), headers: Utils.header);
+    final response = await http.post(Uri.parse(Utils.URL + '/api/acceder/v3'), body: json.encode(map2), headers: Utils.header);
     
     if(response.statusCode < 200 || response.statusCode > 400){
       print("GrupoService index: ${response.body}");

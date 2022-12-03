@@ -147,7 +147,7 @@ _showSnackBar(String content){
         else
           _navigateToHome();
 
-      }on dynamic catch(e){
+      } catch(e){
         print("Error desde login: ${e.toString()}");
         Utils.showAlertDialog(content: e.toString(), title: "Error", context: context);
 

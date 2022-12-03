@@ -61,6 +61,10 @@ class Salesdetails {
     return jsonList;
   }
 
+  static List<Salesdetails> fromMapList(parsed){
+    return parsed != null ? parsed.map<Salesdetails>((json) => Salesdetails.fromMap(json)).toList() : [];
+  }
+
   toJson() {
     return {
       // "id": id != null ? id.toInt() : null,
