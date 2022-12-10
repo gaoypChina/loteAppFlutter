@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:loterias/core/classes/drift_database.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/loterias.dart';
 
 
 void main() {
@@ -30,7 +31,15 @@ void main() {
     });
 
    
-
+  test("Testing loteria", () async {
+    Loteria loteria1 = Loteria(id: 1, descripcion: "Loteria1");
+    Loteria loteria2 = Loteria(id: 2, descripcion: "Loteria2");
+    print("Testing loteria1: ${loteria1.id}");
+    print("Testing loteria2: ${loteria2.id}");
+    loteria1.setLoteria(loteria2);
+    print("Testing loteria1 despues: ${loteria1.id}");
+    expect(loteria1.id == 1, false);
+  });
     
 
 

@@ -39,6 +39,7 @@ import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/loginservice.dart';
+import 'package:loterias/core/services/montodisponiblemovilservice.dart';
 import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
@@ -830,7 +831,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     bool tienePermisoManejarEntidadesContables = await Db.existePermiso("Manejar entidades contables");
     bool tienePermisoRealizarRecargas = await Db.existePermiso("Realizar recargas");
 
-    print("PrincipalScreen tienePermisoRealizarRecargas: ${tienePermisoRealizarRecargas}");
+    // print("PrincipalScreen tienePermisoRealizarRecargas: ${tienePermisoRealizarRecargas}");
 
     if(permisoAccesoAlSistema == false){
       Principal.cerrarSesion(context);
@@ -1194,7 +1195,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     //       ),
     //     ),
     //   );
-    print("PrincipalVIew updatePayment holaa: $parsed");
+    // print("PrincipalVIew updatePayment holaa: $parsed");
   }
 
   initSocket() async {
@@ -1271,7 +1272,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       _socketContadorErrores = 0;
     });
     socket.on("sincronizarTodos", (data) async {
-      print("PrincipalView initSocket sincronizarTodos from server before: $data");
+      // print("PrincipalView initSocket sincronizarTodos from server before: $data");
       var parsed = await compute(Utils.parseDatosDynamic, data);
       if(parsed["error"] == 1)
         return;
@@ -1291,10 +1292,10 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       await _getPermisos();
       await updatePayment(parsed["datos"]["payment"]);
       // deleteSubidaYesterdaysSale();
-      print("PrincipalView initSocket sincronizarTodos from server after: $data");
+      // print("PrincipalView initSocket sincronizarTodos from server after: $data");
     });
     socket.on("initLoteriasOrdenadasPorHoraCierre", (data) async {
-      print("PrincipalView initSocket initLoteriasOrdenadasPorHoraCierre from server after: $data");
+      // print("PrincipalView initSocket initLoteriasOrdenadasPorHoraCierre from server after: $data");
       var parsed = await compute(Utils.parseDatosDynamic, data);
       quitarLoteriasProvenientesDelSocketQueEstenCerradas(parsed["datos"]);
     });
@@ -1332,7 +1333,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         // var parsed = data.cast<String, dynamic>();
         print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent primero parsed: $data");
         var parsed = await compute(Utils.parseDatosDynamic, data);
-        print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent parsed: $parsed");
+        // print("PrincipalView realtime-stock:App\\Events\\RealtimeStockEvent parsed: $parsed");
         var stocks = await compute(Stock.fromMapList, parsed['stocks']);
         // await compute(Principal.updateMontoStockFromJugadas, StockJugada(stocks: stocks, jugadas: listaJugadas));
         Principal.updateMontoStockFromJugadas(StockJugada(stocks: stocks, jugadas: listaJugadas));
@@ -2932,7 +2933,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
       autofocus: true,
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
-        print("Event runtimeType is ${event.runtimeType} : ${event.data.keyLabel}");
+        // print("Event runtimeType is ${event.runtimeType} : ${event.data.keyLabel}");
         if(event.runtimeType.toString() != 'RawKeyUpEvent')
           return;
         // print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
@@ -7002,8 +7003,8 @@ _selectedBanca() async {
     int idSorteo = await SorteoService.getIdSorteo(jugada, loteria);
     String jugadaConSigno = jugada;
 
-    MontoDisponible montoDisponible = await Db.getMontoDisponible(jugada, loteria, banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock);
-
+    // MontoDisponible montoDisponible = await Db.getMontoDisponible(jugada, loteria, banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock);
+    MontoDisponible montoDisponible = await MontoDisponibleMovilService.obtener(jugada, loteria, banca, loteriaSuperpale);
   
     int idx = -1;
     if(idSorteo == 4)

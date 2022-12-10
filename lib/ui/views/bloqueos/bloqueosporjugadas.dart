@@ -834,7 +834,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     return RawKeyboardListener(
       focusNode: FocusNode(),
       onKey: (RawKeyEvent event) { 
-        print("Event runtimeType is ${event.runtimeType}");
+        // print("Event runtimeType is ${event.runtimeType}");
         if(event.runtimeType.toString() != 'RawKeyUpEvent')
           return;
         print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");

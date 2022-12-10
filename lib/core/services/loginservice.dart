@@ -37,7 +37,7 @@ class LoginService{
     }
    
       var parsed = await compute(Utils.parseDatos, response.body);
-      print("loginserviceAcceder parsed compute: $parsed");
+      // print("loginserviceAcceder parsed compute: $parsed");
       // if(parsed["errores"] == 1){
       //   if(scaffoldkey != null)
       //   print("loginservice acceder: $parsed");

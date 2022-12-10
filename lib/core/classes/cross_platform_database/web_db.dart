@@ -64,16 +64,16 @@ class WebDrift implements CrossDB{
     var database = WebDrift();
     switch (table) {
       case "Users":
-        return database.db.insertUser(User.fromJson(dataToMap));
+        return obtenerBaseDeDatos().insertUser(User.fromJson(dataToMap));
         break;
       case "Permissions":
-        return database.db.insertPermission(Permission(id: dataToMap["id"], descripcion: dataToMap["descripcion"], status: dataToMap["status"], created_at: DateTime.parse(dataToMap["created_at"])));
+        return obtenerBaseDeDatos().insertPermission(Permission(id: dataToMap["id"], descripcion: dataToMap["descripcion"], status: dataToMap["status"], created_at: DateTime.parse(dataToMap["created_at"])));
         break;
       case "Settings":
-        return database.db.insertSetting(Setting.fromJson(dataToMap));
+        return obtenerBaseDeDatos().insertSetting(Setting.fromJson(dataToMap));
         break;
       case "Servers":
-        return database.db.insertServer(Server.fromJson(dataToMap));
+        return obtenerBaseDeDatos().insertServer(Server.fromJson(dataToMap));
         break;
       default:
         return null;
@@ -84,14 +84,14 @@ class WebDrift implements CrossDB{
   deleteDB() {
     // TODO: implement deleteDB
     var database = WebDrift();
-    return database.db.deleteAllTables();
+    return obtenerBaseDeDatos().deleteAllTables();
   }
 
   @override
   Future<Map<String, dynamic>> ajustes() {
     // TODO: implement ajustes
     var database = WebDrift();
-    return database.db.getSetting();
+    return obtenerBaseDeDatos().getSetting();
     throw UnimplementedError("WebDatabase Uninplemented ajustes");
   }
 
@@ -101,16 +101,16 @@ class WebDrift implements CrossDB{
     var database = WebDrift();
     switch (table) {
       case "Users":
-        return database.db.deleteAllUser();
+        return obtenerBaseDeDatos().deleteAllUser();
         break;
       case "Permissions":
-        return database.db.deleteAllPermission();
+        return obtenerBaseDeDatos().deleteAllPermission();
         break;
       case "Settings":
-        return database.db.deleteAllSetting();
+        return obtenerBaseDeDatos().deleteAllSetting();
         break;
       case "Branches":
-        return database.db.deleteAllBranches();
+        return obtenerBaseDeDatos().deleteAllBranches();
         break;
       default:
         return null;
@@ -123,7 +123,7 @@ class WebDrift implements CrossDB{
     Future<bool> existePermiso(String permiso) {
       // TODO: implement existePermiso
       var database = WebDrift();
-      return database.db.existePermiso(permiso);
+      return obtenerBaseDeDatos().existePermiso(permiso);
       throw UnimplementedError("WebDatabase Uninplemented existePermiso");
     }
   
@@ -131,7 +131,7 @@ class WebDrift implements CrossDB{
     Future<Map<String, dynamic>> getBanca() {
       // TODO: implement getBanca
       var database = WebDrift();
-      return database.db.getBanca();
+      return obtenerBaseDeDatos().getBanca();
       throw UnimplementedError("WebDatabase Uninplemented getBanca");
     }
   
@@ -139,7 +139,7 @@ class WebDrift implements CrossDB{
     Future<Map<String, dynamic>> getUsuario() {
       // TODO: implement getUsuario
       var database = WebDrift();
-      return database.db.getUsuario();
+      return obtenerBaseDeDatos().getUsuario();
       throw UnimplementedError("WebDatabase Uninplemented getUsuario");
     }
   
@@ -147,7 +147,7 @@ class WebDrift implements CrossDB{
     Future<int> idBanca() {
       // TODO: implement idBanca
       var database = WebDrift();
-      return database.db.idBanca();
+      return obtenerBaseDeDatos().idBanca();
       throw UnimplementedError("WebDatabase Uninplemented idBanca");
     }
   
@@ -155,14 +155,14 @@ class WebDrift implements CrossDB{
     Future<int> idUsuario() {
       // TODO: implement idUsuario
        var database = WebDrift();
-      return database.db.idUsuario();
+      return obtenerBaseDeDatos().idUsuario();
       throw UnimplementedError("WebDatabase Uninplemented idUsuario");
     }
     @override
     Future<int> idGrupo() {
       // TODO: implement idGrupo
        var database = WebDrift();
-      return database.db.idGrupo();
+      return obtenerBaseDeDatos().idGrupo();
       throw UnimplementedError("WebDatabase Uninplemented idGrupo");
     }
   
@@ -174,16 +174,16 @@ class WebDrift implements CrossDB{
 
       switch (table) {
       // case "Users":
-      //   return database.db.insertUser(User.fromJson(dataToMap));
+      //   return obtenerBaseDeDatos().insertUser(User.fromJson(dataToMap));
       //   break;
       // case "Permissions":
-      //   return database.db.insertPermission(Permission(id: dataToMap["id"], descripcion: dataToMap["descripcion"], status: dataToMap["status"], created_at: DateTime.parse(dataToMap["created_at"])));
+      //   return obtenerBaseDeDatos().insertPermission(Permission(id: dataToMap["id"], descripcion: dataToMap["descripcion"], status: dataToMap["status"], created_at: DateTime.parse(dataToMap["created_at"])));
       //   break;
       // case "Settings":
-      //   return database.db.insertSetting(Setting.fromJson(dataToMap));
+      //   return obtenerBaseDeDatos().insertSetting(Setting.fromJson(dataToMap));
       //   break;
       case "Servers":
-        return (await database.db.getAllServer()).map<Map<String, dynamic>>((e) => {"descripcion" : e.descripcion, "id" : e.id, "pordefecto" : e.pordefecto}).toList();
+        return (await obtenerBaseDeDatos().getAllServer()).map<Map<String, dynamic>>((e) => {"descripcion" : e.descripcion, "id" : e.id, "pordefecto" : e.pordefecto}).toList();
         break;
       default:
         return null;
@@ -194,7 +194,7 @@ class WebDrift implements CrossDB{
     Future<String> servidor() {
       // TODO: implement servidor
       var database = WebDrift();
-      return database.db.servidor();
+      return obtenerBaseDeDatos().servidor();
       throw UnimplementedError("WebDatabase Uninplemented servidor");
     }
   
@@ -256,7 +256,7 @@ class WebDrift implements CrossDB{
   Future<void> sincronizarTodosDataBatch(parsed) {
     // TODO: implement sincronizarTodosDataBatch
     var database = WebDrift();
-    return database.db.sincronizarTodosDataBatch(parsed);
+    return obtenerBaseDeDatos().sincronizarTodosDataBatch(parsed);
     throw UnimplementedError();
   }
 
@@ -264,7 +264,7 @@ class WebDrift implements CrossDB{
   Future<Map<String, dynamic>> drawById(int id, [var sqfliteTransaction]) {
     // TODO: implement drawById
     var database = WebDrift();
-    return database.db.drawById(id);
+    return obtenerBaseDeDatos().drawById(id);
     throw UnimplementedError();
   }
 
@@ -272,7 +272,7 @@ class WebDrift implements CrossDB{
   Future<List> guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad, sqfliteTransaction}) {
     // TODO: implement guardarVentaV2
     var database = WebDrift();
-    return database.db.guardarVentaV2(banca: banca, jugadas: jugadas, socket: socket, listaLoteria: listaLoteria, compartido: compartido, descuentoMonto: descuentoMonto, currentTimeZone: currentTimeZone, tienePermisoJugarFueraDeHorario: tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: tienePermisoJugarSinDisponibilidad);
+    return obtenerBaseDeDatos().guardarVentaV2(banca: banca, jugadas: jugadas, socket: socket, listaLoteria: listaLoteria, compartido: compartido, descuentoMonto: descuentoMonto, currentTimeZone: currentTimeZone, tienePermisoJugarFueraDeHorario: tienePermisoJugarFueraDeHorario, tienePermisoJugarMinutosExtras: tienePermisoJugarMinutosExtras, tienePermisoJugarSinDisponibilidad: tienePermisoJugarSinDisponibilidad);
     throw UnimplementedError();
   }
 
@@ -280,7 +280,7 @@ class WebDrift implements CrossDB{
   Future<Map<String, dynamic>> draw(String descripcion, [var sqfliteTransaction]) {
     // TODO: implement draw
     var database = WebDrift();
-    return database.db.draw(descripcion);
+    return obtenerBaseDeDatos().draw(descripcion);
     throw UnimplementedError();
   }
 
@@ -288,7 +288,7 @@ class WebDrift implements CrossDB{
   Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false}) {
     // TODO: implement getMontoDisponible
     var database = WebDrift();
-    return database.db.getMontoDisponible(jugada, loteria,banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock );
+    return obtenerBaseDeDatos().getMontoDisponible(jugada, loteria,banca, loteriaSuperpale: loteriaSuperpale, retornarStock: retornarStock );
     throw UnimplementedError();
   }
 
@@ -296,7 +296,7 @@ class WebDrift implements CrossDB{
   Future deleteAllBranches() {
     // TODO: implement deleteAllBranches
     var database = WebDrift();
-    return database.db.deleteAllBranches();
+    return obtenerBaseDeDatos().deleteAllBranches();
     throw UnimplementedError();
   }
 
@@ -304,7 +304,7 @@ class WebDrift implements CrossDB{
   Future insertBranch(Branch branch) {
     // TODO: implement insertBranch
     var database = WebDrift();
-    return database.db.insertBranch(branch);
+    return obtenerBaseDeDatos().insertBranch(branch);
     throw UnimplementedError();
   }
 
@@ -312,7 +312,7 @@ class WebDrift implements CrossDB{
   Future deleteAllPermission() {
     // TODO: implement deleteAllPermission
     var database = WebDrift();
-    return database.db.deleteAllPermission();
+    return obtenerBaseDeDatos().deleteAllPermission();
     throw UnimplementedError();
   }
 
@@ -320,7 +320,7 @@ class WebDrift implements CrossDB{
   Future deleteAllUser() {
     // TODO: implement deleteAllUser
     var database = WebDrift();
-    return database.db.deleteAllUser();
+    return obtenerBaseDeDatos().deleteAllUser();
     throw UnimplementedError();
   }
 
@@ -328,7 +328,7 @@ class WebDrift implements CrossDB{
   Future<List<Server>> getAllServer() {
     // TODO: implement deleteAllUser
     var database = WebDrift();
-    return database.db.getAllServer();
+    return obtenerBaseDeDatos().getAllServer();
     throw UnimplementedError();
   }
 
@@ -336,112 +336,139 @@ class WebDrift implements CrossDB{
   Future<int> getBlocksdirtyCantidad({int idBanca, int idLoteria, int idSorteo, int idMoneda}) {
     // TODO: implement getBlocksdirtyCantidad
     var database = WebDrift();
-    return database.db.getBlocksdirtyCantidad(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+    return obtenerBaseDeDatos().getBlocksdirtyCantidad(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
   }
 
   @override
   Future<int> getBlocksdirtygeneralCantidad({int idLoteria, int idSorteo, int idMoneda}) {
     // TODO: implement getBlocksdirtygeneralCantidad
     var database = WebDrift();
-    return database.db.getBlocksdirtygeneralCantidad(idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
+    return obtenerBaseDeDatos().getBlocksdirtygeneralCantidad(idLoteria: idLoteria, idSorteo: idSorteo, idMoneda: idMoneda);
   }
 
   @override
   Future insertUser(User user) {
     // TODO: implement insertUser
     var database = WebDrift();
-    return database.db.insertUser(user);
+    return obtenerBaseDeDatos().insertUser(user);
   }
 
   @override
   Future<void> insertListLoteria(List<Loteria> loterias) async {
     // TODO: implement insertListLoteria
     var database = WebDrift();
-    await database.db.insertListLoteria(loterias);
+    await obtenerBaseDeDatos().insertListLoteria(loterias);
   }
 
   @override
   Future<void> insertListDay(List<Dia> dias) async {
     // TODO: implement insertListDay
     var database = WebDrift();
-    await database.db.insertListDay(dias);
+    await obtenerBaseDeDatos().insertListDay(dias);
   }
 
   @override
   Future insertSetting(Setting setting) async {
     // TODO: implement insertSetting
     var database = WebDrift();
-    await database.db.insertSetting(setting);
+    await obtenerBaseDeDatos().insertSetting(setting);
   }
 
   @override
   Future<void> insertListPermission(List<Permiso> permisos) async {
     // TODO: implement insertListPermission
     var database = WebDrift();
-    await database.db.insertListPermission(permisos);
+    await obtenerBaseDeDatos().insertListPermission(permisos);
   }
 
   @override
   Future<void> insertListServer(List<Servidor> servidores) async {
     // TODO: implement insertListServer
     var database = WebDrift();
-    await database.db.insertListServer(servidores);
+    await obtenerBaseDeDatos().insertListServer(servidores);
   }
 
   @override
   Future insertOrDeleteStocks(List<StockModel.Stock> elements, bool delete) async {
     // TODO: implement insertOrDeleteStocks
     var database = WebDrift();
-    await database.db.insertOrDeleteStocks(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteStocks(elements, delete);
   }
 
   @override
   Future insertOrDeleteBlocksgenerals(List<BlocksgeneralsModel.Blocksgenerals> elements, bool delete) async {
     // TODO: implement insertOrDeleteBlocksgenerals
     var database = WebDrift();
-    await database.db.insertOrDeleteBlocksgenerals(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlocksgenerals(elements, delete);
   }
 
   @override
   Future insertOrDeleteBlockslotteries(List<BlockslotteriesModel.Blockslotteries> elements, bool delete) async {
     // TODO: implement insertOrDeleteBlockslotteries
     var database = WebDrift();
-    await database.db.insertOrDeleteBlockslotteries(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlockslotteries(elements, delete);
   }
 
   @override
   Future insertOrDeleteBlocksplays(List<BlocksplaysModel.Blocksplays> elements, bool delete) async {
     // TODO: implement insertOrDeleteBlocksplays
     var database = WebDrift();
-    await database.db.insertOrDeleteBlocksplays(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlocksplays(elements, delete);
   }
 
   @override
   Future insertOrDeleteBlocksplaysgenerals(List<BlocksplaysgeneralsModel.Blocksplaysgenerals> elements, bool delete) async {
     // TODO: implement insertOrDeleteBlocksplaysgenerals
     var database = WebDrift();
-    await database.db.insertOrDeleteBlocksplaysgenerals(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlocksplaysgenerals(elements, delete);
   }
 
   @override
   Future deleteAllSetting() {
     // TODO: implement deleteAllSetting
     var database = WebDrift();
-    return database.db.deleteAllSetting();
+    return obtenerBaseDeDatos().deleteAllSetting();
   }
 
   @override
   Future insertOrDeleteBlocksdirtygenerals(List<BlocksdirtygeneralsModel.Blocksdirtygenerals> elements, bool delete) async {
     // TODO: implement insertOrDeleteBlocksdirtygenerals
     var database = WebDrift();
-    await database.db.insertOrDeleteBlocksdirtygenerals(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlocksdirtygenerals(elements, delete);
   }
 
   @override
   Future insertOrDeleteBlocksdirtys(List<BlocksdirtyModel.Blocksdirty> elements, bool delete) async {
-    // TODO: implement insertOrDeleteBlocksdirtys
-    var database = WebDrift();
-    await database.db.insertOrDeleteBlocksdirtys(elements, delete);
+    await obtenerBaseDeDatos().insertOrDeleteBlocksdirtys(elements, delete);
+  }
+  
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlockslotteries({int idBanca, int idLoteria, int idSorteo, int idDia, int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) {
+    return obtenerBaseDeDatos().obtenerMontoDeTablaBlockslotteries(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, idDia: idDia, idMoneda: idMoneda, idLoteriaSuperpale: idLoteriaSuperpale, sqfliteTransaction: sqfliteTransaction);
+  }
+  
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({int idBanca, int idLoteria, int idSorteo, String jugada, int idMoneda, sqfliteTransaction}) {
+    return obtenerBaseDeDatos().obtenerMontoDeTablaBlocksplays(idBanca: idBanca, idLoteria: idLoteria, idSorteo: idSorteo, jugada: jugada, idMoneda: idMoneda, sqfliteTransaction: sqfliteTransaction);
+  }
+  
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({int idLoteria, int idSorteo, String jugada, int idMoneda, sqfliteTransaction}) {
+    return obtenerBaseDeDatos().obtenerMontoDeTablaBlocksplaysgenerals(idLoteria: idLoteria, idSorteo: idSorteo, jugada: jugada, idMoneda: idMoneda, sqfliteTransaction: sqfliteTransaction);
+  }
+  
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaGenerals({int idLoteria, int idSorteo, int idDia, int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) {
+    return obtenerBaseDeDatos().obtenerMontoDeTablaGenerals(idLoteria: idLoteria, idSorteo: idSorteo, idDia: idDia, idMoneda: idMoneda, idLoteriaSuperpale: idLoteriaSuperpale, sqfliteTransaction: sqfliteTransaction);
+  }
+  
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaStock({int idLoteria, int idSorteo, String jugada, int idMoneda, int esGeneral = 0, int ignorarDemasBloqueos, int idLoteriaSuperpale, int idBanca, sqfliteTransaction}) {
+    return obtenerBaseDeDatos().obtenerMontoDeTablaStock(idLoteria: idLoteria, idSorteo: idSorteo, jugada: jugada, idMoneda: idMoneda, esGeneral: esGeneral, ignorarDemasBloqueos: ignorarDemasBloqueos, idLoteriaSuperpale: idLoteriaSuperpale, idBanca: idBanca, sqfliteTransaction: sqfliteTransaction);
+  }
+
+  AppDatabase obtenerBaseDeDatos(){
+    return WebDrift().db;
   }
 
 }

@@ -637,7 +637,7 @@ class TicketService{
     }
 
     var parsed = await compute(Utils.parseDatos, response.body);
-    print("tickerservice indexPost: ${parsed.toString()}");
+    // print("tickerservice indexPost: ${parsed.toString()}");
 
      if(parsed["errores"] == 1){
       print("Principal parsedDatos: ${parsed["mensaje"]}");

@@ -86,6 +86,12 @@ abstract class CrossDB {
 
   Future deleteAllSetting();
 
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaStock({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int esGeneral = 0, int ignorarDemasBloqueos, int idLoteriaSuperpale, int idBanca, sqfliteTransaction});
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction});
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaGenerals({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction});
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction});
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlockslotteries({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction});
+
   factory CrossDB() => getDB();
   
 }

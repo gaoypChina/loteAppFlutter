@@ -193,7 +193,7 @@ myScaffold({@required BuildContext context, key, @required bool cargando, @requi
 
     
 
-    print("MyScaffold widget: ${myNestedScrollBar == null}");
+    // print("MyScaffold widget: ${myNestedScrollBar == null}");
 
     _onMenuTap() async {
       if(!Utils.isSmallOrMedium(MediaQuery.of(context).size.width)){

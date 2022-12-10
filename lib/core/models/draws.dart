@@ -24,6 +24,7 @@ Draws.fromMap(Map snapshot) :
         ;
 
   static String get superPale => 'Super pale';
+  static int get idSorteoSuperpale => 4;
 
   toJson() {
     return {

@@ -499,6 +499,68 @@ class AppDatabase extends _$AppDatabase{
     List<Stock> listElement = elements.map((e) => Stock(id: e.id, idBanca: e.idBanca, idLoteria: e.idLoteria, idLoteriaSuperpale: e.idLoteriaSuperpale, idSorteo: e.idSorteo, jugada: e.jugada, montoInicial: e.montoInicial, monto: e.monto, created_at: e.created_at, esBloqueoJugada: e.esBloqueoJugada, esGeneral: e.esGeneral, ignorarDemasBloqueos: e.ignorarDemasBloqueos, idMoneda: e.idMoneda, descontarDelBloqueoGeneral: e.descontarDelBloqueoGeneral)).toList();
     return await batch((b) => b.insertAllOnConflictUpdate(stocks, listElement));
   }
+
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaStock({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int esGeneral = 0, int ignorarDemasBloqueos, int idLoteriaSuperpale, int idBanca, sqfliteTransaction}) async {
+    String queryIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueos = concatenarIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueosSiNoSonNulosAlQuery(idBanca, idLoteriaSuperpale, ignorarDemasBloqueos);
+    List<QueryRow> data = await customSelect("select * from stocks where id_loteria = $idLoteria and id_sorteo = $idSorteo and jugada = '$jugada' and es_general = $esGeneral and id_moneda = $idMoneda $queryIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueos order by id desc", readsFrom: {stocks}).get();
+    data.forEach((e) => print("drift_database obtenerMontoDeTablaStock: ${e.data}"));
+    return listQueryRowToMapList(data);
+  }
+
+  concatenarIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueosSiNoSonNulosAlQuery(int idBanca, int idLoteriaSuperpale, int ignorarDemasBloqueos){
+    String query = '';
+    query += concatenarIdBancaAlQuery(idBanca);
+    query += concatenarIdLoteriaSuperpaleAlQuery(idLoteriaSuperpale);
+    query += concatenarIgnorarDemasBloqueosAlQuery(idLoteriaSuperpale);
+    return query;
+  }
+
+  String concatenarIdBancaAlQuery(int idBanca){
+    return idBanca != null ? ' and id_banca = $idBanca' : '';
+  }
+
+  String concatenarIdLoteriaSuperpaleAlQuery(int idLoteriaSuperpale){
+    return idLoteriaSuperpale != null ? ' and id_Loteria_Superpale = $idLoteriaSuperpale' : '';
+  }
+
+  String concatenarIgnorarDemasBloqueosAlQuery(int ignorarDemasBloqueos){
+    return ignorarDemasBloqueos != null ? ' and ignorar_demas_bloqueos = $ignorarDemasBloqueos' : '';
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
+    List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
+    return listQueryRowToMapList(data);
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaGenerals({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {
+    String queryIdLoteriaSuperpale = concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(idLoteriaSuperpale);
+    List<QueryRow> data = await customSelect("select * from blocksgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda $queryIdLoteriaSuperpale ${ordernarPorIdLoteriaSuperpaleNulo()}", readsFrom: {blocksgenerals}).get();
+    return listQueryRowToMapList(data);   
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
+    List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
+    return listQueryRowToMapList(data);
+  }
+
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlockslotteries({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {
+    String queryIdLoteriaSuperpale = concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(idLoteriaSuperpale);
+    List<QueryRow> data = await customSelect("select * from blockslotteries where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and id_Dia = $idDia and id_Moneda = $idMoneda $queryIdLoteriaSuperpale ${ordernarPorIdLoteriaSuperpaleNulo()}", readsFrom: {blockslotteries}).get();
+    return listQueryRowToMapList(data);
+  }
+
+  String concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(int idLoteriaSuperpale){
+    return idLoteriaSuperpale != null ? ' and (id_Loteria_Superpale = $idLoteriaSuperpale OR id_Loteria_Superpale is NULL)' : '';
+  }
+
+  String ordernarPorIdLoteriaSuperpaleNulo(){
+    return 'order by id_Loteria_Superpale is NULL';
+  }
+
+  List<Map<String, dynamic>> listQueryRowToMapList(List<QueryRow> list){
+    return list.length > 0 ? list.map((e) => e.data).toList() : [];
+  }
+
   Future<Map<String, dynamic>> getStockMonto({int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int esGeneral, @required int idMoneda, int ignorarDemasBloqueos, int idLoteriaSuperpale}) async {
     String query = "";
     if(idBanca != null)

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/database.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
@@ -511,6 +512,89 @@ class MobileDB implements CrossDB{
     // socket.emit("guardarVenta", await Utils.createJwt({"servidor" : await Db.servidor(), "usuario" : usuario.toJson(), "sale" : sale.toJsonFull(), "salesdetails" : Salesdetails.salesdetailsToJson(listSalesdetails)}));
     return [sale, listSalesdetails, usuario, codigoBarra, listaIdLoteria, listaIdLoteriaSuperPale];
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaStock({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, int esGeneral = 0, int ignorarDemasBloqueos, int idLoteriaSuperpale, int idBanca, sqfliteTransaction}) async {
+    var db = obtenerBaseDeDatos(sqfliteTransaction);
+    String queryIdBancaYIdLoteriaSuperpale = concatenarIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueosSiNoSonNulosAlQuery(idBanca, idLoteriaSuperpale, ignorarDemasBloqueos);
+    return await db.query('Stocks' , 
+      where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "esGeneral" = ? and "idMoneda" = ?' + queryIdBancaYIdLoteriaSuperpale, 
+      whereArgs: [idLoteria, idSorteo, jugada, esGeneral, idMoneda]
+    );
+  }
+
+  concatenarIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueosSiNoSonNulosAlQuery(int idBanca, int idLoteriaSuperpale, int ignorarDemasBloqueos){
+    String query = '';
+    query += concatenarIdBancaAlQuery(idBanca);
+    query += concatenarIdLoteriaSuperpaleAlQuery(idLoteriaSuperpale);
+    query += concatenarIgnorarDemasBloqueosAlQuery(idLoteriaSuperpale);
+    return query;
+  }
+
+  String concatenarIdBancaAlQuery(int idBanca){
+    return idBanca != null ? ' and "idBanca" = $idBanca' : '';
+  }
+
+  String concatenarIdLoteriaSuperpaleAlQuery(int idLoteriaSuperpale){
+    return idLoteriaSuperpale != null ? ' and "idLoteriaSuperpale" = $idLoteriaSuperpale' : '';
+  }
+
+  String concatenarIgnorarDemasBloqueosAlQuery(int ignorarDemasBloqueos){
+    return ignorarDemasBloqueos != null ? ' and "ignorarDemasBloqueos" = $ignorarDemasBloqueos' : '';
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
+    var db = obtenerBaseDeDatos(sqfliteTransaction);
+    return await db.query('Blocksplaysgenerals' ,
+      where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', 
+      whereArgs: [idLoteria, idSorteo, jugada, idMoneda], 
+      orderBy: '"id" desc' 
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaGenerals({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {
+    var db = obtenerBaseDeDatos(sqfliteTransaction);
+    String queryIdLoteriaSuperpale = concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(idLoteriaSuperpale);
+    return await db.query('Blocksgenerals' , 
+      where: '"idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?' + queryIdLoteriaSuperpale, 
+      whereArgs: [idLoteria, idSorteo, idDia, idMoneda], 
+      orderBy: ordernarPorIdLoteriaSuperpaleNulo()
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
+    var db = obtenerBaseDeDatos(sqfliteTransaction);
+    return await db.query('Blocksplays' ,
+      where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', 
+      whereArgs: [idBanca, idLoteria, idSorteo, jugada, idMoneda], 
+      orderBy: '"id" desc' 
+    );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlockslotteries({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {
+    var db = obtenerBaseDeDatos(sqfliteTransaction);
+    return await db.query('Blockslotteries' ,
+      where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "idDia" = ? and "idMoneda" = ?' + concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(idLoteriaSuperpale), 
+      whereArgs: [idBanca, idLoteria, idSorteo, idDia, idMoneda], 
+      orderBy: ordernarPorIdLoteriaSuperpaleNulo()
+    );
+  }
+
+  String concatenarIdLoteriaSuperpaleOIdLoteriaSuperpaleNuloAlQuery(int idLoteriaSuperpale){
+    return idLoteriaSuperpale != null ? ' and ("idLoteriaSuperpale" = ${idLoteriaSuperpale} OR "idLoteriaSuperpale" is NULL)' : '';
+  }
+
+  String ordernarPorIdLoteriaSuperpaleNulo(){
+    return '"idLoteriaSuperpale" is NULL';
+  }
+
+  obtenerBaseDeDatos([sqfliteTransaction]){
+    return sqfliteTransaction == null ? DBSqflite.database : sqfliteTransaction;
   }
 
   @override

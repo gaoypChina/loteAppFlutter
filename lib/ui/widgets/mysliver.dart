@@ -224,7 +224,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
   
 
   Widget _titleScreen(BoxConstraints boxconstraint){
-    print("MySliver _titleScreen: ${boxconstraint.biggest}");
+    // print("MySliver _titleScreen: ${boxconstraint.biggest}");
     // if(widget.backRouteName != null)
     //   return Column(
     //     crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +269,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
     else
       return LayoutBuilder(
         builder: (context, boxconstraint) {
-          print("_titleSmallScreen: ${boxconstraint.biggest.height}");
+          // print("_titleSmallScreen: ${boxconstraint.biggest.height}");
           return _titleScreen(boxconstraint);
         }
       );
@@ -291,7 +291,7 @@ class _MySliverAppBarState extends State<MySliverAppBar> {
   _flexibleSpace(bool isSmallOrMedium){
     return LayoutBuilder(
         builder: (context, boxconstraint) {
-          print("Pruebasliver: ${boxconstraint.biggest.height}");
+          // print("Pruebasliver: ${boxconstraint.biggest.height}");
           return Align(
             alignment: Alignment.bottomLeft,
             child: SingleChildScrollView(

@@ -32,8 +32,8 @@ Stock.fromMap(Map snapshot) :
         created_at = snapshot['created_at'] != null ? DateTime.parse(snapshot['created_at']) : DateTime.now(),
         esBloqueoJugada =  Utils.toInt(snapshot['esBloqueoJugada']),
         esGeneral = Utils.toInt(snapshot['esGeneral']) ?? 0,
-        ignorarDemasBloqueos = Utils.toInt(snapshot['ignorarDemasBloqueos']),
-        descontarDelBloqueoGeneral =  Utils.toInt(snapshot['descontarDelBloqueoGeneral']),
+        ignorarDemasBloqueos = snapshot['ignorarDemasBloqueos'] == true || snapshot['ignorarDemasBloqueos'] == 1 ? 1 : 0,
+        descontarDelBloqueoGeneral = snapshot['descontarDelBloqueoGeneral'] == true || snapshot['descontarDelBloqueoGeneral'] == 1 ? 1 : 0,
         idMoneda = Utils.toInt(snapshot['idMoneda']) ?? 0
         ;
 

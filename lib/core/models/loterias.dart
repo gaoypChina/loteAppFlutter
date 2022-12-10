@@ -133,6 +133,25 @@ List sorteosToJson() {
     return parsed != null ? parsed.map<Loteria>((json) => Loteria.fromMap(json)).toList() : [];
   }
 
+  setLoteria(Loteria loteria){
+    id = loteria.id;
+    descripcion = loteria.descripcion;
+    abreviatura = loteria.abreviatura;
+    status = loteria.status;
+    primera = loteria.primera;
+    segunda = loteria.segunda;
+    tercera = loteria.tercera;
+    pick3 = loteria.pick3;
+    pick4 = loteria.pick4;
+    horaApertura = loteria.horaApertura;
+    horaCierre = loteria.horaCierre;
+    minutosExtras = loteria.minutosExtras;
+    sorteos = loteria.sorteos;
+    loteriaSuperpale = loteria.loteriaSuperpale;
+    dias = loteria.dias;
+    color = loteria.color;
+  }
+
   toJson() {
     return {
       "id": id,

@@ -93,4 +93,8 @@ static Future<int> getIdSorteo(String jugada, [Loteria loteria, sqfliteTransacti
     return jugada;
   }
 
+  static esSorteoSuperpale(int idSorteo){
+    return idSorteo == Draws.idSorteoSuperpale;
+  }
+
 }
