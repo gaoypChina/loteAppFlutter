@@ -511,7 +511,7 @@ class AppDatabase extends _$AppDatabase{
     String query = '';
     query += concatenarIdBancaAlQuery(idBanca);
     query += concatenarIdLoteriaSuperpaleAlQuery(idLoteriaSuperpale);
-    query += concatenarIgnorarDemasBloqueosAlQuery(idLoteriaSuperpale);
+    query += concatenarIgnorarDemasBloqueosAlQuery(ignorarDemasBloqueos);
     return query;
   }
 

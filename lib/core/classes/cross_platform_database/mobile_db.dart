@@ -24,6 +24,7 @@ import 'package:loterias/core/models/servidores.dart';
 import 'package:loterias/core/models/stocks.dart';
 import 'package:loterias/core/models/ticket.dart';
 import 'package:loterias/core/models/usuario.dart';
+import 'package:loterias/core/services/montodisponiblemovilservice.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -462,7 +463,8 @@ class MobileDB implements CrossDB{
 
         if(jugada.stockEliminado){
           print("Realtime guardarVenta validarMonto con getMontoDisponible");
-          if(jugada.monto > (await getMontoDisponible(jugada.jugada, jugada.loteria, banca, loteriaSuperpale: jugada.loteriaSuperPale, sqfliteTransaction: tx)).monto){
+          // if(jugada.monto > (await getMontoDisponible(jugada.jugada, jugada.loteria, banca, loteriaSuperpale: jugada.loteriaSuperPale, sqfliteTransaction: tx)).monto){
+          if(jugada.monto > (await MontoDisponibleMovilService.obtener(jugada.jugada, jugada.loteria, banca, jugada.loteriaSuperPale, sqfliteTransaction: tx)).monto){
             throw Exception("No hay monto disponible para la jugada ${jugada.jugada} en la loteria ${jugada.loteria.descripcion}");
           }
         }else{
@@ -528,7 +530,7 @@ class MobileDB implements CrossDB{
     String query = '';
     query += concatenarIdBancaAlQuery(idBanca);
     query += concatenarIdLoteriaSuperpaleAlQuery(idLoteriaSuperpale);
-    query += concatenarIgnorarDemasBloqueosAlQuery(idLoteriaSuperpale);
+    query += concatenarIgnorarDemasBloqueosAlQuery(ignorarDemasBloqueos);
     return query;
   }
 
