@@ -7,6 +7,7 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/singleton.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/ajuste.dart';
+import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
@@ -16,6 +17,8 @@ import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
 import 'package:loterias/ui/widgets/mytextformfield.dart';
+
+import '../../core/models/blocksplaysgenerals.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -177,6 +180,13 @@ _showSnackBar(String content){
     setState(() => _recordarme = value);
   }
 
+  probarBloqueo() async {
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1288, 1, 1, 1, '21-30', 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1298, 1, 1, 1, '10', 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    var data = await Db.obtenerMontoDeTablaBlocksplays(idBanca: 1, idLoteria: 1, idSorteo: 1, jugada: '23', idMoneda: 1);
+    data.forEach((element) {print("Login probarBloqueo: ${element}");});
+  }
+
   Widget _largeScreen(){
     return Container(
         color: Colors.white,
@@ -200,7 +210,7 @@ _showSnackBar(String content){
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: IconButton(icon: Icon(Icons.clear, color: Colors.grey, size: 25,), onPressed: (){}),
+                    child: IconButton(icon: Icon(Icons.clear, color: Colors.grey, size: 25,), onPressed: (){probarBloqueo();}),
                   ),
                   Align(
                     alignment: Alignment.topRight,

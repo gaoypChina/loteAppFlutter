@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:loterias/core/classes/drift_database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/loterias.dart';
 
 
@@ -40,6 +41,13 @@ void main() {
     print("Testing loteria1 despues: ${loteria1.id}");
     expect(loteria1.id == 1, false);
   });
+
+
+  test("Testing bloqueos", () async {
+      await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1212, 1, 1, '21', 10, 3, null, null, null, 0, 1, 1)], false);
+      var data = await Db.obtenerMontoDeTablaBlocksplaysgenerals(idLoteria: 1, idSorteo: 1, jugada: '21', idMoneda: 1);
+      print("Utils_test Testing bloqueos: ${data.length}");
+    });
     
 
 

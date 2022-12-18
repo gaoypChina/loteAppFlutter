@@ -528,7 +528,8 @@ class AppDatabase extends _$AppDatabase{
   }
 
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
-    List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
+    // List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
+    List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
     return listQueryRowToMapList(data);
   }
 
@@ -539,8 +540,21 @@ class AppDatabase extends _$AppDatabase{
   }
 
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
-    List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
+    // List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
+    List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
     return listQueryRowToMapList(data);
+  }
+
+  String queryParaBuscarJugadasEntreRangos(String jugada){
+    return "'$jugada' between ${queryJugadaAntesGuion()} and ${queryJugadaDespuesGuion()}";
+  }
+
+  String queryJugadaAntesGuion(){
+    return "SUBSTR(jugada, 0, LENGTH(jugada)-instr(jugada, '-')+1)";
+  }
+
+  String queryJugadaDespuesGuion(){
+    return "SUBSTR(jugada,INSTR(jugada, '-')+1)";
   }
 
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlockslotteries({@required int idBanca, @required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {

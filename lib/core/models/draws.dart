@@ -24,7 +24,13 @@ Draws.fromMap(Map snapshot) :
         ;
 
   static String get superPale => 'Super pale';
+  static String get directo => 'Directo';
   static int get idSorteoSuperpale => 4;
+  static int get tamanoDirecto => 2;
+
+  static bool esDirecto(String sorteo){
+    return sorteo != null ? sorteo == directo : false;
+  }
 
   toJson() {
     return {

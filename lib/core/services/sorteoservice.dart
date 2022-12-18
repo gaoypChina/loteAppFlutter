@@ -1,4 +1,5 @@
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/utils.dart';
 
 import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -30,8 +31,10 @@ class SorteoService{
       sorteo = (query != null) ? Draws.fromMap(query) : null;
     }
     else if(jugada.indexOf("-") != -1){
-      var query = await Db.draw('Pick 4 Straight', sqfliteTransaction);
-      sorteo = (query != null) ? Draws.fromMap(query) : null;
+      if(SorteoService.esDirectoEntreRangos(jugada))
+        sorteo = await SorteoService.obtenerDirecto(sqfliteTransaction);
+      else
+        sorteo = await SorteoService.obtenerPick4Straight(sqfliteTransaction);
     }
     else if(jugada.indexOf("s") != -1){
       var query = await Db.draw('Super pale', sqfliteTransaction);
@@ -45,6 +48,38 @@ class SorteoService{
 
   return sorteo;
  }
+
+static bool esDirectoEntreRangos(String jugada){
+  List<String> jugadas = dividirPorGuion(jugada);
+  if(!_hayDosJugadas(jugadas))
+    return false;
+  print("SorteoService esDirectoEntreRangos: ${_sonDirectos(jugadas)}");
+  return _sonDirectos(jugadas);
+}
+
+static List<String> dividirPorGuion(String jugada){
+  return jugada.split("-");
+}
+
+static _hayDosJugadas(List<String> jugadas){
+  bool hayDosJugadas = jugadas.length == 2;
+  return hayDosJugadas;
+}
+
+static bool _sonDirectos(List<String> jugadas){
+  bool sonDirectos = true;
+  for (var jugada in jugadas) {
+    if(!esNumero(jugada))
+      sonDirectos = false;
+    if(jugada.length != Draws.tamanoDirecto)
+      sonDirectos = false;
+  }
+  return sonDirectos;
+}
+
+static esNumero(String jugada){
+  return Utils.toInt(jugada, returnNullIfNotInt: true) != null;
+}
 
 static Future<int> getIdSorteo(String jugada, [Loteria loteria, sqfliteTransaction]) async {
    int idSorteo = 0;
@@ -95,6 +130,16 @@ static Future<int> getIdSorteo(String jugada, [Loteria loteria, sqfliteTransacti
 
   static esSorteoSuperpale(int idSorteo){
     return idSorteo == Draws.idSorteoSuperpale;
+  }
+
+  static Future<Draws> obtenerDirecto([sqfliteTransaction]) async {
+    var query = await Db.draw('Directo', sqfliteTransaction);
+    return (query != null) ? Draws.fromMap(query) : null;
+  }
+
+  static Future<Draws> obtenerPick4Straight([sqfliteTransaction]) async {
+    var query = await Db.draw('Pick 4 Straight', sqfliteTransaction);
+    return (query != null) ? Draws.fromMap(query) : null;
   }
 
 }
