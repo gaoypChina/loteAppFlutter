@@ -42,7 +42,7 @@ void main() {
     expect(loteria1.id == 1, false);
   });
 
-
+  
   test("Testing bloqueos", () async {
       await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1212, 1, 1, '21', 10, 3, null, null, null, 0, 1, 1)], false);
       var data = await Db.obtenerMontoDeTablaBlocksplaysgenerals(idLoteria: 1, idSorteo: 1, jugada: '21', idMoneda: 1);
@@ -50,6 +50,33 @@ void main() {
     });
     
 
+    test("Testing toInt", () async {
+      var data = Utils.toInt("null");
+      print("data: $data");
+      expect(data == null, false);
+    });
+
+
+    group("Utils obtener primer, segundo y tercer par de numeros ", (){
+      String jugada = "010203";
+      test("1er", () async {
+        var data = Utils.getPrimerParDeNumeros(jugada);
+        print("data: $data");
+        expect(data == "01", true);
+      });
+
+      test("2do", () async {
+        var data = Utils.getSegundoParDeNumeros(jugada);
+        print("data: $data");
+        expect(data == "02", true);
+      });
+
+      test("3er", () async {
+        var data = Utils.getTercerParDeNumeros(jugada);
+        print("data: $data");
+        expect(data == "03", true);
+      });
+    });
 
   });
 

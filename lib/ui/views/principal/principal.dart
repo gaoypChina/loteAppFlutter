@@ -50,7 +50,7 @@ import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
 import 'package:loterias/ui/views/recargas/recargasadialogddscreen.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
@@ -3146,7 +3146,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
   _ckbPrintScreen([bool isSmallOrMedium = true]){
     return Row(
         children: <Widget>[
-          // MyCheckbox(
+          // MyResizedCheckBox(
           //   useTapTarget: false,
           //   value: _ckbPrint,
           //   onChanged: _ckbPrintChanged,
@@ -3169,8 +3169,8 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
   _ckbDescuentoScreen([bool isSmallOrMedium = true]){
     return Row(
       children: <Widget>[
-        //MyCheckbox
-        // MyCheckbox(
+        //MyResizedCheckBox
+        // MyResizedCheckBox(
         //   useTapTarget: false,
         //   value: _ckbDescuento,
         //   onChanged: (newValue){
@@ -3436,7 +3436,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           ),
           // Row(
           //   children: <Widget>[
-          //     // MyCheckbox(
+          //     // MyResizedCheckBox(
           //     //   useTapTarget: false,
           //     //   value: _ckbMessage,
           //     //   onChanged: _ckbMessageChanged,
@@ -3457,7 +3457,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
           
           // Row(
           //   children: <Widget>[
-          //     // MyCheckbox(
+          //     // MyResizedCheckBox(
           //     //   useTapTarget: false,
           //     //   value: _ckbWhatsapp,
           //     //   onChanged: _ckbWhatsappChanged,
@@ -5824,18 +5824,18 @@ void _getTime() {
                           Text("Tripleta"),
                        ],
                       ),
-                      // MyCheckBox(small: 2, title: "Pale", value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
-                      // MyCheckBox(small: 2, title: "Tripleta", value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value))
+                      // MyResizedCheckBox(small: 2, title: "Pale", value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
+                      // MyResizedCheckBox(small: 2, title: "Tripleta", value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value))
                     ],)
                   ],),
                 ),
               ),
               actions: <Widget>[
-                FlatButton(
+                TextButton(
                   child: Text("Cancelar"),
                   onPressed: (){Navigator.pop(context);},
                 ),
-                FlatButton(
+                TextButton(
                   child: Text("Ligar"),
                   onPressed: () async {
                     if(_selectedLoteriasLigar.length == 0){
@@ -6346,10 +6346,10 @@ void _getTime() {
               title: Text('Jugada existe'),
               content: Text('La jugada ${jugada} existe en la loteria ${loteria.descripcion} desea agregar?'),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: (){
+                TextButton(child: Text("Agregar"), onPressed: (){
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(monto);
                     listaJugadas[idx].stock = stock;
@@ -6397,10 +6397,10 @@ void _getTime() {
               title: Text('Jugada existe'),
               content: Text('La jugada ${jugada} existe en la loteria Super pale(${loteria.descripcion}/${loteriaSuperpale.descripcion}) desea agregar?'),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: (){
+                TextButton(child: Text("Agregar"), onPressed: (){
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(monto);
                     listaJugadas[idx].stock = stock;
@@ -6461,10 +6461,10 @@ void _getTime() {
               title: Text('Jugada existe'),
               content: Text('La jugada ${jugada["jugada"]} existe en la loteria ${loteriaMap["descripcion"]} desea agregar?'),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: (){
+                TextButton(child: Text("Agregar"), onPressed: (){
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(jugada["monto"]);
                     listaJugadas[idx].stock = montoDisponible.stock;
@@ -6525,10 +6525,10 @@ void _getTime() {
               title: Text('Jugada existe'),
               content: Text('La jugada ${jugada["jugada"]} existe en la loteria Super pale(${loteria.descripcion}/${loteriaSuperpale.descripcion}) desea agregar?'),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: (){
+                TextButton(child: Text("Agregar"), onPressed: (){
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(jugada["monto"]);
                     listaJugadas[idx].stock = montoDisponible.stock;
@@ -6634,10 +6634,10 @@ void _getTime() {
               title: Text('Jugada existe'),
               content: Text('La jugada ${_txtJugada.text} existe en la loteria ${_selectedLoterias[0].descripcion} desea agregar?'),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop();
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: (){
+                TextButton(child: Text("Agregar"), onPressed: (){
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(_txtMonto.text);
                     _streamControllerJugada.add(listaJugadas);
@@ -6678,10 +6678,10 @@ void _getTime() {
                 title: Text('Jugada existe'),
                 content: Text('La jugada ${_txtJugada.text} existe en la loteria ${l.descripcion} desea agregar?'),
                 actions: <Widget>[
-                  FlatButton(child: Text("Cancelar"), onPressed: (){
+                  TextButton(child: Text("Cancelar"), onPressed: (){
                   Navigator.of(context).pop();
                   },),
-                  FlatButton(child: Text("Agregar"), onPressed: (){
+                  TextButton(child: Text("Agregar"), onPressed: (){
                       Navigator.of(context).pop();
                       listaJugadas[idx].monto += Utils.redondear(Utils.toDouble(_txtMonto.text), 2);
                     // });

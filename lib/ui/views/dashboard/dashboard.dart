@@ -784,24 +784,24 @@ _showBottomSheetMoneda() async {
             Wrap(
               spacing: 12,
               children: <Widget>[
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 2),
-                    child: RaisedButton(
-                      elevation: 0, 
-                      color: Colors.transparent, 
-                      shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
-                      child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}", style: TextStyle(fontSize: 16)),
-                      onPressed: () async {
-                        DateTime fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-                        setState((){ 
-                          _fecha = (fecha != null) ? fecha : _fecha;
-                        });
-                      },
-                    ),
-                  ),
-                ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width / 3,
+                //   child: Padding(
+                //     padding: const EdgeInsets.only(left: 2),
+                //     child: RaisedButton(
+                //       elevation: 0, 
+                //       color: Colors.transparent, 
+                //       shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                //       child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}", style: TextStyle(fontSize: 16)),
+                //       onPressed: () async {
+                //         DateTime fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                //         setState((){ 
+                //           _fecha = (fecha != null) ? fecha : _fecha;
+                //         });
+                //       },
+                //     ),
+                //   ),
+                // ),
                 SizedBox(
                   width: MediaQuery.of(context).size.width / 3,
                   child: StreamBuilder<List<Moneda>>(
@@ -832,17 +832,17 @@ _showBottomSheetMoneda() async {
                     },
                   ),
                 ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 4,
-                  child: RaisedButton(
-                    elevation: 0,
-                    color: Utils.fromHex("#e4e6e8"),
-                    child: Icon(Icons.search, color: Utils.colorPrimary,),
-                    onPressed: (){
-                      _dashboardMoneda();
-                    },
-                  ),
-                ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width / 4,
+                //   child: RaisedButton(
+                //     elevation: 0,
+                //     color: Utils.fromHex("#e4e6e8"),
+                //     child: Icon(Icons.search, color: Utils.colorPrimary,),
+                //     onPressed: (){
+                //       _dashboardMoneda();
+                //     },
+                //   ),
+                // ),
               ],
             ),
             StreamBuilder<List<GraficaVentas>>(

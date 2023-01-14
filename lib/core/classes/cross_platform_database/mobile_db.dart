@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db.dart';
 import 'package:loterias/core/classes/database.dart';
+import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/drift_database.dart' as drift;
 import 'package:loterias/core/classes/principal.dart';
 import 'package:loterias/core/models/blocksdirty.dart';
@@ -550,11 +551,45 @@ class MobileDB implements CrossDB{
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
     var db = obtenerBaseDeDatos(sqfliteTransaction);
     return await db.query('Blocksplaysgenerals' ,
-      where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', 
-      whereArgs: [idLoteria, idSorteo, jugada, idMoneda], 
+      // where: '"idLoteria" = ? and "idSorteo" = ? and "jugada" like ? and "status" = 1 and "idMoneda" = ?', 
+      // whereArgs: [idLoteria, idSorteo, '%$jugada%', idMoneda], 
+      where: "idLoteria = ? and idSorteo = ? and ${Utils.generarQueryJugada(jugada, idSorteo)} and status = 1 and idMoneda = ?", 
+      whereArgs: [idLoteria, idSorteo, idMoneda], 
       orderBy: '"id" desc' 
     );
   }
+
+   String generarQueryJugada(String jugada, int idSorteo){
+    if(Draws.esIdPaleTripletaOSuperpale(idSorteo))
+      return generarQueryJugadaPaleTripletaOSuperpale(jugada, idSorteo);
+    else
+      return "jugada like '%${concatenarComasAlInicioYFin(jugada)}%'";
+  }
+
+  String generarQueryJugadaPaleTripletaOSuperpale(String jugada, int idSorteo){
+    if(Draws.esIdPaleOSuperpale(idSorteo))
+      return generarQueryPaleOSuperpale(jugada);
+    else
+      return generarQueryTripleta(jugada);
+  }
+
+  String generarQueryPaleOSuperpale(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%')";
+  }
+
+  String generarQueryTripleta(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    String tercerParDeNumeros = Utils.getTercerParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(tercerParDeNumeros)}%')";
+  }
+
+  String concatenarComasAlInicioYFin(String jugada){
+    return ",${jugada},";
+  }
+
 
   @override
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaGenerals({@required int idLoteria, @required int idSorteo, @required int idDia, @required int idMoneda, int idLoteriaSuperpale, sqfliteTransaction}) async {
@@ -571,8 +606,10 @@ class MobileDB implements CrossDB{
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
     var db = obtenerBaseDeDatos(sqfliteTransaction);
     return await db.query('Blocksplays' ,
-      where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', 
-      whereArgs: [idBanca, idLoteria, idSorteo, jugada, idMoneda], 
+      // where: '"idBanca" = ? and "idLoteria" = ? and "idSorteo" = ? and "jugada" = ? and "status" = 1 and "idMoneda" = ?', 
+      // whereArgs: [idBanca, idLoteria, idSorteo, jugada, idMoneda], 
+      where: "idBanca = ? and idLoteria = ? and idSorteo = ? and ${Utils.generarQueryJugada(jugada, idSorteo)} and status = 1 and idMoneda = ?", 
+      whereArgs: [idBanca, idLoteria, idSorteo, idMoneda], 
       orderBy: '"id" desc' 
     );
   }
@@ -1479,6 +1516,16 @@ class MobileDB implements CrossDB{
           await insert('Blocksdirty', s.toJson());
       }
     });
+  }
+  
+  @override
+  Future<List<Draws>> draws(List<String> descripciones, [sqfliteTransaction]) async {
+    // TODO: implement draws
+    if(descripciones.length == 0)
+      return [];
+    String descripcionesSeparadasPorComa = descripciones.join(",");
+    var sorteosMap = await DBSqflite.database.rawQuery("SELECT * FROM Draws where descripcion in($descripcionesSeparadasPorComa)");
+    return sorteosMap.length > 0 ? sorteosMap.map((e) => Draws.fromMap(e)) : [];
   }
   
 

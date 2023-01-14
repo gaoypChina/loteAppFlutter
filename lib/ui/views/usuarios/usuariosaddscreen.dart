@@ -12,7 +12,7 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/usuarioservice.dart';
 import 'package:loterias/ui/views/usuarios/rolscreen.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
@@ -176,7 +176,7 @@ StreamController<List<Usuario>> _streamController;
           builder: (context, setState) {
 
             Widget _myPermissionCheckbox(Permiso permiso){
-              return MyCheckBox(
+              return MyResizedCheckBox(
                 // color: (permiso.esPermisoRol) ? Colors.green : null,
                 disable: permiso.esPermisoRol,
                 medium: 3,
@@ -223,17 +223,17 @@ StreamController<List<Usuario>> _streamController;
                       child: Wrap(
                         children: grupopermiso.permisos.map((e) => _myPermissionCheckbox(e)).toList(),
                         // children: [
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Crear",
                         //     value: false,
                         //   ),
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Actualizar",
                         //     value: false,
                         //   ),
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Eliminar",
                         //     value: false,
@@ -641,7 +641,7 @@ StreamController<List<Usuario>> _streamController;
     ?
     Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
-      child: MyCheckBox(
+      child: MyResizedCheckBox(
         isSideTitle: !isSmallOrMedium,
         title: "Estado del usuario",
         titleSideCheckBox: "Activo",

@@ -1,11 +1,13 @@
 
 // import 'cross_platform_db_stub.dart'
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/cross_platform_database/cross_platform_db_stub.dart'
+
 
 // if (dart.library.io) 'local_db.dart'
 if (dart.library.io) 'mobile_db.dart'
     if (dart.library.js) 'web_db.dart';
+import 'package:loterias/core/models/draws.dart' as DrawsModel;
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/jugadas.dart';
@@ -53,6 +55,7 @@ abstract class CrossDB {
 
   Future<Map<String, dynamic>> drawById(int id, [var sqfliteTransaction]);
   Future<Map<String, dynamic>> draw(String descripcion, [var sqfliteTransaction]);
+  Future<List<DrawsModel.Draws>> draws(List<String> descripciones, [var sqfliteTransaction]);
   Future<List> guardarVentaV2({Banca banca, List<Jugada> jugadas, socket, List<Loteria> listaLoteria, bool compartido, int descuentoMonto, currentTimeZone, bool tienePermisoJugarFueraDeHorario, bool tienePermisoJugarMinutosExtras, bool tienePermisoJugarSinDisponibilidad});
   Future<MontoDisponible> getMontoDisponible(String jugada, Loteria loteria, Banca banca, {Loteria loteriaSuperpale, bool retornarStock = false, });
   

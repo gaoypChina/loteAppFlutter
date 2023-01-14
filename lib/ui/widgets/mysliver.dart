@@ -59,17 +59,19 @@ class _MySliverState extends State<MySliver> {
     return Padding(
       padding: EdgeInsets.only(left: isSmallOrMedium ? 0 : 30.0),
       child: 
-      PrimaryScrollController(
-        controller: _controller,
-        child: Scrollbar(
-          thickness: 7,
-          isAlwaysShown: !isSmallOrMedium,
-          controller: _controller,
-          child: CustomScrollView(
+      // PrimaryScrollController(
+      //   controller: _controller,
+      //   child: 
+        // Scrollbar(
+        //   thickness: 7,
+          // isAlwaysShown: !isSmallOrMedium,
+          // controller: _controller,
+          // child: 
+          CustomScrollView(
             slivers: _slivers()
           ),
-        ),
-      ),
+        // ),
+      // ),
     );
       
   }

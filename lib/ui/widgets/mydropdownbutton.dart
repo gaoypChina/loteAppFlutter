@@ -57,12 +57,14 @@ class MyDropdownButton extends StatefulWidget {
   final String nullHint;
   final bool addNingunoToFirstElement;
   final String helperText;
+  final bool isDense;
+  final EdgeInsets contentPadding;
   MyDropdownButton({Key key, this.value, this.initialValue, this.title = "", @required this.onChanged, this.hint, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 4,  this.smallSide = 1, this.mediumSide = 1.35, this.largeSide = 1.35, this.xlargeSide = 1.35, this.padding = const EdgeInsets.only(left: 8.0, right: 8.0, top: 3), this.paddingBlue = const EdgeInsets.only(left: 8.0, right: 8.0, top: 8), this.enabled = true, this.isAllBorder = false, this.leading, this.items, this.isSideTitle = false, 
     // this.flexOfSideText = 3, 
     this.flexOfSideText = 3.05, 
     // this.flexOfSideField = 1.5, 
     this.flexOfSideField = 1.523, 
-    this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false, this.helperText}) : super(key: key);
+    this.type = MyDropdownType.normal, this.nullHint = "Ninguno", this.addNingunoToFirstElement = false, this.helperText, this.isDense = false, this.contentPadding = const EdgeInsets.symmetric(horizontal: 8, vertical: 0.0)}) : super(key: key);
   @override
   _MyDropdownButtonState createState() => _MyDropdownButtonState();
 }
@@ -221,14 +223,15 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
           
           // contentPadding: EdgeInsetsGeometry.lerp(a, b, t),
           // contentPadding: EdgeInsets.all(10),
+          isDense: widget.isDense,
           border: OutlineInputBorder(borderSide: BorderSide(width: 0.2, color: Colors.black)),
-          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0.0),
+          contentPadding: widget.contentPadding,
           helperText: widget.helperText
         ),
         disabledHint: Text("${(_items.length > 0) ? (_index > _items.length) ? _items[0][0] : _items[_index][1] : ''}"),
         isExpanded: true, 
         hint: widget.hint != null ? Text(widget.hint) : null,
-        items: (_items.length > 0) ? _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: Text(e[1]), value: e[0], )).toList() : [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)],
+        items: _getItems(),
         onChanged: (!widget.enabled || _items.length == 0) ? null : (data){
           widget.onChanged(data != "Ninguno" ? data : null);
           // int idx = widget.elements.indexWhere((element) => element == data);
@@ -264,6 +267,17 @@ class _MyDropdownButtonState extends State<MyDropdownButton> {
       value: _value,
     );
                   
+  }
+
+  _getItems(){
+    List<DropdownMenuItem> itemsToReturnWhenEmpty = [DropdownMenuItem(child: Text(widget.nullHint), value: widget.nullHint,)];
+    if((_items.length == 0))
+      return itemsToReturnWhenEmpty;
+     return _items.map<DropdownMenuItem>((e) => DropdownMenuItem(child: _itemWidget(e[1]), value: e[0], )).toList();
+  }
+
+  Widget _itemWidget(dynamic item){
+    return item is Widget ? item : Text(item);
   }
 
   _dropdownFormFieldWithNoBorder(double width){

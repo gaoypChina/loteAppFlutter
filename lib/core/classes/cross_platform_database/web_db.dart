@@ -8,6 +8,7 @@ import 'package:loterias/core/models/blockslotteries.dart';
 import 'package:loterias/core/models/blocksplays.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/dia.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/jugadas.dart';
 import 'package:loterias/core/models/bancas.dart';
@@ -21,6 +22,7 @@ import 'package:loterias/core/models/blocksplays.dart' as BlocksplaysModel;
 import 'package:loterias/core/models/blocksplaysgenerals.dart' as BlocksplaysgeneralsModel;
 import 'package:loterias/core/models/blocksdirtygenerals.dart' as BlocksdirtygeneralsModel;
 import 'package:loterias/core/models/blocksdirty.dart' as BlocksdirtyModel;
+import 'package:loterias/core/models/draws.dart' as DrawsModel;
 getMoorWebConstructor(){
   return WebDatabase('app', logStatements: true);
 }
@@ -469,6 +471,14 @@ class WebDrift implements CrossDB{
 
   AppDatabase obtenerBaseDeDatos(){
     return WebDrift().db;
+  }
+
+  @override
+  Future<List<DrawsModel.Draws>> draws(List<String> descripciones, [sqfliteTransaction]) async {
+    if(descripciones.length == 0)
+      return [];
+    var sorteosMap = await obtenerBaseDeDatos().obtenerSorteos(descripciones);
+    return sorteosMap.length > 0 ? sorteosMap.map<DrawsModel.Draws>((e) => DrawsModel.Draws(e["id"], e["descripcion"], 1, 1, 1, null)).toList() : [];
   }
 
 }

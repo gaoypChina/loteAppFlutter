@@ -507,6 +507,14 @@ class AppDatabase extends _$AppDatabase{
     return listQueryRowToMapList(data);
   }
 
+  Future<List<Map<String, dynamic>>> obtenerSorteos(List<String> descripciones) async {
+    if(descripciones.length == 0)
+      return [];
+    String descripcionesSeparadasPorComa = descripciones.map((e) => "'$e'").join(",");
+    List<QueryRow> data = await customSelect("SELECT * FROM Draws where descripcion in($descripcionesSeparadasPorComa)").get();
+    return listQueryRowToMapList(data);
+  }
+
   concatenarIdBancaIdLoteriaSuperpaleEIgnorarDemasBloqueosSiNoSonNulosAlQuery(int idBanca, int idLoteriaSuperpale, int ignorarDemasBloqueos){
     String query = '';
     query += concatenarIdBancaAlQuery(idBanca);
@@ -529,7 +537,8 @@ class AppDatabase extends _$AppDatabase{
 
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplaysgenerals({@required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
     // List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
-    List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
+    // List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
+    List<QueryRow> data = await customSelect("select * from blocksplaysgenerals where id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${Utils.generarQueryJugada(jugada, idSorteo)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplaysgenerals}).get();
     return listQueryRowToMapList(data);
   }
 
@@ -541,8 +550,40 @@ class AppDatabase extends _$AppDatabase{
 
   Future<List<Map<String, dynamic>>> obtenerMontoDeTablaBlocksplays({@required int idBanca, @required int idLoteria, @required int idSorteo, @required String jugada, @required int idMoneda, sqfliteTransaction}) async {
     // List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and jugada = '$jugada' and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
-    List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
+    // List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${queryParaBuscarJugadasEntreRangos(jugada)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
+    List<QueryRow> data = await customSelect("select * from blocksplays where id_Banca = $idBanca and id_Loteria = $idLoteria and id_Sorteo = $idSorteo and ${Utils.generarQueryJugada(jugada, idSorteo)} and id_Moneda = $idMoneda and status = 1 order by id desc", readsFrom: {blocksplays}).get();
     return listQueryRowToMapList(data);
+  }
+
+  String generarQueryJugada(String jugada, int idSorteo){
+    if(DrawsModel.Draws.esIdPaleTripletaOSuperpale(idSorteo))
+      return generarQueryJugadaPaleTripletaOSuperpale(jugada, idSorteo);
+    else
+      return "jugada like '%${concatenarComasAlInicioYFin(jugada)}%'";
+  }
+
+  String generarQueryJugadaPaleTripletaOSuperpale(String jugada, int idSorteo){
+    if(DrawsModel.Draws.esIdPale(idSorteo) || DrawsModel.Draws.esIdSuperpale(idSorteo))
+      return generarQueryPaleOSuperpale(jugada);
+    else
+      return generarQueryTripleta(jugada);
+  }
+
+  String generarQueryPaleOSuperpale(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%')";
+  }
+
+  String generarQueryTripleta(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    String tercerParDeNumeros = Utils.getTercerParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(tercerParDeNumeros)}%')";
+  }
+
+  String concatenarComasAlInicioYFin(String jugada){
+    return ",${jugada},";
   }
 
   String queryParaBuscarJugadasEntreRangos(String jugada){

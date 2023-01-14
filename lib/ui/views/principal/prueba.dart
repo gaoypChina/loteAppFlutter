@@ -1090,7 +1090,7 @@
 //                         ),
 //                         Row(
 //                           children: <Widget>[
-//                             // MyCheckbox(
+//                             // MyResizedCheckBox(
 //                             //   useTapTarget: false,
 //                             //   value: _ckbDescuento,
 //                             //   onChanged: (newValue){
@@ -1105,7 +1105,7 @@
 //                         ),
 //                          Row(
 //                           children: <Widget>[
-//                             // MyCheckbox(
+//                             // MyResizedCheckBox(
 //                             //   useTapTarget: false,
 //                             //   value: _ckbPrint,
 //                             //   onChanged: _ckbPrintChanged,
@@ -1116,7 +1116,7 @@
 //                         ),
 //                         Row(
 //                           children: <Widget>[
-//                             // MyCheckbox(
+//                             // MyResizedCheckBox(
 //                             //   useTapTarget: false,
 //                             //   value: _ckbMessage,
 //                             //   onChanged: _ckbMessageChanged,
@@ -1127,7 +1127,7 @@
 //                         ),
 //                         Row(
 //                           children: <Widget>[
-//                             // MyCheckbox(
+//                             // MyResizedCheckBox(
 //                             //   useTapTarget: false,
 //                             //   value: _ckbWhatsapp,
 //                             //   onChanged: _ckbWhatsappChanged,

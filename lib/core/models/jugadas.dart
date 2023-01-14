@@ -74,6 +74,31 @@ class Jugada {
         cantidadVecesQueSeHaJugado = Utils.toInt(snapshot['cantidadVecesQueSeHaJugado']) ?? null,
         cantidadVecesQueHaSalido = Utils.toInt(snapshot['cantidadVecesQueHaSalido']) ?? null;
 
+  Jugada.clone(Jugada origen) :
+        id = origen.id,
+        idVenta = origen.idVenta,
+        jugada = origen.jugada,
+        idBanca = origen.idBanca,
+        idLoteria = origen.idLoteria,
+        idLoteriaSuperpale = origen.idLoteriaSuperpale,
+        idSorteo = origen.idSorteo,
+        monto = origen.monto,
+        premio = origen.premio,
+        pagado = origen.pagado,
+        sorteo = origen.sorteo,
+        pagadoPor = origen.pagadoPor,
+        descripcion = origen.descripcion,
+        descripcionSuperpale = origen.descripcionSuperpale,
+        abreviatura = origen.abreviatura,
+        abreviaturaSuperpale = origen.abreviaturaSuperpale,
+        status = origen.status,
+        cantidadVecesQueSeHaJugado = origen.cantidadVecesQueSeHaJugado,
+        cantidadVecesQueHaSalido = origen.cantidadVecesQueHaSalido,
+        loteria = origen.loteria,
+        loteriaSuperPale = origen.loteriaSuperPale,
+        stock = origen.stock,
+        stockEliminado = origen.stockEliminado;
+
       
   static List jugadasToJson(List<Jugada> lista) {
     List jsonList = [];

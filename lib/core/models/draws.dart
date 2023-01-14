@@ -25,11 +25,35 @@ Draws.fromMap(Map snapshot) :
 
   static String get superPale => 'Super pale';
   static String get directo => 'Directo';
+  static String get pale => 'Pale';
+  static String get tripleta => 'Pale';
+  static int get idSorteoPale => 2;
+  static int get idSorteoTripleta => 3;
   static int get idSorteoSuperpale => 4;
   static int get tamanoDirecto => 2;
 
   static bool esDirecto(String sorteo){
     return sorteo != null ? sorteo == directo : false;
+  }
+
+  static bool esIdPale(int id){
+    return id == idSorteoPale;
+  }
+
+  static bool esIdTripleta(int id){
+    return id == idSorteoTripleta;
+  }
+
+  static bool esIdSuperpale(int id){
+    return id == idSorteoSuperpale;
+  }
+
+  static bool esIdPaleOSuperpale(int id){
+    return esIdPale(id) || esIdSuperpale(id);
+  }
+
+  static bool esIdPaleTripletaOSuperpale(int id){
+    return (esIdPale(id) || esIdTripleta(id) || esIdSuperpale(id));
   }
 
   toJson() {

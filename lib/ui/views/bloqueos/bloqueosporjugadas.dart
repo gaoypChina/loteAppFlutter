@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/extensions/groupByIterableExtension.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/utils.dart';
@@ -17,9 +18,11 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
+import 'package:loterias/ui/views/bloqueos/dialogbloquearquinielasenotrossorteos.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
@@ -27,6 +30,7 @@ import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/mydropdownbutton.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
 import 'package:loterias/ui/widgets/myfilter2.dart';
+import 'package:loterias/ui/widgets/myhelper.dart';
 import 'package:loterias/ui/widgets/mymultiselect.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myrich.dart';
@@ -80,6 +84,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   List<Grupo> _grupos = [];
   List<Jugada> _jugadas = [];
   bool isSmallOrMedium = false;
+  static String _opcionBloquearQuinielasEnOtrosSorteos = "BloquearQuinielasEnOtrosSorteos";
+  List<Draws> _sorteosSeleccionadosParaBloquearQuinielas = [];
 
 
   _init() async {
@@ -99,7 +105,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
     _streamControllerMoneda.add(listaMoneda);
 
-    print("BloqueosPorJugadasScreen: ${parsed}");
+    print("BloqueosPorJugadasScreen: ${listaSorteo.length}");
   }
 
   _dateChanged(date){
@@ -277,13 +283,18 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     });
   }
 
-  agregarOCombinarJugada(){
+  agregarOCombinarJugada() async {
     if(_txtJugada.text.indexOf(".") != -1){
       _combinarJugadas();
       setState(() => _jugadaOmonto = !_jugadaOmonto);
     }
     else{
-      addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), monto: _txtMonto.text);
+      if(_sorteosSeleccionadosParaBloquearQuinielas.length > 0){
+        for(var sorteo in _sorteosSeleccionadosParaBloquearQuinielas)
+          await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), monto: _txtMonto.text, sorteoPaleTripletaOSuperpaleParaBloquearQuiniela: sorteo);
+      }
+      await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), monto: _txtMonto.text);
+      cambiarFocoEIndicarEsPrimerCaracter();
     }
   }
 
@@ -360,70 +371,108 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
    
 
-  addJugada({String jugada, String monto}) async {
-    if(_loterias.length == 0){
-      Utils.showAlertDialog(context: context, title: "Error", content: "No hay loterias seleccionadas");
-      return;
-    }
-
+  Future<void> addJugada({String jugada, String monto, Draws sorteoPaleTripletaOSuperpaleParaBloquearQuiniela = null}) async {
+    // try {
+      validarLoteriasSeleccionadas();
       jugada = Utils.ordenarMenorAMayor(jugada);
       List<Jugada> jugadasTmp = List.from(_jugadas);
       for (var loteria in _loterias) {
-        Draws sorteo = await SorteoService.getSorteo(jugada);
-        if(sorteo == null){
-          Utils.showAlertDialog(context: context, title: "Error", content: "El sorteo no existe");
-          return;
-        }
-
-        if(loteria.sorteos.indexWhere((element) => element.id == sorteo.id) == -1){
-          String mensajeSorteo = sorteo != null ? "El sorteo ${sorteo.descripcion}" : "Este sorteo";
-          Utils.showAlertDialog(context: context, title: "Error", content: "$mensajeSorteo no pertenece a la loteria ${loteria.descripcion}");
-          return;
-        }
-
-        if(jugadasTmp.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada) == -1)
-          jugadasTmp.add(Jugada(loteria: loteria, sorteo: sorteo.descripcion, idSorteo: sorteo.id, jugada: jugada, monto: Utils.toDouble(monto)));
-        else{
-          var esSi = await showDialog(
-            context: context, 
-            builder: (context){
-              return AlertDialog(
-                title: Text("Jugada existe"),
-                content: RichText(
-                  
-                  text: TextSpan(
-                    style: TextStyle(color: Colors.black),
-                  children: [
-                    TextSpan(text: "La jugada "),
-                    TextSpan(text: "${jugada} ", style: TextStyle(fontWeight: FontWeight.w800)),
-                    TextSpan(text: "existe en la loteria "),
-                    TextSpan(text: "${loteria.descripcion} ", style: TextStyle(fontWeight: FontWeight.w800)),
-                    TextSpan(text: "desea agregar?"),
-                  ]
-                )),
-                actions: [
-                  TextButton(onPressed: (){Navigator.pop(context, false);}, child: Text("No")),
-                  TextButton(onPressed: (){Navigator.pop(context, true);}, child: Text("Si")),
-                ],
-              );
-            }
-          );
-          if(esSi){
-            int index = jugadasTmp.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada);
-            jugadasTmp[index].monto += Utils.toDouble(monto);
-          }
-          
-        }
-
-        
-        
+        print("BloqueosPorJugadas addJugada jugada: $jugada");
+        Draws sorteo;
+        if(sorteoPaleTripletaOSuperpaleParaBloquearQuiniela != null)
+          sorteo = sorteoPaleTripletaOSuperpaleParaBloquearQuiniela;
+        else
+          sorteo = await obtenerYValidarSorteo(jugada);
+        validarSorteoPerteneceALoteria(loteria, sorteo);
+        await insertarOActualizarJugada(loteria: loteria, sorteo: sorteo, monto: monto, jugada: jugada);
+        // _jugadas = List.from(jugadasTmp);
+        _streamControllerJugada.add(_jugadas);
+        if(sorteoPaleTripletaOSuperpaleParaBloquearQuiniela == null)
+          _txtJugada.text = "";
+      // setState(() => _jugadaOmonto = !_jugadaOmonto);
       }
+    // } on Exception catch (e) {
+    //   Utils.showAlertDialog(context: context, title: "Error", content: "$e");
+    // }
 
-      _jugadas = List.from(jugadasTmp);
-      _streamControllerJugada.add(_jugadas);
-      _txtJugada.text = "";
-      setState(() => _jugadaOmonto = !_jugadaOmonto);
+      
 
+      
+
+  }
+
+  validarLoteriasSeleccionadas(){
+    if(_noHayLoteriasSeleccionadas()){
+      throw new Exception("No hay loterias seleccionadas");
+      // Utils.showAlertDialog(context: context, title: "Error", content: "No hay loterias seleccionadas");
+      // return;
+    }
+  }
+
+  _noHayLoteriasSeleccionadas(){
+    return _loterias.length == 0;
+  }
+
+  Future<Draws> obtenerYValidarSorteo(String jugada) async {
+    Draws sorteo = await SorteoService.getSorteo(jugada);
+    if(sorteo == null){
+      throw Exception("El sorteo no existe");
+    }
+    return sorteo;
+  }
+
+  validarSorteoPerteneceALoteria(Loteria loteria, Draws sorteo){
+    if(loteria.sorteos.indexWhere((element) => element.id == sorteo.id) == -1){
+      String mensajeSorteo = sorteo != null ? "El sorteo ${sorteo.descripcion}" : "Este sorteo";
+      throw Exception("$mensajeSorteo no pertenece a la loteria ${loteria.descripcion}");
+    }
+  }
+
+  Future<void> insertarOActualizarJugada({Loteria loteria, Draws sorteo, String jugada, String monto}) async {
+    if(jugadaExiste(loteria, sorteo, jugada))
+      await actualizarJugadas(loteria: loteria, sorteo: sorteo, jugada: jugada, monto: monto);
+    else
+      _jugadas.add(Jugada(loteria: loteria, idLoteria: loteria.id, sorteo: sorteo.descripcion, idSorteo: sorteo.id, jugada: jugada, monto: Utils.toDouble(monto)));
+  }
+
+  jugadaExiste(Loteria loteria, Draws sorteo, String jugada){
+    int indexSorteo = _jugadas.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada && element.idSorteo == sorteo.id);
+    print("BloqueosPorJugadas.dart jugadaExiste: ${indexSorteo}");
+    return indexSorteo != -1;
+  }
+
+  Future<void> actualizarJugadas({Loteria loteria, Draws sorteo, String jugada, String monto}) async {
+    if(await usuarioDeseaActualizar(loteria, jugada)){
+      int index = _jugadas.indexWhere((element) => element.loteria.id == loteria.id && element.jugada == jugada);
+      _jugadas[index].monto += Utils.toDouble(monto);
+    }
+  }
+
+  Future<bool> usuarioDeseaActualizar(Loteria loteria, String jugada) async {
+    return await showDialog(
+        context: context, 
+        builder: (context){
+          return AlertDialog(
+            title: Text("Jugada existe"),
+            content: RichText(
+              
+              text: TextSpan(
+                style: TextStyle(color: Colors.black),
+              children: [
+                TextSpan(text: "La jugada "),
+                TextSpan(text: "${jugada} ", style: TextStyle(fontWeight: FontWeight.w800)),
+                TextSpan(text: "existe en la loteria "),
+                TextSpan(text: "${loteria.descripcion}, ", style: TextStyle(fontWeight: FontWeight.w800)),
+                TextSpan(text: "desea agregar?"),
+              ]
+            )),
+            actions: [
+              TextButton(onPressed: (){Navigator.pop(context, false);}, child: Text("No")),
+              TextButton(onPressed: (){Navigator.pop(context, true);}, child: Text("Si")),
+            ],
+          );
+        }
+      );
   }
 
   _loteriasChanged() async {
@@ -505,11 +554,15 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: MyDropdownButton(
-        largeSide: 1.2,
-        isSideTitle: true,
+        // largeSide: 1.2,
+        // isSideTitle: true,
+        xlarge: 6,
+        large: 6,
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 11.0),
         type: MyDropdownType.border,
-        title: "Tipo regla del bloqueo *",
-        helperText: "${_selectedTipo == 'General' ? 'Todas las bancas tendrán el mismo limite y se descontarán del mismo' : 'Cada banca tendrá su propio limite aparte de las demas'} ",
+        title: "Tipo bloqueo *",
+        // helperText: "${_selectedTipo == 'General' ? 'Todas las bancas tendrán el mismo limite y se descontarán del mismo' : 'Cada banca tendrá su propio limite aparte de las demas'} ",
         value: _selectedTipo,
         items: listaTipo.map((e) => [e, "$e"]).toList(),
         onChanged: (data){
@@ -536,7 +589,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     !isSmallOrMedium
     ?
     Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       child: StreamBuilder<List<Moneda>>(
         stream: _streamControllerMoneda.stream,
         builder: (context, snapshot) {
@@ -544,11 +597,16 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             return SizedBox.shrink();
 
           return MyDropdownButton(
-            largeSide: 1.2,
-            isSideTitle: true,
+            // largeSide: 1.2,
+            // isSideTitle: true,
+            xlarge: 6,
+            large: 6,
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 11.0),
             type: MyDropdownType.border,
-            title: "Moneda del bloqueo*",
-            helperText: "Solo afectará a las bancas que tengan asignadas esta moneda",
+            title: "Moneda*",
+            hint: "Selec. moneda",
+            // helperText: "Solo afectará a las bancas que tengan asignadas esta moneda",
             value: _selectedMoneda,
             items: listaMoneda.map((e) => [e, "${e.descripcion}"]).toList(),
             onChanged: (data){
@@ -634,16 +692,19 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       return Visibility(
         visible: _selectedTipo == "Por banca",
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 2),
           child: MyDropdown(
-            xlarge: 1.35,
-            large: 1.2,
-            medium: 1.35,
-            small: 1,
-            isSideTitle: true,
+            // xlarge: 1.35,
+            // large: 1.2,
+            // medium: 1.35,
+            // small: 1,
+            // isSideTitle: true,
             onlyBorder: true,
+            xlarge: 6,
+            large: 6,
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 7.0),
             textColor: Colors.black,
-            title: "Bancas del bloqueo *",
+            title: "Bancas *",
             helperText: "Seran las bancas afectadas por el bloqueo deseado",
             hint: "${_bancas.length > 0 ? _bancas.map((e) => e.descripcion).toList().join(", ") : 'Seleccionar las bancas...'}",
             onTap: _bancasChanged,
@@ -679,30 +740,40 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
   Widget _fechaScreen(bool isSmallOrMedium){
     if(!isSmallOrMedium)
-      return MyDropdown(
-        xlarge: 1.35,
-        large: 1.2,
-        medium: 1.35,
-        small: 1,
-        isSideTitle: true,
-        title: "Fecha del bloqueo", 
-        helperText: "Hasta cuando será valido el bloqueo",
-        hint: "${MyDate.dateRangeToNameOrString(_date, 'Fecha')}",
-        onTap: (){
-          showMyOverlayEntry(
-            right: 10,
-              context: context,
-              builder: (context, overlay){
-                _cancel(){
-                  overlay.remove();
-                }
-                return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
-                  _dateChanged(date); 
-                  overlay.remove();
-                },);
-              }
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+        child: Builder(
+          builder: (context) {
+            return MyDropdown(
+              // xlarge: 1.35,
+              // large: 1.2,
+              // medium: 1.35,
+              // small: 1,
+              // isSideTitle: true,
+              xlarge: 6,
+              large: 6,
+              title: "Fecha *", 
+              helperText: "Hasta cuando será valido el bloqueo",
+              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+              hint: "${MyDate.dateRangeToNameOrString(_date, 'Fecha')}",
+              onTap: (){
+                showMyOverlayEntry(
+                  right: 10,
+                    context: context,
+                    builder: (context, overlay){
+                      _cancel(){
+                        overlay.remove();
+                      }
+                      return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
+                        _dateChanged(date); 
+                        overlay.remove();
+                      },);
+                    }
+                  );
+              },
             );
-        },
+          }
+        ),
       );
 
     
@@ -734,18 +805,19 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       !isSmallOrMedium
       ?
       Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
-        child: MyCheckBox(
-          xlarge: 1.33,
-          large: 1.2,
-          medium: 1.35,
-          small: 1,
-          isSideTitle: true,
-          title: "Ignorar todos",
-          titleSideCheckBox: "Ignorar bloqueos",
-          helperText: "Se ignorarán todos los bloqueos si existen y estos se van a establecer por encima de ellos.",
-          value: _ignorarDemasBloqueos,
-          onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
+        padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 8.0),
+        child: Wrap(
+          children: [
+            MyCheckBox(
+              title: "Ignorar demas bloqueos",
+              value: _ignorarDemasBloqueos,
+              onChanged: (value) => setState(() => _ignorarDemasBloqueos = value),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6.0, left: 8.0),
+              child: MyHelper(mensaje: "Se ignorarán todos los bloqueos que existen y estos se van a establecer por encima de ellos.",),
+            )
+          ],
         ),
       )
       :
@@ -765,20 +837,38 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       !isSmallOrMedium
       ?
       Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
-        child: MyCheckBox(
-          xlarge: 1.33,
-          large: 1.2,
-          medium: 1.35,
-          small: 1,
-          isSideTitle: true,
-          title: "Descontar del bloqueo general",
-          titleSideCheckBox: "Descontar",
-          helperText: "Se descontará del bloqueo general, de lo contrario las bancas estan tendrán su propio limite y estaran fuera del bloqueo general",
-          value: _descontarDelBloqueoGeneral,
-          onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value),
+        padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 8.0),
+        child: Wrap(
+          children: [
+            MyCheckBox(
+              title: "Descontar del bloqueo general",
+              value: _descontarDelBloqueoGeneral,
+              onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value)
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6.0, left: 8.0),
+              child: MyHelper(mensaje: "Se descontará del bloqueo general, de lo contrario las bancas estan tendrán su propio limite y estaran fuera del bloqueo general",),
+            )
+          ],
         ),
       )
+      // Padding(
+      //   padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
+      //   child: MyResizedCheckBox(
+      //     // xlarge: 1.33,
+      //     // large: 1.2,
+      //     // medium: 1.35,
+      //     // small: 1,
+      //     // isSideTitle: true,
+      //     xlarge: 6,
+      //     large: 6,
+      //     title: "Descontar del bloqueo general",
+      //     titleSideCheckBox: "Descontar",
+      //     helperText: "Se descontará del bloqueo general, de lo contrario las bancas estan tendrán su propio limite y estaran fuera del bloqueo general",
+      //     value: _descontarDelBloqueoGeneral,
+      //     onChanged: (value) => setState(() => _descontarDelBloqueoGeneral = value),
+      //   ),
+      // )
       :
       CheckboxListTile(
         controlAffinity: ListTileControlAffinity.leading,
@@ -792,16 +882,20 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   Widget _loteriaScreen(bool isSmallOrMedium){
     if(!isSmallOrMedium)
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 0.0),
         child: MyDropdown(
-          xlarge: 1.35,
-          large: 1.2,
-          medium: 1.35,
-          small: 1,
-          isSideTitle: true,
-          onlyBorder: true,
-          textColor: Colors.black,
-          title: "Loterias del bloqueo *",
+          // xlarge: 1.35,
+          // large: 1.2,
+          // medium: 1.35,
+          // small: 1,
+          // isSideTitle: true,
+          // onlyBorder: true,
+          xlarge: 4,
+          large: 4,
+          medium: 3.3,
+          padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 7.5),
+          // textColor: Colors.black,
+          title: "Loterias *",
           helperText: "Seran las loterias afectadas por el bloqueo deseado",
           hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
           onTap: _loteriasChanged,
@@ -851,62 +945,107 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   }
 
   Widget _jugadaTextField(bool isSmallOrMedium){
-    return RawKeyboardListener(
-      focusNode: FocusNode(),
-      onKey: (RawKeyEvent event) { 
-        // print("Event runtimeType is ${event.runtimeType}");
-        if(event.runtimeType.toString() != 'RawKeyUpEvent')
-          return;
-        print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
-        if(event.logicalKey == LogicalKeyboardKey.backspace)
-          return;
+    return Column(
+      children: [
+        RawKeyboardListener(
+          focusNode: FocusNode(),
+          onKey: (RawKeyEvent event) { 
+            // print("Event runtimeType is ${event.runtimeType}");
+            if(event.runtimeType.toString() != 'RawKeyUpEvent')
+              return;
+            print("PrincipalView _jugadaTextField onChanged ${event.data.keyLabel}");
+            if(event.logicalKey == LogicalKeyboardKey.backspace)
+              return;
 
-        if(event.data.keyLabel.isEmpty)
-          return;
+            if(event.data.keyLabel.isEmpty)
+              return;
 
-        
-        // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
-        if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
-          _escribir(event.data.keyLabel);
-        // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
-        
-      },
-      child: TextField(
-        controller: _txtJugada,
-        focusNode: _jugadaFocusNode,
-        autofocus: !isSmallOrMedium,
-        enabled: !isSmallOrMedium,
-        style: TextStyle(fontSize: 20),
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.all(0),
-          isDense: !isSmallOrMedium ? false : true,
-          // alignLabelWithHint: true,
-          border: !isSmallOrMedium ? null : InputBorder.none,
-          hintText: !isSmallOrMedium ? null : 'Jugada',
-          labelText: !isSmallOrMedium ? 'Jugada' : null,
-          fillColor: Colors.transparent,
-          // filled: true,
-          hintStyle: TextStyle(fontWeight: FontWeight.bold),
+            
+            // _txtJugada.text = _txtJugada.text.substring(0, _txtJugada.text.length - 1);
+            if(event.data.keyLabel.indexOf(RegExp("[\+\-\/sS\.]")) != -1)
+              _escribir(event.data.keyLabel);
+            // Future.delayed(Duration(milliseconds: 500), (){_escribir(event.data.keyLabel);});
+            
+          },
+          child: TextField(
+            controller: _txtJugada,
+            focusNode: _jugadaFocusNode,
+            autofocus: !isSmallOrMedium,
+            enabled: !isSmallOrMedium,
+            style: TextStyle(fontSize: 20),
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.all(0),
+              isDense: !isSmallOrMedium ? false : true,
+              // alignLabelWithHint: true,
+              border: !isSmallOrMedium ? null : InputBorder.none,
+              hintText: !isSmallOrMedium ? null : 'Jugada',
+              labelText: !isSmallOrMedium ? 'Jugada' : null,
+              fillColor: Colors.transparent,
+              // filled: true,
+              hintStyle: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
+            inputFormatters: !!isSmallOrMedium ? [] : [
+              LengthLimitingTextInputFormatter(6),
+
+              // WhitelistingTextInputFormatter.digitsOnly,
+              // FilteringTextInputFormatter.digitsOnly
+              // FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+              FilteringTextInputFormatter.allow(RegExp(r'^\d{1,2}(\d|\-)*(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+            ],
+            onSubmitted: (data){
+              _cambiarFocusJugadaMonto();
+            }
+            // onChanged: (String data){
+            //   print("PrincipalView _jugadaTextField onChanged: $data");
+            //   // _escribir(data);
+            // },
+            // expands: false,
+          ),
         ),
-        textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
-        inputFormatters: !!isSmallOrMedium ? [] : [
-          LengthLimitingTextInputFormatter(6),
+        _sorteoWidget(),
+      ],
+    );
+  }
 
-          // WhitelistingTextInputFormatter.digitsOnly,
-          // FilteringTextInputFormatter.digitsOnly
-          // FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
-          FilteringTextInputFormatter.allow(RegExp(r'^\d{1,2}(\d|\-)*(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
-        ],
-        onSubmitted: (data){
-          _cambiarFocusJugadaMonto();
-        }
-        // onChanged: (String data){
-        //   print("PrincipalView _jugadaTextField onChanged: $data");
-        //   // _escribir(data);
-        // },
-        // expands: false,
+  _sorteoWidget(){
+    return Padding(
+          padding: _esPantallaGrande() ? EdgeInsets.only(top: 8.0) : EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: listaSorteo.where((element) => Draws.esIdPaleTripletaOSuperpale(element.id)).toList().asMap().map((index, sorteo) => MapEntry(index, _sorteoItemWidget(sorteo, index))).values.toList()
+          )
+    );
+  }
+
+  Widget _sorteoItemWidget(Draws sorteo, int index){
+    bool esPrimerElemento = index == 0;
+    return Padding(
+      padding: EdgeInsets.only(left: esPrimerElemento ? 0.0 : 6.0, right: 6.0),
+      child: InkWell(
+        onTap: () => _seleccionarSorteo(sorteo),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
+          decoration: BoxDecoration(
+            color: _estaSeleccionado(sorteo) ? Colors.black : Colors.grey[200],
+            borderRadius: BorderRadius.circular(8)
+          ),
+          child: Text(sorteo.descripcion, style: TextStyle(color: _estaSeleccionado(sorteo) ? Colors.white : null, fontSize: 11, fontWeight: FontWeight.w700),),
+        ),
       ),
     );
+  }
+
+  void _seleccionarSorteo(Draws sorteo){
+    if(_estaSeleccionado(sorteo))
+      setState(() => _sorteosSeleccionadosParaBloquearQuinielas.removeWhere((element) => element.id == sorteo.id));
+    else
+      setState(() => _sorteosSeleccionadosParaBloquearQuinielas.add(sorteo));
+  }
+
+  bool _estaSeleccionado(Draws sorteo){
+    Draws sorteoEncontrado = _sorteosSeleccionadosParaBloquearQuinielas.firstWhere((element) => element.id == sorteo.id, orElse: () => null);
+    bool estaSeleccionado = sorteoEncontrado != null;
+    return estaSeleccionado;
   }
 
   TextField _montoTextField(bool isSmallOrMedium){
@@ -1078,6 +1217,14 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
      return Text(jugada.jugada.substring(0, 2) + '-' + jugada.jugada.substring(2, 4) + '-' + jugada.jugada.substring(4, 6), style: TextStyle(fontSize: !isSmallOrMedium ? 12.5 : 15, letterSpacing: -1.5));
   }
 
+  if(Draws.esIdPaleTripletaOSuperpale(jugada.idSorteo))
+   return Column(
+     children: [
+       Text(jugada.jugada, style: TextStyle(fontSize: 16)),
+       Text(jugada.sorteo, style: TextStyle(fontSize: 11, color: Colors.grey, letterSpacing: 0.2)),
+     ],
+   );
+
    return Text(jugada.jugada, style: TextStyle(fontSize: 16));
  }
 
@@ -1179,13 +1326,39 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
      return;
    }
 
+   List<Jugada> jugadasAGuardar = [];
+
+   Map<dynamic, List<Jugada>> jugadasAgrupadasPorIdLoteria = _jugadas.map((e) => Jugada.clone(e)).groupBy((jugada) => jugada.loteria.id);
+
+   for (MapEntry<dynamic, List<Jugada>> jugadasAgrupadasPorLoteria in jugadasAgrupadasPorIdLoteria.entries) {
+     for (MapEntry<dynamic, List<Jugada>> jugadasAgrupadasPorMonto in jugadasAgrupadasPorLoteria.value.groupBy((jugada) => jugada.monto).entries) {
+       for (MapEntry<dynamic, List<Jugada>> jugadasAgrupadasPorSorteo in jugadasAgrupadasPorMonto.value.groupBy((jugada) => jugada.idSorteo).entries) {
+        Jugada jugada = jugadasAgrupadasPorSorteo.value.first;
+        String jugadasAgrupadasPorLoteriaSorteoYMontoSeparadasPorComa = jugadasAgrupadasPorSorteo.value.map((e) => e.jugada).join(",");
+        jugada.jugada = jugadasAgrupadasPorLoteriaSorteoYMontoSeparadasPorComa;
+        jugadasAGuardar.add(jugada);
+      }
+     }
+   }
+
+  // for (var jugada in jugadasAGuardar) {
+  //   print("BloqueoPorJugada _guardar idLoteria: ${jugada.loteria.id} jugada: ${jugada.jugada}");
+  // }
+
+  // for (var jugada in _jugadas) {
+  //   print("BloqueoPorJugada _guardar _jugadas idLoteria: ${jugada.loteria.id} jugada: ${jugada.jugada}");
+  // }
+
+  //  return;
+
    try {
       _cargandoNotify.value = true;
       var parsed;
+      List<Loteria> loteriasTomadasDesdeJugadas = jugadasAgrupadasPorIdLoteria.entries.map<Loteria>((e) => e.value[0].loteria).toList();
        if(_selectedTipo == "Por banca")
-        parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date, descontarDelBloqueoGeneral: _descontarDelBloqueoGeneral);
+        parsed = await BloqueosService.guardarJugadas(context: context, bancas: _bancas, loterias: loteriasTomadasDesdeJugadas, jugadas: jugadasAGuardar, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date, descontarDelBloqueoGeneral: _descontarDelBloqueoGeneral);
       else
-        parsed = await BloqueosService.guardarJugadasGeneral(context: context, loterias: _loterias, jugadas: _jugadas, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
+        parsed = await BloqueosService.guardarJugadasGeneral(context: context, loterias: loteriasTomadasDesdeJugadas, jugadas: jugadasAGuardar, moneda: _selectedMoneda, ignorarDemasBloqueos: _ignorarDemasBloqueos, date: _date);
 
       print("BloqueosPorJugadas _guardar parsed: $parsed");
       setState(() {
@@ -1513,6 +1686,53 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           
   }
   
+  Widget _menuOpcionesWidget(bool isSmallOrMedium){
+
+  return PopupMenuButton(
+    child: Padding(
+      padding: EdgeInsets.all(10.0),
+      child: _tituloOpciones(isSmallOrMedium),
+    ),
+    onSelected: (String value)  {
+      if(value == _opcionBloquearQuinielasEnOtrosSorteos)
+        _bloquearQuinielasEnOtrosSorteos();
+    },
+    itemBuilder: (context) => _getMenuOpciones()
+  );
+
+}
+  _tituloOpciones(bool isSmallOrMedium){
+    if(isSmallOrMedium)
+      return Icon(Icons.more_vert);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Mas opciones", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),),
+        Icon(Icons.arrow_drop_down, color: Colors.grey[600])
+      ],
+    );
+  }
+
+  _bloquearQuinielasEnOtrosSorteos() async {
+
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return DialogBloquearQuinielasEnOtrosSorteos(jugadas: _jugadas,);
+      }
+    );
+  }
+
+  List<PopupMenuItem<String>> _getMenuOpciones(){
+     List<PopupMenuItem<String>> opciones = [
+      PopupMenuItem<String>(
+        value: _opcionBloquearQuinielasEnOtrosSorteos,
+        child: Text("Bloquear quinienas en otros sorteos"),
+      )
+    ];
+    return opciones;
+  }
 
   @override
   void initState() {
@@ -1535,40 +1755,14 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       isSliverAppBar: true,
       bloqueosPorJugadas: true,
       sliverBody: MySliver(
+        withScroll: false,
         sliverAppBar: MySliverAppBar(
           title: _title(isSmallOrMedium),
           expandedHeight: isSmallOrMedium ? 95 : 85,
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
-            MySliverButton(
-              showOnlyOnLarge: true,
-              title: Container(
-                width: 180,
-                child: Builder(
-                  builder: (context) {
-                    return MyDropdown(title: null, 
-                      hint: "${MyDate.dateRangeToNameOrString(_date)}",
-                      onTap: (){
-                        showMyOverlayEntry(
-                          right: 10,
-                            context: context,
-                            builder: (context, overlay){
-                              _cancel(){
-                                overlay.remove();
-                              }
-                              return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){
-                                _dateChanged(date); 
-                                overlay.remove();
-                              },);
-                            }
-                          );
-                      },
-                    );
-                  }
-                ),
-              ), 
-              onTap: (){}
-              ),
+           
+              MySliverButton(title: _menuOpcionesWidget(isSmallOrMedium),),
               MySliverButton(title: "Guardar", onTap: _guardar, cargandoNotifier: _cargandoNotify,)
             // MySliverButton(
             //   title: Container(
@@ -1655,21 +1849,29 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             );
 
             if(!isSmallOrMedium){
-              return SliverList(delegate: SliverChildListDelegate([
-                _tipoReglaScreen(isSmallOrMedium),
-                _monedaScreen(isSmallOrMedium),
-                _bancaScreen(isSmallOrMedium),
-                _fechaScreen(isSmallOrMedium),
-                _ignorarDemasBloqueosScreen(isSmallOrMedium),
-                _descontarBloqueoGeneralScreen(isSmallOrMedium),
-                _loteriaScreen(isSmallOrMedium),
+              return SliverList(
+                delegate: SliverChildListDelegate([
                 Wrap(
-                  alignment: WrapAlignment.center,
                   children: [
+                    _tipoReglaScreen(isSmallOrMedium),
+                    _monedaScreen(isSmallOrMedium),
+                    _bancaScreen(isSmallOrMedium),
+                    _fechaScreen(isSmallOrMedium),
+                    _ignorarDemasBloqueosScreen(isSmallOrMedium),
+                    _descontarBloqueoGeneralScreen(isSmallOrMedium),
+                    // _loteriaScreen(isSmallOrMedium),
+                  ],
+                ),
+                Wrap(
+                  alignment: WrapAlignment.start,
+                  children: [
+                    _loteriaScreen(isSmallOrMedium),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
                       child: MyResizedContainer(
                         xlarge: 5, 
+                        large: 3, 
+                        medium: 2.5,
                         child: _jugadaTextField(isSmallOrMedium)
                       ),
                     ),
@@ -1677,6 +1879,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
                       child: MyResizedContainer(
                         xlarge: 5, 
+                        large: 3, 
+                        medium: 5.2,
                         child: _montoTextField(isSmallOrMedium)
                       ),
                     ),
@@ -1767,6 +1971,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                                 )
                               ],
                             ),
+                            _sorteoWidget(),
                             MyResizedContainer(
                               small: 1,
                               medium: 1,
@@ -2041,4 +2246,5 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       )
     );
   }
+  
 }

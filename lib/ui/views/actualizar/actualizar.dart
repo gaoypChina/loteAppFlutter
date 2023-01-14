@@ -39,14 +39,16 @@ class _ActualizarScreenState extends State<ActualizarScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text("Debe actualizar la app para seguir utilizandola"),
-              RaisedButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
                   elevation: 0,
-                  color: Utils.colorInfo,
-                  child: Text("Actualizar",),
-                  onPressed: (){
-                    _launchURL(widget.url);
-                  },
+                  backgroundColor: Utils.colorInfo 
                 ),
+                child: Text("Actualizar",),
+                onPressed: (){
+                  _launchURL(widget.url);
+                },
+              ),
             ],
           ),
         ),

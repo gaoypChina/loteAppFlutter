@@ -11,10 +11,10 @@ class _ShowSnackBarWidgetState extends State<ShowSnackBarWidget> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
 _showSnackBar(String content){
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-          content: Text(content),
-          action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
-        ));
+      // _scaffoldKey.currentState.showSnackBar(SnackBar(
+      //     content: Text(content),
+      //     action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
+      //   ));
     }
 
   @override

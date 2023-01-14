@@ -150,7 +150,7 @@ class BloqueosService{
       "datos" : jwt
     };
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v2/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v3/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){
@@ -193,7 +193,7 @@ class BloqueosService{
       "datos" : jwt
     };
 
-    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v2/general/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
+    var response = await http.post(Uri.parse(Utils.URL + "/api/bloqueos/v3/general/jugadas/guardar"), body: json.encode(mapDatos), headers: Utils.header);
     int statusCode = response.statusCode;
 
     if(statusCode < 200 || statusCode > 400){

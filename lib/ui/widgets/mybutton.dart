@@ -380,8 +380,8 @@ class _MyButtonState extends State<MyButton> {
   @override
   void dispose() {
     // TODO: implement dispose
-    if(widget.cargandoNotify != null)
-      widget.cargandoNotify.dispose();
+    // if(widget.cargandoNotify != null)
+    //   widget.cargandoNotify.dispose();
     super.dispose();
   }
 

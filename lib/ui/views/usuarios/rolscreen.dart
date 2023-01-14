@@ -5,7 +5,7 @@ import 'package:loterias/core/models/grupopermiso.dart';
 import 'package:loterias/core/models/permiso.dart';
 import 'package:loterias/core/models/rol.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
@@ -123,7 +123,7 @@ class _RolScreenState extends State<RolScreen> {
   Widget _myPermissionCheckbox(Permiso permiso){
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 6),
-      child: MyCheckBox(
+      child: MyResizedCheckBox(
         // color: (permiso.esPermisoRol) ? Colors.green : null,
         // disable: permiso.esPermisoRol,
         medium: 3,

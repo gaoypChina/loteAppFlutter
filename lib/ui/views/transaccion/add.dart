@@ -412,8 +412,8 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
             ),
           ),
           actions: <Widget>[
-            FlatButton(child: Text("No"), onPressed: (){Navigator.pop(context, false);},),
-            FlatButton(
+            TextButton(child: Text("No"), onPressed: (){Navigator.pop(context, false);},),
+            TextButton(
               child: Text("Si"),
               onPressed: (){
                 Navigator.pop(context, true);
@@ -490,14 +490,17 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
         visible: _esProgramada,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: RaisedButton(
+          child: ElevatedButton(
             child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
-            color: Colors.transparent, 
+            style: ElevatedButton.styleFrom(
+              elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+              backgroundColor: Colors.transparent, 
+            ),
             onPressed: () async {
               var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
               setState(() => _fecha = (fecha != null) ? fecha : _fecha);
             }, 
-            elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
+            ),
         ),
       ),
       StreamBuilder<List<Tipo>>(
@@ -1027,20 +1030,20 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
                         },
                       ),
                     ),
-                    Visibility(
-                      visible: _esProgramada,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: RaisedButton(
-                          child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
-                          color: Colors.transparent, 
-                          onPressed: () async {
-                            var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
-                            setState(() => _fecha = (fecha != null) ? fecha : _fecha);
-                          }, 
-                          elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
-                      ),
-                    ),
+                    // Visibility(
+                    //   visible: _esProgramada,
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.all(8.0),
+                    //     child: RaisedButton(
+                    //       child: Text("${_fecha.year}-${_fecha.month}-${_fecha.day}"), 
+                    //       color: Colors.transparent, 
+                    //       onPressed: () async {
+                    //         var fecha = await showDatePicker( context: context, initialDate: DateTime.now(), firstDate: DateTime(2001), lastDate: DateTime(2022));
+                    //         setState(() => _fecha = (fecha != null) ? fecha : _fecha);
+                    //       }, 
+                    //       elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),),
+                    //   ),
+                    // ),
                      StreamBuilder<List<Tipo>>(
                        stream: _streamControllerTipo.stream,
                        builder: (context, snapshot) {
@@ -1277,18 +1280,18 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
             SafeArea(
               child: ListView(
                 children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: RaisedButton(
-                    elevation: 0,
-                    color: Utils.fromHex("#e4e6e8"),
-                    child: Text("Eliminar todas", style: TextStyle(color: Utils.colorPrimary),),
-                    onPressed: (){
-                      listaTransaccion.clear();
-                      _streamControllerTransacciones.add(listaTransaccion);
-                    },
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.all(8.0),
+                //   child: RaisedButton(
+                //     elevation: 0,
+                //     color: Utils.fromHex("#e4e6e8"),
+                //     child: Text("Eliminar todas", style: TextStyle(color: Utils.colorPrimary),),
+                //     onPressed: (){
+                //       listaTransaccion.clear();
+                //       _streamControllerTransacciones.add(listaTransaccion);
+                //     },
+                //   ),
+                // ),
                   StreamBuilder<List>(
                     stream: _streamControllerTransacciones.stream,
                     builder: (context, snapshot){

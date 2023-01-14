@@ -103,14 +103,14 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
             ),
           ),
           actions: <Widget>[
-            FlatButton(
-              child: Text('CANCEL'),
-              onPressed: _onCancelTap,
-            ),
-            FlatButton(
-              child: Text('OK'),
-              onPressed: _onSubmitTap,
-            )
+            // FlatButton(
+            //   child: Text('CANCEL'),
+            //   onPressed: _onCancelTap,
+            // ),
+            // FlatButton(
+            //   child: Text('OK'),
+            //   onPressed: _onSubmitTap,
+            // )
           ],
         );
       }

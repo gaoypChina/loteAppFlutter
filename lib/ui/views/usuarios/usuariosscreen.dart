@@ -20,7 +20,7 @@ import 'package:loterias/ui/views/usuarios/usuariossearch.dart';
 import 'package:loterias/ui/views/usuarios/vercontrasenasdialog.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycolor.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
@@ -576,7 +576,7 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
           builder: (context, setState) {
 
             Widget _myPermissionCheckbox(Permiso permiso){
-              return MyCheckBox(
+              return MyResizedCheckBox(
                 // color: (permiso.esPermisoRol) ? Colors.green : null,
                 // disable: permiso.esPermisoRol,
                 medium: 3,
@@ -623,17 +623,17 @@ class _UsuarioScreenState extends State<UsuarioScreen> {
                       child: Wrap(
                         children: grupopermiso.permisos.map((e) => _myPermissionCheckbox(e)).toList(),
                         // children: [
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Crear",
                         //     value: false,
                         //   ),
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Actualizar",
                         //     value: false,
                         //   ),
-                        //   MyCheckBox(
+                        //   MyResizedCheckBox(
                         //     medium: 3,
                         //     title: "Eliminar",
                         //     value: false,

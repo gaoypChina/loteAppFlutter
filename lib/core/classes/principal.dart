@@ -453,10 +453,10 @@ class Principal{
                 ),
               ),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop([]);
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: () async {
+                TextButton(child: Text("Agregar"), onPressed: () async {
                     print("${_loteriasAduplicar.toList()}");
                     Navigator.of(context).pop(_loteriasAduplicar);
                   },
@@ -774,10 +774,10 @@ class Principal{
                 ),
               ),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop([]);
                 },),
-                FlatButton(child: Text("Agregar"), onPressed: () async {
+                TextButton(child: Text("Agregar"), onPressed: () async {
                     print("${_loteriasAduplicar.toList()}");
                     Navigator.of(context).pop(_loteriasAduplicar);
                   },
@@ -1124,12 +1124,12 @@ class Principal{
                 Container(
                   
                 ),
-                FlatButton(child: Text("Cancelar"), onPressed: (){
+                TextButton(child: Text("Cancelar"), onPressed: (){
                 Navigator.of(context).pop(List());
                 },),
                 
                 AnimatedCrossFade(
-                  firstChild: FlatButton(child: Text("Pagar"), onPressed: () async {
+                  firstChild: TextButton(child: Text("Pagar"), onPressed: () async {
                     if(tieneJugadasPendientes){
                         if(await Utils.exiseImpresora() == false){
                           Utils.showAlertDialog(title: "Alerta", content: "Debe registrar una impresora", context: context);
@@ -1394,8 +1394,8 @@ class Principal{
                   ),
                 ),
                 actions: <Widget>[
-                  FlatButton(onPressed: (){Navigator.pop(context, null);}, child: Text("Cancelar")),
-                  FlatButton(onPressed: () async {
+                  TextButton(onPressed: (){Navigator.pop(context, null);}, child: Text("Cancelar")),
+                  TextButton(onPressed: () async {
                    try {
                      setState(() => _cargando = true);
                     Usuario usuario = Usuario.fromMap(await Db.getUsuario());

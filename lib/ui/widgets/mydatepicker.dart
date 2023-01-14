@@ -165,11 +165,16 @@ class _MyDatePickerState extends State<MyDatePicker> {
           ?
           MyDropdown(title: widget.title, onTap: _dateChanged, hint: "${fecha.year}-${fecha.month}-${fecha.day}", xlarge: widget.xlarge, large: widget.large, medium: widget.medium, small: widget.small, padding: EdgeInsets.all(0),)
           :
-          RaisedButton(
-            elevation: 0, 
-            padding: EdgeInsets.only(top: 15, bottom: 15),
-            color: Colors.transparent, 
-            shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+          // RaisedButton(
+          //   elevation: 0, 
+          //   padding: EdgeInsets.only(top: 15, bottom: 15),
+          //   color: Colors.transparent, 
+          //   shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+          //   child: Text((initialHint != null) ? initialHint : "${fecha.year}-${fecha.month}-${fecha.day}", style: TextStyle(fontSize: 16, fontFamily: "GoogleSans")),
+          //   onPressed: _dateChanged,
+          // ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(padding: EdgeInsets.only(top: 15, bottom: 15), elevation: 0, backgroundColor: Colors.transparent, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1))),
             child: Text((initialHint != null) ? initialHint : "${fecha.year}-${fecha.month}-${fecha.day}", style: TextStyle(fontSize: 16, fontFamily: "GoogleSans")),
             onPressed: _dateChanged,
           ),

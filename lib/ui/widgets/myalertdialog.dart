@@ -297,7 +297,7 @@ class _MyAlertDialogState extends State<MyAlertDialog> {
                                         padding: EdgeInsets.only(bottom: 4, left: 10, right: 10),
                                         child: AbsorbPointer(
                                           absorbing: widget.cargando,
-                                          child:  FlatButton(
+                                          child:  TextButton(
                                           child: Text(widget.deleteDescripcion, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: (widget.cargando) ? Colors.grey : Colors.red)),
                                           onPressed: widget.okFunction, 
                                           // color: (widget.cargando) ? Colors.grey[300] : null,

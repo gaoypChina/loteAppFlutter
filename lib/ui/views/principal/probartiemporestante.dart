@@ -44,7 +44,7 @@ class _ProbarTiempoRestanteState extends State<ProbarTiempoRestante> {
               padding: const EdgeInsets.all(8.0),
               child: Text("CUlo"),
             ),
-            FlatButton(
+            TextButton(
               child: Text("Default timezone"),
               onPressed: (){
                 _horaCierreLoteriaToCurrentTimeZone(Loteria(descripcion: "La Primera", horaCierre: "11:50"));

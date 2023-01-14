@@ -754,10 +754,12 @@ Widget _buildTableTicketsGanadores(List map){
                   padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0, left: 8.0),
                   child: Text("Desde", style: TextStyle(fontSize: 20),),
                 ),
-                RaisedButton(
-                  elevation: 0, 
-                  color: Colors.transparent, 
-                  shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0, 
+                    backgroundColor: Colors.transparent, 
+                    shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                  ),
                   child: Text("${_fechaInicial.year}-${_fechaInicial.month}-${_fechaInicial.day}", style: TextStyle(fontSize: 16)),
                   onPressed: () async {
                     DateTime fecha = await showDatePicker(context: context, initialDate: _fechaInicial, firstDate: DateTime(2000), lastDate: DateTime(2100));
@@ -769,10 +771,12 @@ Widget _buildTableTicketsGanadores(List map){
                   padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0, left: 8.0),
                   child: Text("Hasta", style: TextStyle(fontSize: 20),),
                 ),
-                RaisedButton(
-                  elevation: 0, 
-                  color: Colors.transparent, 
-                  shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0, 
+                    backgroundColor: Colors.transparent, 
+                    shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                  ),
                   child: Text("${_fechaFinal.year}-${_fechaFinal.month}-${_fechaFinal.day}", style: TextStyle(fontSize: 16)),
                   onPressed: () async {
                     DateTime fecha = await showDatePicker(context: context, initialDate: _fechaFinal, firstDate: DateTime(2000), lastDate: DateTime(2100));
@@ -801,17 +805,21 @@ Widget _buildTableTicketsGanadores(List map){
                     },
                   ),
                 ),
-                RaisedButton(
-                  elevation: 0,
-                  color: Utils.fromHex("#e4e6e8"),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0, 
+                    backgroundColor: Utils.fromHex("#e4e6e8"),
+                  ),
                   child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
                   onPressed: (){
                     _ventas();
                   },
                 ),
-                RaisedButton(
-                  elevation: 0,
-                  color: Utils.colorInfo,
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0, 
+                    backgroundColor: Utils.colorInfo,
+                  ),
                   child: Text("Imprimir",),
                   onPressed: (){
                     // BluetoothChannel.printCuadre(datos);

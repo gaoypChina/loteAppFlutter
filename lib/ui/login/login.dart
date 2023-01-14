@@ -12,7 +12,7 @@ import 'package:loterias/core/services/loginservice.dart';
 import 'package:loterias/core/services/realtime.dart';
 import 'package:loterias/ui/contacto/contactoscreen.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/myswitch.dart';
@@ -45,12 +45,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return ajuste;
   }
 
-_showSnackBar(String content){
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-          content: Text(content),
-          action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
-        ));
-    }
+// _showSnackBar(String content){
+//       _scaffoldKey.currentState.showSnackBar(SnackBar(
+//           content: Text(content),
+//           action: SnackBarAction(label: 'CERRAR', onPressed: () => _scaffoldKey.currentState.hideCurrentSnackBar(),),
+//         ));
+//     }
 
   //   Future<Map<String, dynamic>> fetchUsuario() async{
   //   var map = Map<String, dynamic>();
@@ -116,6 +116,10 @@ _showSnackBar(String content){
   }
 
   Future<void> _acceder() async {
+    // probarBloqueo();
+    // probarBloqueoPaleSuperpaleYTripletasDeUnSoloNumero();
+    // probarBloqueoPaleSuperpaleYTripletasDeUnSoloNumeroPorBanca();
+    // return;
     if(_formKey.currentState.validate()){
       try{
         setState(() => _cargando = true);
@@ -181,11 +185,60 @@ _showSnackBar(String content){
   }
 
   probarBloqueo() async {
-    await Db.insertOrDeleteBlocksplays([Blocksplays(1288, 1, 1, 1, '21-30', 10, 5, null, null, null, 0, 1, 1, 1)], false);
-    await Db.insertOrDeleteBlocksplays([Blocksplays(1298, 1, 1, 1, '10', 10, 5, null, null, null, 0, 1, 1, 1)], false);
-    var data = await Db.obtenerMontoDeTablaBlocksplays(idBanca: 1, idLoteria: 1, idSorteo: 1, jugada: '23', idMoneda: 1);
-    data.forEach((element) {print("Login probarBloqueo: ${element}");});
+    // await Db.insertOrDeleteBlocksplays([Blocksplays(1288, 1, 1, 1, ',00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36', 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    // await Db.insertOrDeleteBlocksplays([Blocksplays(1298, 1, 1, 1, '10', 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    
+    String jugada = ",00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,";
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1288, 1, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1289, 2, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1290, 3, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1291, 4, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1292, 5, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1293, 6, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1294, 7, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1295, 8, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1296, 9, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1297, 10, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1298, 11, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1299, 12, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1300, 13, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1301, 14, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1302, 15, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1303, 16, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1304, 17, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1305, 18, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1306, 19, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1307, 20, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1308, 21, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1309, 22, 1, jugada, 10, 5, null, null, null, 0, 1, 1)], false);
+    var data = await Db.obtenerMontoDeTablaBlocksplaysgenerals(idLoteria: 15, idSorteo: 1, jugada: ',06,', idMoneda: 1);
+    print("LoginScreen probarBloqueo tamano: ${data.length}");
+    print("LoginScreen probarBloqueo: $data");
   }
+
+  probarBloqueoPaleSuperpaleYTripletasDeUnSoloNumero() async {
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1288, 1, 3, ",29,30,31,32,", 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1289, 1, 3, ",01,", 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1290, 1, 3, ",011229,", 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1291, 1, 3, ",12,", 10, 5, null, null, null, 0, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplaysgenerals([Blocksplaysgenerals(1292, 1, 2, ",12,", 2, 2, null, null, null, 0, 1, 1)], false);
+    var data = await Db.obtenerMontoDeTablaBlocksplaysgenerals(idLoteria: 1, idSorteo: 3, jugada: '011229', idMoneda: 1);
+    print("LoginScreen probarBloqueo tamano: ${data.length}");
+    print("LoginScreen probarBloqueo: $data");
+  }
+
+  probarBloqueoPaleSuperpaleYTripletasDeUnSoloNumeroPorBanca() async {
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1288, 1, 1, 1, ",29,30,31,32,33,", 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1289, 1, 1, 1, ",01,", 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1290, 1, 1, 3, ",012932,", 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1291, 1, 1, 1, ",12,", 10, 5, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1292,  1, 1, 1, ",12,", 2, 2, null, null, null, 0, 1, 1, 1)], false);
+    await Db.insertOrDeleteBlocksplays([Blocksplays(1293,  1, 1, 2, ",1129,", 2, 2, null, null, null, 0, 1, 1, 1)], false);
+    var data = await Db.obtenerMontoDeTablaBlocksplays(idBanca: 1, idLoteria: 1, idSorteo: 1, jugada: '12', idMoneda: 1);
+    print("LoginScreen probarBloqueo tamano: ${data.length}");
+    print("LoginScreen probarBloqueo: $data");
+  }
+
 
   Widget _largeScreen(){
     return Container(
@@ -299,7 +352,7 @@ _showSnackBar(String content){
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
-                            child: MyCheckBox(
+                            child: MyResizedCheckBox(
                               // isSideTitle: true,
                               title: "Mantener sesion",
                               helperText: "Desea mantener su sesion abierta?",
@@ -474,7 +527,7 @@ _showSnackBar(String content){
                               Padding(
                                 padding: const EdgeInsets.only(left: 10),
                                 child: 
-                                // MyCheckbox(
+                                // MyResizedCheckBox(
                                 //   value: _recordarme, 
                                 //   onChanged: (value){
                                 //     setState(() => _recordarme = value);
@@ -493,7 +546,7 @@ _showSnackBar(String content){
                         ),
                          Padding(
                            padding: const EdgeInsets.only(right: 20),
-                           child: RaisedButton(
+                           child: TextButton(
                             child: 
                               (_cargando) 
                               ? 
@@ -510,7 +563,7 @@ _showSnackBar(String content){
                               ) 
                               : 
                               Text('Acceder'),
-                            color: _colorPrimary,
+                            style: TextButton.styleFrom(backgroundColor: _colorPrimary,),
                             onPressed: _acceder,
                         ),
                          ),

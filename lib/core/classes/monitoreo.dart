@@ -39,7 +39,7 @@ class Monitoreo{
            ),
            content: null,
           actions: <Widget>[
-            FlatButton(
+            TextButton(
                 child: Text("Compartir"),
                 onPressed: () async {
                   try{
@@ -54,7 +54,7 @@ class Monitoreo{
 
                 },
               ),
-               FlatButton(
+               TextButton(
                 child: Text("Ver ticket"),
                 onPressed: () async {
                   try{
@@ -68,7 +68,7 @@ class Monitoreo{
                   }
                 },
               ),
-               FlatButton(
+               TextButton(
                 child: Text("Imprimir"),
                 onPressed: () async {
 
@@ -358,8 +358,8 @@ class Monitoreo{
                 child: widgets
               ),
               actions: <Widget>[
-                FlatButton(child: Text("Cancelar"), onPressed: _goBack,),
-                FlatButton(child: Text("Ok"), onPressed: _goBack,
+                TextButton(child: Text("Cancelar"), onPressed: _goBack,),
+                TextButton(child: Text("Ok"), onPressed: _goBack,
                 )
               ],
             );

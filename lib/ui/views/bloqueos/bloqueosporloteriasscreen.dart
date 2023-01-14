@@ -9,7 +9,7 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
@@ -464,7 +464,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                         ?
                         MySwitch(title: "Descontar del bloqueo general", value: _descontarDelBloqueoGeneral, onChanged: _descontarDelBloqueoGeneralChanged, leading: Icon(Icons.local_offer), small: 1, medium: 1,)
                         :
-                        MyCheckBox(
+                        MyResizedCheckBox(
                           xlarge: 1.35,
                           medium: 1,
                           small: 1,

@@ -310,7 +310,7 @@ class _TransaccionesScreenState extends State<TransaccionesScreen> {
                             children: <Widget>[
                               Align(
                                 alignment: Alignment.topRight,
-                                child: FlatButton(onPressed: (){Navigator.pop(context);}, child: Text("Listo", style: TextStyle(color: Utils.colorPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
+                                child: TextButton(onPressed: (){Navigator.pop(context);}, child: Text("Listo", style: TextStyle(color: Utils.colorPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
                               ),
                               Center(child: Padding(
                                 padding: const EdgeInsets.only(bottom: 12.0),

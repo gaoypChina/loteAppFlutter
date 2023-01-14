@@ -21,7 +21,7 @@ import 'package:loterias/core/models/usuario.dart';
 import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/ui/views/bancas/bancasmultiplesearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
-import 'package:loterias/ui/widgets/mycheckbox.dart';
+import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
 import 'package:loterias/ui/widgets/mydivider.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
@@ -1001,7 +1001,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         title: Text("${loteria.descripcion}"),
         trailing: Checkbox(value: _loteriaIsSelected(loteria), onChanged: (value) => _ckbLoteriasChanged(value, loteria),),
       );
-      return MyCheckBox(xlarge: 4, title: "${loteria.descripcion}", value: _loteriaIsSelected(loteria), onChanged: (value){_ckbLoteriasChanged(value, loteria);},);
+      return MyResizedCheckBox(xlarge: 4, title: "${loteria.descripcion}", value: _loteriaIsSelected(loteria), onChanged: (value){_ckbLoteriasChanged(value, loteria);},);
     }
 
   Widget  _agregarYQuitarLoteriasWidget(bool isSmallOrMedium){

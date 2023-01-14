@@ -607,19 +607,19 @@ _dateChanged(DateTimeRange value){
                   width: MediaQuery.of(context).size.width / 3 - 40,
                   child: Row(
                     children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: RaisedButton(
-                            elevation: 0, 
-                            color: Colors.transparent, 
-                            shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
-                            child: Text("${_fechaString}", style: TextStyle(fontSize: 16)),
-                            onPressed: () async {
-                              DateTime fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-                              setState(() => _fechaString = (fecha != null) ? "${fecha.year}-${fecha.month}-${fecha.day}" : _fechaString);
-                            },
-                          ),
-                        ),
+                        // Padding(
+                        //   padding: const EdgeInsets.only(left: 8.0),
+                        //   child: RaisedButton(
+                        //     elevation: 0, 
+                        //     color: Colors.transparent, 
+                        //     shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey, width: 1)),
+                        //     child: Text("${_fechaString}", style: TextStyle(fontSize: 16)),
+                        //     onPressed: () async {
+                        //       DateTime fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                        //       setState(() => _fechaString = (fecha != null) ? "${fecha.year}-${fecha.month}-${fecha.day}" : _fechaString);
+                        //     },
+                        //   ),
+                        // ),
                         Checkbox(value: _ckbTodasLasFechas, onChanged: (bool check) {
                           if(check)
                             setState((){_fechaString = "Todas las fechas"; _ckbTodasLasFechas = check;});
@@ -656,21 +656,21 @@ _dateChanged(DateTimeRange value){
                     },
                   ),
                 ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3 - 40,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: RaisedButton(
-                      elevation: 0,
-                      color: Utils.fromHex("#e4e6e8"),
-                      child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
-                      onPressed: (){
-                        // _ventas();
-                        _tickets();
-                      },
-                    ),
-                  ),
-                ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width / 3 - 40,
+                //   child: Padding(
+                //     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                //     child: RaisedButton(
+                //       elevation: 0,
+                //       color: Utils.fromHex("#e4e6e8"),
+                //       child: Text("Buscar", style: TextStyle(color: Utils.colorPrimary),),
+                //       onPressed: (){
+                //         // _ventas();
+                //         _tickets();
+                //       },
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             StreamBuilder<List>(

@@ -32,8 +32,10 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  // static final String URL = 'http://192.168.1.38:8000';
-  // static final String URL_SOCKET = 'http://192.168.1.38:3000';
+  static final String URL = 'http://192.168.1.36:8000';
+  static final String URL_SOCKET = 'http://192.168.1.36:3000';
+  // static final String URL = 'http://172.25.176.1:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.36:3000';
   // static final String URL = 'http://10.0.0.11:8000';
   // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
@@ -51,8 +53,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  static final String URL = 'https://lote-app.com';
-  static final String URL_SOCKET = URL + ":8000";
+  // static final String URL = 'https://lote-app.com';
+  // static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
@@ -335,7 +337,7 @@ class  Utils {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           content: SingleChildScrollView(child: SelectableText(content)),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text("Ok"),
               onPressed: (){
                 Navigator.pop(context);
@@ -1138,6 +1140,53 @@ class  Utils {
 
   static esAplicacionWeb(){
     return kIsWeb;
+  }
+
+  static String generarQueryJugada(String jugada, int idSorteo){
+    if(Draws.esIdPaleTripletaOSuperpale(idSorteo))
+      return _generarQueryJugadaPaleTripletaOSuperpale(jugada, idSorteo);
+    else
+      return "jugada like '%${concatenarComasAlInicioYFin(jugada)}%'";
+  }
+
+  static String _generarQueryJugadaPaleTripletaOSuperpale(String jugada, int idSorteo){
+    if(Draws.esIdPaleOSuperpale(idSorteo))
+      return _generarQueryPaleOSuperpale(jugada);
+    else
+      return _generarQueryTripleta(jugada);
+  }
+
+  static String _generarQueryPaleOSuperpale(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%')";
+  }
+
+  static String _generarQueryTripleta(String jugada){
+    String primerParDeNumeros = Utils.getPrimerParDeNumeros(jugada);
+    String segundoParDeNumeros = Utils.getSegundoParDeNumeros(jugada);
+    String tercerParDeNumeros = Utils.getTercerParDeNumeros(jugada);
+    return "(jugada like '%${concatenarComasAlInicioYFin(jugada)}%' or jugada like '%${concatenarComasAlInicioYFin(primerParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(segundoParDeNumeros)}%' or jugada like '%${concatenarComasAlInicioYFin(tercerParDeNumeros)}%')";
+  }
+
+  static String concatenarComasAlInicioYFin(String jugada){
+    return ",${jugada},";
+  }
+
+  static String getPrimerParDeNumeros(String jugada){
+    return jugada.substring(0, 2);
+  }
+
+  static String getSegundoParDeNumeros(String jugada){
+    if(jugada.length < 4)
+      return jugada;
+    return jugada.substring(2, 4);
+  }
+
+  static String getTercerParDeNumeros(String jugada){
+    if(jugada.length < 6)
+      return jugada;
+    return jugada.substring(4, 6);
   }
  
 }

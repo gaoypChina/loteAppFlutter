@@ -100,7 +100,9 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
     var c = await DB.create();
     await c.delete("printer");
     _getPrinter();
-    Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha eliminado correctamente');
+    // Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha eliminado correctamente');
+    Utils.showFlushbar(context, "Se ha eliminado correctamente");
+
   }
 
   Future<Map<String, dynamic>> _getPrinter() async {
@@ -169,9 +171,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   width: double.infinity,
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
-                      child: RaisedButton(
-                        elevation: 0,
-                        color: Utils.fromHex("#e4e6e8"),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(elevation: 0, backgroundColor: Utils.fromHex("#e4e6e8"),),
                         child: Text('Probar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                         onPressed: (){
                           _connect(true);
@@ -188,9 +189,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                   width: double.infinity,
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
-                      child: RaisedButton(
-                        elevation: 0,
-                        color: Utils.fromHex("#e4e6e8"),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(elevation: 0, backgroundColor: Utils.fromHex("#e4e6e8"),),
                         child: Text('Eliminar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                         onPressed: () async {
                           await deletePrinter();
@@ -282,9 +282,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                         borderRadius: BorderRadius.circular(5),
                         child: Padding(
                           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                          child: RaisedButton(
-                            elevation: 0,
-                            color: Utils.fromHex("#e4e6e8"),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(elevation: 0, backgroundColor: Utils.fromHex("#e4e6e8"),),
                             child: Text('Agregar', style: TextStyle(color: Utils.colorPrimary, fontWeight: FontWeight.bold)),
                             onPressed: (){
                               _initSearch();
@@ -337,7 +336,8 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                               onPressed: () async {
                                 await savePrinter(_listaEscaneados[index]);
                                 Navigator.pop(context);
-                                Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha guardado correctamente');
+                                // Utils.showSnackBar(scaffoldKey: _scaffoldKey, content: 'Se ha guardado correctamente');
+                                Utils.showFlushbar(context, "Se ha guardado correctamente");
                                 // deleteItemFromListaEscaneados(index);
                               },
                             ),
@@ -357,23 +357,23 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
             Text('Dispositivos'),
-            RaisedButton(
-                child: Text('Buscar'),
-                color: Utils.colorPrimary,
-                onPressed: () async {
-                  _initSearch();
-                  // flutterBlue.startScan(timeout: Duration(seconds: 4));
-                  // BluetoothDevice device;
+            // RaisedButton(
+            //     child: Text('Buscar'),
+            //     color: Utils.colorPrimary,
+            //     onPressed: () async {
+            //       _initSearch();
+            //       // flutterBlue.startScan(timeout: Duration(seconds: 4));
+            //       // BluetoothDevice device;
 
-                    // Listen to scan results
+            //         // Listen to scan results
                     
-                    // flutterBlue.scan(timeout: Duration(seconds: 4)).listen((result){
-                    //   print('resultado busqueda: ${result.device}');
-                    // });
+            //         // flutterBlue.scan(timeout: Duration(seconds: 4)).listen((result){
+            //         //   print('resultado busqueda: ${result.device}');
+            //         // });
                     
 
-                },
-              ),
+            //     },
+            //   ),
             ],
           ),
           content: Column(
@@ -464,14 +464,14 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
             ],
           ),
           actions: <Widget>[
-            FlatButton(
-              onPressed: () => Navigator.pop(context), 
-              child: Text('Cancel')
-            ),
-            FlatButton(
-              onPressed: () => Navigator.pop(context), 
-              child: Text('Ok')
-            )
+            // FlatButton(
+            //   onPressed: () => Navigator.pop(context), 
+            //   child: Text('Cancel')
+            // ),
+            // FlatButton(
+            //   onPressed: () => Navigator.pop(context), 
+            //   child: Text('Ok')
+            // )
           ],
         );
       }
