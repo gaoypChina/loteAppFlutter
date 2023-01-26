@@ -1686,54 +1686,6 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           
   }
   
-  Widget _menuOpcionesWidget(bool isSmallOrMedium){
-
-  return PopupMenuButton(
-    child: Padding(
-      padding: EdgeInsets.all(10.0),
-      child: _tituloOpciones(isSmallOrMedium),
-    ),
-    onSelected: (String value)  {
-      if(value == _opcionBloquearQuinielasEnOtrosSorteos)
-        _bloquearQuinielasEnOtrosSorteos();
-    },
-    itemBuilder: (context) => _getMenuOpciones()
-  );
-
-}
-  _tituloOpciones(bool isSmallOrMedium){
-    if(isSmallOrMedium)
-      return Icon(Icons.more_vert);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text("Mas opciones", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),),
-        Icon(Icons.arrow_drop_down, color: Colors.grey[600])
-      ],
-    );
-  }
-
-  _bloquearQuinielasEnOtrosSorteos() async {
-
-    showDialog(
-      context: context, 
-      builder: (context) {
-        return DialogBloquearQuinielasEnOtrosSorteos(jugadas: _jugadas,);
-      }
-    );
-  }
-
-  List<PopupMenuItem<String>> _getMenuOpciones(){
-     List<PopupMenuItem<String>> opciones = [
-      PopupMenuItem<String>(
-        value: _opcionBloquearQuinielasEnOtrosSorteos,
-        child: Text("Bloquear quinienas en otros sorteos"),
-      )
-    ];
-    return opciones;
-  }
-
   @override
   void initState() {
     // TODO: implement initState
@@ -1762,7 +1714,6 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           subtitle: _subtitle(isSmallOrMedium),
           actions: [
            
-              MySliverButton(title: _menuOpcionesWidget(isSmallOrMedium),),
               MySliverButton(title: "Guardar", onTap: _guardar, cargandoNotifier: _cargandoNotify,)
             // MySliverButton(
             //   title: Container(

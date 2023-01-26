@@ -32,8 +32,8 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  static final String URL = 'http://192.168.1.36:8000';
-  static final String URL_SOCKET = 'http://192.168.1.36:3000';
+  // static final String URL = 'http://192.168.1.36:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.36:3000';
   // static final String URL = 'http://172.25.176.1:8000';
   // static final String URL_SOCKET = 'http://192.168.1.36:3000';
   // static final String URL = 'http://10.0.0.11:8000';
@@ -53,8 +53,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  // static final String URL = 'https://lote-app.com';
-  // static final String URL_SOCKET = URL + ":8000";
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {
