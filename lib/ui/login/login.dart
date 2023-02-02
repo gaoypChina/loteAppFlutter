@@ -562,7 +562,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ) 
                               : 
-                              Text('Acceder'),
+                              Text('Acceder', style: TextStyle(color: Colors.black),),
                             style: TextButton.styleFrom(backgroundColor: _colorPrimary,),
                             onPressed: _acceder,
                         ),

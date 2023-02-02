@@ -210,6 +210,7 @@ String _montoPrueba = '0';
   Future<Map<String, dynamic>> futureBanca;
   Future<Map<String, dynamic>> futureUsuario;
 
+  static const String opcionCopiarJugadas = "copiarJugadas";
   static const String opcionRecargar = "recargar";
   static const String opcionImpresora = "impresora";
   static const String opcionNotificaciones = "notificaciones";
@@ -2423,6 +2424,10 @@ List<PopupMenuEntry<String>> _popupMenuEntries(){
   List<PopupMenuEntry> entries = <PopupMenuEntry<String>>[
 
       const PopupMenuItem(
+        value: opcionCopiarJugadas,
+        child: Text("Copiar jugadas"),
+      ),
+      const PopupMenuItem(
         value: opcionImpresora,
         child: Text("Impresora")
       ),
@@ -2430,7 +2435,7 @@ List<PopupMenuEntry<String>> _popupMenuEntries(){
     ];
 
   if(_tienePermisoRealizarRecargas)
-    entries.insert(0, recargaEntry);
+    entries.insert(1, recargaEntry);
 
   if(_tienePermisoAdministrador == true || _tienePermisoProgramador == true)
     entries.add(notificacionesEntry);
@@ -2448,12 +2453,20 @@ Widget _menuOpcionesWidget(bool screenHeightIsSmall){
       child: Icon(Icons.more_vert, size: screenHeightIsSmall ? 25 :  26),
     ),
     onSelected: (String value)  {
-      if(value == opcionRecargar){
+      if(value == opcionCopiarJugadas){
+        if(listaJugadas.length == 0){
+          Utils.showAlertDialog(context: context, title: "Advertencia", content: "No hay jugadas realizadas");
+          return;
+        }
+          _seleccionarPrimeraJugadaYCambiarVentanaSeleccionar(listaJugadas[0]);
+      }
+      else if(value == opcionRecargar){
          Navigator.push(context, MaterialPageRoute(builder: (context){
          return RecargasDialogAddScreen();
        }));
 
-      }else if(value == opcionImpresora){
+      }
+      else if(value == opcionImpresora){
         _bluetoothScreen();
       }
       else if(value == opcionNotificaciones){
@@ -3628,15 +3641,7 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
 
   _jugadaItemWidget(Jugada data){
     return GestureDetector(
-      onLongPress: (){
-        if(_isSeleccionarScreen == false){
-          _chanceSeleccionarScreenValue();
-          _seleccionarJugada(data);
-        }else{
-          _chanceSeleccionarScreenValue();
-          listaJugadasSeleccionadas = [];
-        }
-      },
+      onLongPress: () => _seleccionarPrimeraJugadaYCambiarVentanaSeleccionar(data),
       onTap: !_isSeleccionarScreen ? null : () => _seleccionarJugada(data),
       child: Wrap(
         children: [
@@ -3675,6 +3680,17 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
       ),
     );
   }
+
+
+  _seleccionarPrimeraJugadaYCambiarVentanaSeleccionar([Jugada jugada]){
+        if(_isSeleccionarScreen == false){
+          _chanceSeleccionarScreenValue();
+          _seleccionarJugada(jugada);
+        }else{
+          _chanceSeleccionarScreenValue();
+          listaJugadasSeleccionadas = [];
+        }
+      }
   
   _myJugadasScreen(){
     // return Column(

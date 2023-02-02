@@ -342,6 +342,7 @@ class Monitoreo{
             :
             AlertDialog(
               contentPadding: EdgeInsets.all(0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
