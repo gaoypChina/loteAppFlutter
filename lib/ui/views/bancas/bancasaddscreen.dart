@@ -2370,7 +2370,9 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   }
 
   _mostrarBancasSearch() async {
-    List<Banca> data = await showSearch(context: context, delegate: BancasMultipleSearch(listaBanca, _bancas));
+    List<Moneda> monedasParaFiltrar = listaMoneda.map((e) => Moneda.fromMap(e.toJson())).toList();
+    monedasParaFiltrar.insert(0, Moneda.getMonedaNinguna);
+    List<Banca> data = await showSearch(context: context, delegate: BancasMultipleSearch(listaBanca, _bancas, listaGrupo, monedasParaFiltrar));
     _seleccionarBancas(data);
   }
 

@@ -471,6 +471,15 @@ class _MyMobileDrawerState extends State<MyMobileDrawer> {
                   title: Text("Bloqueos"),
                   children: [
                       ListTile(
+                      title: Text('Ver'),
+                      leading: Icon(Icons.group_work_rounded),
+                      dense: true,
+                      onTap: (){
+                        Navigator.of(context).pushNamed("/ver/bloqueos");
+                        widget.scaffoldKey.currentState.openEndDrawer();
+                      },
+                    ),
+                      ListTile(
                       title: Text('Por loterias'),
                       leading: Icon(Icons.group_work_outlined),
                       dense: true,

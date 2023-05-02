@@ -1,7 +1,7 @@
 
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/draws.dart';
-
+import 'package:loterias/core/extensions/listextensions.dart';
 import 'dia.dart';
 
 class Loteria {
@@ -150,6 +150,12 @@ List sorteosToJson() {
     loteriaSuperpale = loteria.loteriaSuperpale;
     dias = loteria.dias;
     color = loteria.color;
+  }
+
+  static List<Loteria> unicas(List<Loteria> loteriasOriginal, List<Loteria> loteriasDuplicadas){
+    List<int> listaIdLoteriasUnicos = loteriasDuplicadas.map<int>((e) => e.id).toList().unique();
+    List<Loteria> unicas = loteriasOriginal.where((loteria) => listaIdLoteriasUnicos.contains(loteria.id)).toList();
+    return unicas;
   }
 
   toJson() {

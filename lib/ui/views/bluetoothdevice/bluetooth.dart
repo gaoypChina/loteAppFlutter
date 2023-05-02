@@ -127,7 +127,7 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   }
 
   _connect(normalOPrueba) async {
-    BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n", normalOPrueba: normalOPrueba);
+    await BluetoothChannel.printText(content: "**PRUEBA EXISTOSA**\n\n\n", normalOPrueba: normalOPrueba);
     // BluetoothChannel.printText(content: "TE AMOOOO\n**MI REINA**\n\n\n", normalOPrueba: normalOPrueba);
   }
 

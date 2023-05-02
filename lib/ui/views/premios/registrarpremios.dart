@@ -6,6 +6,7 @@ import 'package:loterias/core/classes/databasesingleton.dart';
 import 'package:loterias/core/classes/mydate.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/draws.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/premiosservice.dart';
@@ -565,8 +566,12 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
 
 
   _drawsBalls(Loteria loteria){
-    if(loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick") != -1) != -1)
+    // if(loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick") != -1) != -1)
+    //   return SizedBox();
+
+    if(loteria.sorteos.indexWhere((element) => Draws.esDirecto(element.descripcion)) == -1)
       return SizedBox();
+
 
 
     if(loteria.primera == null)
@@ -574,34 +579,52 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
     if(loteria.primera.isEmpty)
       return _waitingDraw();
 
-    return Row(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 0.0),
-          child: CircleAvatar(
-            // radius: 16,
-            backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.primera),
-            child: Center(child: _getAvatarWidget(loteria.primera)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 0.0),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 0.0),
+            child: Column(
+              children: [
+                Text("1ra", style: TextStyle(fontSize: 13),),
+                CircleAvatar(
+                  // radius: 16,
+                  backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.primera),
+                  child: Center(child: _getAvatarWidget(loteria.primera)),
+                ),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: CircleAvatar(
-            // radius: 16,
-            backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.segunda),
-            child: Center(child: _getAvatarWidget(loteria.segunda)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Column(
+              children: [
+                Text("2da", style: TextStyle(fontSize: 13)),
+                CircleAvatar(
+                  // radius: 16,
+                  backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.segunda),
+                  child: Center(child: _getAvatarWidget(loteria.segunda)),
+                ),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: CircleAvatar(
-            // radius: 16,
-            backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.tercera),
-            child: Center(child: _getAvatarWidget(loteria.tercera)),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Column(
+              children: [
+                Text("3ra", style: TextStyle(fontSize: 13)),
+                CircleAvatar(
+                  // radius: 16,
+                  backgroundColor: _getAvatarColorQuinielaPaleTripleta(loteria.tercera),
+                  child: Center(child: _getAvatarWidget(loteria.tercera)),
+                ),
+              ],
+            ),
           ),
-        ),
-        
-      ],
+          
+        ],
+      ),
     );
   }
 
@@ -637,81 +660,103 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
         children: [
           Visibility(
             visible: loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick 3") != -1) != -1,
-            child: MyResizedContainer(
-              small: 2,
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 0.0),
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick3),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(0, 1) : null : null)),
-                    ),
+            child: Column(
+              children: [
+                MyResizedContainer(
+                  small: 2,
+                  child: Container(child: Padding(
+                    padding: const EdgeInsets.only(left: 35.0),
+                    child: Text("Pick3", style: TextStyle(fontSize: 13),),
+                  )),
+                ),
+                MyResizedContainer(
+                  small: 2,
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 0.0),
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick3),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(0, 1) : null : null)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 35,
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick3),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(1, 2) : null : null)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 70,
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick3),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(2, 3) : null : null)),
+                        ),
+                      ),
+                      
+                    ],
                   ),
-                  Positioned(
-                    left: 35,
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick3),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(1, 2) : null : null)),
-                    ),
-                  ),
-                  Positioned(
-                    left: 70,
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick3),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick3 != null ? loteria.pick3.isNotEmpty ? loteria.pick3.substring(2, 3) : null : null)),
-                    ),
-                  ),
-                  
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Visibility(
             visible: loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick 4") != -1) != -1,
-            child: MyResizedContainer(
-              small: 2,
-              child: Stack(
-                // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 0.0),
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick4, true),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(0, 1) : null : null)),
-                    ),
+            child: Column(
+              children: [
+                MyResizedContainer(
+                  small: 2,
+                  child: Container(child: Padding(
+                    padding: const EdgeInsets.only(left: 0.0),
+                    child: Center(child: Text("Pick4", style: TextStyle(fontSize: 13),)),
+                  )),
+                ),
+                MyResizedContainer(
+                  small: 2,
+                  child: Stack(
+                    // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 0.0),
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick4, true),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(0, 1) : null : null)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 35,
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick4, true),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(1, 2) : null : null)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 70,
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick4, true),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(2, 3) : null : null)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 105,
+                        child: CircleAvatar(
+                          // radius: 16,
+                          backgroundColor: _getAvatarColorPick(loteria.pick4, true),
+                          child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(3, 4) : null : null)),
+                        ),
+                      ),
+                      
+                    ],
                   ),
-                  Positioned(
-                    left: 35,
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick4, true),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(1, 2) : null : null)),
-                    ),
-                  ),
-                  Positioned(
-                    left: 70,
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick4, true),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(2, 3) : null : null)),
-                    ),
-                  ),
-                  Positioned(
-                    left: 105,
-                    child: CircleAvatar(
-                      // radius: 16,
-                      backgroundColor: _getAvatarColorPick(loteria.pick4, true),
-                      child: Center(child: _getAvatarPickWidget(loteria.pick4 != null ? loteria.pick4.isNotEmpty ? loteria.pick4.substring(3, 4) : null : null)),
-                    ),
-                  ),
-                  
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -734,63 +779,50 @@ class _RegistrarPremiosScreenState extends State<RegistrarPremiosScreen> {
           onTap: (){_showForm(e);},
           isThreeLine: e.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("directo") != -1) != -1 && e.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick") != -1) != -1,
           title: Text(e.descripcion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _drawsBalls(e),
-                _drawsBallsPick(e)
-              ],
-            ),
-          ),
+          subtitle: _subtitulo(e),
           trailing: _deleteResultadoWidget(e),
         ),
       )).toList();
-
-    // return ListView.builder(
-    //   itemCount: data.length,
-    //   itemBuilder: (context, index){
-    //     // return Padding(
-    //     //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-    //     //   child: Card(
-    //     //     child: Padding(
-    //     //       padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 8.0),
-    //     //       child: Column(
-    //     //         crossAxisAlignment: CrossAxisAlignment.start,
-    //     //         children: [
-    //     //           MySubtitle(title: data[index].descripcion),
-    //     //           _drawsBalls(data[index]),
-    //     //           _drawsBallsPick(data[index])
-    //     //         ],
-    //     //       ),
-    //     //     ),
-    //     //   ),
-    //     // );
-    //     return Padding(
-    //       padding: const EdgeInsets.symmetric(vertical: 8.0),
-    //       child: ListTile(
-    //         onTap: (){_showForm(data[index]);},
-    //         isThreeLine: data[index].sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("directo") != -1) != -1 && data[index].sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick") != -1) != -1,
-    //         title: Text(data[index].descripcion, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-    //         subtitle: Padding(
-    //           padding: const EdgeInsets.only(top: 8.0),
-    //           child: Column(
-    //             crossAxisAlignment: CrossAxisAlignment.start,
-    //             children: [
-    //               _drawsBalls(data[index]),
-    //               _drawsBallsPick(data[index])
-    //             ],
-    //           ),
-    //         ),
-    //         trailing: IconButton(onPressed: (){_showDialogEliminar(data: data[index]);}, icon: Icon(Icons.delete)),
-    //       ),
-    //     );
-    //   }
-    // );
-  
   }
 
+  _subtitulo(Loteria loteria){
+    // if(!_salieronLosResultados(loteria))
+    //   return _waitingDraw();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: 
+      !_salieronLosResultados(loteria)
+      ?
+      _waitingDraw()
+      :
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _drawsBalls(loteria),
+          _drawsBallsPick(loteria)
+        ],
+      ),
+    );
+  }
+
+  _salieronLosResultados(Loteria loteria){
+    if(loteria.sorteos.indexWhere((element) => Draws.esDirecto(element.descripcion)) != -1){
+      if(loteria.primera == null)
+        return false;
+      if(loteria.primera.isEmpty)
+        return false;
+    }
+    else if(loteria.sorteos.indexWhere((element) => element.descripcion.toLowerCase().indexOf("pick") != -1) == -1){
+      if(loteria.pick3 == null && loteria.pick4 == null)
+        return false;
+      
+      if(loteria.pick3.isEmpty && loteria.pick4.isEmpty)
+        return false;
+    }
+
+    return true;
+  }
 
   _dateDialog() async {
     var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));

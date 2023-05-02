@@ -197,10 +197,26 @@ class _BancasScreenState extends State<BancasScreen> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("${e.codigo}"),
-                // Text("${e.sorteos}"),
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    children: [
+                      TextSpan(text: e.codigo),
+                      TextSpan(text: "  •  "),
+                      TextSpan(text: e.usuario.usuario),
+                    ]
+                  ),
+                ),
+                Text(e.monedaObject.abreviatura, style: TextStyle(fontSize: 13, color: Utils.fromHex(e.monedaObject.color))),
               ],
             ),
+            // Column(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     Text("${e.codigo}"),
+            //     // Text("${e.sorteos}"),
+            //   ],
+            // ),
             onTap: (){_showDialogGuardar(data: e);},
             trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){_showDialogEliminar(data: e);}),
           )).toList(),

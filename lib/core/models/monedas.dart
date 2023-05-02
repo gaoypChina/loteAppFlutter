@@ -29,6 +29,8 @@ Moneda.fromMap(Map snapshot) :
     return parsed != null ? parsed.map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
   }
 
+  static Moneda get getMonedaNinguna => Moneda(id: 0, descripcion: 'Ninguna'); 
+
   toJson() {
     return {
       "id": id,

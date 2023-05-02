@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 
 class MyFilterSubItem {
@@ -24,15 +25,16 @@ class MyFilterItem {
 class MyFilterV2 extends StatefulWidget {
   final List<MyFilterItem> item;
   final EdgeInsets padding;
+  final double textFontSize;
 
-  const MyFilterV2({ Key key, this.item, this.padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 8)}) : super(key: key);
+  const MyFilterV2({ Key key, this.item, this.padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 8), this.textFontSize}) : super(key: key);
 
   @override
   State<MyFilterV2> createState() => _MyFilterV2State();
 }
 
 class _MyFilterV2State extends State<MyFilterV2> {
-
+  bool _isSmallOrMedium = true;
   @override
   void initState() {
     // TODO: implement initState
@@ -40,6 +42,7 @@ class _MyFilterV2State extends State<MyFilterV2> {
   }
   @override
   Widget build(BuildContext context) {
+    _isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return ListView.builder(
       scrollDirection: Axis.horizontal,
       shrinkWrap: true,
@@ -56,6 +59,7 @@ class _MyFilterV2State extends State<MyFilterV2> {
               leading: SizedBox.shrink(),
               // textColor: Colors.black,
               // color: Colors.grey[200],
+              hintFontSize: widget.textFontSize,
               textColor: widget.item[index].color != null ? widget.item[index].color : null,
               color: widget.item[index].color != null ? widget.item[index].color.withOpacity(0.2) : null,
               padding: widget.padding != null ? widget.padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
@@ -71,5 +75,9 @@ class _MyFilterV2State extends State<MyFilterV2> {
         );
       }
     );
+  }
+
+  _esVentanaGrande(){
+    return _isSmallOrMedium == false;
   }
 }

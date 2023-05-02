@@ -84,35 +84,35 @@ static esNumero(String jugada){
 static Future<int> getIdSorteo(String jugada, [Loteria loteria, sqfliteTransaction]) async {
    int idSorteo = 0;
 
-   if(jugada.length == 2)
+   if(Draws.esJugadaDirecto(jugada))
     idSorteo = 1;
-  else if(jugada.length == 3){
+  else if(Draws.esJugadaPick3Straight(jugada)){
     var query = await Db.draw('Pick 3 Straight', sqfliteTransaction);
     idSorteo = (query != null) ? query['id'] : 0;
   }
   else if(jugada.length == 4){
-    if(jugada.indexOf("+") != -1){
+    if(Draws.esJugadaPick3Box(jugada)){
       var query = await Db.draw('Pick 3 Box', sqfliteTransaction);
       idSorteo = (query != null) ? query['id'] : 0;
-    }else{
+    }else if(Draws.esJugadaPale(jugada)){
       idSorteo = 2;
     }
   }
   else if(jugada.length == 5){
-    if(jugada.indexOf("+") != -1){
+    if(Draws.esJugadaPick4Box(jugada)){
       var query = await Db.draw('Pick 4 Box', sqfliteTransaction);
       idSorteo = (query != null) ? query['id'] : 0;
     }
-    else if(jugada.indexOf("-") != -1){
+    else if(Draws.esJugadaPick4Straight(jugada)){
       var query = await Db.draw('Pick 4 Straight', sqfliteTransaction);
       idSorteo = (query != null) ? query['id'] : 0;
     }
-    else if(jugada.indexOf("s") != -1){
+    else if(Draws.esJugadaSuperPale(jugada)){
       var query = await Db.draw('Super pale', sqfliteTransaction);
       idSorteo = (query != null) ? query['id'] : 0;
     }
   }
-  else if(jugada.length == 6)
+  else if(Draws.esJugadaTripleta(jugada))
     idSorteo = 3;
 
   return idSorteo;

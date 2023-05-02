@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:loterias/core/classes/utils.dart';
-import 'package:loterias/core/models/bancas.dart';
+import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/monedas.dart';
-import 'package:loterias/core/services/bancaservice.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilterv2.dart';
 
-class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
-  final List<Banca> data;
+class LoteriasMultipleSearch extends SearchDelegate <List<Loteria>>{
+  final List<Loteria> data;
   // List<Banca> bancasFiltradas = [];
-  List<Banca> bancasSeleccionadas;
+  List<Loteria> loteriasSeleccionadas;
   List<Grupo> grupos;
   List<Moneda> monedas;
   Grupo _grupo;
   Moneda _moneda;
-  BancasMultipleSearch(this.data, this.bancasSeleccionadas, [this.grupos = const [], this.monedas = const []]);
+  LoteriasMultipleSearch(this.data, this.loteriasSeleccionadas);
 
   List<Color> listaColor = [Colors.red, Colors.pink, Colors.purpleAccent, Colors.green, Colors.greenAccent, Colors.blueGrey];
-    _avatarScreen(Banca data){
+    _avatarScreen(Loteria data){
 
     return CircleAvatar(
       backgroundColor: data.status == 1 ? Colors.green : Colors.pink,
@@ -26,19 +24,19 @@ class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
     );
   }
 
-  _estaSeleccionado(Banca banca){
-    return bancasSeleccionadas.firstWhere((element) => element.id == banca.id, orElse: () => null) != null;
+  _estaSeleccionado(Loteria loteria){
+    return loteriasSeleccionadas.firstWhere((element) => element.id == loteria.id, orElse: () => null) != null;
   }
 
-  _seleccionarBanca(Banca banca, value, setState){
+  _seleccionarLoteria(Loteria loteria, value, setState){
     if(value){
-      if(bancasSeleccionadas.firstWhere((element) => element.id == banca.id, orElse: () => null) == null)
-        setState(() => bancasSeleccionadas.add(banca));
+      if(loteriasSeleccionadas.firstWhere((element) => element.id == loteria.id, orElse: () => null) == null)
+        setState(() => loteriasSeleccionadas.add(loteria));
     }else
-      setState(() => bancasSeleccionadas.remove(banca));
+      setState(() => loteriasSeleccionadas.remove(loteria));
   }
 
-  _hayCoincidencias(List<Banca> listData){
+  _hayCoincidencias(List<Loteria> listData){
     bool hay = true;
     if(listData == null)
       hay = false;
@@ -49,28 +47,27 @@ class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
   }
 
   _todasLasBancasEstanSeleccionadas(){
-    if(bancasSeleccionadas.length == 0)
+    if(loteriasSeleccionadas.length == 0)
       return false;
 
-    return bancasSeleccionadas.length == data.length;
+    return loteriasSeleccionadas.length == data.length;
   }
 
   _seleccionarTodaslasBancas(bool value, setState){
     if(value){
-      List<Banca> bancasFiltradas = _buscar();
-      setState(() => bancasSeleccionadas = bancasFiltradas);
+      List<Loteria> bancasFiltradas = _buscar();
+      setState(() => loteriasSeleccionadas = bancasFiltradas);
     }
     else
-      setState(() => bancasSeleccionadas = []);
+      setState(() => loteriasSeleccionadas = []);
   }
 
   _filtroYSeleccionarTodasWidget(setState){
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          _myFilterWidget(setState),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -134,31 +131,31 @@ class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
 
   _grupoChanged(Grupo grupo, setState){
     setState((){ 
-      print("BancasmultipleSearch _grupoChanged");
+      print("LoteriasmultipleSearch _grupoChanged");
       _grupo = grupo.id != Grupo.getGrupoNinguno.id ? grupo : null; 
     });
   }
 
   _monedaChanged(Moneda moneda, setState){
     setState((){ 
-      print("BancasmultipleSearch _monedaChanged");
+      print("LoteriasmultipleSearch _monedaChanged");
       _moneda = moneda.id != Moneda.getMonedaNinguna.id ? moneda : null; 
       // bancasFiltradas = bancasFiltradas.where((element) => element.idGrupo == _grupo.id).toList();
     });
   }
 
-  _bancaItemWidget(Banca banca, setState){
+  _loteriaItemWidget(Loteria banca, setState){
     return ListTile(
-      leading: Icon(Icons.account_balance_outlined),
+      leading: Icon(Icons.group_work_outlined),
       title: Text("${banca.descripcion}"),
-      trailing: Checkbox(value: _estaSeleccionado(banca), onChanged: (value) => _seleccionarBanca(banca, value, setState),),
+      trailing: Checkbox(value: _estaSeleccionado(banca), onChanged: (value) => _seleccionarLoteria(banca, value, setState),),
       onTap: (){
-        _seleccionarBanca(banca, !_estaSeleccionado(banca), setState);
+        _seleccionarLoteria(banca, !_estaSeleccionado(banca), setState);
       },
     );
   }
 
-  Widget _listView(setState, List<Banca> listData){
+  Widget _listView(setState, List<Loteria> listData){
     // if(!_hayCoincidencias(listData))
     //   return ;
     
@@ -176,7 +173,7 @@ class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
               ListView.builder(
                 itemCount: listData.length,
                 itemBuilder: (context, index){
-                  return _bancaItemWidget(listData[index], setState);
+                  return _loteriaItemWidget(listData[index], setState);
                 },
               ),
             ),
@@ -196,50 +193,19 @@ class BancasMultipleSearch extends SearchDelegate <List<Banca>>{
   Widget buildLeading(BuildContext context) {
     // TODO: implement buildLeading
     return BackButton(
-      onPressed: (){close(context, bancasSeleccionadas);},
+      onPressed: (){close(context, loteriasSeleccionadas);},
     );
   }
 
-  List<Banca> _buscar(){
-    // if(query.isEmpty && !_hayGrupoSeleccionado())
-    //   return data;
-    // if(query.isEmpty && _hayGrupoSeleccionado())
-    //   return _filtrarPorGrupo(data);
-    
-    // var regExp = new RegExp(r"" + query.toLowerCase());
-    // List<Banca> bancasFiltradas = data.where((element) => regExp.hasMatch(element.descripcion.toLowerCase()) || regExp.hasMatch(element.codigo)).toList();;
-    // if(_hayGrupoSeleccionado())
-    //   bancasFiltradas = _filtrarPorGrupo(bancasFiltradas);
-    
-    // return bancasFiltradas;
-
-    List<Banca> bancasFiltradas = _filtrarPorTexto();
-    bancasFiltradas = _filtrarPorGrupo(bancasFiltradas);
-    bancasFiltradas = _filtrarPorMoneda(bancasFiltradas);
-    return bancasFiltradas;
+  List<Loteria> _buscar(){
+    return _filtrarPorTexto();
   }
 
-  List<Banca> _filtrarPorTexto(){
+  List<Loteria> _filtrarPorTexto(){
     if(query.isEmpty)
       return data;
     var regExp = new RegExp(r"" + query.toLowerCase());
-    return data.where((element) => regExp.hasMatch(element.descripcion.toLowerCase()) || regExp.hasMatch(element.codigo)).toList();
-  }
-
-  List<Banca> _filtrarPorGrupo(List<Banca> bancas){
-    if(_grupo == null)
-      return bancas;
-    return bancas.where((element) => element.idGrupo == _grupo.id).toList();
-  }
-
-  List<Banca> _filtrarPorMoneda(List<Banca> bancas){
-    if(_moneda == null)
-      return bancas;
-    return bancas.where((element) => element.idMoneda == _moneda.id).toList();
-  }
-
-  _hayGrupoSeleccionado(){
-    return _grupo != null;
+    return data.where((element) => regExp.hasMatch(element.descripcion.toLowerCase()) || regExp.hasMatch(element.descripcion)).toList();
   }
 
   @override

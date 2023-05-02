@@ -35,7 +35,8 @@ class MyDropdown extends StatefulWidget {
   final int topPositionOfOverlay;
   final bool resized;
   final bool isExpanded;
-  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false, this.maxLengthToEllipsis = 60, this.topPositionOfOverlay, this.resized: true, this.isExpanded: true}) : super(key: key);
+  final double hintFontSize;
+  MyDropdown({Key key, this.color, this.textColor, @required this.title, this.onTap, this.hint, this.elements, this.small = 1, this.medium = 3, this.large = 4, this.xlarge = 3.9, this.padding = const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15), this.leading = const Icon(Icons.date_range, size: 20, color: MyColors.blue700), this.isFlat = false, this.enabled = true, this.flexOfSideText = 3, this.flexOfSideField = 1.5, this.isSideTitle = false, this.showOnlyOnLarge = false, this.helperText, this.onlyBorder = false, this.maxLengthToEllipsis = 60, this.topPositionOfOverlay, this.resized: true, this.isExpanded: true, this.hintFontSize}) : super(key: key);
   @override
   _MyDropdownState createState() => _MyDropdownState();
 }
@@ -253,7 +254,7 @@ class _MyDropdownState extends State<MyDropdown> {
         (widget.leading == false) ? SizedBox() : (widget.leading != null) ? widget.leading : Icon(Icons.calendar_today_outlined, color: widget.enabled ? _textColor() : Colors.grey,),
         !widget.isExpanded
         ?
-         widget.hint is Widget ? widget.hint : (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
+         widget.hint is Widget ? widget.hint : (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: widget.hintFontSize, fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: widget.hintFontSize, fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))
 :
         Expanded(
           child:  widget.hint is Widget ? widget.hint : (widget.leading == false) ? Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)) : Center(child: Text("${_getText()}", softWrap: true, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: "GoogleSans", color: widget.enabled ? _textColor() : Colors.grey, fontWeight: !widget.onlyBorder ? FontWeight.w700 : null)))

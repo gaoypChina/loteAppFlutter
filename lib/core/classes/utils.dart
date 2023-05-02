@@ -32,10 +32,12 @@ import '../../main.dart';
 class  Utils {
   // static final String URL = 'http://127.0.0.1:8000/';
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
-  // static final String URL = 'http://192.168.1.36:8000';
-  // static final String URL_SOCKET = 'http://192.168.1.36:3000';
-  // static final String URL = 'http://172.25.176.1:8000';
-  // static final String URL_SOCKET = 'http://192.168.1.36:3000';
+  // static final String URL = 'http://192.168.103.128:8000/';
+  // static final String URL_SOCKET = 'http://192.168.103.128:3000';
+  // static final String URL = 'http://192.168.1.37:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.37:3000';
+  // static final String URL = 'http://172.18.48.1:8000';
+  // static final String URL_SOCKET = 'http://172.18.48.1:3000';
   // static final String URL = 'http://10.0.0.11:8000';
   // static final String URL_SOCKET = 'http://10.0.0.11:3000';
   // static final String URL = 'http://sislote.test/';
@@ -218,6 +220,12 @@ class  Utils {
 
   static String toDosDigitos(String value){
     String pad = "00";
+    
+    return pad.substring(0, pad.length - value.toString().length) + value.toString();
+  }
+
+  static String toTresDigitos(String value){
+    String pad = "000";
     
     return pad.substring(0, pad.length - value.toString().length) + value.toString();
   }
@@ -1187,6 +1195,36 @@ class  Utils {
     if(jugada.length < 6)
       return jugada;
     return jugada.substring(4, 6);
+  }
+
+  static Widget errorWidget(snapshot) {
+    return Center(child: Text("Error: ${snapshot.error}"));
+  }
+
+  static Widget cargandoWidget() {
+    return Center(child: CircularProgressIndicator());
+  }
+
+  static String quitarPrimeraComa(String jugada){
+    if(jugada.substring(0, 1) == ",")
+      return jugada.substring(1, jugada.length);
+    return jugada;
+  }
+
+  static String quitarUltimaComa(String jugada){
+    if(jugada.substring(jugada.length -1) == ",")
+      return jugada.substring(0, jugada.length - 1);
+    return jugada;
+  }
+
+  static String quitarUltimoPunto(String jugada){
+    if(jugada.substring(jugada.length -1) == ".")
+      return jugada.substring(0, jugada.length - 1);
+    return jugada;
+  }
+
+  static String quitarUltimoCaracter(String jugada){
+    return jugada.substring(0, jugada.length - 1);
   }
  
 }

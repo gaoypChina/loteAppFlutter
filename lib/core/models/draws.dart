@@ -31,6 +31,12 @@ Draws.fromMap(Map snapshot) :
   static int get idSorteoTripleta => 3;
   static int get idSorteoSuperpale => 4;
   static int get tamanoDirecto => 2;
+  static int get tamanoPale => 4;
+  static int get tamanoTripleta => 6;
+  static int get tamanoPick3Straight => 3;
+  static int get tamanoPick3BoxConSigno => 4;
+  static int get tamanoPick4StraightConSigno => 5;
+  static int get tamanoPick4BoxConSigno => 5;
 
   static bool esDirecto(String sorteo){
     return sorteo != null ? sorteo == directo : false;
@@ -54,6 +60,51 @@ Draws.fromMap(Map snapshot) :
 
   static bool esIdPaleTripletaOSuperpale(int id){
     return (esIdPale(id) || esIdTripleta(id) || esIdSuperpale(id));
+  }
+
+  static bool esJugadaDirecto(String jugada){
+    return esEntero(jugada) && jugada.length == Draws.tamanoDirecto;
+  }
+
+  static bool esJugadaPale(String jugada){
+    return esEntero(jugada) && jugada.length == Draws.tamanoPale;
+  }
+
+  static bool esJugadaTripleta(String jugada){
+    return esEntero(jugada) && jugada.length == Draws.tamanoTripleta;
+  }
+
+  static bool esJugadaSuperPale(String jugada){
+    bool esTamanoSuperPale = jugada.length == 5;
+    bool ultimoCaracterEsUnaS = jugada.substring(jugada.length - 1).toLowerCase() == "s";
+    return esEntero(Utils.quitarUltimoCaracter(jugada)) && esTamanoSuperPale && ultimoCaracterEsUnaS;
+  }
+
+  static bool esJugadaPick3Straight(String jugada){
+    return esEntero(jugada) && jugada.length == Draws.tamanoPick3Straight;
+  }
+
+  static bool esJugadaPick3Box(String jugada){
+    bool esTamanoPick3Box = jugada.length == Draws.tamanoPick3BoxConSigno;
+    bool ultimoCaracterEsSignoMas = jugada.substring(jugada.length - 1).toLowerCase() == "+";
+    return esEntero(Utils.quitarUltimoCaracter(jugada)) && esTamanoPick3Box && ultimoCaracterEsSignoMas;
+  }
+
+  static bool esJugadaPick4Straight(String jugada){
+    bool esTamanoPick4Straight = jugada.length == Draws.tamanoPick4StraightConSigno;
+    bool ultimoCaracterEsSignoMenos = jugada.substring(jugada.length - 1).toLowerCase() == "-";
+    return esEntero(Utils.quitarUltimoCaracter(jugada)) && esTamanoPick4Straight && ultimoCaracterEsSignoMenos;
+  }
+
+  static bool esJugadaPick4Box(String jugada){
+    bool esTamanoPick4Box = jugada.length == Draws.tamanoPick4BoxConSigno;
+    bool ultimoCaracterEsSignoMas = jugada.substring(jugada.length - 1).toLowerCase() == "+";
+    return esEntero(Utils.quitarUltimoCaracter(jugada)) && esTamanoPick4Box && ultimoCaracterEsSignoMas;
+  }
+
+  static bool esEntero(String jugada){
+    int numero = Utils.toInt(jugada, returnNullIfNotInt: true);
+    return numero != null && numero >= 0;
   }
 
   toJson() {

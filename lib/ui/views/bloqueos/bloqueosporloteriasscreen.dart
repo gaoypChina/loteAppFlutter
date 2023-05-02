@@ -5,9 +5,13 @@ import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/bancas.dart';
 import 'package:loterias/core/models/dia.dart';
 import 'package:loterias/core/models/draws.dart';
+import 'package:loterias/core/models/grupo.dart';
 import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
+import 'package:loterias/ui/views/bancas/bancasmultiplesearch.dart';
+import 'package:loterias/ui/views/bancas/bancassearchdialog.dart';
+import 'package:loterias/ui/views/loterias/loteriasmultisearch.dart';
 import 'package:loterias/ui/widgets/myalertdialog.dart';
 import 'package:loterias/ui/widgets/myresizedcheckbox.dart';
 import 'package:loterias/ui/widgets/mydescripcion.dart';
@@ -37,6 +41,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   List<Draws> listaSorteo = [];
   List<Dia> listaDia = [];
   List<Moneda> listaMoneda = [];
+  List<Grupo> listaGrupo = [];
   List<String> listaTipo = ["General", "Por banca"];
   String _selectedTipo = "General";
   Moneda _selectedMoneda;
@@ -55,6 +60,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   var _txtPick3Box = TextEditingController();
   var _txtPick4Straight = TextEditingController();
   var _txtPick4Box = TextEditingController();
+  bool _isSmallOrMedium = true;
 
 
   _init() async {
@@ -64,6 +70,8 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     listaSorteo = (parsed["sorteos"] != null) ? parsed["sorteos"].map<Draws>((json) => Draws.fromMap(json)).toList() : [];
     listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
+    listaGrupo = Grupo.fromMapList(parsed["grupos"]);
+    listaGrupo.insert(0, Grupo.getGrupoNinguno);
 
     if(listaMoneda.length > 0)
       _selectedMoneda = listaMoneda[0];
@@ -166,19 +174,32 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
       return;
     }
 
-    var dataRetornada = await showDialog(
-      context: context, 
-      builder: (context){
-        return MyMultiselect(
-          title: "Agregar bancas",
-          items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
-          initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
-        );
-      }
-    );
+    List<Banca> dataRetornada = [];
+    if(_esVentanaPequena())
+      dataRetornada = await showSearch(context: context, delegate: BancasMultipleSearch(listaBancaTmp, _bancas, listaGrupo, []));
+    else
+      dataRetornada = await showDialog(
+        context: context, 
+        builder: (context){
+          return BancasSearchDialog(bancas: listaBancaTmp, bancasSeleccionadas: _bancas, grupos: listaGrupo, monedas: [],);
+        }
+      );
 
-    if(dataRetornada != null)
-      setState(() => _bancas = List.from(dataRetornada));
+    // var dataRetornada = await showDialog(
+    //   context: context, 
+    //   builder: (context){
+    //     return MyMultiselect(
+    //       title: "Agregar bancas",
+    //       items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+    //       initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+    //     );
+    //   }
+    // );
+
+    if(dataRetornada != null){
+      List<Banca> bancasSeleccionadas = List<Banca>.from(dataRetornada);
+      setState(() => _bancas = Banca.unicas(listaBanca, bancasSeleccionadas));
+    }
   }
 
   _diasChanged() async {
@@ -198,7 +219,12 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   }
 
   _loteriasChanged() async {
-    var dataRetornada = await showDialog(
+    var dataRetornada;
+
+    if(_esVentanaPequena())
+      dataRetornada = await showSearch(context: context, delegate: LoteriasMultipleSearch(listaLoteria, _loterias));
+    else
+      dataRetornada = await showDialog(
       context: context, 
       builder: (context){
         // return MyMultiselect(
@@ -328,8 +354,10 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     );
 
     print("BloqueosPorLoteriasScreen _loteriasChanged: ${dataRetornada == null}");
-    if(dataRetornada != null)
-      setState(() => _loterias = List.from(dataRetornada));
+    if(dataRetornada != null){
+       List<Loteria> loteriasSeleccionadas = List<Loteria>.from(dataRetornada);
+      setState(() => _loterias = Loteria.unicas(listaLoteria, loteriasSeleccionadas));
+    }
   }
 
   _getSorteoAbreviatura(String descripcion){
@@ -345,6 +373,18 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
     return "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion + '${e.loteriaSuperpale.length == 0 ? '' : ' (' + e.loteriaSuperpale.map((ee) => ee.descripcion.toLowerCase()).join(", ") + ')' }').toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}";
   }
 
+  _getDescripcionLoteriasSeleccionadas(){
+    String loteriasSeleccionadas = "Seleccionar loterias...";
+    if(_loterias.length > 0 && _loterias.length != listaLoteria.length)
+      loteriasSeleccionadas = _loterias.map((e) => e.descripcion).toList().join(", ");
+    else if(_loterias.length > 0 && _loterias.length == listaLoteria.length)
+      loteriasSeleccionadas = "Todas las loterias";
+    // loteriasSeleccionadas = "${  : 'Todas las loterias' : 'Seleccionar loterias...'}";
+    if(loteriasSeleccionadas.length >= 100)
+      loteriasSeleccionadas = "Loterias: [${_loterias.length}]";
+    return loteriasSeleccionadas;
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -355,14 +395,14 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    bool isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    _isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return myScaffold(
       context: context,
       cargando: false,
       cargandoNotify: _cargandoNotify,
       isSliverAppBar: true,
       bloqueosPorLoteria: true,
-      bottomTap: isSmallOrMedium ? null : _guardar,
+      bottomTap: _isSmallOrMedium ? null : _guardar,
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           title: "Reglas",
@@ -403,30 +443,30 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                 //   ),
                 // ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                  padding: EdgeInsets.symmetric(vertical: _esVentanaPequena() ? 0 : 15.0),
                   child: MyDropdownButton(
-                    leading: isSmallOrMedium ? Icon(Icons.article) : null,
-                    isSideTitle: isSmallOrMedium ? false : true,
-                    type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                    title: isSmallOrMedium ? "" : "Tipo regla del bloqueo *",
+                    leading: _esVentanaPequena() ? Icon(Icons.article) : null,
+                    isSideTitle: _esVentanaPequena() ? false : true,
+                    type: _esVentanaPequena() ? MyDropdownType.noBorder : MyDropdownType.border,
+                    title: _esVentanaPequena() ? "" : "Tipo regla del bloqueo *",
                     value: _selectedTipo,
                     items: listaTipo.map((e) => [e, e]).toList(),
                     onChanged: _tipoChanged,
-                    helperText: isSmallOrMedium ? null : "${_selectedTipo == 'General' ? 'Aplicara el bloqueo a todas las bancas sin distinción.' : 'Se aplicara el bloqueo solo a las bancas selccionadas'}",
+                    helperText: _esVentanaPequena() ? null : "${_selectedTipo == 'General' ? 'Aplicara el bloqueo a todas las bancas sin distinción.' : 'Se aplicara el bloqueo solo a las bancas selccionadas'}",
                   ),
                 ),
                 MyDivider(showOnlyOnSmall: true,),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                  padding: EdgeInsets.symmetric(vertical: _esVentanaPequena() ? 0 : 15.0),
                   child: MyDropdownButton(
-                    leading: isSmallOrMedium ? Icon(Icons.attach_money) : null,
-                    isSideTitle: isSmallOrMedium ? false : true,
-                    type: isSmallOrMedium ? MyDropdownType.noBorder : MyDropdownType.border,
-                    title: isSmallOrMedium ? "" : "Moneda del bloqueo *",
+                    leading: _esVentanaPequena() ? Icon(Icons.attach_money) : null,
+                    isSideTitle: _esVentanaPequena() ? false : true,
+                    type: _esVentanaPequena() ? MyDropdownType.noBorder : MyDropdownType.border,
+                    title: _esVentanaPequena() ? "" : "Moneda del bloqueo *",
                     value: _selectedMoneda,
                     items: listaMoneda.map((e) => [e, e.descripcion]).toList(),
                     onChanged: _monedaChanged,
-                    helperText: isSmallOrMedium ? null : "Solo se aplicara a las bancas que pertenezcan a la moneda seleccionada. las demas seran ignoradas",
+                    helperText: _esVentanaPequena() ? null : "Solo se aplicara a las bancas que pertenezcan a la moneda seleccionada. las demas seran ignoradas",
                   ),
                 ),
                 MyDivider(showOnlyOnSmall: true,),
@@ -435,9 +475,9 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                   child: Wrap(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                        padding: EdgeInsets.symmetric(vertical: _esVentanaPequena() ? 0 : 15.0),
                         child: 
-                        isSmallOrMedium
+                        _esVentanaPequena()
                         ?
                         ListTile(
                           leading: Icon(Icons.account_balance),
@@ -460,7 +500,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: 
-                        isSmallOrMedium
+                        _esVentanaPequena()
                         ?
                         MySwitch(title: "Descontar del bloqueo general", value: _descontarDelBloqueoGeneral, onChanged: _descontarDelBloqueoGeneralChanged, leading: Icon(Icons.local_offer), small: 1, medium: 1,)
                         :
@@ -483,7 +523,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: 
-                  isSmallOrMedium
+                  _esVentanaPequena()
                   ?
                   ListTile(
                     leading: Icon(Icons.today),
@@ -509,11 +549,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10.0),
                   child: 
-                  isSmallOrMedium
+                  _esVentanaPequena()
                   ?
                   ListTile(
                     leading: Icon(Icons.sports_golf),
-                    title: Text(_selectedLoteriasDescripcion()),
+                    title: Text(_getDescripcionLoteriasSeleccionadas()),
                     onTap: _loteriasChanged,
                   )
                   :
@@ -526,7 +566,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                     title: "Loterias del bloqueo *",
                     helperText: "Seran las loterias afectadas por el bloqueo deseado",
                     // hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
-                    hint: _selectedLoteriasDescripcion(),
+                    hint: _getDescripcionLoteriasSeleccionadas(),
                     onTap: _loteriasChanged,
                   ),
                 ),
@@ -549,7 +589,7 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                     // ),
                     MySubtitle(title: "Sorteos", padding: EdgeInsets.only(top: 15, bottom: 8), showOnlyOnLarge: true,),
                     Visibility(
-                      visible: !isSmallOrMedium,
+                      visible: !_esVentanaPequena(),
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 15.0),
                         child: MyDescripcon(title: "Llena los sorteos que desea bloquear, solo los campos llenos serán bloqueados.", fontSize: 14,),
@@ -562,11 +602,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Directo")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Directo",
-                              hint: isSmallOrMedium ? "Directo" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Directo")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Directo",
+                              hint: _esVentanaPequena() ? "Directo" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtDirecto,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -583,11 +623,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pale")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Pale",
-                              hint: isSmallOrMedium ? "Pale" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Pale")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Pale",
+                              hint: _esVentanaPequena() ? "Pale" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtPale,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -604,11 +644,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Tripleta")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Tripleta",
-                              hint: isSmallOrMedium ? "Tripleta" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Tripleta")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Tripleta",
+                              hint: _esVentanaPequena() ? "Tripleta" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtTripleta,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -625,11 +665,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Super pale")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Super pale",
-                              hint: isSmallOrMedium ? "Super pale" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Super pale")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Super pale",
+                              hint: _esVentanaPequena() ? "Super pale" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtSuperPale,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -646,11 +686,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 3 Straight")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Pick 3 Straight",
-                              hint: isSmallOrMedium ? "Pick 3 Straight" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Pick 3 Straight")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Pick 3 Straight",
+                              hint: _esVentanaPequena() ? "Pick 3 Straight" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtPick3Straight,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -667,11 +707,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 3 Box")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Pick 3 Box",
-                              hint: isSmallOrMedium ? "Pick 3 Box" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Pick 3 Box")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Pick 3 Box",
+                              hint: _esVentanaPequena() ? "Pick 3 Box" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtPick3Box,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -688,11 +728,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 4 Straight")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Pick 4 Straight",
-                              hint: isSmallOrMedium ? "Pick 4 Straight" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Pick 4 Straight")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Pick 4 Straight",
+                              hint: _esVentanaPequena() ? "Pick 4 Straight" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtPick4Straight,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -709,11 +749,11 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
                           child: MyTextFormField(
                               medium: 1,
                               small: 1,
-                              leading: isSmallOrMedium ? Text(_getSorteoAbreviatura("Pick 4 Box")) : null,
-                              isSideTitle: isSmallOrMedium ? false : true,
-                              title: isSmallOrMedium ? "" : "Pick 4 Box",
-                              hint: isSmallOrMedium ? "Pick 4 Box" : "",
-                              type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                              leading: _esVentanaPequena() ? Text(_getSorteoAbreviatura("Pick 4 Box")) : null,
+                              isSideTitle: _esVentanaPequena() ? false : true,
+                              title: _esVentanaPequena() ? "" : "Pick 4 Box",
+                              hint: _esVentanaPequena() ? "Pick 4 Box" : "",
+                              type: _esVentanaPequena() ? MyType.noBorder : MyType.border,
                               controller: _txtPick4Box,
                               isDigitOnly: true,
                               onChanged: (data){
@@ -755,5 +795,10 @@ class _BloqueosPorLoteriasScreenState extends State<BloqueosPorLoteriasScreen> {
         )
       )
     );
+  }
+
+
+  bool _esVentanaPequena(){
+    return _isSmallOrMedium;
   }
 }

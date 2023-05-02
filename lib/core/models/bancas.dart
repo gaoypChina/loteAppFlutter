@@ -11,6 +11,7 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/models/pagoscombinacion.dart';
 import 'package:loterias/core/models/usuario.dart';
+import 'package:loterias/core/extensions/listextensions.dart';
 
 class Banca {
   int id;
@@ -34,6 +35,7 @@ class Banca {
   String piepagina2;
   String piepagina3;
   String piepagina4;
+  int idGrupo;
 
   String ip;
   Usuario usuario;
@@ -83,7 +85,9 @@ class Banca {
         dias = (snapshot["dias"] != null) ? diasToMap(Utils.parsedToJsonOrNot(snapshot["dias"])) : [],
         ventasDelDia = Utils.toDouble(snapshot['ventasDelDia'].toString()) ?? 0.0,
         balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0.0,
-        comisionRecargas = ComisionRecarga.fromMapList(Utils.parsedToJsonOrNot(snapshot["comisionRecargas"]))
+        comisionRecargas = ComisionRecarga.fromMapList(Utils.parsedToJsonOrNot(snapshot["comisionRecargas"])),
+        idGrupo = snapshot['idGrupo'] != null ? Utils.toInt(snapshot['idGrupo']) : null
+
         ;
 
         static List<Loteria> loteriasToMap(loterias){
@@ -138,6 +142,12 @@ class Banca {
 
   static List<Banca> fromMapList(parsed){
     return parsed != null ? parsed.map<Banca>((json) => Banca.fromMap(json)).toList() : [];
+  }
+
+  static List<Banca> unicas(List<Banca> bancasOriginal, List<Banca> bancasDuplicadas){
+    List<int> listaIdBancasUnicos = bancasDuplicadas.map<int>((e) => e.id).toList().unique();
+    List<Banca> unicas = bancasOriginal.where((loteria) => listaIdBancasUnicos.contains(loteria.id)).toList();
+    return unicas;
   }
 
 

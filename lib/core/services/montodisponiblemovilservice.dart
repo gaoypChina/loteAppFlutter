@@ -37,6 +37,7 @@ class MontoDisponibleMovilService{
     await llenarIdDiaYIdSorteo();
     await siEsSorteoPickOSuperpaleQuitarUltimoCaracterALaJugada();
     siIdLoteriaMayorQueIdLoteriaSuperpaleIntercambiarLoterias();
+    // return await buscarMontoDisponible();
     return await buscarMontoDisponible();
   }
   
@@ -69,11 +70,13 @@ class MontoDisponibleMovilService{
     await asingnarBloqueoJugadaPorBancaOGeneralOIntercambiarPorGeneral();
     await asignarBloqueoLoteriaPorBancaOGeneralOIntercambiarPorGeneral();
     await asignarBloqueoGeneral();
+    print("MontoDisponibleMovilservice buscarMontoDisponible: $_montoDisponible");
     return obtenerMontoDisponible();
   }
   
   Future<void> asignarBloqueoPorBancaStock() async {
     List<Map<String, dynamic>> datos = await Db.obtenerMontoDeTablaStock(idBanca: _banca.id, idLoteria: _loteria.id, idSorteo: _idSorteo, jugada: _jugada, idMoneda: _banca.idMoneda, esGeneral: 0, idLoteriaSuperpale: obtenerIdLoteriaSuperpale(), sqfliteTransaction: _sqfliteTransaction);
+    print("MontoDisponibleMovilservice asignarBloqueoPorBancaStock: $datos");
     if(datos.isNotEmpty)
       llenarVariablesMontoDisponibleYStockARetornar(montoDisponible: datos.first['monto'], descontarDelBloqueoGeneral: datos.first[descontarDelBloqueoGeneral], esBloqueoJugada: datos.first[esBloqueoJugada]);
   }
@@ -189,6 +192,7 @@ class MontoDisponibleMovilService{
     if(hayMontoDisponible())
       return;
     List<Map<String, dynamic>> bloqueosJugadasPorBanca = await obtenerBloqueosJugadasPorBanca();
+    print("MontoDisponibleMovilservice asingnarBloqueoJugadaPorBancaOGeneralOIntercambiarPorGeneral: $_montoDisponible");
     if(bloqueosJugadasPorBanca.isNotEmpty)
       await asignarBloqueoJugadaPorBancaOIntercambiarPorGeneral(bloqueosJugadasPorBanca);
     else

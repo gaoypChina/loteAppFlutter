@@ -2987,11 +2987,13 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         ),
         textAlign: _isLargeAndWeb() ? TextAlign.left : TextAlign.center,
         inputFormatters: !_isLargeAndWeb() ? [] : [
-          LengthLimitingTextInputFormatter(6),
+          // LengthLimitingTextInputFormatter(6),
+          LengthLimitingTextInputFormatter(8),
 
           // WhitelistingTextInputFormatter.digitsOnly,
           // FilteringTextInputFormatter.digitsOnly
-          FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+          // FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS]|\d\d\d|\d)?$'))
+          FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}(\+|\d[\+\-sS\.]|\d\d\d|\+\d{1,3}|\d|\d\d\d\.)?$'))
         ],
         onSubmitted: (data){
           _cambiarFocusJugadaMonto();
@@ -5567,17 +5569,20 @@ void _getTime() {
         }
       }
 
-
     setState((){
       _jugadaOmonto = !_jugadaOmonto;
       print("PrincipalView _cambiarFocusJugadaMonto: $_jugadaOmonto");
     });
   }
 
+  _campoJugadaTieneFoco(){
+    return _isLargeAndWeb() ? _jugadaFocusNode.hasFocus : _jugadaOmonto;
+  }
+
   Future<void> _escribir(String caracter) async {
     _jugadaOmonto = _isLargeAndWeb() ? _jugadaFocusNode.hasFocus : _jugadaOmonto;
     if(caracter == '.'){
-      if(_txtJugada.text.isEmpty && listaJugadas.length >= 2){
+      if(esLigar()){
         _showLigarDialog();
         return;
       }
@@ -5592,16 +5597,65 @@ void _getTime() {
         return;
     }
     if(caracter == 'ENTER'){
-      if(_jugadaOmonto){
+      _manejarEnter(caracter);
+      return;
+    }
+
+    if(_txtJugada.text.length == 0 && caracter == '-' && !_isLargeAndWeb()){
+      // guardar();
+      return;
+    }
+
+    if(_jugadaOmonto){
+     _manejarCaracterCampoJugada(caracter);
+    }else{
+      _manejarCaracterCampoMonto(caracter);
+    }
+  }
+
+  esLigar(){
+    return campoJugadaEstaVacio() && hayMasDeDosJugadas();
+  }
+
+  campoJugadaEstaVacio(){
+    return _txtJugada.text.isEmpty;
+  }
+
+  hayMasDeDosJugadas(){
+    return listaJugadas.length >= 2;
+  }
+
+  bool esCaracterEspecial(String caracter){
+    try {
+       double.parse(caracter);
+       return false;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  _manejarEnter(String caracter) async {
+     if(_jugadaOmonto){
         setState((){
           changeMontoDisponibleFromTxtMontoDisponible();
           _jugadaOmonto = !_jugadaOmonto;
           _txtMontoPrimerCaracter = true;
         });
       }else{
-        if(_txtJugada.text.indexOf(".") != -1){
-          _combinarJugadas();
+        if(_tieneCaracterPunto(_txtJugada.text)){
+          _generarCombinacionesJugadas();
           _cambiarFocusJugadaMonto();
+        }
+        else if(_esGenerarSecuenciaPick3Straight()){
+          List<String> secuenciaJugadasPick3Generadas = _generarSecuenciaPick3Straight();
+          List<Jugada> jugadasSinMontoDisponible = [];
+          for (var element in secuenciaJugadasPick3Generadas) {
+            List<Jugada> jugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor(element), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
+            if(jugadasSinMontoDisponibleTmp.length > 0)
+              jugadasSinMontoDisponible.addAll(jugadasSinMontoDisponibleTmp);
+          }
+          if(jugadasSinMontoDisponible.length > 0)
+            TicketService.showDialogJugadasSinMontoDisponible(context, () async => await Future.delayed(Duration(milliseconds: 0), () => jugadasSinMontoDisponible));
         }
         else{
           // if(kIsWeb){
@@ -5617,20 +5671,15 @@ void _getTime() {
             TicketService.showDialogJugadasSinMontoDisponible(context, () async => await Future.delayed(Duration(milliseconds: 0), () => jugadasSinMontoDisponible));
         }
       }
-      return;
-    }
+  }
 
-    if(_txtJugada.text.length == 0 && caracter == '-' && !_isLargeAndWeb()){
-      // guardar();
-      return;
-    }
-
-    if(_jugadaOmonto){
-      if(caracter == 'backspace'){
+  _manejarCaracterCampoJugada(String caracter){
+     if(caracter == 'backspace'){
         setState(() => _txtJugada.text = (_txtJugada.text.length > 0) ? _txtJugada.text.substring(0, (_txtJugada.text).length - 1) : _txtJugada.text);
         return;
       }
-      else if(_txtJugada.text.length < 6 || (_txtJugada.text.length == 6 && caracter == ".")){
+      else if(_txtJugada.text.length < 6 || (_txtJugada.text.length == 7 && _isLargeAndWeb()) || (_txtJugada.text.length == 6 && caracter == ".") || _esGenerarSecuenciaPick3Straight()){
+        // print("_escribir indiceSignoMas: ${_txtJugada.text.indexOf("+")} caracterEspecial: ${esCaracterEspecial(caracter)}");
         if(esCaracterEspecial(caracter) == false){
           if(_isLargeAndWeb())
             return;
@@ -5653,8 +5702,10 @@ void _getTime() {
           }
         }
       }
-    }else{
-      if(caracter == 'backspace'){
+  }
+
+  _manejarCaracterCampoMonto(String caracter){
+    if(caracter == 'backspace'){
         setState(() => _txtMonto.text = (_txtMonto.text.length > 0) ? _txtMonto.text.substring(0, (_txtMonto.text).length - 1) : _txtMonto.text);
         return;
       }else if(_txtMonto.text.length < 6){
@@ -5670,24 +5721,12 @@ void _getTime() {
           if(caracter == '.'){
             ponerPuntoEnMonto();
           }
-          
         }
       }
-    }
   }
 
-  bool esCaracterEspecial(String caracter){
-    try {
-       double.parse(caracter);
-       return false;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  _combinarJugadas() async {
+  _generarCombinacionesJugadas() async {
     List<String> combinacionesJugadas = Utils.generarCombinaciones(_txtJugada.text.substring(0, _txtJugada.text.length - 1));
-    // print("Combinaciones retornadas: ${combinacionesJugadas.length}");
     double montoJugada = Utils.toDouble(_txtMonto.text);
     for(int i=0; i < combinacionesJugadas.length; i++){
       // print("Combinaciones retornadas for antes: ${combinacionesJugadas[i]}");
@@ -5698,10 +5737,7 @@ void _getTime() {
       //     return;
       //   }
       // }
-
-      await addJugada(jugada: Utils.ordenarMenorAMayor((combinacionesJugadas[i])), montoDisponible: montoJugada.toString(), monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
-      // print("Combinaciones retornadas for despues: ${combinacionesJugadas[i]}");
-    
+      await addJugada(jugada: Utils.ordenarMenorAMayor((combinacionesJugadas[i])), montoDisponible: montoJugada.toString(), monto: _txtMonto.text, selectedLoterias: _selectedLoterias);    
     }
   }
 
@@ -5737,6 +5773,15 @@ void _getTime() {
               final selectedValues = await showDialog<Set<int>>(
                 context: context,
                 builder: (BuildContext context) {
+
+                  // var items = listaLoteria.map((l){
+                  //       return MultiSelectDialogItem(l.id, l.descripcion);
+                  //     }).toList();
+                  //     return MultiSelectDialog(
+                  //       items: items,
+                  //       // initialSelectedValues: [1, 3].toSet(),
+                  //       initialSelectedValues: null,
+                  //     );
                   
                   return StreamBuilder(
 
@@ -6034,6 +6079,33 @@ void _getTime() {
 
   }
 
+  _esGenerarSecuenciaPick3Straight(){
+    bool jugadaEsMayorOIgualQue6 = _txtJugada.text.length >= 6;
+    bool jugadaEsMenorQue7 = _txtJugada.text.length <= 7;
+    bool tieneSignoMasEnElMedio = _txtJugada.text.indexOf("+") == 3;
+
+    // print("Principal _esGenerarSecuenciaPick3Straight : >= 6 $jugadaEsMayorOIgualQue6 - < 7 $jugadaEsMenorQue7 signoMasMedio: $tieneSignoMasEnElMedio");
+    return jugadaEsMayorOIgualQue6 && jugadaEsMenorQue7 && tieneSignoMasEnElMedio;
+  }
+
+  List<String> _generarSecuenciaPick3Straight(){
+    List<String> jugadaPick3InicialYFinal = _txtJugada.text.split("+");
+    List<String> jugadasGeneradas = [];
+    int pick3Inicial = Utils.toInt(jugadaPick3InicialYFinal[0]);
+    int pick3Final = Utils.toInt(jugadaPick3InicialYFinal[1]);
+    if(pick3Inicial > pick3Final)
+        throw Exception("La primera secuencia debe ser menor que la segunda");
+    int cantidadTotalJugadasAGenerar = pick3Final - pick3Inicial;
+    if(cantidadTotalJugadasAGenerar > 100)
+      cantidadTotalJugadasAGenerar = 100;
+    cantidadTotalJugadasAGenerar = pick3Inicial + cantidadTotalJugadasAGenerar;
+    for(int contador = pick3Inicial; contador < cantidadTotalJugadasAGenerar; contador++){
+      jugadasGeneradas.add(Utils.toTresDigitos(contador.toString()));
+    }
+
+    return jugadasGeneradas;
+  }
+
    ponerPuntoEnMonto(){
      if(_txtMontoPrimerCaracter){
        _txtMonto.text = '.';
@@ -6061,9 +6133,14 @@ void _getTime() {
 
     if(!_isLargeAndWeb())
       _txtJugada.text = _txtJugada.text + '+';
+      
+    if(Draws.esJugadaPick4Box(_txtJugada.text)){
+      _cambiarFocusJugadaMonto();
+      changeMontoDisponibleFromTxtMontoDisponible();
+    }
     // setState(() => _jugadaOmonto = !_jugadaOmonto);
-    _cambiarFocusJugadaMonto();
-    changeMontoDisponibleFromTxtMontoDisponible();
+    // _cambiarFocusJugadaMonto();
+    // changeMontoDisponibleFromTxtMontoDisponible();
     
   }
 
@@ -6102,16 +6179,44 @@ void _getTime() {
   }
 
   ponerPunto() async {
-    if(_txtJugada.text.indexOf('.') != -1)
-      return;
+    if(_tieneCaracterPunto(_txtJugada.text)){
+    print("PrincipalView ponerPunto 1111");
+      if(_isLargeAndWeb()){
+        print("PrincipalView ponerPunto campoJugadaTieneFoco: ${_campoJugadaTieneFoco()} esDirectoPaleTripleta: ${_esDirectoPaleOTripleta(Utils.quitarUltimoPunto(_txtJugada.text))}");
+        if(_campoJugadaTieneFoco() && _esDirectoPaleOTripleta(Utils.quitarUltimoPunto(_txtJugada.text))){
+          _cambiarFocusJugadaMonto();
+          await changeMontoDisponibleFromTxtMontoDisponible();
+        }
+        return;
+      }
+    }
 
-    if(_txtJugada.text.length != 2 && _txtJugada.text.length != 4 && _txtJugada.text.length != 6)
+    print("PrincipalView ponerPunto 22222");
+    // if(_txtJugada.text.length != 2 && _txtJugada.text.length != 4 && _txtJugada.text.length != 6)
+    // if(_isLargeAndWeb()){
+    //   if(_esDirectoPaleOTripleta(_txtJugada.text)){
+    //     _cambiarFocusJugadaMonto();
+    //     await changeMontoDisponibleFromTxtMontoDisponible();
+    //   }
+    // }
+
+    // if(_isLargeAndWeb() && !_esDirectoPaleOTripleta(Utils.punto))
+    //   return;
+    if(!_esDirectoPaleOTripleta(_txtJugada.text))
       return;
     
     // setState(() => _jugadaOmonto = !_jugadaOmonto);
     _cambiarFocusJugadaMonto();
     await changeMontoDisponibleFromTxtMontoDisponible();
     _txtJugada.text = _txtJugada.text + '.';
+  }
+
+  _tieneCaracterPunto(String datos){
+    return datos.indexOf(".") != -1;
+  }
+
+  _esDirectoPaleOTripleta(String jugada){
+    return Draws.esJugadaDirecto(jugada) || Draws.esJugadaPale(jugada) || Draws.esJugadaTripleta(jugada);
   }
 
 
@@ -6962,6 +7067,11 @@ _selectedBanca() async {
      return;
    }
 
+   if(_tieneCaracterPunto(_txtJugada.text) || _esGenerarSecuenciaPick3Straight()){
+    _txtMontoDisponible.text = "X";
+     return;
+   }
+
    double montoDisponible = 0;
    if(_selectedLoterias.length == 1){
      montoDisponible = (await getMontoDisponible(Utils.ordenarMenorAMayor(_txtJugada.text), _selectedLoterias[0], await _selectedBanca())).monto;
@@ -7751,8 +7861,6 @@ quitarLoteriasProvenientesDelSocketQueEstenCerradas(var parsed, {List<Loteria> l
     }
 
   });
-
-
   
   setState((){
     listaLoteria = listaLoteriaEvent;

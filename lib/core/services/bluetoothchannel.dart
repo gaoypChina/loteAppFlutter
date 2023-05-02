@@ -415,6 +415,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     map[map.length] = _getMapNuevo(text:"Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
     map[map.length] = _getMapNuevo(text:"Total:              ${mapCuadre["total"]}\n");
     map[map.length] = _getMapNuevo(text:"Ventas:             ${Utils.toCurrency(mapCuadre["ventas"], true)}\n");
+    map[map.length] = _getMapNuevo(text:"Recargas:           ${Utils.toCurrency(mapCuadre["recargas"], true)}\n");
     map[map.length] = _getMapNuevo(text:"Comisiones:         ${Utils.toCurrency(mapCuadre["comisiones"], true)}\n");
     map[map.length] = _getMapNuevo(text:"descuentos:         ${Utils.toCurrency(mapCuadre["descuentos"], true)}\n");
     map[map.length] = _getMapNuevo(text:"premios:            ${Utils.toCurrency(mapCuadre["premios"], true)}\n");

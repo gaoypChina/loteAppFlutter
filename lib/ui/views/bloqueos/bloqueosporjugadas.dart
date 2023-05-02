@@ -18,7 +18,9 @@ import 'package:loterias/core/models/loterias.dart';
 import 'package:loterias/core/models/monedas.dart';
 import 'package:loterias/core/services/bloqueosservice.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
+import 'package:loterias/ui/views/bancas/bancasmultiplesearch.dart';
 import 'package:loterias/ui/views/bloqueos/dialogbloquearquinielasenotrossorteos.dart';
+import 'package:loterias/ui/views/loterias/loteriasmultisearch.dart';
 import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
 import 'package:loterias/ui/widgets/mycheckbox.dart';
@@ -74,6 +76,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   List<Dia> _dias = [];
   List<Loteria> _loterias = [];
   List<Draws> _sorteos = [];
+  List<Grupo> listaGrupo = [];
   bool _descontarDelBloqueoGeneral = true;
   bool _ignorarDemasBloqueos = false;
   var _cargandoNotify = ValueNotifier<bool>(false);
@@ -83,7 +86,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
   List<MyFilterData2> listaFiltros = [];
   List<Grupo> _grupos = [];
   List<Jugada> _jugadas = [];
-  bool isSmallOrMedium = false;
+  bool _isSmallOrMedium = false;
   static String _opcionBloquearQuinielasEnOtrosSorteos = "BloquearQuinielasEnOtrosSorteos";
   List<Draws> _sorteosSeleccionadosParaBloquearQuinielas = [];
 
@@ -96,6 +99,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     listaSorteo = (parsed["sorteos"] != null) ? parsed["sorteos"].map<Draws>((json) => Draws.fromMap(json)).toList() : [];
     listaDia = (parsed["dias"] != null) ? parsed["dias"].map<Dia>((json) => Dia.fromMap(json)).toList() : [];
     listaMoneda = (parsed["monedas"] != null) ? parsed["monedas"].map<Moneda>((json) => Moneda.fromMap(json)).toList() : [];
+    listaGrupo = Grupo.fromMapList(parsed["grupos"]);
 
     // if(listaMoneda.length > 0)
     //   _selectedMoneda = listaMoneda[0];
@@ -372,7 +376,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
    
 
   Future<void> addJugada({String jugada, String monto, Draws sorteoPaleTripletaOSuperpaleParaBloquearQuiniela = null}) async {
-    // try {
+    try {
       validarLoteriasSeleccionadas();
       jugada = Utils.ordenarMenorAMayor(jugada);
       List<Jugada> jugadasTmp = List.from(_jugadas);
@@ -383,17 +387,17 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           sorteo = sorteoPaleTripletaOSuperpaleParaBloquearQuiniela;
         else
           sorteo = await obtenerYValidarSorteo(jugada);
-        validarSorteoPerteneceALoteria(loteria, sorteo);
-        await insertarOActualizarJugada(loteria: loteria, sorteo: sorteo, monto: monto, jugada: jugada);
+        if(sorteoPerteneceALoteria(loteria, sorteo))
+          await insertarOActualizarJugada(loteria: loteria, sorteo: sorteo, monto: monto, jugada: jugada);
         // _jugadas = List.from(jugadasTmp);
         _streamControllerJugada.add(_jugadas);
         if(sorteoPaleTripletaOSuperpaleParaBloquearQuiniela == null)
           _txtJugada.text = "";
       // setState(() => _jugadaOmonto = !_jugadaOmonto);
       }
-    // } on Exception catch (e) {
-    //   Utils.showAlertDialog(context: context, title: "Error", content: "$e");
-    // }
+    } on Exception catch (e) {
+      Utils.showAlertDialog(context: context, title: "Error", content: "$e");
+    }
 
       
 
@@ -421,11 +425,13 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     return sorteo;
   }
 
-  validarSorteoPerteneceALoteria(Loteria loteria, Draws sorteo){
+  bool sorteoPerteneceALoteria(Loteria loteria, Draws sorteo){
     if(loteria.sorteos.indexWhere((element) => element.id == sorteo.id) == -1){
       String mensajeSorteo = sorteo != null ? "El sorteo ${sorteo.descripcion}" : "Este sorteo";
-      throw Exception("$mensajeSorteo no pertenece a la loteria ${loteria.descripcion}");
+      // throw Exception("$mensajeSorteo no pertenece a la loteria ${loteria.descripcion}");
+      return false;
     }
+    return true;
   }
 
   Future<void> insertarOActualizarJugada({Loteria loteria, Draws sorteo, String jugada, String monto}) async {
@@ -475,42 +481,36 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       );
   }
 
-  _loteriasChanged() async {
-    var dataRetornada = await showDialog(
-      context: context, 
-      builder: (context){
-        return MyMultiselect(
-          title: "Agregar loterias",
-          items: listaLoteria.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
-          initialSelectedItems: _loterias.length == 0 ? [] : _loterias.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
-        );
-      }
-    );
-
-    if(dataRetornada != null)
-      setState(() => _loterias = List.from(dataRetornada));
-  }
-
   _bancasChanged() async {
+    if(_selectedMoneda == null){
+      Utils.showAlertDialog(context: context, title: "Advertencia", content: "Debe seleccionar una moneda");
+      return;
+    }
     var listaBancaTmp = listaBanca.where((element) => element.idMoneda == _selectedMoneda.id).toList();
     if(listaBancaTmp.length == 0){
       Utils.showAlertDialog(context: context, title: "Error", content: "No hay bancas");
       return;
     }
 
-    var dataRetornada = await showDialog(
-      context: context, 
-      builder: (context){
-        return MyMultiselect(
-          title: "Agregar bancas",
-          items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
-          initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
-        );
-      }
-    );
+    List<Banca> dataRetornada = [];
+    if(_esVentanaPequena())
+      dataRetornada = await showSearch(context: context, delegate: BancasMultipleSearch(listaBancaTmp, _bancas, listaGrupo, []));
+    else
+      dataRetornada = await showDialog(
+        context: context, 
+        builder: (context){
+          return MyMultiselect(
+            title: "Agregar bancas",
+            items: listaBancaTmp.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+            initialSelectedItems: _bancas.length == 0 ? [] : _bancas.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+          );
+        }
+      );
 
-    if(dataRetornada != null)
-      setState(() => _bancas = List.from(dataRetornada));
+    if(dataRetornada != null){
+      List<Banca> bancasSeleccionadas = List<Banca>.from(dataRetornada);
+      setState(() => _bancas = Banca.unicas(listaBanca, bancasSeleccionadas));
+    }
   }
 
   _monedaChanged(Moneda data){
@@ -547,9 +547,9 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _tipoReglaScreen(bool isSmallOrMedium){
+  Widget _tipoReglaScreen(){
     return 
-    !isSmallOrMedium
+    _esPantallaGrande()
     ?
     Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -584,9 +584,9 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _monedaScreen(bool isSmallOrMedium){
+  Widget _monedaScreen(){
     return 
-    !isSmallOrMedium
+    _esPantallaGrande()
     ?
     Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
@@ -687,8 +687,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _bancaScreen(bool isSmallOrMedium){
-    if(!isSmallOrMedium)
+  Widget _bancaScreen(){
+    if(_esPantallaGrande())
       return Visibility(
         visible: _selectedTipo == "Por banca",
         child: Padding(
@@ -738,8 +738,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _fechaScreen(bool isSmallOrMedium){
-    if(!isSmallOrMedium)
+  Widget _fechaScreen(){
+    if(_esPantallaGrande())
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
         child: Builder(
@@ -798,11 +798,11 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _ignorarDemasBloqueosScreen(bool isSmallOrMedium){
+  Widget _ignorarDemasBloqueosScreen(){
     return Visibility(
       visible: _selectedTipo == "General",
       child: 
-      !isSmallOrMedium
+      _esPantallaGrande()
       ?
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 8.0),
@@ -830,11 +830,11 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _descontarBloqueoGeneralScreen(bool isSmallOrMedium){
+  Widget _descontarBloqueoGeneralScreen(){
     return Visibility(
       visible: _selectedTipo == "Por banca",
       child: 
-      !isSmallOrMedium
+      _esPantallaGrande()
       ?
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 8.0),
@@ -847,7 +847,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
             ),
             Padding(
               padding: const EdgeInsets.only(top: 6.0, left: 8.0),
-              child: MyHelper(mensaje: "Se descontará del bloqueo general, de lo contrario las bancas estan tendrán su propio limite y estaran fuera del bloqueo general",),
+              child: MyHelper(mensaje: "Se descontará del bloqueo general, de lo contrario las bancas tendrán su propio limite y estaran fuera del bloqueo general",),
             )
           ],
         ),
@@ -879,8 +879,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
 
-  Widget _loteriaScreen(bool isSmallOrMedium){
-    if(!isSmallOrMedium)
+  Widget _loteriaScreen(){
+    if(_esPantallaGrande())
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 0.0),
         child: MyDropdown(
@@ -897,7 +897,8 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           // textColor: Colors.black,
           title: "Loterias *",
           helperText: "Seran las loterias afectadas por el bloqueo deseado",
-          hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
+          // hint: "${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}",
+          hint: _getDescripcionLoteriasSeleccionadas(),
           onTap: _loteriasChanged,
         ),
       );
@@ -915,11 +916,45 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           child: MyResizedContainer(
             small: 1,
             medium: 1,
-            child: Center(child: Text("${_loterias.length > 0 ? _loterias.length != listaLoteria.length ? _loterias.map((e) => e.descripcion).toList().join(", ") : 'Todas las loterias' : 'Seleccionar loterias...'}", style: TextStyle(fontSize: 16))),
+            child: Center(child: Text(_getDescripcionLoteriasSeleccionadas(), style: TextStyle(fontSize: 16))),
           ),
         ),
       ),
     );
+  }
+
+  _loteriasChanged() async {
+    var dataRetornada;
+    if(_esVentanaPequena())
+      dataRetornada = await showSearch(context: context, delegate: LoteriasMultipleSearch(listaLoteria, _loterias));
+    else
+      dataRetornada = await showDialog(
+      context: context, 
+      builder: (context){
+        return MyMultiselect(
+          title: "Agregar loterias",
+          items: listaLoteria.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList(),
+          initialSelectedItems: _loterias.length == 0 ? [] : _loterias.map((e) => MyValue(value: e, child: "${e.descripcion}")).toList()
+        );
+      }
+    );
+
+    if(dataRetornada != null){
+       List<Loteria> loteriasSeleccionadas = List<Loteria>.from(dataRetornada);
+      setState(() => _loterias = Loteria.unicas(listaLoteria, loteriasSeleccionadas));
+    }
+  }
+
+  _getDescripcionLoteriasSeleccionadas(){
+    String loteriasSeleccionadas = "Seleccionar loterias...";
+    if(_loterias.length > 0 && _loterias.length != listaLoteria.length)
+      loteriasSeleccionadas = _loterias.map((e) => e.descripcion).toList().join(", ");
+    else if(_loterias.length > 0 && _loterias.length == listaLoteria.length)
+      loteriasSeleccionadas = "Todas las loterias";
+    // loteriasSeleccionadas = "${  : 'Todas las loterias' : 'Seleccionar loterias...'}";
+    if(loteriasSeleccionadas.length >= 100)
+      loteriasSeleccionadas = "Loterias: [${_loterias.length}]";
+    return loteriasSeleccionadas;
   }
 
   _cambiarFocusJugadaMonto(){
@@ -940,11 +975,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     });
   }
 
-  _esPantallaGrande(){
-    return !isSmallOrMedium;
-  }
-
-  Widget _jugadaTextField(bool isSmallOrMedium){
+  Widget _jugadaTextField(){
     return Column(
       children: [
         RawKeyboardListener(
@@ -970,22 +1001,22 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           child: TextField(
             controller: _txtJugada,
             focusNode: _jugadaFocusNode,
-            autofocus: !isSmallOrMedium,
-            enabled: !isSmallOrMedium,
+            autofocus: _esPantallaGrande(),
+            enabled: _esPantallaGrande(),
             style: TextStyle(fontSize: 20),
             decoration: InputDecoration(
               contentPadding: EdgeInsets.all(0),
-              isDense: !isSmallOrMedium ? false : true,
+              isDense: _esPantallaGrande() ? false : true,
               // alignLabelWithHint: true,
-              border: !isSmallOrMedium ? null : InputBorder.none,
-              hintText: !isSmallOrMedium ? null : 'Jugada',
-              labelText: !isSmallOrMedium ? 'Jugada' : null,
+              border: _esPantallaGrande() ? null : InputBorder.none,
+              hintText: _esPantallaGrande() ? null : 'Jugada',
+              labelText: _esPantallaGrande() ? 'Jugada' : null,
               fillColor: Colors.transparent,
               // filled: true,
               hintStyle: TextStyle(fontWeight: FontWeight.bold),
             ),
-            textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
-            inputFormatters: !!isSmallOrMedium ? [] : [
+            textAlign: _esPantallaGrande() ? TextAlign.left : TextAlign.center,
+            inputFormatters: _esPantallaGrande() ? [] : [
               LengthLimitingTextInputFormatter(6),
 
               // WhitelistingTextInputFormatter.digitsOnly,
@@ -1048,23 +1079,23 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     return estaSeleccionado;
   }
 
-  TextField _montoTextField(bool isSmallOrMedium){
+  TextField _montoTextField(){
     return TextField(
       controller: _txtMonto,
       focusNode: _montoFocusNode,
-      enabled: !isSmallOrMedium,
+      enabled: _esPantallaGrande(),
       style: TextStyle(fontSize: 20),
       decoration: InputDecoration(
         contentPadding: EdgeInsets.all(0),
-        isDense: !isSmallOrMedium ? false : true,
-        border: !isSmallOrMedium ? null : InputBorder.none,
-        hintText: !isSmallOrMedium ? null : 'Monto',
-        labelText: !isSmallOrMedium ? 'Monto' : null,
+        isDense: _esPantallaGrande() ? false : true,
+        border: _esPantallaGrande() ? null : InputBorder.none,
+        hintText: _esPantallaGrande() ? null : 'Monto',
+        labelText: _esPantallaGrande() ? 'Monto' : null,
         fillColor: Colors.transparent,
         // filled: true,
         hintStyle: TextStyle(fontWeight: FontWeight.bold)
       ),
-      textAlign: !isSmallOrMedium ? TextAlign.left : TextAlign.center,
+      textAlign: _esPantallaGrande() ? TextAlign.left : TextAlign.center,
       onSubmitted: (data) async {
         _escribir("ENTER");
         // await addJugada(jugada: Utils.ordenarMenorAMayor(_txtJugada.text), montoDisponible: _txtMontoDisponible.text, monto: _txtMonto.text, selectedLoterias: _selectedLoterias);
@@ -1072,17 +1103,17 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     );
   }
  
-  _title(bool isSmallOrMedium){
+  _title(){
     return
-    !isSmallOrMedium
+    _esVentanaPequena()
     ?
-    "Limite por jugadas"
+    _tipoReglaScreen()
     :
-    _tipoReglaScreen(isSmallOrMedium);
+    "Limite por jugadas";
   }
 
-  _subtitle(bool isSmallOrMedium){
-    return !isSmallOrMedium
+  _subtitle(){
+    return _esPantallaGrande()
     ?
     "Aqui puede limitar jugadas especificas de manera general, por bancas y loterias."
     :
@@ -1143,7 +1174,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
           
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
-            child: _monedaScreen(isSmallOrMedium),
+            child: _monedaScreen(),
           )
     
           ],
@@ -1388,7 +1419,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
     },);
   }
 
-  _directoPaleTripletaScreen(double width, bool isSmallOrMedium){
+  _directoPaleTripletaScreen(double width){
     if(ScreenSize.isXLarge(width) || ScreenSize.isLarge(width))
       return Wrap(
         children: [
@@ -1699,7 +1730,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
 
   @override
   Widget build(BuildContext context) {
-    isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    _isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
     return myScaffold(
       context: context,
       cargando: false,
@@ -1709,9 +1740,9 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
       sliverBody: MySliver(
         withScroll: false,
         sliverAppBar: MySliverAppBar(
-          title: _title(isSmallOrMedium),
-          expandedHeight: isSmallOrMedium ? 95 : 85,
-          subtitle: _subtitle(isSmallOrMedium),
+          title: _title(),
+          expandedHeight: _esVentanaPequena() ? 95 : 85,
+          subtitle: _subtitle(),
           actions: [
            
               MySliverButton(title: "Guardar", onTap: _guardar, cargandoNotifier: _cargandoNotify,)
@@ -1799,31 +1830,31 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
               child: Center(child: CircularProgressIndicator()),
             );
 
-            if(!isSmallOrMedium){
+            if(_esPantallaGrande()){
               return SliverList(
                 delegate: SliverChildListDelegate([
                 Wrap(
                   children: [
-                    _tipoReglaScreen(isSmallOrMedium),
-                    _monedaScreen(isSmallOrMedium),
-                    _bancaScreen(isSmallOrMedium),
-                    _fechaScreen(isSmallOrMedium),
-                    _ignorarDemasBloqueosScreen(isSmallOrMedium),
-                    _descontarBloqueoGeneralScreen(isSmallOrMedium),
+                    _tipoReglaScreen(),
+                    _monedaScreen(),
+                    _bancaScreen(),
+                    _fechaScreen(),
+                    _ignorarDemasBloqueosScreen(),
+                    _descontarBloqueoGeneralScreen(),
                     // _loteriaScreen(isSmallOrMedium),
                   ],
                 ),
                 Wrap(
                   alignment: WrapAlignment.start,
                   children: [
-                    _loteriaScreen(isSmallOrMedium),
+                    _loteriaScreen(),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
                       child: MyResizedContainer(
                         xlarge: 5, 
                         large: 3, 
                         medium: 2.5,
-                        child: _jugadaTextField(isSmallOrMedium)
+                        child: _jugadaTextField()
                       ),
                     ),
                     Padding(
@@ -1832,7 +1863,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                         xlarge: 5, 
                         large: 3, 
                         medium: 5.2,
-                        child: _montoTextField(isSmallOrMedium)
+                        child: _montoTextField()
                       ),
                     ),
                   ],
@@ -1848,7 +1879,7 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                       builder: (context, width) {
                         return Wrap(
                           children: [
-                            _directoPaleTripletaScreen(width, isSmallOrMedium),
+                            _directoPaleTripletaScreen(width),
                             _pick34Screen(width)
                             // MyResizedContainer(
                             //   xlarge: 4.19,
@@ -1907,16 +1938,16 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
                           children: [
                             Column(
                               children: [
-                                _bancaScreen(isSmallOrMedium),
-                                _loteriaScreen(isSmallOrMedium),
+                                _bancaScreen(),
+                                _loteriaScreen(),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Flexible(
-                                      child: _descontarBloqueoGeneralScreen(isSmallOrMedium),
+                                      child: _descontarBloqueoGeneralScreen(),
                                     ),
                                     Flexible(
-                                      child: _ignorarDemasBloqueosScreen(isSmallOrMedium),
+                                      child: _ignorarDemasBloqueosScreen(),
                                     ),
                                   ],
                                 )
@@ -2196,6 +2227,14 @@ class _BloqueosPorJugadasState extends State<BloqueosPorJugadas>  with TickerPro
         )
       )
     );
+  }
+
+  bool _esVentanaPequena(){
+    return _isSmallOrMedium;
+  }
+
+  _esPantallaGrande(){
+    return !_isSmallOrMedium;
   }
   
 }
