@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:badges/badges.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -943,12 +943,11 @@ String initSocketNotificationTask = "initSocketNotificationTask";
         if(await Db.idBanca() == banca.id){
           await Db.deleteAllBranches();
           // await Db.insertBranche('Branches', banca.toJson());
-          print("Principal view _updateBranchesList limiteVenta: ${banca.limiteVenta}");
           await Db.insertBranch(driftDatabase.Branch(
         id: banca.id, descripcion: banca.descripcion, codigo: banca.codigo, dueno: banca.dueno, idUsuario: banca.usuario != null ? banca.usuario.id : 0, 
         limiteVenta: banca.limiteVenta, descontar: banca.descontar, deCada: banca.deCada, minutosCancelarTicket: banca.minutosCancelarTicket, 
         piepagina1: banca.piepagina1, piepagina2: banca.piepagina2, piepagina3: banca.piepagina3, piepagina4: banca.piepagina4, idMoneda: banca.idMoneda, 
-        moneda: banca.moneda, monedaAbreviatura: banca.monedaAbreviatura, monedaColor: banca.monedaColor, status: banca.status, ventasDelDia: banca.ventasDelDia));
+        moneda: banca.moneda, monedaAbreviatura: banca.monedaAbreviatura, monedaColor: banca.monedaColor, status: banca.status, ventasDelDia: banca.ventasDelDia, cantidadCombinacionesJugadasPermitidasPorTicket: banca.cantidadCombinacionesJugadasPermitidasPorTicket));
 
           int idx = listaBanca.indexWhere((element) => element.id == banca.id);
           if(idx != -1 && idx == _indexBanca){
@@ -3649,9 +3648,9 @@ Widget _loteriasScreen([bool isSmallOrMedium = true, BuildContext mContext, doub
         children: [
           MyResizedContainer(
             small: 3.8,
-            child: Badge(
+            child: badges.Badge(
               badgeColor: Colors.green,
-              position: BadgePosition(top: 0, end: 0),
+              position: badges.BadgePosition(top: 0, end: 0),
               showBadge: listaJugadasSeleccionadas.firstWhere((element) => element == data, orElse: () => null) != null,
               badgeContent: Icon(Icons.check, size: 10),
               child: Center(child: Padding(
@@ -5542,7 +5541,7 @@ void _getTime() {
       );
   }
 
-  _cambiarFocusJugadaMonto(){
+  void _cambiarFocusJugadaMonto(){
     // if(_isLargeAndWeb()){
     //   _jugadaOmonto = !_jugadaFocusNode.hasFocus;
     //   if(_jugadaOmonto)
@@ -5742,6 +5741,7 @@ void _getTime() {
   }
 
   _showLigarDialog() async {
+    
     // setState((){
       _ckbLigarPale = true;
       _ckbLigarTripleta = false;
@@ -5857,10 +5857,11 @@ void _getTime() {
                     TextFormField(
                       decoration: InputDecoration(labelText: "Monto"),
                       controller: _txtMontoLigar,
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         // WhitelistingTextInputFormatter.digitsOnly
-                        FilteringTextInputFormatter.digitsOnly
+                        // FilteringTextInputFormatter.
+                        FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))
                       ],
                       validator: (data){
                         if(data.isEmpty)
@@ -5931,6 +5932,20 @@ void _getTime() {
   }
 
   _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto) async {
+    int cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
+    int cantidadJugadasCombinadasExistentes = listaJugadas.where((element) => element.esCombinada).length;
+    if(cantidadJugadasCombinadasPermitidas == 0){
+      Utils.showAlertDialog(context: context, title: "Acceso denegado", content: "No tiene permiso para combinar o ligar jugadas");
+      return;
+    }
+
+    if(cantidadJugadasCombinadasPermitidas != null){
+      if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas){
+        Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+        return [];
+      }
+    }
+
     ValueNotifier cargandoNotifier = ValueNotifier(true);
     List<String> listaJugadasLigadas = [];
     int idLoteria;
@@ -5972,12 +5987,39 @@ void _getTime() {
     // for(int i=0; i < listaJugadasLigadas.length; i++){
     //   await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
     // }
+    
     await TicketService.showDialogJugadasSinMontoDisponible(
       context, 
       () async {
         List<Jugada> listaJugadasSinMontoDisponible = [];
-        for(int i=0; i < listaJugadasLigadas.length; i++){
-          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
+
+        
+        
+        print("PrincipalScreen _ligarDirectosEnPale jugadasPermitidas: $cantidadJugadasCombinadasPermitidas");
+        // int cantidadJugadasACombinar = listaJugadasLigadas.length;
+        // // if((!_tienePermisoAdministrador && !_tienePermisoProgramador) && cantidadJugadasCombinadasPermitidas != null){
+        // if(cantidadJugadasCombinadasPermitidas != null){
+        //   int cantidadRestanteJugadasACombinar = 0;
+        //   // if(cantidadJugadasACombinar > cantidadJugadasCombinadasExistentes)
+        //   //   cantidadRestanteJugadasACombinar =  cantidadJugadasACombinar - cantidadJugadasCombinadasExistentes;
+        //   // else
+        //   //   cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasExistentes - cantidadJugadasACombinar;
+
+        //   // cantidadJugadasACombinar = cantidadRestanteJugadasACombinar > cantidadJugadasCombinadasPermitidas ? cantidadRestanteJugadasACombinar : 0;
+
+        //   if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas)
+        //     cantidadRestanteJugadasACombinar = 0;
+        //   else
+        //     cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasPermitidas - cantidadJugadasCombinadasExistentes;
+
+        //   if(cantidadJugadasACombinar > cantidadRestanteJugadasACombinar)
+        //     cantidadJugadasACombinar = cantidadRestanteJugadasACombinar;
+        // }
+
+        int cantidadJugadasACombinar = _cantidadJugadasACombinar(listaJugadasLigadas, cantidadJugadasCombinadasPermitidas, cantidadJugadasCombinadasExistentes) ;
+        // for(int i=0; i < listaJugadasLigadas.length; i++){
+        for(int i=0; i < cantidadJugadasACombinar; i++){
+          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false, esJugadaCombinada: true);
           if(listaJugadasSinMontoDisponibleTmp.length > 0)
             listaJugadasSinMontoDisponible.addAll(listaJugadasSinMontoDisponibleTmp);
         }
@@ -6003,6 +6045,20 @@ void _getTime() {
   }
 
   _ligarDirectosEnTripleta(List<Loteria> loteriasSeleccionadas, double monto) async {
+    int cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
+    int cantidadJugadasCombinadasExistentes = listaJugadas.where((element) => element.esCombinada).length;
+    if(cantidadJugadasCombinadasPermitidas == 0){
+      Utils.showAlertDialog(context: context, title: "Acceso denegado", content: "No tiene permiso para combinar o ligar jugadas");
+      return;
+    }
+
+    if(cantidadJugadasCombinadasPermitidas != null){
+      if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas){
+        Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+        return [];
+      }
+    }
+
     ValueNotifier cargandoNotifier = ValueNotifier(true);
     List<String> listaJugadasLigadas = [];
     int idLoteria;
@@ -6054,8 +6110,13 @@ void _getTime() {
       context, 
       () async {
         List<Jugada> listaJugadasSinMontoDisponible = [];
-        for(int i=0; i < listaJugadasLigadas.length; i++){
-          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false);
+
+        int cantidadJugadasACombinar = _cantidadJugadasACombinar(listaJugadasLigadas, cantidadJugadasCombinadasPermitidas, cantidadJugadasCombinadasExistentes) ;
+         
+
+        // for(int i=0; i < listaJugadasLigadas.length; i++){
+        for(int i=0; i < cantidadJugadasACombinar; i++){
+          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false, esJugadaCombinada: true);
           if(listaJugadasSinMontoDisponibleTmp.length > 0)
             listaJugadasSinMontoDisponible.addAll(listaJugadasSinMontoDisponibleTmp);
         }
@@ -6076,6 +6137,25 @@ void _getTime() {
         builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
       ),
     );
+
+  }
+
+  _cantidadJugadasACombinar(List<String> listaJugadasLigadas, int cantidadJugadasCombinadasPermitidas, int cantidadJugadasCombinadasExistentes){
+    int cantidadJugadasACombinar = listaJugadasLigadas.length;
+        
+    if(cantidadJugadasCombinadasPermitidas != null){
+      int cantidadRestanteJugadasACombinar = 0;
+
+      if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas)
+        cantidadRestanteJugadasACombinar = 0;
+      else
+        cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasPermitidas - cantidadJugadasCombinadasExistentes;
+
+      if(cantidadJugadasACombinar > cantidadRestanteJugadasACombinar)
+        cantidadJugadasACombinar = cantidadRestanteJugadasACombinar;
+    }
+
+    return cantidadJugadasACombinar;
 
   }
 
@@ -6122,7 +6202,7 @@ void _getTime() {
     return Utils.isSmallOrMedium(MediaQuery.of(context).size.width) == false && kIsWeb;
   }
 
-  ponerSignoMas(){
+  ponerSignoMas() async {
     if((_txtJugada.text.indexOf('+') != -1 && !_isLargeAndWeb()) || (_txtJugada.text.indexOf('+') == -1 && _isLargeAndWeb()))
       return;
 
@@ -6136,7 +6216,7 @@ void _getTime() {
       
     if(Draws.esJugadaPick4Box(_txtJugada.text)){
       _cambiarFocusJugadaMonto();
-      changeMontoDisponibleFromTxtMontoDisponible();
+      await changeMontoDisponibleFromTxtMontoDisponible();
     }
     // setState(() => _jugadaOmonto = !_jugadaOmonto);
     // _cambiarFocusJugadaMonto();
@@ -6180,9 +6260,7 @@ void _getTime() {
 
   ponerPunto() async {
     if(_tieneCaracterPunto(_txtJugada.text)){
-    print("PrincipalView ponerPunto 1111");
       if(_isLargeAndWeb()){
-        print("PrincipalView ponerPunto campoJugadaTieneFoco: ${_campoJugadaTieneFoco()} esDirectoPaleTripleta: ${_esDirectoPaleOTripleta(Utils.quitarUltimoPunto(_txtJugada.text))}");
         if(_campoJugadaTieneFoco() && _esDirectoPaleOTripleta(Utils.quitarUltimoPunto(_txtJugada.text))){
           _cambiarFocusJugadaMonto();
           await changeMontoDisponibleFromTxtMontoDisponible();
@@ -6191,7 +6269,6 @@ void _getTime() {
       }
     }
 
-    print("PrincipalView ponerPunto 22222");
     // if(_txtJugada.text.length != 2 && _txtJugada.text.length != 4 && _txtJugada.text.length != 6)
     // if(_isLargeAndWeb()){
     //   if(_esDirectoPaleOTripleta(_txtJugada.text)){
@@ -6220,7 +6297,7 @@ void _getTime() {
   }
 
 
-  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap, Map<String, dynamic> jugadaMap, bool cambiarFocusJugadaMonto = true}) async {
+  addJugada({String jugada, String montoDisponible, String monto, List<Loteria> selectedLoterias, Map<String, dynamic> loteriaMap, Map<String, dynamic> jugadaMap, bool cambiarFocusJugadaMonto = true, esJugadaCombinada: false}) async {
     if(jugada.length < 2)
       return;
 
@@ -6273,7 +6350,7 @@ void _getTime() {
         }
       // }
 
-      await insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock);
+      await insertarJugada(jugada: jugada, loteria: selectedLoterias[0], monto: monto, stock: montoDisponible.stock, esJugadaCombinada: esJugadaCombinada);
       _streamControllerJugada.add(listaJugadas);
       _txtJugada.text = '';
       _txtMontoDisponible.text = '';
@@ -6340,7 +6417,7 @@ void _getTime() {
       for (var l in selectedLoterias) {
         Jugada loteriaConStock = listaLoteriaConStock.firstWhere((element) => element.loteria.id == l.id, orElse: () => null);
         if(loteriaConStock != null)
-          await insertarJugada(jugada: jugada, loteria: l, monto: monto, stock: loteriaConStock.stock);
+          await insertarJugada(jugada: jugada, loteria: l, monto: monto, stock: loteriaConStock.stock, esJugadaCombinada: esJugadaCombinada);
       }
 
       _streamControllerJugada.add(listaJugadas);
@@ -6453,7 +6530,7 @@ void _getTime() {
     return false;
   }
 
-  insertarJugada({String jugada, Loteria loteria, String monto, Stock stock}) async {
+  insertarJugada({String jugada, Loteria loteria, String monto, Stock stock, bool esJugadaCombinada: false}) async {
 
     
     
@@ -6474,6 +6551,7 @@ void _getTime() {
                     Navigator.of(context).pop();
                     listaJugadas[idx].monto += Utils.toDouble(monto);
                     listaJugadas[idx].stock = stock;
+                    listaJugadas[idx].esCombinada = esJugadaCombinada;
                     _streamControllerJugada.add(listaJugadas);
                     _txtJugada.text = '';
                     _txtMontoDisponible.text = '';
@@ -6495,7 +6573,8 @@ void _getTime() {
           idBanca: 0,
           idSorteo: _sorteo.id,
           sorteo: _sorteo.descripcion,
-          stock: stock
+          stock: stock,
+          esCombinada: esJugadaCombinada
         ));
         await addOrUpdateEstadisticaJugada(jugada: jugada, loteria: loteria, sorteo: _sorteo);
       }
@@ -7061,7 +7140,7 @@ _selectedBanca() async {
    return descuento;
  }
 
- changeMontoDisponibleFromTxtMontoDisponible() async {
+ Future<void> changeMontoDisponibleFromTxtMontoDisponible() async {
    if(_txtJugada.text.isEmpty){
      _txtMontoDisponible.text = "0";
      return;

@@ -48,6 +48,7 @@ class Banca {
   double ventasDelDia;
   double balance;
   List<ComisionRecarga> comisionRecargas;
+  int cantidadCombinacionesJugadasPermitidasPorTicket;
 
 
   Banca({this.id, this.descripcion, this.codigo, this.dueno, this.localidad, this.status, this.idMoneda, this.monedaObject, this.monedaAbreviatura, this.monedaColor, this.descontar, this.deCada, this.limiteVenta, this.balanceDesactivacion, this.minutosCancelarTicket, this.imprimirCodigoQr, this.usuario, this.grupo, this.loterias, this.comisiones, this.pagosCombinaciones, this.gastos, this.dias});
@@ -86,7 +87,8 @@ class Banca {
         ventasDelDia = Utils.toDouble(snapshot['ventasDelDia'].toString()) ?? 0.0,
         balance = Utils.toDouble(snapshot['balance'].toString()) ?? 0.0,
         comisionRecargas = ComisionRecarga.fromMapList(Utils.parsedToJsonOrNot(snapshot["comisionRecargas"])),
-        idGrupo = snapshot['idGrupo'] != null ? Utils.toInt(snapshot['idGrupo']) : null
+        idGrupo = snapshot['idGrupo'] != null ? Utils.toInt(snapshot['idGrupo']) : null,
+        cantidadCombinacionesJugadasPermitidasPorTicket = snapshot['cantidadCombinacionesJugadasPermitidasPorTicket'] != null ? Utils.toInt(snapshot['cantidadCombinacionesJugadasPermitidasPorTicket']) : null
 
         ;
 
@@ -170,6 +172,7 @@ class Banca {
       "piepagina3": piepagina3,
       "piepagina4": piepagina4,
       "ventasDelDia": ventasDelDia,
+      "cantidadCombinacionesJugadasPermitidasPorTicket": cantidadCombinacionesJugadasPermitidasPorTicket,
     };
   }
 
@@ -203,7 +206,8 @@ class Banca {
       "pagosCombinaciones" : Pagoscombinacion.pagosCombinacionesToJson(pagosCombinaciones),
       "gastos" : Gasto.gastosToJson(gastos),
       "dias" : Dia.diasToJson(dias),
-      "comisionRecargas" : ComisionRecarga.listToJson(comisionRecargas)
+      "comisionRecargas" : ComisionRecarga.listToJson(comisionRecargas),
+      "cantidadCombinacionesJugadasPermitidasPorTicket" : cantidadCombinacionesJugadasPermitidasPorTicket,
     };
   }
 }

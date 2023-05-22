@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:loterias/core/classes/mydate.dart';
+import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/utils.dart';
+import 'package:loterias/ui/widgets/mycirclebutton.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class MyDateRangeDialog extends StatefulWidget {
@@ -11,7 +15,8 @@ class MyDateRangeDialog extends StatefulWidget {
   final double width;
   final DateRangePickerSelectionMode selectionMode;
   final bool showLeftStringDate;
-  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha, this.width = 600, this.selectionMode = DateRangePickerSelectionMode.range, this.showLeftStringDate = true}) : super(key: key);
+  final bool isSimpleDialog;
+  MyDateRangeDialog({Key key, @required this.date, this.onCancel, this.onOk, this.listaFecha, this.width = 600, this.selectionMode = DateRangePickerSelectionMode.range, this.showLeftStringDate = true, this.isSimpleDialog = false}) : super(key: key);
   @override
   _MyDateRangeDialogState createState() => _MyDateRangeDialogState();
 }
@@ -212,6 +217,10 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
         children: [
          Visibility(visible: widget.showLeftStringDate, child:  _myDateWidget()),
           // VerticalDivider(),
+          widget.isSimpleDialog
+          ?
+          Expanded(child: _simpleDates())
+          :
           Expanded(
             child: Theme(
               data: ThemeData(),
@@ -253,6 +262,101 @@ class _MyDateRangeDialogState extends State<MyDateRangeDialog> {
       
     );
            
+  }
+
+  Widget _simpleDates(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 18.0),
+          child: MyResizedContainer(small: 1.7, child: MySubtitle(title: "Desde", fontSize: 14, padding: EdgeInsets.symmetric(vertical: 5.0),)),
+        ),
+        // MyCircleButton(
+        //   child: MyDate.dateRangeToNameOrString(_date), 
+        //   onTap: _fechaInicialChanged,
+        // ),
+        InkWell(
+           child: MyResizedContainer(
+            small: 1.7,
+            child: Container(
+              height: 35,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(5.0)
+              ),
+              child: Center(child: Text(MyDate.dateRangeToNameOrString(DateTimeRange(start: MyDate.toFechaInicial(_date.start), end: MyDate.toFechaFinal(_date.start))),)), 
+            )
+           ),
+          onTap: _fechaInicialChanged
+         ),
+        Padding(
+          padding: const EdgeInsets.only(top: 12.0),
+          child: MyResizedContainer(small: 1.7, child: MySubtitle(title: "Hasta", fontSize: 14, padding: EdgeInsets.symmetric(vertical: 5.0))),
+        ),
+         InkWell(
+           child: MyResizedContainer(
+            small: 1.7,
+            child: Container(
+              height: 35,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(5.0)
+              ),
+              child: Center(child: Text(MyDate.dateRangeToNameOrString(DateTimeRange(start: MyDate.toFechaInicial(_date.end), end: MyDate.toFechaFinal(_date.end))),)), 
+            )
+           ),
+          onTap: _fechaFinalChanged
+         ),
+         Expanded(
+           child: Padding(
+             padding: const EdgeInsets.only(bottom: 12.0),
+             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                TextButton(onPressed: widget.onCancel, child: Text("Cancelar", style: TextStyle(color: Colors.grey),)),
+                TextButton(onPressed: (){widget.onOk(_date);}, child: Text("Ok",)),
+              ],
+             ),
+           ),
+         )
+      ],
+    );
+  }
+
+  _fechaInicialChanged() async {
+    print("Hola");
+    var date = await showDatePicker(context: context, initialDate: _date.start, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
+    if(date == null)
+      return;
+
+
+    if(date != null && date is DateTime)
+      setState(() {
+        _date = DateTimeRange(
+          start: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00"),
+          end: DateTime.parse("${_date.end.year}-${Utils.toDosDigitos(_date.end.month.toString())}-${Utils.toDosDigitos(_date.end.day.toString())} 23:59:59")
+        );
+      });
+
+  }
+
+  _fechaFinalChanged() async {
+    print("Mydaterangedialog _fechaFinalChanged: Hola");
+    var date = await showDatePicker(context: context, initialDate: _date.end, firstDate: DateTime(DateTime.now().year - 5), lastDate: DateTime(DateTime.now().year + 5));
+    if(date == null)
+      return;
+
+
+    if(date != null && date is DateTime)
+      setState(() {
+        _date = DateTimeRange(
+          start: DateTime.parse("${_date.start.year}-${Utils.toDosDigitos(_date.start.month.toString())}-${Utils.toDosDigitos(_date.start.day.toString())} 00:00"),
+          end: DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59")
+        );
+      });
+
   }
 
 

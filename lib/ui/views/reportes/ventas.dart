@@ -13,15 +13,24 @@ import 'package:loterias/core/services/bluetoothchannel.dart';
 import 'package:loterias/core/services/reporteservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
 import 'package:loterias/main.dart';
+import 'package:loterias/ui/widgets/MyPadding.dart';
+import 'package:loterias/ui/widgets/mybottomsheet2.dart';
 import 'package:loterias/ui/widgets/mybutton.dart';
+import 'package:loterias/ui/widgets/mycirclebutton.dart';
 import 'package:loterias/ui/widgets/mycollapsechanged.dart';
 import 'package:loterias/ui/widgets/mycontainerbutton.dart';
 import 'package:loterias/ui/widgets/mydaterangedialog.dart';
 import 'package:loterias/ui/widgets/mydropdown.dart';
 import 'package:loterias/ui/widgets/myempty.dart';
 import 'package:loterias/ui/widgets/myfilter.dart';
+import 'package:loterias/ui/widgets/myfilterv2.dart';
+import 'package:loterias/ui/widgets/myresizecontainer.dart';
 import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
+import 'package:loterias/ui/widgets/mysubtitle.dart';
+import 'package:loterias/ui/widgets/mytabbar.dart';
+import 'package:loterias/ui/widgets/mytext.dart';
+import 'package:loterias/ui/widgets/showmymodalbottomsheet.dart';
 import 'package:loterias/ui/widgets/showmyoverlayentry.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -33,7 +42,7 @@ class VentasScreen extends StatefulWidget {
   _VentasScreenState createState() => _VentasScreenState();
 }
 
-class _VentasScreenState extends State<VentasScreen> {
+class _VentasScreenState extends State<VentasScreen>  with TickerProviderStateMixin{
   final _scaffoldKey = GlobalKey<ScaffoldState>();
    DateTimeRange _date;
    var _fechaHoy = DateTime.now();
@@ -53,24 +62,29 @@ class _VentasScreenState extends State<VentasScreen> {
   bool _imprimirTicketsGanadores = false;
   bool _imprimirTotalesPorLoteria = false;
   bool _imprimirNumerosGanadores = false;
+  TabController _tabController;
+  bool _isSmallOrMedium = false;
+  Future<void> _future;
 
 
   @override
   void initState() {
     // TODO: implement initState
     initializeDateFormatting();
+    _tabController = TabController(length: 2, vsync: this);
+
     // _dateFormat = new DateFormat.yMMMMd(MyApp.myLocale.languageCode);
     _dateFormat = new DateFormat.yMMMMEEEEd(MyApp.myLocale.languageCode);
     _date = MyDate.getTodayDateRange();
     _confirmarTienePermiso();
     _streamControllerBancas = BehaviorSubject();
     _streamControllerTablas = BehaviorSubject();
-    _ventas();
+    _future = _ventas();
     super.initState();
-    SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //     DeviceOrientation.landscapeRight,
+    //     DeviceOrientation.landscapeLeft,
+    // ]);
   }
 
   @override
@@ -1257,7 +1271,11 @@ Widget _buildTableTicketsGanadores(List map){
   }
 
   _printCuadre(){
-    BluetoothChannel.printCuadre(map: datos, imprimirNumerosGanadores: _imprimirNumerosGanadores, imprimirTotalesPorLoteria: _imprimirTotalesPorLoteria, imprimirTicketsGanadores: _imprimirTicketsGanadores);
+    BluetoothChannel.printCuadre(map: datos, imprimirNumerosGanadores: _imprimirNumerosGanadores, imprimirTotalesPorLoteria: _imprimirTotalesPorLoteria, imprimirTicketsGanadores: _imprimirTicketsGanadores, imprimirReporteResumido: esVentanaResumida());
+  }
+
+  esVentanaResumida(){
+    return _tabController.index == 0;
   }
 
   _imprimirTicketsGanadoresChanged(data){
@@ -1464,84 +1482,227 @@ Widget _buildTableTicketsGanadores(List map){
   }
 
 
-  _subtitle(bool isSmallOrMedium){
-    return 
-    isSmallOrMedium == false
+  // _subtitle(bool isSmallOrMedium){
+  //   return 
+  //   isSmallOrMedium == false
+  //   ?
+  //   "Maneje todas sus ventas y filtrelas por fecha"
+  //   :
+  //   MyCollapseChanged(
+  //     child: MyFilter(
+  //       value: _date,
+  //       paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
+  //       onChanged: _dateChanged,
+  //     ),
+  //   );
+  //   // MyFilter(
+  //   //   showListNormalCortaLarga: 3,
+  //   //   leading: null,
+  //   //   paddingContainer: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+  //   //   contentPadding: EdgeInsets.symmetric(vertical: 2,),
+  //   //   value: _date,
+  //   //   onChanged: (value){
+  //   //     setState(() => _date = value);
+  //   //   },
+  //   //   onDeleteAll: (){},
+  //   // );
+  //   Container(
+  //     child: 
+  //       // Padding(
+  //       //   padding: const EdgeInsets.all(8.0),
+  //       //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
+  //       // ),
+  //       _getListaFiltro().length == 0
+  //       ?
+  //       Row(
+  //           children: [
+  //             Padding(
+  //               padding: const EdgeInsets.all(8.0),
+  //               // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
+  //               child: Icon(Icons.date_range, color: Colors.grey,),
+  //             ),
+  //             Expanded(
+  //               child: Padding(
+  //                 padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+  //                 child: SingleChildScrollView(
+  //                   scrollDirection: Axis.horizontal,
+  //                   child: 
+  //                   Row(
+  //                     children: MyDate.listaFechaLarga.map((e) =>  Padding(
+  //                       padding: const EdgeInsets.all(4.0),
+  //                       child: MyContainerButton(
+  //                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+  //                         selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
+  //                         setState((){
+  //                           print("_build fecha: ${e[1]}");
+  //                           _fecha = e[0];
+  //                           _ventas();
+  //                         });
+  //                       },),
+  //                     )).toList(),
+  //                   )
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         )
+  //       :
+  //       Padding(
+  //         padding: const EdgeInsets.only(bottom: 8.0),
+  //         child:Text("h")
+  //         //  MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+  //       ),
+      
+  //   );
+  // }
+
+  _subtitle(){
+    return
+    esPantallaPequena()
     ?
-    "Maneje todas sus ventas y filtrelas por fecha"
+    ""
     :
-    MyCollapseChanged(
-      child: MyFilter(
-        value: _date,
-        paddingContainer: EdgeInsets.symmetric(vertical: 7, horizontal: 20),
-        onChanged: _dateChanged,
-      ),
-    );
-    // MyFilter(
-    //   showListNormalCortaLarga: 3,
-    //   leading: null,
-    //   paddingContainer: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-    //   contentPadding: EdgeInsets.symmetric(vertical: 2,),
-    //   value: _date,
-    //   onChanged: (value){
-    //     setState(() => _date = value);
-    //   },
-    //   onDeleteAll: (){},
-    // );
-    Container(
-      child: 
-        // Padding(
-        //   padding: const EdgeInsets.all(8.0),
-        //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
-        // ),
-        _getListaFiltro().length == 0
-        ?
-        Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
-                child: Icon(Icons.date_range, color: Colors.grey,),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: 
-                    Row(
-                      children: MyDate.listaFechaLarga.map((e) =>  Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: MyContainerButton(
-                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                          selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
-                          setState((){
-                            print("_build fecha: ${e[1]}");
-                            _fecha = e[0];
-                            _ventas();
-                          });
-                        },),
-                      )).toList(),
-                    )
+    "Verifique las ventas resumidas del día seleccionado y maneje sus bancas";
+  }
+
+  Widget _filtroPantallaPequena(){
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      child: FutureBuilder<void>(
+          future: _future,
+          builder: (context, snapshot) {
+            if(snapshot.connectionState != ConnectionState.done)
+              return SizedBox.shrink();
+
+            return Row(
+              children: [
+                Visibility(visible: esPantallaPequena(), child: _dateWidget()),
+                Expanded(
+                  child: MyFilterV2(
+                    item: [
+                      MyFilterItem(
+                        visible: _tienePermiso,
+                        hint: "${_banca != null ? 'Banca: ' + Utils.limitarCaracteres(_banca.descripcion, 35): 'Banca...'}", 
+                        data: listaBanca.map((e) => MyFilterSubItem(child: e.descripcion, value: e)).toList(),
+                        onChanged: (value){
+                          _bancaChanged(value);
+                        }
+                      ),
+                      
+                    ],
                   ),
                 ),
-              ),
-            ],
-          )
-        :
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child:Text("h")
-          //  MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+              ],
+            );
+          }
         ),
-      
     );
+  }
+
+  dynamic _dateWidget(){
+    if(esPantallaPequena())
+    return MyCircleButton(
+      child: MyDate.dateRangeToNameOrString(_date), 
+      onTap: (){
+        _back(){
+          Navigator.pop(context);
+        }
+        showMyModalBottomSheet(
+          context: context, 
+          myBottomSheet2: MyBottomSheet2(
+            child: MyDateRangeDialog(
+              isSimpleDialog: true,
+              date: _date,
+              onCancel: _back,
+              onOk: (date){
+                _dateChanged(date);
+                _back();
+              },
+            ), 
+          height: 350
+          )
+        );
+      }
+    );
+
+  
+
+    return Container(
+      width: 180,
+      child: Builder(
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: MyDropdown(
+              title: null, 
+              leading: Icon(Icons.date_range, size: 20, color: Colors.blue[700],),
+              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+              hint: "${MyDate.dateRangeToNameOrString(_date)}",
+              onTap: (){
+                showMyOverlayEntry(
+                  context: context,
+                  right: 20,
+                  builder: (context, overlay){
+                    _cancel(){
+                      overlay.remove();
+                    }
+                    return MyDateRangeDialog(date: _date, onCancel: _cancel, onOk: (date){_dateChanged(date); overlay.remove();},);
+                  }
+                );
+              },
+            ),
+          );
+        }
+      ),
+    );
+              
+  }
+
+  _ventanaDetallada(){
+    return StreamBuilder<Map<String, dynamic>>(
+      stream: _streamControllerTablas.stream,
+      builder: (context, snapshot) {
+        if(snapshot.data == null)
+          return Center(child: CircularProgressIndicator());
+
+        if(snapshot.data.isEmpty)
+          return Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.error,));
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 25),),),
+            ),
+            _tablaPrincipal(snapshot.data),
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 15),
+              child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
+            ),
+            _buildTableTotalesPorLoteria((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 15),
+              child: Center(child: Text("Numeros ganadores", style: TextStyle(fontSize: 25),),),
+            ),
+            _buildTableNumerosGanadores((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
+            Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 15),
+              child: Center(child: Text("Tickets ganadores", style: TextStyle(fontSize: 25),),),
+            ),
+            _buildTableTicketsGanadores((snapshot.data["ticketsGanadores"] != null) ? List.from(snapshot.data["ticketsGanadores"]) : List()),
+          ]),
+        );
+      }
+    );
+                   
   }
 
   
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    _isSmallOrMedium = isSmallOrMedium;
     return myScaffold(
       context: context, 
       cargando: false, 
@@ -1552,8 +1713,9 @@ Widget _buildTableTicketsGanadores(List map){
       sliverBody: MySliver(
         sliverAppBar: MySliverAppBar(
           expandedHeight: isSmallOrMedium ? 110 : 85,
-          title: _titleScreen(isSmallOrMedium),
-          subtitle: _subtitle(isSmallOrMedium),
+          // title: _titleScreen(isSmallOrMedium),
+          title: "Ventas",
+          subtitle: _subtitle(),
           floating: isSmallOrMedium,
           actions: [
             MySliverButton(
@@ -1602,206 +1764,192 @@ Widget _buildTableTicketsGanadores(List map){
               onTap: (){}
               ),
             
-            MySliverButton(title: null, onTap: _filtroScreen, iconWhenSmallScreen: Icons.date_range, showOnlyOnSmall: true),
+            // MySliverButton(title: null, onTap: _filtroScreen, iconWhenSmallScreen: Icons.date_range, showOnlyOnSmall: true),
             MySliverButton(title: null, onTap: _showDialogImprimir, iconWhenSmallScreen: Icons.print, showOnlyOnSmall: true,),
           ],
         ), 
-        sliver: StreamBuilder<Map<String, dynamic>>(
-            stream: _streamControllerTablas.stream,
-            builder: (context, snapshot) {
-              if(snapshot.data == null)
-                return SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
+        sliver: 
+        // StreamBuilder<Map<String, dynamic>>(
+        //     stream: _streamControllerTablas.stream,
+        //     builder: (context, snapshot) {
+        //       if(snapshot.data == null)
+        //         return SliverFillRemaining(
+        //           child: Center(child: CircularProgressIndicator()),
+        //         );
 
-              if(snapshot.data.isEmpty)
-                return SliverFillRemaining(
-                  child: Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.error,)),
-                );
+        //       if(snapshot.data.isEmpty)
+        //         return SliverFillRemaining(
+        //           child: Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.error,)),
+        //         );
               
-              return SliverList(delegate: SliverChildListDelegate([
+        //       // return SliverList(delegate: SliverChildListDelegate([
                
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _tablaPrincipal(snapshot.data),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableTotalesPorLoteria((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Numeros ganadores", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableNumerosGanadores((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Tickets ganadores", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableTicketsGanadores((snapshot.data["ticketsGanadores"] != null) ? List.from(snapshot.data["ticketsGanadores"]) : List()),
-                        
-                   
+        //       //           // _sencilloWidget(),
+        //       //           // _ventanaSencilla(),
+        //       //           _ventanaDetallada(snapshot)
                     
                   
-              ]));
-            }
-          )
-          
-      )
-    );
-    Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Ventas", style: TextStyle(color: Colors.black),),
-      //   leading: BackButton(
-      //     color: Utils.colorPrimary,
-      //   ),
-      //   elevation: 0,
-      //   backgroundColor: Colors.transparent,
-      //   actions: <Widget>[
-      //     Column(
+        //       // ]));
+        //       return SliverList(delegate: SliverChildListDelegate(_ventanaDetallada(snapshot)));
+        //     }
+        //   )
 
-      //       mainAxisAlignment: MainAxisAlignment.center,
-      //       children: <Widget>[
-      //         Padding(
-      //           padding: const EdgeInsets.all(8.0),
-      //           child: SizedBox(
-      //             width: 30,
-      //             height: 30,
-      //             child: Visibility(
-      //               visible: _cargando,
-      //               child: Theme(
-      //                 data: Theme.of(context).copyWith(accentColor: Utils.colorPrimary),
-      //                 child: new CircularProgressIndicator(),
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //   ],
-      // ),
-     backgroundColor: Colors.white,
-      body: 
-      SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-            title: _titleScreen(isSmallOrMedium),
-            leading: BackButton(
-              color: Utils.colorPrimary,
-            ),
-            backgroundColor: Colors.white,
-            actions: [
-              IconButton(icon: Icon(Icons.date_range), onPressed: _filtroScreen, color: Utils.colorPrimary,),
-              IconButton(icon: Icon(Icons.print), onPressed: _showDialogImprimir, color: Utils.colorPrimary,),
-            ],
-            expandedHeight: 110,
-            floating: true,
-            pinned: true,
-            flexibleSpace: 
-            
-            FlexibleSpaceBar(
-              // alignment: Alignment.bottomRight,
-              background: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Padding(
-                  //   padding: const EdgeInsets.all(8.0),
-                  //   child: Text("Fecha", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black)),
-                  // ),
-                  _getListaFiltro().length == 0
-                  ?
-                  Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          // child: Icon(Icons.date_range, size: 35, color: Colors.grey,),
-                          child: Icon(Icons.date_range, color: Colors.grey,),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: 
-                              Row(
-                                children: MyDate.listaFechaLarga.map((e) =>  Padding(
-                                  padding: const EdgeInsets.all(4.0),
-                                  child: MyContainerButton(
-                                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                                    selected: e[0] == _fecha, data: [e[0], e[1]], onTap: (data){
-                                    setState((){
-                                      print("_build fecha: ${e[1]}");
-                                      _fecha = e[0];
-                                      _ventas();
-                                    });
-                                  },),
-                                )).toList(),
-                              )
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  :
+        SliverList(delegate: SliverChildListDelegate([
+                  MyPadding(child: MyTabBar(controller: _tabController, tabs: ["Resumido", "Detallado"], indicator: _lineasTabBarWidget(),)),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text("Hey")
-                    // MyFilter(title: "", data: _getListaFiltro(), onDeleteAll: _deleteAllFilter,),
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: _filtroPantallaPequena(),
                   ),
-                ],
+                  // FutureBuilder<void>(
+                  //   future: _futureCargo,
+                  //   builder: (context, snapshot) {
+                  //     if(snapshot.connectionState != ConnectionState.done)
+                  //       return SizedBox.shrink();
+
+                  //     return _myFilterWidget();
+                  //   }
+                  // )
+                ])),
+                withScroll: false,
+          sliverFillRemaining: SliverFillRemaining(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+            _ventanaResumida(),
+            Padding(
+              padding: EdgeInsets.only(right: esPantallaPequena() ? 0.0 : 16.0),
+              child: SingleChildScrollView(
+                child: _ventanaDetallada(),
               ),
-            
             ),
-            
-            
-            
-          ),
-          StreamBuilder<Map<String, dynamic>>(
-            stream: _streamControllerTablas.stream,
-            builder: (context, snapshot) {
-              if(snapshot.data == null)
-                return SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              
-              return SliverList(delegate: SliverChildListDelegate([
-               
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Center(child: Text("Resumen de ventas", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _tablaPrincipal(snapshot.data),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Totales por loteria", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableTotalesPorLoteria((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Numeros ganadores", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableNumerosGanadores((snapshot.data["loterias"] != null) ? List.from(snapshot.data["loterias"]) : List()),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 15),
-                          child: Center(child: Text("Tickets ganadores", style: TextStyle(fontSize: 25),),),
-                        ),
-                        _buildTableTicketsGanadores((snapshot.data["ticketsGanadores"] != null) ? List.from(snapshot.data["ticketsGanadores"]) : List()),
-                        
-                   
-                    
-                  
-              ]));
-            }
-          )
-          
-          ],
+          ]),
         ),
       )
-      
     );
+    
+  }
+
+  Widget _ventanaResumida(){
+    return MyPadding(
+      child: StreamBuilder<Map<String, dynamic>>(
+        stream: _streamControllerTablas.stream,
+        builder: (context, snapshot) {
+    
+           if(snapshot.data == null)
+            return Center(child: CircularProgressIndicator());
+    
+          if(snapshot.data.isEmpty)
+            return Center(child: MyEmpty(title: "No hay datos", titleButton: "No hay datos", icon: Icons.error,));
+    
+    
+          var datos = snapshot.data;
+          return SingleChildScrollView(
+            child: Column(
+              // crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 MyResizedContainer(
+                  medium: 3,
+                  large: 2.8,
+                  xlarge: 2.8,
+                  child: MySubtitle(title: "Resumen", fontWeight: FontWeight.bold, fontSize: 16, padding: EdgeInsets.only(top: esPantallaPequena() ? 15 : 0.0, bottom: 20.0),)),
+                MyResizedContainer(
+                  medium: 3,
+                  large: 2.8,
+                  xlarge: 2.8,
+                  child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(width: 0.5, color: Colors.grey[400]),
+                          borderRadius: BorderRadius.circular(10.0),
+                          // color: Colors.grey[100]
+                        ),
+                        child: Column(children: [
+                          ListTile(
+                            title: MyText(title: "En fondo", fontSize: 16,),
+                            trailing: Text("${Utils.toCurrency(datos["balanceHastaLaFecha"])}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: datos["balanceHastaLaFecha"] >= 0 ? Theme.of(context).primaryColorDark : Utils.colorRosa),)
+                            // _contenedor(
+                            //   child: Text("${Utils.toCurrency(datos["balance"])}"),
+                            //   color: Theme.of(context).primaryColor.withOpacity(0.5)
+                            // )
+                            // Container(
+                            //   padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                            //   decoration: BoxDecoration(
+                            //     color: Theme.of(context).primaryColor.withOpacity(0.5),
+                            //     borderRadius: BorderRadius.circular(5)
+                            //   ),
+                            //   child: Text("${Utils.toCurrency(datos["balance"])}")),
+                          ),
+                          Divider(color: Colors.grey[400],),
+                          ListTile(
+                            title: MyText(title: "Vendido", fontSize: 16,),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["ventas"])}"), color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                            trailing: Text("${Utils.toCurrency(datos["ventas"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.toDouble(datos["ventas"]) >= 0 ? null : Utils.colorRosa),),
+                          ),
+                          ListTile(
+                            title: MyText(title: "Recargado", fontSize: 16,),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["ventas"])}"), color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                            trailing: Text("${Utils.toCurrency(datos["recargas"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                          ),
+                          
+                          ListTile(
+                            title: MyText(title: "Porciento ganado", fontSize: 16,),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["comisiones"])}"), color: Colors.red),
+                            trailing: Text("${Utils.toCurrency(datos["comisiones"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.pink)),
+                          ),
+                          ListTile(
+                            title: MyText(title: "Descontado", fontSize: 16,),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["comisiones"])}"), color: Colors.red),
+                            trailing: Text("${Utils.toCurrency(datos["descuentos"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.pink)),
+                          ),
+                          ListTile(
+                            title: MyText(title: "Sacado", fontSize: 16),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["premios"])}"), color: Colors.red),
+                            trailing: Text("${Utils.toCurrency(datos["premios"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.pink)),
+                          ),
+                          Divider(color: Colors.grey[400],),
+                          ListTile(
+                            title: MyText(title: "Total", fontSize: 16, fontWeight: FontWeight.bold,),
+                            // trailing: _contenedor(child: Text("${Utils.toCurrency(datos["neto"])}"), color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                            trailing: Text("${Utils.toCurrency(datos["neto"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Utils.toDouble(datos["neto"]) >= 0 ? Colors.green[600] : Colors.red)),
+                          ),
+                          ListTile(
+                            title: MyText(title: "En fondo + Total", fontSize: 16, fontWeight: FontWeight.bold,),
+                            trailing: _contenedor(child: Text("${Utils.toCurrency(datos["balanceActual"])}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),), color: Theme.of(context).primaryColor.withOpacity(0.5)),
+                            // (map["balanceActual"] >= 0) ? Utils.colorInfoClaro : Utils.colorRosa
+                          ),
+                        ]),
+                      ),
+                )
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _contenedor({Widget child, Color color}){
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(5)
+        ),
+        child: child
+    );
+  }
+
+  _lineasTabBarWidget(){
+    return UnderlineTabIndicator(
+        borderSide: BorderSide(color: Colors.black, width: 2.0),
+        // insets: EdgeInsets.fromLTRB(50.0, 0.0, 50.0, 40.0),
+      );
+  }
+
+  esPantallaPequena(){
+    return _isSmallOrMedium;
+  }
+
+  esPantallaGrande(){
+    return !_isSmallOrMedium;
   }
 }

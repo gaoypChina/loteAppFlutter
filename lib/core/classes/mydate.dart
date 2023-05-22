@@ -411,5 +411,14 @@ class MyDate {
     return dateString != null ? dateString : '';
   }
 
+
+  static toFechaInicial(DateTime date){
+    return DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 00:00");
+  }
+
+  static toFechaFinal(DateTime date){
+    return DateTime.parse("${date.year}-${Utils.toDosDigitos(date.month.toString())}-${Utils.toDosDigitos(date.day.toString())} 23:59:59");
+  }
+
  
 }

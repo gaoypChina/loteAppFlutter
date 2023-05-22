@@ -396,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           ),
-                          Center(child: Text("Version prueba 2.4.1", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
+                          Center(child: Text("Version prueba 2.4.6", style: TextStyle(fontFamily: "GoogleSans", fontWeight: FontWeight.w700)),)
                         ],
                       ),
                     ),

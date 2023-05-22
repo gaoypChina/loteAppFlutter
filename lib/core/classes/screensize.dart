@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:loterias/core/classes/cross_platform_screensize/cross_platform_screensize.dart';
 
 class ScreenSize{
@@ -31,6 +32,10 @@ class ScreenSize{
       return ScreenSizeType.lg;
     else
       return ScreenSizeType.xlg;
+  }
+
+  static screenWidth(context){
+    return MediaQuery.of(context).size.width;
   }
 }
 

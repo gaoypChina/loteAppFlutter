@@ -2165,6 +2165,7 @@ class Branch extends DataClass implements Insertable<Branch> {
   final int status;
   final DateTime created_at;
   final double ventasDelDia;
+  final int cantidadCombinacionesJugadasPermitidasPorTicket;
   Branch(
       {@required this.id,
       @required this.descripcion,
@@ -2185,7 +2186,8 @@ class Branch extends DataClass implements Insertable<Branch> {
       @required this.monedaColor,
       @required this.status,
       this.created_at,
-      @required this.ventasDelDia});
+      @required this.ventasDelDia,
+      this.cantidadCombinacionesJugadasPermitidasPorTicket});
   factory Branch.fromData(Map<String, dynamic> data, {String prefix}) {
     final effectivePrefix = prefix ?? '';
     return Branch(
@@ -2228,6 +2230,9 @@ class Branch extends DataClass implements Insertable<Branch> {
           .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
       ventasDelDia: const RealType()
           .mapFromDatabaseResponse(data['${effectivePrefix}ventas_del_dia']),
+      cantidadCombinacionesJugadasPermitidasPorTicket: const IntType()
+          .mapFromDatabaseResponse(data[
+              '${effectivePrefix}cantidad_combinaciones_jugadas_permitidas_por_ticket']),
     );
   }
   @override
@@ -2293,6 +2298,11 @@ class Branch extends DataClass implements Insertable<Branch> {
     if (!nullToAbsent || ventasDelDia != null) {
       map['ventas_del_dia'] = Variable<double>(ventasDelDia);
     }
+    if (!nullToAbsent ||
+        cantidadCombinacionesJugadasPermitidasPorTicket != null) {
+      map['cantidad_combinaciones_jugadas_permitidas_por_ticket'] =
+          Variable<int>(cantidadCombinacionesJugadasPermitidasPorTicket);
+    }
     return map;
   }
 
@@ -2351,6 +2361,11 @@ class Branch extends DataClass implements Insertable<Branch> {
       ventasDelDia: ventasDelDia == null && nullToAbsent
           ? const Value.absent()
           : Value(ventasDelDia),
+      cantidadCombinacionesJugadasPermitidasPorTicket:
+          cantidadCombinacionesJugadasPermitidasPorTicket == null &&
+                  nullToAbsent
+              ? const Value.absent()
+              : Value(cantidadCombinacionesJugadasPermitidasPorTicket),
     );
   }
 
@@ -2379,6 +2394,8 @@ class Branch extends DataClass implements Insertable<Branch> {
       status: serializer.fromJson<int>(json['status']),
       created_at: serializer.fromJson<DateTime>(json['created_at']),
       ventasDelDia: serializer.fromJson<double>(json['ventasDelDia']),
+      cantidadCombinacionesJugadasPermitidasPorTicket: serializer.fromJson<int>(
+          json['cantidadCombinacionesJugadasPermitidasPorTicket']),
     );
   }
   @override
@@ -2405,6 +2422,8 @@ class Branch extends DataClass implements Insertable<Branch> {
       'status': serializer.toJson<int>(status),
       'created_at': serializer.toJson<DateTime>(created_at),
       'ventasDelDia': serializer.toJson<double>(ventasDelDia),
+      'cantidadCombinacionesJugadasPermitidasPorTicket': serializer
+          .toJson<int>(cantidadCombinacionesJugadasPermitidasPorTicket),
     };
   }
 
@@ -2428,7 +2447,8 @@ class Branch extends DataClass implements Insertable<Branch> {
           String monedaColor,
           int status,
           DateTime created_at,
-          double ventasDelDia}) =>
+          double ventasDelDia,
+          int cantidadCombinacionesJugadasPermitidasPorTicket}) =>
       Branch(
         id: id ?? this.id,
         descripcion: descripcion ?? this.descripcion,
@@ -2451,6 +2471,9 @@ class Branch extends DataClass implements Insertable<Branch> {
         status: status ?? this.status,
         created_at: created_at ?? this.created_at,
         ventasDelDia: ventasDelDia ?? this.ventasDelDia,
+        cantidadCombinacionesJugadasPermitidasPorTicket:
+            cantidadCombinacionesJugadasPermitidasPorTicket ??
+                this.cantidadCombinacionesJugadasPermitidasPorTicket,
       );
   @override
   String toString() {
@@ -2474,33 +2497,37 @@ class Branch extends DataClass implements Insertable<Branch> {
           ..write('monedaColor: $monedaColor, ')
           ..write('status: $status, ')
           ..write('created_at: $created_at, ')
-          ..write('ventasDelDia: $ventasDelDia')
+          ..write('ventasDelDia: $ventasDelDia, ')
+          ..write(
+              'cantidadCombinacionesJugadasPermitidasPorTicket: $cantidadCombinacionesJugadasPermitidasPorTicket')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      descripcion,
-      codigo,
-      dueno,
-      idUsuario,
-      limiteVenta,
-      descontar,
-      deCada,
-      minutosCancelarTicket,
-      piepagina1,
-      piepagina2,
-      piepagina3,
-      piepagina4,
-      idMoneda,
-      moneda,
-      monedaAbreviatura,
-      monedaColor,
-      status,
-      created_at,
-      ventasDelDia);
+  int get hashCode => Object.hashAll([
+        id,
+        descripcion,
+        codigo,
+        dueno,
+        idUsuario,
+        limiteVenta,
+        descontar,
+        deCada,
+        minutosCancelarTicket,
+        piepagina1,
+        piepagina2,
+        piepagina3,
+        piepagina4,
+        idMoneda,
+        moneda,
+        monedaAbreviatura,
+        monedaColor,
+        status,
+        created_at,
+        ventasDelDia,
+        cantidadCombinacionesJugadasPermitidasPorTicket
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2524,7 +2551,9 @@ class Branch extends DataClass implements Insertable<Branch> {
           other.monedaColor == this.monedaColor &&
           other.status == this.status &&
           other.created_at == this.created_at &&
-          other.ventasDelDia == this.ventasDelDia);
+          other.ventasDelDia == this.ventasDelDia &&
+          other.cantidadCombinacionesJugadasPermitidasPorTicket ==
+              this.cantidadCombinacionesJugadasPermitidasPorTicket);
 }
 
 class BranchsCompanion extends UpdateCompanion<Branch> {
@@ -2548,6 +2577,7 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
   final Value<int> status;
   final Value<DateTime> created_at;
   final Value<double> ventasDelDia;
+  final Value<int> cantidadCombinacionesJugadasPermitidasPorTicket;
   const BranchsCompanion({
     this.id = const Value.absent(),
     this.descripcion = const Value.absent(),
@@ -2569,6 +2599,7 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     this.status = const Value.absent(),
     this.created_at = const Value.absent(),
     this.ventasDelDia = const Value.absent(),
+    this.cantidadCombinacionesJugadasPermitidasPorTicket = const Value.absent(),
   });
   BranchsCompanion.insert({
     this.id = const Value.absent(),
@@ -2591,6 +2622,7 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     @required int status,
     this.created_at = const Value.absent(),
     @required double ventasDelDia,
+    this.cantidadCombinacionesJugadasPermitidasPorTicket = const Value.absent(),
   })  : descripcion = Value(descripcion),
         codigo = Value(codigo),
         dueno = Value(dueno),
@@ -2630,6 +2662,7 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     Expression<int> status,
     Expression<DateTime> created_at,
     Expression<double> ventasDelDia,
+    Expression<int> cantidadCombinacionesJugadasPermitidasPorTicket,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2653,6 +2686,9 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
       if (status != null) 'status': status,
       if (created_at != null) 'created_at': created_at,
       if (ventasDelDia != null) 'ventas_del_dia': ventasDelDia,
+      if (cantidadCombinacionesJugadasPermitidasPorTicket != null)
+        'cantidad_combinaciones_jugadas_permitidas_por_ticket':
+            cantidadCombinacionesJugadasPermitidasPorTicket,
     });
   }
 
@@ -2676,7 +2712,8 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
       Value<String> monedaColor,
       Value<int> status,
       Value<DateTime> created_at,
-      Value<double> ventasDelDia}) {
+      Value<double> ventasDelDia,
+      Value<int> cantidadCombinacionesJugadasPermitidasPorTicket}) {
     return BranchsCompanion(
       id: id ?? this.id,
       descripcion: descripcion ?? this.descripcion,
@@ -2699,6 +2736,9 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
       status: status ?? this.status,
       created_at: created_at ?? this.created_at,
       ventasDelDia: ventasDelDia ?? this.ventasDelDia,
+      cantidadCombinacionesJugadasPermitidasPorTicket:
+          cantidadCombinacionesJugadasPermitidasPorTicket ??
+              this.cantidadCombinacionesJugadasPermitidasPorTicket,
     );
   }
 
@@ -2766,6 +2806,10 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
     if (ventasDelDia.present) {
       map['ventas_del_dia'] = Variable<double>(ventasDelDia.value);
     }
+    if (cantidadCombinacionesJugadasPermitidasPorTicket.present) {
+      map['cantidad_combinaciones_jugadas_permitidas_por_ticket'] =
+          Variable<int>(cantidadCombinacionesJugadasPermitidasPorTicket.value);
+    }
     return map;
   }
 
@@ -2791,7 +2835,9 @@ class BranchsCompanion extends UpdateCompanion<Branch> {
           ..write('monedaColor: $monedaColor, ')
           ..write('status: $status, ')
           ..write('created_at: $created_at, ')
-          ..write('ventasDelDia: $ventasDelDia')
+          ..write('ventasDelDia: $ventasDelDia, ')
+          ..write(
+              'cantidadCombinacionesJugadasPermitidasPorTicket: $cantidadCombinacionesJugadasPermitidasPorTicket')
           ..write(')'))
         .toString();
   }
@@ -2927,6 +2973,17 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
   GeneratedColumn<double> get ventasDelDia => _ventasDelDia ??=
       GeneratedColumn<double>('ventas_del_dia', aliasedName, false,
           typeName: 'REAL', requiredDuringInsert: true);
+  final VerificationMeta _cantidadCombinacionesJugadasPermitidasPorTicketMeta =
+      const VerificationMeta('cantidadCombinacionesJugadasPermitidasPorTicket');
+  GeneratedColumn<int> _cantidadCombinacionesJugadasPermitidasPorTicket;
+  @override
+  GeneratedColumn<int> get cantidadCombinacionesJugadasPermitidasPorTicket =>
+      _cantidadCombinacionesJugadasPermitidasPorTicket ??= GeneratedColumn<int>(
+          'cantidad_combinaciones_jugadas_permitidas_por_ticket',
+          aliasedName,
+          true,
+          typeName: 'INTEGER',
+          requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -2948,7 +3005,8 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
         monedaColor,
         status,
         created_at,
-        ventasDelDia
+        ventasDelDia,
+        cantidadCombinacionesJugadasPermitidasPorTicket
       ];
   @override
   String get aliasedName => _alias ?? 'branchs';
@@ -3095,6 +3153,14 @@ class $BranchsTable extends Branchs with TableInfo<$BranchsTable, Branch> {
               data['ventas_del_dia'], _ventasDelDiaMeta));
     } else if (isInserting) {
       context.missing(_ventasDelDiaMeta);
+    }
+    if (data
+        .containsKey('cantidad_combinaciones_jugadas_permitidas_por_ticket')) {
+      context.handle(
+          _cantidadCombinacionesJugadasPermitidasPorTicketMeta,
+          cantidadCombinacionesJugadasPermitidasPorTicket.isAcceptableOrUnknown(
+              data['cantidad_combinaciones_jugadas_permitidas_por_ticket'],
+              _cantidadCombinacionesJugadasPermitidasPorTicketMeta));
     }
     return context;
   }

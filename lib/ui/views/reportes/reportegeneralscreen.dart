@@ -16,6 +16,7 @@ import 'package:loterias/ui/widgets/myscaffold.dart';
 import 'package:loterias/ui/widgets/mysliver.dart';
 import 'package:loterias/ui/widgets/mysubtitle.dart';
 import 'package:loterias/ui/widgets/mytable.dart';
+import 'package:loterias/ui/widgets/mytext.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../core/classes/databasesingleton.dart';
@@ -58,6 +59,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
   DateTimeRange _date;
   var _scaffoldKey = GlobalKey<ScaffoldState>();
   var _txtSearch = TextEditingController();
+  bool _isSmallOrMedium = false;
 
 
   _init() async {
@@ -286,6 +288,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
               title: "Desactivar", content: MyRichText(text: "Seguro que desea desactivar la banca ", boldText: "${data.descripcion}",), 
               isDeleteDialog: true,
               cargando: cargando,
+              deleteDescripcion: "Desactivar",
               okFunction: () async {
                 try {
                   setState(() => cargando = true);
@@ -367,12 +370,17 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
       crossAxisAlignment: isSmallOrMedium ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         Text("${Utils.toCurrency(data.totalNeto)}", style: TextStyle(fontWeight: FontWeight.bold, color: data.totalNeto == 0 ? Colors.grey : data.totalNeto > 0 ? Colors.black : Colors.pink)),
-        Row(
-          mainAxisAlignment: isSmallOrMedium ? MainAxisAlignment.center : MainAxisAlignment.start,
-          children: [
-            Icon(Icons.trending_up, color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, size: 18,),
-            Text("${Utils.toCurrency(data.totalNetoPorcentaje, true)}%", style: TextStyle(color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, fontSize: 11),),
-          ],
+        Container(
+          // height: 20,
+          child: Wrap(
+            // mainAxisAlignment: isSmallOrMedium ? MainAxisAlignment.center : MainAxisAlignment.start,
+            alignment: isSmallOrMedium ? WrapAlignment.center : WrapAlignment.start,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(Icons.trending_up, color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, size: 18,),
+              Text("${Utils.toCurrency(data.totalNetoPorcentaje, true)}%", style: TextStyle(color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, fontSize: 11),),
+            ],
+          ),
         )
       ],
     );
@@ -441,6 +449,58 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
     return widget;
   }
 
+  _showOpcionesDialog(Branchreport banca){
+    showDialog(
+      context: context, 
+      builder: (context){
+        _cerrar(){
+          Navigator.pop(context);
+        }
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MySubtitle(title: "${Utils.limitarCaracteres(banca.descripcion, 20)}", padding: EdgeInsets.only(top: 5),),
+              MyText(title: "${banca.codigo}", fontSize: 11),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  onTap: (){
+                    _cerrar();
+                    Future.delayed(Duration.zero, () => Navigator.pushNamed(context, "/ventas", arguments: banca.idBanca));
+                  }, 
+                  leading: Icon(Icons.insert_chart, size: 20),
+                  title: Text("Ver reporte")
+                ),
+                ListTile(
+                  onTap: (){
+                    _cerrar();
+                    Future.delayed(Duration.zero, () => Navigator.pushNamed(context, '/bancas/agregar', arguments: ParametrosBanca(idBanca: banca.idBanca)));
+                  }, 
+                leading: Icon(Icons.edit, size: 20),
+                  title: Text("Editar")
+                ),
+                ListTile(
+                  onTap: (){
+                    _cerrar();
+                    Future.delayed(Duration.zero, () => _showDialogDesactivar(data: banca));
+                  }, 
+                leading: Icon(Icons.domain_disabled_sharp, size: 20),
+                  title: Text("Desactivar")
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    );
+  }
+
   _rows(bool isSmallOrMedium, List<Branchreport> data){
     if(data == null)
       return [[]];
@@ -449,9 +509,30 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
    return
     isSmallOrMedium
     ?
-    data.map((e) => [e, e.descripcion, _totalNetoWidget(isSmallOrMedium, e), _opcionWidget(isSmallOrMedium, e)]).toList()
+    data.map((e) => [e, _bancaYCodigoWidget(e), _totalNetoWidget(isSmallOrMedium, e), _opcionWidget(isSmallOrMedium, e)]).toList()
     :
-    data.map((e) => [e, e.descripcion, "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}", "${e.comisiones}", "${e.descuentos}", _totalNetoWidget(isSmallOrMedium, e), _opcionWidget(isSmallOrMedium, e)]).toList();
+    data.map((e) => [e, _bancaYCodigoWidget(e), "${Utils.toCurrency(e.ventas)}", "${Utils.toCurrency(e.premios)}", "${e.comisiones}", "${e.descuentos}", _totalNetoWidget(isSmallOrMedium, e), _opcionWidget(isSmallOrMedium, e)]).toList();
+  }
+
+  Widget _bancaYCodigoWidget(Branchreport banca){
+    // return Column(
+    //   mainAxisAlignment: MainAxisAlignment.start,
+    //   crossAxisAlignment: esPantallaGrande() ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+    // children: [MySubtitle(title: Utils.limitarCaracteres(banca.descripcion, 20), fontSize: 13,), Text(banca.codigo, style: TextStyle(fontSize: 10, color: Colors.grey),)]);
+    return Column(
+      // mainAxisAlignment: isSmallOrMedium ? MainAxisAlignment.center : MainAxisAlignment.start,
+      crossAxisAlignment: !esPantallaGrande() ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        Text("${Utils.limitarCaracteres(banca.descripcion, 12)}", style: TextStyle(fontWeight: FontWeight.bold)),
+        Row(
+          mainAxisAlignment: !esPantallaGrande() ? MainAxisAlignment.center : MainAxisAlignment.start,
+          children: [
+            // Icon(Icons.trending_up, color: data.totalNetoPorcentaje == 0 ? Colors.grey : data.totalNetoPorcentaje > 0 ? Colors.green : Colors.pink, size: 18,),
+            Text("${banca.codigo}", style: TextStyle(fontSize: 11),),
+          ],
+        )
+      ],
+    );
   }
 
   _totalNetoPrincipalWidget(Map<String, dynamic> data){
@@ -485,7 +566,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
-
+    _isSmallOrMedium = isSmallOrMedium;
     return myScaffold(
       key: _scaffoldKey,
       drawer: widget.showDrawer == null ? null : !widget.showDrawer ? null : isSmallOrMedium ? _drawerWidget() : null,
@@ -549,6 +630,7 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
 
             
 
+            // return SliverList(delegate: SliverChildListDelegate([
             return SliverList(delegate: SliverChildListDelegate([
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18.0),
@@ -652,52 +734,61 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
                   ),
                 ),
               ),
+              _tituloBancas(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-                child: MySubtitle(title: "Bancas", fontWeight: FontWeight.bold,),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 10, bottom: esPantallaGrande() ? 10 : 0),
                 child: Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   children: [
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _valueNotifierCargandoFiltroBanca,
-                      builder: (context, value, __) {
-                        return MyDropdown(
-                          title: null,
-                          small: 2,
-                          medium: 2,
-                          leading: Icon(Icons.filter_alt, color: Colors.black),
-                          color: Colors.grey[200],
-                          textColor: Colors.black,
-                          hint: value ? Center(child: SizedBox(child: CircularProgressIndicator(), width: 10, height: 10,)) : "Filtro: $_filtro",
-                          elements: listaFiltro.map((e) => [e, e]).toList(),
-                          onTap: _filtroChanged,
-                        );
-                      }
-                    ),
+                    Visibility(visible: esPantallaGrande(), child: _filtroBanca()),
                     Container(
                       width: !isSmallOrMedium ? MediaQuery.of(context).size.width / 3 : null,
                       child: Padding(
                         padding: EdgeInsets.only(right: isSmallOrMedium ? 0 : 15.0, top: 0.0, bottom: !isSmallOrMedium ? 20 : 0),
-                        child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", small: 2.6, medium: 2.6, xlarge: 2.6, contentPadding: isSmallOrMedium ? EdgeInsets.only(bottom: 10, top: 10) : EdgeInsets.only(bottom: 15, top: 15),),
+                        // child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", small: 1, medium: 2.6, xlarge: 2.6, contentPadding: isSmallOrMedium ? EdgeInsets.only(bottom: 10, top: 10) : EdgeInsets.only(bottom: 15, top: 15),),
+                        child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", small: 1, medium: 1, xlarge: 2.6, contentPadding: isSmallOrMedium ? EdgeInsets.only(bottom: 10, top: 10) : EdgeInsets.only(bottom: 15, top: 15),),
                       ),
                     ),
                   ],
                 )
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: esPantallaGrande() ? 16.0 : 0.0),
                 child: StreamBuilder<List<Branchreport>>(
                   stream: _streamControllerBanca.stream,
                   builder: (context, snapshot) {
-                    return MyTable(
-                      isScrolled: false,
-                      headerColor: Theme.of(context).primaryColor,
-                      headerTitleColor: Colors.white,
-                      columns: _columns(isSmallOrMedium),
-                      rows: _rows(isSmallOrMedium, snapshot.data)
+                    if(!snapshot.hasData)
+                      return MyEmpty(title: "No hay bancas", titleButton: "No hay bancas", icon: Icons.error,);
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: 
+                      esPantallaGrande()
+                      ?
+                      MyTable(
+                        isScrolled: false,
+                        headerColor: Theme.of(context).primaryColor,
+                        headerTitleColor: Colors.white,
+                        columns: _columns(isSmallOrMedium),
+                        rows: _rows(isSmallOrMedium, snapshot.data)
+                      )
+                      :
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (context, index){
+                          return ListTile(
+                            onTap: () => _showOpcionesDialog(snapshot.data[index]),
+                            leading: _activoWidget(snapshot.data[index]),
+                            title: MySubtitle(title: Utils.limitarCaracteres(snapshot.data[index].descripcion, 17), fontSize: 16, padding: EdgeInsets.all(0.0),),
+                            subtitle: Text(snapshot.data[index].codigo, style: TextStyle(fontSize: 11.5),),
+                            trailing: Padding(
+                              padding: EdgeInsets.only(top: 10.0),
+                              child: _totalNetoWidget(isSmallOrMedium, snapshot.data[index]),
+                            ),
+                          );
+                        }
+                      )
                     );
                   }
                 ),
@@ -707,5 +798,64 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
         )
       )
     );
+  }
+
+  Widget _tituloBancas(){
+    if(esPantallaGrande())
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+      child: MySubtitle(title: "Bancas", fontWeight: FontWeight.bold,),
+    );
+
+    return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(child: MyText(title: "Bancas", fontSize: 20, fontWeight: FontWeight.bold,)),
+          Flexible(child: _filtroBanca())
+        ],
+      ),
+    );
+  }
+
+  Widget _filtroBanca(){
+    return ValueListenableBuilder<bool>(
+      valueListenable: _valueNotifierCargandoFiltroBanca,
+      builder: (context, value, __) {
+        return MyDropdown(
+          padding: esPantallaGrande() ? EdgeInsets.only(top: 10.0, bottom: 10.0, left: 15, right: 15) : EdgeInsets.only(top: 5.0, bottom: 5.0, left: 11, right: 11),
+          title: null,
+          small: 1,
+          medium: 2,
+          leading: Icon(Icons.filter_alt, color: Colors.black),
+          color: Colors.grey[200],
+          textColor: Colors.black,
+          hint: value ? Center(child: SizedBox(child: CircularProgressIndicator(), width: 10, height: 10,)) : "Filtro: $_filtro",
+          elements: listaFiltro.map((e) => [e, e]).toList(),
+          onTap: _filtroChanged,
+        );
+      }
+    );
+  }
+
+  _activoWidget(Branchreport banca){
+    int activa = 1;
+    if(banca.status == activa)
+      return CircleAvatar(
+        radius: 15,
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Icon(Icons.check, color: Colors.white, size: 20,),
+      );
+
+    return CircleAvatar(
+        radius: 15,
+        backgroundColor: Colors.red[600],
+        child: Icon(Icons.unpublished, color: Colors.white, size: 16,),
+      );
+  }
+
+  esPantallaGrande(){
+    return !_isSmallOrMedium;
   }
 }

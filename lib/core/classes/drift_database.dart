@@ -113,6 +113,7 @@ class Branchs extends Table{
   IntColumn get status => integer()();
   DateTimeColumn get created_at => dateTime().nullable()();
   RealColumn get ventasDelDia => real()();
+  IntColumn get cantidadCombinacionesJugadasPermitidasPorTicket => integer().nullable()();
   // BoolColumn get status => boolean().withDefault(Constant(false))();
 
   @override
@@ -286,6 +287,9 @@ class AppDatabase extends _$AppDatabase{
       if (from < 2) {
         await m.addColumn(blocksgenerals, blocksgenerals.idLoteriaSuperpale);
         await m.addColumn(blockslotteries, blockslotteries.idLoteriaSuperpale);
+      }
+      if(from < 3){
+        await m.addColumn(branchs, branchs.cantidadCombinacionesJugadasPermitidasPorTicket);
       }
     },
   );

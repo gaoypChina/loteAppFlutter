@@ -196,14 +196,14 @@ class BluetoothChannel{
     }
   }
 
-  static printCuadre({@required Map<String, dynamic> map, bool imprimirNumerosGanadores = false, bool imprimirTotalesPorLoteria, bool imprimirTicketsGanadores}) async {
+  static printCuadre({@required Map<String, dynamic> map, bool imprimirNumerosGanadores = false, bool imprimirTotalesPorLoteria, bool imprimirTicketsGanadores, bool imprimirReporteResumido}) async {
     var c = await DB.create();
     var printer = await c.getValue("printer");
     if(_connectado){
       return;
     }
 
-    Map<int, dynamic> generatedCuadre = generateCuadre(mapCuadre: map, imprimirNumerosGanadores: imprimirNumerosGanadores, imprimirTotalesPorLoteria: imprimirTotalesPorLoteria, imprimirTicketsGanadores: imprimirTicketsGanadores);
+    Map<int, dynamic> generatedCuadre = generateCuadre(mapCuadre: map, imprimirNumerosGanadores: imprimirNumerosGanadores, imprimirTotalesPorLoteria: imprimirTotalesPorLoteria, imprimirTicketsGanadores: imprimirTicketsGanadores, imprimirReporteResumido: imprimirReporteResumido);
 
     if(kIsWeb){
       // var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
@@ -395,7 +395,7 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     return result;
   }
 
-  static Map<int, dynamic> generateCuadre({@required Map<String, dynamic> mapCuadre, bool imprimirNumerosGanadores = false, bool imprimirTotalesPorLoteria, bool imprimirTicketsGanadores}){
+  static Map<int, dynamic> generateCuadre({@required Map<String, dynamic> mapCuadre, bool imprimirNumerosGanadores = false, bool imprimirTotalesPorLoteria, bool imprimirTicketsGanadores, bool imprimirReporteResumido}){
     Map<int, dynamic> map = Map<int, dynamic>();
     map[map.length] = _getMapNuevo(cmd: CMD.center);
     map[map.length] = _getMapNuevo(text:"Cuadre\n", cmd: CMD.h1);
@@ -407,20 +407,35 @@ static printTextCmdMap({String content, map, cmd: CMD.h1}) async {
     }else{
       map[map.length] = _getMapNuevo(text:"${mapCuadre["fecha"]}\n", cmd: CMD.h1);
     }
+
     map[map.length] = _getMapNuevo(text:"${mapCuadre["banca"]["descripcion"]}\n", cmd: CMD.h1);
     map[map.length] = _getMapNuevo(cmd: CMD.left);
-    map[map.length] = _getMapNuevo(text:"Balance hasta la fecha: ${mapCuadre["balanceHastaLaFecha"]}\n");
-    map[map.length] = _getMapNuevo(text:"Tickets pendientes: ${mapCuadre["pendientes"]}\n");
-    map[map.length] = _getMapNuevo(text:"Tickets perdedores: ${mapCuadre["perdedores"]}\n");
-    map[map.length] = _getMapNuevo(text:"Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
-    map[map.length] = _getMapNuevo(text:"Total:              ${mapCuadre["total"]}\n");
-    map[map.length] = _getMapNuevo(text:"Ventas:             ${Utils.toCurrency(mapCuadre["ventas"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"Recargas:           ${Utils.toCurrency(mapCuadre["recargas"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"Comisiones:         ${Utils.toCurrency(mapCuadre["comisiones"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"descuentos:         ${Utils.toCurrency(mapCuadre["descuentos"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"premios:            ${Utils.toCurrency(mapCuadre["premios"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"neto:               ${Utils.toCurrency(mapCuadre["neto"], true)}\n");
-    map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${Utils.toCurrency(mapCuadre["balanceActual"], true)}\n\n");
+
+    if(imprimirReporteResumido){
+      map[map.length] = _getMapNuevo(text:"En fondo:         ${mapCuadre["balanceHastaLaFecha"]}\n");
+      map[map.length] = _getMapNuevo(text:"Vendido:          ${Utils.toCurrency(mapCuadre["ventas"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Recargado:        ${Utils.toCurrency(mapCuadre["recargas"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Porciento:        ${Utils.toCurrency(mapCuadre["comisiones"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Descontado:       ${Utils.toCurrency(mapCuadre["descuentos"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Sacado:           ${Utils.toCurrency(mapCuadre["premios"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Total:            ${Utils.toCurrency(mapCuadre["neto"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"En fondo + total: ${Utils.toCurrency(mapCuadre["balanceActual"], true)}\n\n");
+    }else{
+      map[map.length] = _getMapNuevo(text:"Balance hasta la fecha: ${mapCuadre["balanceHastaLaFecha"]}\n");
+      map[map.length] = _getMapNuevo(text:"Tickets pendientes: ${mapCuadre["pendientes"]}\n");
+      map[map.length] = _getMapNuevo(text:"Tickets perdedores: ${mapCuadre["perdedores"]}\n");
+      map[map.length] = _getMapNuevo(text:"Tickets ganadores:  ${mapCuadre["ganadores"]}\n");
+      map[map.length] = _getMapNuevo(text:"Total:              ${mapCuadre["total"]}\n");
+      map[map.length] = _getMapNuevo(text:"Ventas:             ${Utils.toCurrency(mapCuadre["ventas"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Recargas:           ${Utils.toCurrency(mapCuadre["recargas"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Comisiones:         ${Utils.toCurrency(mapCuadre["comisiones"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"descuentos:         ${Utils.toCurrency(mapCuadre["descuentos"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"premios:            ${Utils.toCurrency(mapCuadre["premios"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"neto:               ${Utils.toCurrency(mapCuadre["neto"], true)}\n");
+      map[map.length] = _getMapNuevo(text:"Balance mas ventas: ${Utils.toCurrency(mapCuadre["balanceActual"], true)}\n\n");
+    }
+    
+    
     print("bluetooth channel cuadure: ${map.toString()}");
     
     

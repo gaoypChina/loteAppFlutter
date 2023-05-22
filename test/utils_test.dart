@@ -56,6 +56,32 @@ void main() {
       expect(data == null, false);
     });
 
+    test("Testing cantidad jugadas a combinar", () async {
+      int cantidadJugadasCombinadasExistentes = 0;
+        int cantidadJugadasCombinadasPermitidas = null;
+        int cantidadJugadasACombinar = 39;
+
+        if(true && cantidadJugadasCombinadasPermitidas != null){
+          int cantidadRestanteJugadasACombinar = 0;
+          // if(cantidadJugadasACombinar > cantidadJugadasCombinadasExistentes)
+          //   cantidadRestanteJugadasACombinar =  cantidadJugadasACombinar - cantidadJugadasCombinadasExistentes;
+          // else
+          //   cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasExistentes - cantidadJugadasACombinar;
+
+          if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas)
+            cantidadRestanteJugadasACombinar = 0;
+          else
+            cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasPermitidas - cantidadJugadasCombinadasExistentes;
+
+          if(cantidadJugadasACombinar > cantidadRestanteJugadasACombinar)
+            cantidadJugadasACombinar = cantidadRestanteJugadasACombinar;
+          // cantidadJugadasACombinar = cantidadRestanteJugadasACombinar < cantidadJugadasCombinadasPermitidas ? cantidadRestanteJugadasACombinar : 0;
+      print("data: $cantidadJugadasACombinar");
+        }
+
+        expect(true, true);
+    });
+
 
     group("Utils obtener primer, segundo y tercer par de numeros ", (){
       String jugada = "010203";

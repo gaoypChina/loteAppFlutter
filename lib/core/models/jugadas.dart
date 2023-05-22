@@ -27,6 +27,7 @@ class Jugada {
   Loteria loteriaSuperPale;
   Stock stock;
   bool stockEliminado;
+  bool esCombinada;
 
   Jugada({this.id, 
         this.idVenta, 
@@ -50,7 +51,8 @@ class Jugada {
         this.loteria,
         this.loteriaSuperPale,
         this.stock,
-        this.stockEliminado = false
+        this.stockEliminado = false,
+        this.esCombinada = false
       });
 
   Jugada.fromMap(Map snapshot) :
@@ -97,7 +99,8 @@ class Jugada {
         loteria = origen.loteria,
         loteriaSuperPale = origen.loteriaSuperPale,
         stock = origen.stock,
-        stockEliminado = origen.stockEliminado;
+        stockEliminado = origen.stockEliminado,
+        esCombinada = origen.esCombinada;
 
       
   static List jugadasToJson(List<Jugada> lista) {
@@ -130,6 +133,7 @@ class Jugada {
       "status": status,
       "cantidadVecesQueSeHaJugado": cantidadVecesQueSeHaJugado,
       "cantidadVecesQueHaSalido": cantidadVecesQueHaSalido,
+      "esCombinada": esCombinada ? 1 : 0,
     };
   }
 }

@@ -69,6 +69,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
   var _txtDescontar = TextEditingController();
   var _txtDeCada = TextEditingController();
   var _txtMinutosParaCancelarTicket = TextEditingController();
+  var _txtCantidadCombinacionesPermitidasPorTicket = TextEditingController();
   var _txtPiePagina1 = TextEditingController();
   var _txtPiePagina2 = TextEditingController();
   var _txtPiePagina3 = TextEditingController();
@@ -227,6 +228,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
     _txtPiePagina2.text = (_data != null) ? _data.piepagina2 : '';
     _txtPiePagina3.text = (_data != null) ? _data.piepagina3 : '';
     _txtPiePagina4.text = (_data != null) ? _data.piepagina4 : '';
+    _txtCantidadCombinacionesPermitidasPorTicket.text = (_data != null) ? _data.cantidadCombinacionesJugadasPermitidasPorTicket != null ? _data.cantidadCombinacionesJugadasPermitidasPorTicket.toString() : '' : '';
 
     // _setsLoterias();
     // _setsComisiones();
@@ -532,6 +534,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _data.piepagina2 = _txtPiePagina2.text;
         _data.piepagina3 = _txtPiePagina3.text;
         _data.piepagina4 = _txtPiePagina4.text;
+        _data.cantidadCombinacionesJugadasPermitidasPorTicket = Utils.toInt(_txtCantidadCombinacionesPermitidasPorTicket.text, returnNullIfNotInt: true);
 
         _data.dias = listaDia;
         _data.comisiones = _comisiones;
@@ -540,6 +543,7 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
         _data.gastos = _gastos;
         _data.comisionRecargas = _getComisionRecargas();
 
+        print("_showDialogGuardar parsed jugadaspermitidas: ${_data.cantidadCombinacionesJugadasPermitidasPorTicket}");
         _cargandoNotify.value = true;
         var parsed = 
         _esTipoVentanaNormal()
@@ -2880,6 +2884,21 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
                                  medium: 1,
                                  isRequired: true,
                                  helperText: "Cuando un ticket iguale o supere esta cantidad se descontara el valor del campo DESCONTAR.",
+                               ),
+                             ),
+                              // MyDivider(showOnlyOnSmall: true,),
+                            Padding(
+                               padding: EdgeInsets.symmetric(vertical: isSmallOrMedium ? 0 : 15.0),
+                               child: MyTextFormField(
+                                 leading: isSmallOrMedium ? Icon(Icons.join_full) : null,
+                                 isSideTitle: isSmallOrMedium ? false : true,
+                                 type: isSmallOrMedium ? MyType.noBorder : MyType.border,
+                                 controller: _txtCantidadCombinacionesPermitidasPorTicket,
+                                 isDigitOnly: true,
+                                 title: !isSmallOrMedium ? "Combinaciones jugadas permitidas por ticket" : "",
+                                 hint: "Combinaciones jugadas permitidas por ticket",
+                                 medium: 1,
+                                 helperText: "Es la cantidad maxima de jugadas que el sistema permitira combinar o ligar para esta banca por ticket",
                                ),
                              ),
                               MyDivider(showOnlyOnSmall: true,),

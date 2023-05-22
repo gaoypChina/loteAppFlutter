@@ -107,11 +107,12 @@ class LoginService{
       
       await Db.insertUser(User(id: u.id, nombres: u.nombres, email: u.email, usuario: u.usuario, servidor: u.servidor, status: u.status, idGrupo: u.idGrupo));
       if(b != null){
+
         await Db.insertBranch(Branch(
           id: b.id, descripcion: b.descripcion, codigo: b.codigo, dueno: b.dueno, idUsuario: b.usuario != null ? b.usuario.id : 0, 
           limiteVenta: b.limiteVenta, descontar: b.descontar, deCada: b.deCada, minutosCancelarTicket: b.minutosCancelarTicket, 
           piepagina1: b.piepagina1, piepagina2: b.piepagina2, piepagina3: b.piepagina3, piepagina4: b.piepagina4, idMoneda: b.idMoneda, 
-          moneda: b.moneda, monedaAbreviatura: b.monedaAbreviatura, monedaColor: b.monedaColor, status: b.status, ventasDelDia: b.ventasDelDia));
+          moneda: b.moneda, monedaAbreviatura: b.monedaAbreviatura, monedaColor: b.monedaColor, status: b.status, ventasDelDia: b.ventasDelDia, cantidadCombinacionesJugadasPermitidasPorTicket: b.cantidadCombinacionesJugadasPermitidasPorTicket));
         // for(Loteria l in b.loterias){
         //   await Db.insert('Lotteries', {"id":l.id, "descripcion" : l.descripcion, "abreviatura" : l.abreviatura, "status" : l.status});
         // }

@@ -19,6 +19,7 @@ class Branchreport {
   int perdedores;
   int tickets;
   double totalNetoPorcentaje;
+  int status;
 
 
   Branchreport({this.idBanca, this.ventas, this.descuentos, this.balance, this.codigo, this.usuario, this.descripcion, this.ganadores, this.perdedores, this.tickets, this.totalNetoPorcentaje});
@@ -40,7 +41,8 @@ class Branchreport {
         ganadores = Utils.toInt(snapshot['ganadores']),
         perdedores = Utils.toInt(snapshot['perdedores']),
         tickets = Utils.toInt(snapshot['tickets']),
-        totalNetoPorcentaje = Utils.toDouble(snapshot['totalNetoPorcentaje'].toString())
+        totalNetoPorcentaje = Utils.toDouble(snapshot['totalNetoPorcentaje'].toString()),
+        status = Utils.toInt(snapshot['status'])
         ;
 
   static Branchreport get getBranchreportNinguno => Branchreport(idBanca: 0, descripcion: 'Ninguno'); 

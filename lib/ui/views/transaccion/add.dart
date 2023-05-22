@@ -727,7 +727,7 @@ class AddTransaccionesScreenState extends State<AddTransaccionesScreen> with Tic
                       controller: _txtCredito,
                       enabled: _txtCreditoEnabled,
                       decoration: InputDecoration(labelText: "Credito"),
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         // WhitelistingTextInputFormatter.digitsOnly
                         FilteringTextInputFormatter.allow(RegExp('^\$|^(0|([1-9][0-9]{0,}))(\\.[0-9]{0,})?\$'))

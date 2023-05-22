@@ -45,6 +45,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   var _myFilterKey = GlobalKey<MyFilter2State>();
   ValueNotifier<Loteria> groupValue = ValueNotifier<Loteria>(null);
   bool _mostrarFiltro = false;
+  bool _isSmallOrMedium = true;
 
   StreamController<List<Draws>> _streamController;
   StreamController<List<Loteria>> _streamControllerLoteria;
@@ -92,6 +93,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     listaGrupo = (parsed["grupos"] != null) ? parsed["grupos"].map<Grupo>((e) => Grupo.fromMap(e)).toList() : [];
     listaGrupo.insert(0, Grupo(id: 0, descripcion: 'Todos'));
     listaBanca = (parsed["bancas"] != null) ? parsed["bancas"].map<Banca>((e) => Banca.fromMap(e)).toList() : [];
+    listaBanca.insert(0, Banca.getBancaTodas);
     
     _moneda = (listaMoneda.length > 0) ? listaMoneda[0] : null;
     if(_idGrupoDeEsteUsuario != null){
@@ -369,40 +371,59 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
     ?
     SizedBox.shrink()
     :
-    Padding(
-      padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          // _mydropdown(),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Filtrar",
-          //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
-          //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-          // MyDropdown(
-          //   large: 5.8,
-          //   title: "Grupos",
-          //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
-          //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
-          //   onTap: (value){
-          //     _opcionChanged(value);
-          //   },
-          // ),
-         _myFilterWidget(isSmallOrMedium),
-          // Padding(
-          //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
-          //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
-          // ),
-          MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
-        ],
-      ),
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Visibility(
+            visible: esPantallaGrande(),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Container(
+                height: 50,
+                child: _myFilterWidget(isSmallOrMedium),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: esPantallaGrande(),
+            child: MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),)
+          ),
+      ],
     );
+    // Padding(
+    //   padding: EdgeInsets.only(bottom: isSmallOrMedium ? 0 : 0, top: 5),
+    //   child: Wrap(
+    //     alignment: WrapAlignment.start,
+    //     crossAxisAlignment: WrapCrossAlignment.center,
+    //     children: [
+    //       // _mydropdown(),
+    //       // MyDropdown(
+    //       //   large: 5.8,
+    //       //   title: "Filtrar",
+    //       //   hint: "${_selectedOption != null ? _selectedOption : 'No hay opcion'}",
+    //       //   elements: listaOpciones.map((e) => [e, "$e"]).toList(),
+    //       //   onTap: (value){
+    //       //     _opcionChanged(value);
+    //       //   },
+    //       // ),
+    //       // MyDropdown(
+    //       //   large: 5.8,
+    //       //   title: "Grupos",
+    //       //   hint: "${_grupo != null ? _grupo.descripcion : 'No hay grupo'}",
+    //       //   elements: listaGrupo.map((e) => [e, "$e"]).toList(),
+    //       //   onTap: (value){
+    //       //     _opcionChanged(value);
+    //       //   },
+    //       // ),
+    //      _myFilterWidget(isSmallOrMedium),
+    //       // Padding(
+    //       //   padding: EdgeInsets.only(right: 15.0, top: 18.0, bottom: !isSmallOrMedium ? 20 : 0),
+    //       //   child: MySearchField(controller: _txtSearch, onChanged: _search, hint: "Buscar banca...", xlarge: 2.6, showOnlyOnLarge: true,),
+    //       // ),
+    //       MyDivider(showOnlyOnLarge: true, padding: EdgeInsets.only(left: isSmallOrMedium ? 4 : 0, right: 10.0, top: 5),),
+    //     ],
+    //   ),
+    // );
   }
 
  dynamic _dateWidget(bool isSmallOrMedium){
@@ -602,6 +623,7 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
   @override
   Widget build(BuildContext context) {
     var isSmallOrMedium = Utils.isSmallOrMedium(MediaQuery.of(context).size.width);
+    _isSmallOrMedium = isSmallOrMedium;
     return myScaffold(
       context: context, 
       cargando: false, 
@@ -650,7 +672,12 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
             );
 
             if(listaJugada.length == 0)
-                return SliverFillRemaining(child: MyEmpty(title: "No hay jugadas realizadas", icon: Icons.format_list_numbered_rounded, titleButton: "No hay jugadas",));
+                return SliverFillRemaining(child: Column(
+                  children: [
+                    _myWebFilterScreen(isSmallOrMedium),
+                    Center(child: MyEmpty(title: "No hay jugadas realizadas", icon: Icons.format_list_numbered_rounded, titleButton: "No hay jugadas",)),
+                  ],
+                ));
 
             return SliverList(delegate: SliverChildBuilderDelegate(
                 (context, index){
@@ -664,6 +691,8 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _myWebFilterScreen(isSmallOrMedium),
+
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
                           child: MyDropdown(
@@ -1110,5 +1139,9 @@ class _ReporteJugadasScreenState extends State<ReporteJugadasScreen> {
         ],
       )),
     );
+  }
+
+  bool esPantallaGrande(){
+    return !_isSmallOrMedium;
   }
 }

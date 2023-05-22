@@ -34,6 +34,7 @@ class DBSqflite{
       ['ALTER TABLE Salesdetails ADD COLUMN idTicket INTEGER'],
       ['ALTER TABLE Blocksgenerals ADD COLUMN idLoteriaSuperpale INTEGER'],
       ['ALTER TABLE Blockslotteries ADD COLUMN idLoteriaSuperpale INTEGER'],
+      ['ALTER TABLE Branches ADD COLUMN cantidadCombinacionesJugadasPermitidasPorTicket INTEGER'],
     ]; // Migration sql scripts, containing an array of statements per migration
       
       
@@ -49,7 +50,7 @@ class DBSqflite{
       await db.execute('CREATE TABLE Draws (id INTEGER PRIMARY KEY, descripcion TEXT, bolos INTEGER, cantidadNumeros INTEGER, status INTEGER, created_at TEXT)');
       await db.execute('CREATE TABLE Permissions (id INTEGER PRIMARY KEY, descripcion TEXT, status INTEGER, idTipo, created_at TEXT)');
       await db.execute('CREATE TABLE Users (id INTEGER PRIMARY KEY, nombres TEXT, email TEXT, usuario TEXT, servidor TEXT, status INTEGER, created_at TEXT, idGrupo INTEGER)');
-      await db.execute('CREATE TABLE Branches (id INTEGER PRIMARY KEY, codigo TEXT, descripcion TEXT, dueno TEXT, idUsuario INTEGER, limiteVenta NUMERIC, descontar NUMERIC, deCada NUMERIC, minutosCancelarTicket NUMERIC, piepagina1 TEXT, piepagina2 TEXT, piepagina3 TEXT, piepagina4 TEXT, idMoneda INTEGER, moneda TEXT, monedaAbreviatura TEXT, monedaColor TEXT, status INTEGER, created_at TEXT, ventasDelDia INTEGER)');
+      await db.execute('CREATE TABLE Branches (id INTEGER PRIMARY KEY, codigo TEXT, descripcion TEXT, dueno TEXT, idUsuario INTEGER, limiteVenta NUMERIC, descontar NUMERIC, deCada NUMERIC, minutosCancelarTicket NUMERIC, piepagina1 TEXT, piepagina2 TEXT, piepagina3 TEXT, piepagina4 TEXT, idMoneda INTEGER, moneda TEXT, monedaAbreviatura TEXT, monedaColor TEXT, status INTEGER, created_at TEXT, ventasDelDia INTEGER, cantidadCombinacionesJugadasPermitidasPorTicket INTEGER)');
       await db.execute('CREATE TABLE Servers (id INTEGER PRIMARY KEY, descripcion TEXT, pordefecto INTEGER)');
       await db.execute('CREATE TABLE Blocksdirty (id INTEGER PRIMARY KEY, idBanca INTEGER, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
       await db.execute('CREATE TABLE Blocksdirtygenerals (id INTEGER PRIMARY KEY, idLoteria INTEGER, idSorteo INTEGER, cantidad INTEGER, created_at TEXT, idMoneda INTEGER)');
