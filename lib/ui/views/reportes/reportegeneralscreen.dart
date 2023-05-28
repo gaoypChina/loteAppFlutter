@@ -774,6 +774,8 @@ class _ReporteGeneralScreenState extends State<ReporteGeneralScreen> {
                       )
                       :
                       ListView.builder(
+                        physics: const ScrollPhysics(),
+                        // physics: const AlwaysScrollableScrollPhysics(),
                         shrinkWrap: true,
                         itemCount: snapshot.data.length,
                         itemBuilder: (context, index){

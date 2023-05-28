@@ -18,6 +18,7 @@ class _MyTextState extends State<MyText> {
   }
 
   _getColor(brightness) {
-    return brightness == Brightness.light ? Colors.black : Colors.white;
+    // return brightness == Brightness.light ? Colors.black : Colors.white;
+    return  Colors.black;
   }
 }

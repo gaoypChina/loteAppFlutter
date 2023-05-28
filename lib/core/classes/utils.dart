@@ -34,8 +34,8 @@ class  Utils {
   // static final String URL_SOCKET = 'http://127.0.0.1:3000';
   // static final String URL = 'http://192.168.103.128:8000/';
   // static final String URL_SOCKET = 'http://192.168.103.128:3000';
-  static final String URL = 'http://192.168.1.4:8000';
-  static final String URL_SOCKET = 'http://192.168.1.4:3000';
+  // static final String URL = 'http://192.168.1.4:8000';
+  // static final String URL_SOCKET = 'http://192.168.1.4:3000';
   // static final String URL = 'http://172.18.48.1:8000';
   // static final String URL_SOCKET = 'http://172.18.48.1:3000';
   // static final String URL = 'http://10.0.0.11:8000';
@@ -55,8 +55,8 @@ class  Utils {
 
 
   /************ ENLACES PRODUCCION ******************/
-  // static final String URL = 'https://lote-app.com';
-  // static final String URL_SOCKET = URL + ":8000";
+  static final String URL = 'https://lote-app.com';
+  static final String URL_SOCKET = URL + ":8000";
   /************ END ENLACES PRODUCCION ******************/
   
   static const Map<String, String> header = {

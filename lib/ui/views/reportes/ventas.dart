@@ -1848,12 +1848,12 @@ Widget _buildTableTicketsGanadores(List map){
               // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                  MyResizedContainer(
-                  medium: 3,
+                  medium: 1,
                   large: 2.8,
                   xlarge: 2.8,
                   child: MySubtitle(title: "Resumen", fontWeight: FontWeight.bold, fontSize: 16, padding: EdgeInsets.only(top: esPantallaPequena() ? 15 : 0.0, bottom: 20.0),)),
                 MyResizedContainer(
-                  medium: 3,
+                  medium: 1,
                   large: 2.8,
                   xlarge: 2.8,
                   child: Container(

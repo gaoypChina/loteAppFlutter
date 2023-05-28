@@ -279,7 +279,7 @@ class AppDatabase extends _$AppDatabase{
 
   @override
   // TODO: implement schemaVersion
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
