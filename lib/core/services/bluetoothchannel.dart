@@ -186,6 +186,32 @@ class BluetoothChannel{
       channel.sink.close();
     });
   }
+
+  static void getImpresoras(StreamController controller){
+    var channel = WebSocketChannel.connect(Uri.parse('ws://localhost:8999'));
+    channel.stream.listen((message) {
+      // print("principalView received! from websocket: ${generatedCuadre.length}");
+      if(sonLasImpresoras(message)){
+        String impresorasSeparadasPorComa = message.toString().split("IMPRESORAS_OBTENIDAS")[0];
+        List<String> impresoras = message.toString().split(",");
+        controller.add(impresoras);
+        channel.sink.close();
+      }else{
+        String codigoParaObtenerImpresoras = "OBTENER_IMPRESORAS";
+        List<String> generatedCuadreToWeb = [codigoParaObtenerImpresoras];
+        channel.sink.add(generatedCuadreToWeb);
+      }
+    });
+  }
+
+  static bool sonLasImpresoras(message){
+    bool son = false;
+    if(message != null){
+      if(message.toString().contains("IMPRESORAS_OBTENIDAS"));
+        return son = true;
+    }
+    return son;
+  }
   
   static quickPrint() async {
     try{

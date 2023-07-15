@@ -361,7 +361,7 @@ class MobileDB implements CrossDB{
         throw Exception("A excedido el limite de ventas de la banca: ${banca.limiteVenta}");
 
     // CREACION CODIGO BARRA
-    codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
+    // codigoBarra = "${banca.id}${Utils.dateTimeToMilisenconds(DateTime.now())}";
 
     List<Jugada> listaLoteriasJugadas = Utils.removeDuplicateLoteriasFromList(List.from(jugadas)).cast<Jugada>().toList();
     List<Jugada> listaLoteriasSuperPaleJugadas = Utils.removeDuplicateLoteriasSuperPaleFromList(List.from(jugadas)).cast<Jugada>().toList();

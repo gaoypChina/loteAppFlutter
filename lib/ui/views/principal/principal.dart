@@ -118,6 +118,7 @@ class PrincipalApp extends StatefulWidget {
 }
 
 class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver{
+  StreamController<List<String>> _streamControllerImpresoras;
   Future<Pago> _futureFactura;
   var valueNotifyDrawer = ValueNotifier<bool>(false);
   IO.Socket socket;
@@ -139,6 +140,7 @@ class _PrincipalAppState extends State<PrincipalApp> with WidgetsBindingObserver
   List<Jugada> listaJugadasSeleccionadas = [];
   List<EstadisticaJugada> listaEstadisticaJugada = [];
   bool _isSeleccionarScreen = false;
+  int _cantidadJugadasCombinadasPermitidas;
 
 String currentTimeZone;
 Future<String> _montoFuture;
@@ -373,7 +375,8 @@ String initSocketNotificationTask = "initSocketNotificationTask";
       print("PrincipalView _guardarLocal: $parsed");
       listaDatos[0].idTicket = BigInt.from(parsed["idTicket"]);
       listaDatos[0].ticket.id = BigInt.from(parsed["idTicket"]);
-      listaDatos[0].ticket.codigoBarra = listaDatos[3];
+      // listaDatos[0].ticket.codigoBarra = listaDatos[3];
+      listaDatos[0].ticket.codigoBarra = parsed["codigoBarra"];
       listaDatos[0].ticket.idBanca = listaDatos[0].idBanca;
       listaDatos[0].created_at = parsed["created_at"] != null ? _dateToDateTime(parsed) : listaDatos[0].created_at;
 
@@ -650,6 +653,7 @@ String initSocketNotificationTask = "initSocketNotificationTask";
     _streamControllerLoteria = BehaviorSubject();
     _streamControllerVenta = BehaviorSubject();
     _streamControllerJugada = BehaviorSubject();
+    _streamControllerImpresoras = BehaviorSubject();
     _streamControllerJugada.add(listaJugadas);
     
     
@@ -2251,11 +2255,55 @@ _bluetoothScreen([bool isSmallOrMedium = true]) async {
         content: Wrap(children: [
           Form(
             key: _formPrinterKey,
-            child: MyTextFormField(
-              isRequired: true,
-              controller: _txtNombreImpresora,
-              // type: MyType.normal,
-              title: "Nombre impresora",
+            child: Column(
+              children: [
+                Wrap(
+                  children: [
+                    MyTextFormField(
+                      isRequired: true,
+                      controller: _txtNombreImpresora,
+                      // type: MyType.normal,
+                      title: "Nombre impresora",
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: IconButton(
+                        icon: Icon(Icons.print), 
+                        onPressed: (){
+                          BluetoothChannel.getImpresoras(_streamControllerImpresoras);
+
+                          showDialog(
+                            context: context, 
+                            builder: (context){
+                              return AlertDialog(
+                                content: StreamBuilder<List<String>>(
+                                  stream: _streamControllerImpresoras.stream,
+                                  builder: (context, snapshot) {
+                                    if(!snapshot.hasData)
+                                      return Center(child: Text("Cargando..."),);
+
+                                    if(snapshot.hasError)
+                                      return Center(child: Text("${snapshot.error}"),);
+
+                                    return SingleChildScrollView(
+                                      child: Column(
+                                        children: [
+                                    
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                ),
+                              );
+                            }
+                          );
+                        },
+                      ),
+                    )
+                  ],
+                ),
+                MyDescripcon(title: "Cuando sea una impresora compartida se debe poener el nombre que se encuentra en Dispositivos e impresoras > NOMBRE_IMPRESORA > Propiedades de Hardware, dentro de esa ruta se mostrara un nombre como el siguiente ejemplo: \\\\192.168.12.144\\NOMBRE_IMPRESORA")
+              ],
             ),
           ),
           MySubtitle(title: "Intrucciones"),
@@ -5931,19 +5979,33 @@ void _getTime() {
     );
   }
 
+  _exedioCantidadJugadasCombinadasPermitidas(){
+    if(_cantidadJugadasCombinadasPermitidas != null){
+      int cantidadJugadasCombinadasExistentes = listaJugadas.where((element) => element.esCombinada).length;
+      return cantidadJugadasCombinadasExistentes >= _cantidadJugadasCombinadasPermitidas;
+    }
+
+    return false;
+  }
+
   _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto) async {
-    int cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
+    _cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
     int cantidadJugadasCombinadasExistentes = listaJugadas.where((element) => element.esCombinada).length;
-    if(cantidadJugadasCombinadasPermitidas == 0){
+    if(_cantidadJugadasCombinadasPermitidas == 0){
       Utils.showAlertDialog(context: context, title: "Acceso denegado", content: "No tiene permiso para combinar o ligar jugadas");
       return;
     }
 
-    if(cantidadJugadasCombinadasPermitidas != null){
-      if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas){
-        Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
-        return [];
-      }
+    // if(_cantidadJugadasCombinadasPermitidas != null){
+    //   if(cantidadJugadasCombinadasExistentes >= _cantidadJugadasCombinadasPermitidas){
+    //     Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+    //     return [];
+    //   }
+    // }
+
+    if(_exedioCantidadJugadasCombinadasPermitidas()){
+      Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+      return [];
     }
 
     ValueNotifier cargandoNotifier = ValueNotifier(true);
@@ -5995,7 +6057,7 @@ void _getTime() {
 
         
         
-        print("PrincipalScreen _ligarDirectosEnPale jugadasPermitidas: $cantidadJugadasCombinadasPermitidas");
+        print("PrincipalScreen _ligarDirectosEnPale jugadasPermitidas: $_cantidadJugadasCombinadasPermitidas");
         // int cantidadJugadasACombinar = listaJugadasLigadas.length;
         // // if((!_tienePermisoAdministrador && !_tienePermisoProgramador) && cantidadJugadasCombinadasPermitidas != null){
         // if(cantidadJugadasCombinadasPermitidas != null){
@@ -6016,7 +6078,7 @@ void _getTime() {
         //     cantidadJugadasACombinar = cantidadRestanteJugadasACombinar;
         // }
 
-        int cantidadJugadasACombinar = _cantidadJugadasACombinar(listaJugadasLigadas, cantidadJugadasCombinadasPermitidas, cantidadJugadasCombinadasExistentes) ;
+        int cantidadJugadasACombinar = _cantidadJugadasACombinar(listaJugadasLigadas, _cantidadJugadasCombinadasPermitidas, cantidadJugadasCombinadasExistentes) ;
         // for(int i=0; i < listaJugadasLigadas.length; i++){
         for(int i=0; i < cantidadJugadasACombinar; i++){
           List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false, esJugadaCombinada: true);
@@ -6052,11 +6114,16 @@ void _getTime() {
       return;
     }
 
-    if(cantidadJugadasCombinadasPermitidas != null){
-      if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas){
-        Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
-        return [];
-      }
+    // if(cantidadJugadasCombinadasPermitidas != null){
+    //   if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas){
+    //     Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+    //     return [];
+    //   }
+    // }
+
+    if(_exedioCantidadJugadasCombinadasPermitidas()){
+      Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+      return [];
     }
 
     ValueNotifier cargandoNotifier = ValueNotifier(true);
@@ -6301,6 +6368,13 @@ void _getTime() {
     if(jugada.length < 2)
       return;
 
+    if(esJugadaCombinada){
+      if(_exedioCantidadJugadasCombinadasPermitidas()){
+        List<Jugada> listaJugadasVacias = [];
+        return listaJugadasVacias;
+      }
+    }
+
     // if(montoDisponible.isEmpty)
     //   return;
 
@@ -6531,7 +6605,12 @@ void _getTime() {
   }
 
   insertarJugada({String jugada, Loteria loteria, String monto, Stock stock, bool esJugadaCombinada: false}) async {
-
+    if(esJugadaCombinada){
+      if(_exedioCantidadJugadasCombinadasPermitidas()){
+        List<Jugada> listaJugadasVacias = [];
+        return listaJugadasVacias;
+      }
+    }
     
     
     int idx = (listaJugadas.isEmpty == false) ? listaJugadas.indexWhere((j) => j.jugada == jugada && j.idLoteria == loteria.id) : -1;
