@@ -459,6 +459,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  flutter_qr_bar_scanner:
+    dependency: "direct main"
+    description:
+      name: flutter_qr_bar_scanner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -623,6 +630,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  native_device_orientation:
+    dependency: transitive
+    description:
+      name: native_device_orientation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.4"
   nested:
     dependency: transitive
     description:

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:loterias/core/classes/databasesingleton.dart';
+import 'package:loterias/core/classes/escanerqrservice.dart';
 import 'package:loterias/core/classes/utils.dart';
 import 'package:loterias/core/models/blocksplaysgenerals.dart';
 import 'package:loterias/core/models/loterias.dart';
@@ -102,6 +103,12 @@ void main() {
         print("data: $data");
         expect(data == "03", true);
       });
+    });
+
+    test("Utils escanerQr", () async {
+      var data = EscanerQr.flutter_qr_bar_scanner_google;
+      print("Utils escanerQr: ${data.toString()}");
+      expect(false, false);
     });
 
   });

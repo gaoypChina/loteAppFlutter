@@ -80,6 +80,7 @@ dependencies:
   badges: ^2.0.2
   device_information: ^0.0.4
   another_flushbar: ^1.12.29
+  flutter_qr_bar_scanner: ^3.0.2
 #  phone_form_field:
 #    git:
 #      url: https://github.com/jeancc29/phone_form_field

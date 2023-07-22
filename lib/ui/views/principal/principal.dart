@@ -20,6 +20,7 @@ import 'package:loterias/core/classes/mysocket.dart';
 import 'package:loterias/core/classes/screensize.dart';
 import 'package:loterias/core/classes/ticketimage.dart';
 import 'package:loterias/core/classes/ticketimagev2.dart';
+import 'package:loterias/core/classes/escanerqrservice.dart';
 import 'package:loterias/core/models/BlocksgeneralsJugada.dart';
 import 'package:loterias/core/models/BlockslotteriesJugada.dart';
 import 'package:loterias/core/models/blocksplaysgeneralsjugadas.dart';
@@ -44,6 +45,7 @@ import 'package:loterias/core/services/notificationservice.dart';
 import 'package:loterias/core/services/sharechannel.dart';
 import 'package:loterias/core/services/sorteoservice.dart';
 import 'package:loterias/core/services/ticketservice.dart';
+import 'package:loterias/ui/login/escanearcodigoqrwidget.dart';
 // import 'package:barcode_scan/barcode_scan.dart';
 import 'package:loterias/ui/splashscreen.dart';
 import 'package:loterias/ui/views/prueba/pruebaticketimage.dart';
@@ -2569,20 +2571,25 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
           onSelected: (String value) async {
             if(value == "duplicar"){
               try{
-                // String codigoQr = await BarcodeScanner.scan();
-                // String codigoQr = await scanner.scan();
-                String codigoQr = await FlutterBarcodeScanner.scanBarcode(
-                                                    "#38B6FF", 
-                                                    "Cancel", 
-                                                    true,
-                                                    ScanMode.QR
-                                                    );
+                
+                // String codigoQr = await FlutterBarcodeScanner.scanBarcode(
+                //                                     "#38B6FF", 
+                //                                     "Cancel", 
+                //                                     true,
+                //                                     ScanMode.QR
+                //                                     );
 
-                // print("_appBar codigoQr duplicar: $codigoQr");
+                String codigoQr = await _escanearQr();
+
+                if(codigoQr == null)
+                  return;
 
                 setState(() => _cargando = true);
-                var datos = await TicketService.duplicar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+
+                var datos = await TicketService.duplicar(codigoQr: codigoQr, context: context);
+
                 setState(() => _cargando = false);
+
                 if(datos.isNotEmpty){
                   _duplicar(datos);
                 }
@@ -2593,19 +2600,23 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
               try{
                 // String codigoQr = await BarcodeScanner.scan();
                 // String codigoQr = await scanner.scan();
-                String codigoQr = await FlutterBarcodeScanner.scanBarcode(
-                                                    "#38B6FF", 
-                                                    "Cancel", 
-                                                    true,
-                                                    ScanMode.QR
-                                                    );
+                String codigoQr = await _escanearQr();
+
+                if(codigoQr == null)
+                  return;
+
                 setState(() => _cargando = true);
-                var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, scaffoldKey: _scaffoldKey);
+
+                var datos = await TicketService.buscarTicketAPagar(codigoQr: codigoQr, context: context);
+
                 setState(() => _cargando = false);
                 Principal.showDialogPagar(context: context, scaffoldKey: _scaffoldKey, mapVenta: datos["venta"]);
               } on Exception catch(e){
                 setState(() => _cargando = false);
               }
+            }
+            else if(value == "configuracion"){
+              _configurarEscanerCodigoQr();
             }
           },
           itemBuilder: (context) => <PopupMenuEntry<String>>[
@@ -2619,7 +2630,11 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
               child: Text("Pagar")
             )
             :
-            SizedBox()
+            SizedBox(),
+            const PopupMenuItem(
+              value: "configuracion",
+              child: Text("Configuracion"),
+            ),
           ],
         ),
         _menuOpcionesWidget(screenHeightIsSmall),
@@ -2654,6 +2669,60 @@ List<Widget> _appBarActionsWidget(bool screenHeightIsSmall){
        
       ];
       
+}
+
+Future<String> _escanearQr() async {
+  bool esEscanerGoogle = await EscanerQrService.esEscanerGoogle();
+  String qrCode = esEscanerGoogle 
+    ? await Navigator.push(context, MaterialPageRoute(builder: (context) => EscanearCodigoQrWidget(title: "Escanear",)))
+    : await FlutterBarcodeScanner.scanBarcode("#38B6FF", "Cancel", true, ScanMode.QR);
+
+  return qrCode;
+}
+
+_configurarEscanerCodigoQr() async {
+  bool esEscanerGoogle = await EscanerQrService.esEscanerGoogle();
+  showDialog(
+    context: context, 
+    builder: (context) {
+      _back(){
+        Navigator.pop(context);
+      }
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text("Seleccionar escaner"),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              ListTile(
+                selected: esEscanerGoogle,
+                selectedTileColor: Colors.green[50],
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                title: Text("Escaner 1 (Google)"),
+                onTap: () async {
+                  await _guardarEscaner(EscanerQr.flutter_qr_bar_scanner_google);
+                  _back();
+                },
+              ),
+              ListTile(
+                selected: !esEscanerGoogle,
+                selectedTileColor: Colors.green[50],
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),title: Text("Escaner 2 (Externo)"),
+                onTap: () async {
+                 await _guardarEscaner(EscanerQr.flutter_barcode_scanner);
+                 _back();
+                },
+              )
+            ],
+          ),
+        ),
+      );
+    }
+  );
+}
+
+Future<void> _guardarEscaner(EscanerQr escanerQr)async {
+  await EscanerQrService.guardar(escanerQr);
 }
 
 AppBar _appBar(bool screenHeightIsSmall){
@@ -5791,7 +5860,8 @@ void _getTime() {
   _showLigarDialog() async {
     
     // setState((){
-      _ckbLigarPale = true;
+      var _ckbLigarDirecto = false;
+      _ckbLigarPale = false;
       _ckbLigarTripleta = false;
     // });
 
@@ -5872,6 +5942,22 @@ void _getTime() {
               
             }
 
+
+            Widget _miContenedor({String titulo, bool seleccionado, onTap}){
+              return GestureDetector(
+                onTap: onTap,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    // color: seleccionado ? Theme.of(context).primaryColor.withOpacity(0.2) : Colors.transparent,
+                    color: seleccionado ? Colors.blue[100] : Colors.transparent,
+                    border: seleccionado ? null : Border.all(color: Colors.grey, width: 0.3),
+                    borderRadius: BorderRadius.circular(10.0)
+                  ),
+                  child: Text(titulo, style: TextStyle(color: seleccionado ? Colors.blue[900] : null, fontWeight: FontWeight.bold, fontSize: 12),),
+                ),
+              );
+            }
            
 
             return AlertDialog(
@@ -5920,20 +6006,26 @@ void _getTime() {
                     ),
                     SizedBox(height: 20,),
                     Wrap(children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                       children: [
-                          Checkbox(value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
-                          Text("Pale"),
-                       ],
+                      _miContenedor(titulo: "Directo", seleccionado: _ckbLigarDirecto, onTap: () => setState(() => _ckbLigarDirecto = !_ckbLigarDirecto)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: _miContenedor(titulo: "Pale", seleccionado: _ckbLigarPale, onTap: () => setState(() => _ckbLigarPale = !_ckbLigarPale)),
                       ),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                       children: [
-                          Checkbox(value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value)),
-                          Text("Tripleta"),
-                       ],
-                      ),
+                      _miContenedor(titulo: "Tripleta", seleccionado: _ckbLigarTripleta, onTap: () => setState(() => _ckbLigarTripleta = !_ckbLigarTripleta)),
+                      // Wrap(
+                      //   crossAxisAlignment: WrapCrossAlignment.center,
+                      //  children: [
+                      //     Checkbox(value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
+                      //     Text("Pale"),
+                      //  ],
+                      // ),
+                      // Wrap(
+                      //   crossAxisAlignment: WrapCrossAlignment.center,
+                      //  children: [
+                      //     Checkbox(value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value)),
+                      //     Text("Tripleta"),
+                      //  ],
+                      // ),
                       // MyResizedCheckBox(small: 2, title: "Pale", value: _ckbLigarPale, onChanged: (value) => setState(() => _ckbLigarPale = value)),
                       // MyResizedCheckBox(small: 2, title: "Tripleta", value: _ckbLigarTripleta, onChanged: (value) => setState(() => _ckbLigarTripleta = value))
                     ],)
@@ -5942,11 +6034,11 @@ void _getTime() {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text("Cancelar"),
+                  child: Text("Cancelar", style: TextStyle(color: Colors.black)),
                   onPressed: (){Navigator.pop(context);},
                 ),
                 TextButton(
-                  child: Text("Ligar"),
+                  child: Text("Ligar", style: TextStyle(color: Colors.black),),
                   onPressed: () async {
                     if(_selectedLoteriasLigar.length == 0){
                       Utils.showAlertDialog(context: context, title: "Error", content: "Debe seleccionar al menos una loteria");
@@ -5958,6 +6050,12 @@ void _getTime() {
 
                     Navigator.pop(context);
                     // Map<String, dynamic> map = {"monto" : Utils.toDouble(_txtMontoLigar.text), "pale" : _ckbLigarPale, "tripleta" : _ckbLigarTripleta,};
+                    if(_ckbLigarDirecto){
+                      // Navigator.pop(context);
+                      await _ligarDirectos(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
+                      
+                    }
+
                     if(_ckbLigarPale){
                       // Navigator.pop(context);
                       await _ligarDirectosEnPale(_selectedLoteriasLigar, Utils.toDouble(_txtMontoLigar.text));
@@ -5987,6 +6085,104 @@ void _getTime() {
 
     return false;
   }
+
+  _ligarDirectos(List<Loteria> loteriasSeleccionadas, double monto) async {
+    _cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
+    int cantidadJugadasCombinadasExistentes = listaJugadas.where((element) => element.esCombinada).length;
+    if(_cantidadJugadasCombinadasPermitidas == 0){
+      Utils.showAlertDialog(context: context, title: "Acceso denegado", content: "No tiene permiso para combinar o ligar jugadas");
+      return;
+    }
+
+    if(_exedioCantidadJugadasCombinadasPermitidas()){
+      Utils.showAlertDialog(context: context, title: "Advertencia", content: "Ya no puede combinar o ligar mas jugadas para este ticket");
+      return [];
+    }
+
+    ValueNotifier cargandoNotifier = ValueNotifier(true);
+    List<String> listaJugadasLigadas = [];
+    int idLoteria;
+    //Buscamos los directos de las jugadas realizadas 
+    var listaJugadaPaleTripletaYSuperpale = listaJugadas.where((e) => e.idSorteo == Draws.idSorteoPale || e.idSorteo == Draws.idSorteoTripleta || e.idSorteo == Draws.idSorteoSuperpale).toList();
+    
+    //Ordenamos los directos de menor a mayor
+    listaJugadaPaleTripletaYSuperpale.sort((a, b) => a.jugada.compareTo(b.jugada));
+
+    //Eliminamos las jugadas duplicadas
+    listaJugadaPaleTripletaYSuperpale = Utils.removeDuplicateJugadasFromList(listaJugadaPaleTripletaYSuperpale);
+    
+    //Vamos a recorrer dos ciclos
+    //En el primer ciclo recorremos todos los numeros
+    //En el segundo recorremos todos los numeros que sean mayores que el numero del primer ciclo
+    for(int i=0; i < listaJugadaPaleTripletaYSuperpale.length; i++){
+      for(int i2=0; i2 < listaJugadaPaleTripletaYSuperpale[i].jugada.length / 2; i2++) {
+        if(i2 == 0)
+          listaJugadasLigadas.add(listaJugadaPaleTripletaYSuperpale[i].jugada.substring(i2, i2 + 2));
+        else
+          listaJugadasLigadas.add(listaJugadaPaleTripletaYSuperpale[i].jugada.substring(i2 * 2, i2 * 2 + 2));
+      }
+      
+    }
+
+    listaJugadasLigadas = listaJugadasLigadas.unique();
+
+    
+    await TicketService.showDialogJugadasSinMontoDisponible(
+      context, 
+      () async {
+        List<Jugada> listaJugadasSinMontoDisponible = [];
+
+        
+        
+        print("PrincipalScreen _ligarDirectosEnPale jugadasPermitidas: $_cantidadJugadasCombinadasPermitidas");
+        // int cantidadJugadasACombinar = listaJugadasLigadas.length;
+        // // if((!_tienePermisoAdministrador && !_tienePermisoProgramador) && cantidadJugadasCombinadasPermitidas != null){
+        // if(cantidadJugadasCombinadasPermitidas != null){
+        //   int cantidadRestanteJugadasACombinar = 0;
+        //   // if(cantidadJugadasACombinar > cantidadJugadasCombinadasExistentes)
+        //   //   cantidadRestanteJugadasACombinar =  cantidadJugadasACombinar - cantidadJugadasCombinadasExistentes;
+        //   // else
+        //   //   cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasExistentes - cantidadJugadasACombinar;
+
+        //   // cantidadJugadasACombinar = cantidadRestanteJugadasACombinar > cantidadJugadasCombinadasPermitidas ? cantidadRestanteJugadasACombinar : 0;
+
+        //   if(cantidadJugadasCombinadasExistentes >= cantidadJugadasCombinadasPermitidas)
+        //     cantidadRestanteJugadasACombinar = 0;
+        //   else
+        //     cantidadRestanteJugadasACombinar = cantidadJugadasCombinadasPermitidas - cantidadJugadasCombinadasExistentes;
+
+        //   if(cantidadJugadasACombinar > cantidadRestanteJugadasACombinar)
+        //     cantidadJugadasACombinar = cantidadRestanteJugadasACombinar;
+        // }
+
+        int cantidadJugadasACombinar = _cantidadJugadasACombinar(listaJugadasLigadas, _cantidadJugadasCombinadasPermitidas, cantidadJugadasCombinadasExistentes) ;
+        // for(int i=0; i < listaJugadasLigadas.length; i++){
+        for(int i=0; i < cantidadJugadasACombinar; i++){
+          List<Jugada> listaJugadasSinMontoDisponibleTmp = await addJugada(jugada: Utils.ordenarMenorAMayor((listaJugadasLigadas[i])), montoDisponible: monto.toString(), monto: monto.toString(), selectedLoterias: loteriasSeleccionadas, cambiarFocusJugadaMonto: false, esJugadaCombinada: true);
+          if(listaJugadasSinMontoDisponibleTmp.length > 0)
+            listaJugadasSinMontoDisponible.addAll(listaJugadasSinMontoDisponibleTmp);
+        }
+
+        if(listaJugadasSinMontoDisponible.length == 0)
+          Navigator.pop(context);
+        else
+          cargandoNotifier.value = false;
+
+        return listaJugadasSinMontoDisponible;
+      },
+      title: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? Text('Combinando...', softWrap: true) : Text('Error monto', softWrap: true,)
+      ),
+      okButton: ValueListenableBuilder(
+        valueListenable: cargandoNotifier, 
+        builder: (context, value, __) => value ? SizedBox.shrink() : TextButton(onPressed: () => Navigator.pop(context), child: Text("Ok", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))
+      ),
+    );
+    
+
+  }
+
 
   _ligarDirectosEnPale(List<Loteria> loteriasSeleccionadas, double monto) async {
     _cantidadJugadasCombinadasPermitidas = (await getBanca()).cantidadCombinacionesJugadasPermitidasPorTicket;
