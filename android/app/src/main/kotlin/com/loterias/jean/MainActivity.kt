@@ -272,26 +272,55 @@ class MainActivity: FlutterActivity() {
     fun printText(call: MethodCall, result: MethodChannel.Result){
         val args = call.arguments<Map<String, Any>>()
         val map : Map<Int, Any> = args?.get("data") as Map<Int, Any>
+        var datosAImprimir : ByteArray = byteArrayOf();
         for (i in 0 until map.size){
 
             val m : Map<String, Any> = map[i] as Map<String, Any>
-            when(m["cmd"]){
-                "PRINT" -> bluetoothManagerConnection.POS_S_TextOut(m["text"] as String, 0, m["nWidthTimes"] as Int, 1, 0, 0x00)
-                "ALIGN" -> bluetoothManagerConnection.POS_S_Align(m["text"] as Int)
-                "QR" -> bluetoothManagerConnection.POS_S_SetQRcode(m["text"] as String, 8, 0, 3)
-                "prueba" -> bluetoothManagerConnection.prueba(m["text"] as String)
-                "h1" -> bluetoothManagerConnection.h1(m["text"] as String)
-                "h2" -> bluetoothManagerConnection.h2(m["text"] as String)
-                "textSizeDoubleWidth" -> bluetoothManagerConnection.textSizeDoubleWidth(m["text"] as String)
-                "p" -> bluetoothManagerConnection.p(m["text"] as String)
-                "left" -> bluetoothManagerConnection.left()
-                "right" -> bluetoothManagerConnection.right()
-                "center" -> bluetoothManagerConnection.center()
-                "qr" -> bluetoothManagerConnection.qr(m["text"] as String)
-                "textBoldOn" -> bluetoothManagerConnection.textBoldOn()
-                "textBoldOff" -> bluetoothManagerConnection.textBoldOff()
-            }
+
+            if(m["cmd"] == "PRINT")
+                datosAImprimir += bluetoothManagerConnection.POS_S_TextOut(m["text"] as String, 0, m["nWidthTimes"] as Int, 1, 0, 0x00);
+            else if(m["cmd"] == "ALIGN")
+                datosAImprimir += bluetoothManagerConnection.POS_S_Align(m["text"] as Int)
+            else if(m["cmd"] == "QR")
+                datosAImprimir += bluetoothManagerConnection.POS_S_SetQRcode(m["text"] as String, 8, 0, 3)
+            else if(m["cmd"] == "h1")
+                datosAImprimir += bluetoothManagerConnection.h1(m["text"] as String)
+            else if(m["cmd"] == "h2")
+                datosAImprimir += bluetoothManagerConnection.h2(m["text"] as String)
+            else if(m["cmd"] == "textSizeDoubleWidth")
+                datosAImprimir += bluetoothManagerConnection.textSizeDoubleWidth(m["text"] as String)
+            else if(m["cmd"] == "p")
+                datosAImprimir += bluetoothManagerConnection.p(m["text"] as String)
+            else if(m["cmd"] == "left")
+                datosAImprimir += bluetoothManagerConnection.left()
+            else if(m["cmd"] == "right")
+                datosAImprimir += bluetoothManagerConnection.right()
+            else if(m["cmd"] == "center")
+                datosAImprimir += bluetoothManagerConnection.center()
+            else if(m["cmd"] == "qr")
+                datosAImprimir += bluetoothManagerConnection.qr(m["text"] as String)
+            else if(m["cmd"] == "textBoldOn")
+                datosAImprimir += bluetoothManagerConnection.textBoldOn()
+            else if(m["cmd"] == "textBoldOff")
+                datosAImprimir += bluetoothManagerConnection.textBoldOff()
+//            when(m["cmd"]){
+//                "PRINT" -> bluetoothManagerConnection.POS_S_TextOut(m["text"] as String, 0, m["nWidthTimes"] as Int, 1, 0, 0x00)
+//                "ALIGN" -> bluetoothManagerConnection.POS_S_Align(m["text"] as Int)
+//                "QR" -> bluetoothManagerConnection.POS_S_SetQRcode(m["text"] as String, 8, 0, 3)
+//                "prueba" -> bluetoothManagerConnection.prueba(m["text"] as String)
+//                "h1" -> bluetoothManagerConnection.h1(m["text"] as String)
+//                "h2" -> bluetoothManagerConnection.h2(m["text"] as String)
+//                "textSizeDoubleWidth" -> bluetoothManagerConnection.textSizeDoubleWidth(m["text"] as String)
+//                "p" -> bluetoothManagerConnection.p(m["text"] as String)
+//                "left" -> bluetoothManagerConnection.left()
+//                "right" -> bluetoothManagerConnection.right()
+//                "center" -> bluetoothManagerConnection.center()
+//                "qr" -> bluetoothManagerConnection.qr(m["text"] as String)
+//                "textBoldOn" -> bluetoothManagerConnection.textBoldOn()
+//                "textBoldOff" -> bluetoothManagerConnection.textBoldOff()
+//            }
         }
+        bluetoothManagerConnection.imprimir(datosAImprimir)
         CoroutineScope(Dispatchers.Main).launch {
             result.success(true)
         }
