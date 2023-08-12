@@ -509,10 +509,10 @@ class _BancasAddScreenState extends State<BancasAddScreen> with TickerProviderSt
           return;
         }
 
-        if(_pagosCombinacionesFieldsAreEmpty()){
-          Utils.showAlertDialog(title: "Error", content: "Hay campos vacios en la venta premios", context: context);
-          return;
-        }
+        // if(_pagosCombinacionesFieldsAreEmpty()){
+        //   Utils.showAlertDialog(title: "Error", content: "Hay campos vacios en la venta premios", context: context);
+        //   return;
+        // }
 
         _data.descripcion = _txtDescripcion.text;
         _data.codigo = _txtCodigo.text;
